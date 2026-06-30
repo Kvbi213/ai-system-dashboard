@@ -7,6 +7,11 @@ const __dirname = path.dirname(__filename);
 
 const dbPath = path.resolve(__dirname, '../data/tasks.sqlite');
 
+import fs from 'fs';
+if (!fs.existsSync(path.dirname(dbPath))) {
+  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+}
+
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('[!] ERROR: Nie można połączyć z bazą danych:', err.message);
