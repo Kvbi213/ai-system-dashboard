@@ -218,7 +218,7 @@ const SettingsPage = () => {
                       localStorage.setItem('system_user_name', e.target.value);
                       window.dispatchEvent(new CustomEvent('userNameChanged', { detail: e.target.value }));
                     }}
-                    className="bg-black/40 border border-border rounded-lg px-3 py-1.5 focus:border-accentPrimary outline-none text-textPrimary font-mono w-32 md:w-48 text-sm"
+                    className="bg-surface border border-border rounded-lg px-3 py-1.5 focus:border-accentPrimary outline-none text-textPrimary font-mono w-32 md:w-48 text-sm"
                     placeholder="Wpisz imię..."
                   />
                 </SettingRow>

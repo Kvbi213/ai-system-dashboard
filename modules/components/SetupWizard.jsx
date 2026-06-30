@@ -97,7 +97,7 @@ const SetupWizard = ({ onComplete }) => {
           type="text" 
           value={userName} 
           onChange={(e) => setUserName(e.target.value)} 
-          className="w-full bg-surface/50 border border-border rounded-xl px-4 py-3 focus:outline-none focus:border-accentPrimary text-textPrimary"
+          className="w-full bg-surface border border-border rounded-xl px-4 py-3 focus:outline-none focus:border-accentPrimary text-textPrimary"
           placeholder="np. Twój pseudonim"
         />
       </div>
