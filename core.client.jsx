@@ -63,34 +63,37 @@ const App = () => {
       document.documentElement.style.setProperty('--color-accent-secondary', savedAccentHex);
     }
 
-    const token = sessionStorage.getItem('dashboard_token');
-    
-    axios.get('/api/system/keys-status')
-      .then((res) => {
-        if (res.data.missing && res.data.missing.length > 0) {
-          setMissingKeys(res.data.missing);
-          setIsVerifying(false);
-          return;
-        }
+    const checkKeysStatus = () => {
+      const token = sessionStorage.getItem('dashboard_token');
+      axios.get('/api/system/keys-status')
+        .then((res) => {
+          if (res.data.missing && res.data.missing.length > 0) {
+            setMissingKeys(res.data.missing);
+            setIsVerifying(false);
+            return;
+          }
 
-        if (token) {
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          axios.get('/api/auth/verify')
-            .then(() => setIsAuthenticated(true))
-            .catch(() => {
-              sessionStorage.removeItem('dashboard_token');
-              delete axios.defaults.headers.common['Authorization'];
-              setIsAuthenticated(false);
-            })
-            .finally(() => setIsVerifying(false));
-        } else {
-          setIsVerifying(false);
-        }
-      })
-      .catch((err) => {
-        console.error("Błąd pobierania statusu kluczy:", err);
-        setIsVerifying(false);
-      });
+          if (token) {
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            axios.get('/api/auth/verify')
+              .then(() => setIsAuthenticated(true))
+              .catch(() => {
+                sessionStorage.removeItem('dashboard_token');
+                delete axios.defaults.headers.common['Authorization'];
+                setIsAuthenticated(false);
+              })
+              .finally(() => setIsVerifying(false));
+          } else {
+            setIsVerifying(false);
+          }
+        })
+        .catch((err) => {
+          console.error("Błąd pobierania statusu kluczy, ponawianie za 1s:", err);
+          setTimeout(checkKeysStatus, 1000);
+        });
+    };
+
+    checkKeysStatus();
   }, []);
 
   useEffect(() => {
