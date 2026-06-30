@@ -10,7 +10,7 @@ import fs from 'fs';
 
 dotenv.config();
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || 'unconfigured_key' });
 
 const getSystemPrompt = (userName) => `Jesteś autonomicznym asystentem AI systemu System Dashboard. Twoim zadaniem jest pełnić rolę głównego asystenta dla ${userName} (zwracaj się do niego naturalnie i z szacunkiem).
 Twój charakter: Inteligentny, kompetentny i profesjonalny.
