@@ -103,6 +103,7 @@ const agentTools = [
       parameters: {
         type: 'object',
         properties: {
+          items: { type: 'array', description: 'Tablica obiektów (title, target_date, itp) dla masowego dodawania', items: { type: 'object' } },
           title: { type: 'string' },
           target_date: { type: 'string', description: 'YYYY-MM-DD' },
           target_time: { type: 'string', description: 'HH:MM' },
@@ -134,6 +135,7 @@ const agentTools = [
       parameters: {
         type: 'object',
         properties: {
+          items: { type: 'array', description: 'Tablica obiektów {task_id, status, priority, title} do masowej edycji', items: { type: 'object' } },
           task_id: { type: 'string', description: 'ID zadania do zmiany, albo lista ID oddzielona przecinkiem (np. "1, 2, 3")' },
           status: { type: 'string', enum: ['pending', 'completed'] },
           priority: { type: 'string', enum: ['HIGH', 'MEDIUM', 'LOW'] },
@@ -217,6 +219,7 @@ const agentTools = [
           parameters: {
               type: "object",
               properties: {
+                  items: { type: 'array', description: 'Tablica obiektów (title, event_date, itp) dla masowego dodawania', items: { type: 'object' } },
                   title: { type: "string" },
                   event_date: { type: "string", description: "Format YYYY-MM-DD" },
                   event_time: { type: "string", description: "Opcjonalnie: Format HH:MM" },
@@ -225,6 +228,24 @@ const agentTools = [
                   reminder_minutes: { type: "integer", description: "Opcjonalnie: ile minut przed wydarzeniem wysłać przypomnienie na telefon, np. 15, 60" }
               },
               required: ["title", "event_date"]
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
+          name: "UPDATE_CALENDAR_EVENT",
+          description: "Aktualizuje wydarzenie w kalendarzu. Możesz edytować wiele na raz podając tablicę 'items'.",
+          parameters: {
+              type: "object",
+              properties: {
+                  items: { type: 'array', description: 'Tablica obiektów {id, title, event_date, event_time, description} do masowej edycji', items: { type: 'object' } },
+                  id: { type: "string", description: "ID wydarzenia do zmiany, albo lista ID (np. '1, 2')" },
+                  title: { type: "string" },
+                  event_date: { type: "string" },
+                  event_time: { type: "string" },
+                  description: { type: "string" }
+              }
           }
       }
   },
@@ -433,14 +454,18 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
           toolResultsText += `\nNarzędzie executeWebSearch zwróciło: ${JSON.stringify(results)}`;
 
         } else if (toolCall.function.name === 'ADD_TO_DO') {
-          const rec = await executeRun(
-            'INSERT INTO tasks (title, target_date, target_time, priority, category, recurrence_rule) VALUES (?, ?, ?, ?, ?, ?)',
-            [args.title, args.target_date || today, args.target_time || '12:00', args.priority || 'MEDIUM', args.category || 'jednorazowe', args.recurrence_rule || null]
-          );
-          if (args.recurrence_rule && args.category === 'powtarzalne') {
-            registerRecurringJob(args.title, args.recurrence_rule, rec.id);
+          const itemsToProcess = args.items && args.items.length > 0 ? args.items : [args];
+          for (const item of itemsToProcess) {
+            if (!item.title) continue;
+            const rec = await executeRun(
+              'INSERT INTO tasks (title, target_date, target_time, priority, category, recurrence_rule) VALUES (?, ?, ?, ?, ?, ?)',
+              [item.title, item.target_date || today, item.target_time || '12:00', item.priority || 'MEDIUM', item.category || 'jednorazowe', item.recurrence_rule || null]
+            );
+            if (item.recurrence_rule && item.category === 'powtarzalne') {
+              registerRecurringJob(item.title, item.recurrence_rule, rec.id);
+            }
+            toolResultsText += `\nNarzędzie ADD_TO_DO zwróciło: Success, Task ID: ${rec.id}`;
           }
-          toolResultsText += `\nNarzędzie ADD_TO_DO zwróciło: Success, Task ID: ${rec.id}`;
 
         } else if (toolCall.function.name === 'DELETE_TO_DO') {
           if (args.task_id === 'all') await executeRun('DELETE FROM tasks');
@@ -451,16 +476,21 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
           toolResultsText += `\nNarzędzie DELETE_TO_DO zwróciło: Success`;
           
         } else if (toolCall.function.name === 'UPDATE_TO_DO') {
-          const updates = [];
-          const values = [];
-          if (args.status) { updates.push('status = ?'); values.push(args.status); }
-          if (args.priority) { updates.push('priority = ?'); values.push(args.priority); }
-          if (args.title) { updates.push('title = ?'); values.push(args.title); }
-          
-          if (updates.length > 0) {
-            let ids = Array.isArray(args.task_id) ? args.task_id : (typeof args.task_id === 'string' && args.task_id.includes(',') ? args.task_id.split(',') : [args.task_id]);
-            for (const id of ids) {
-              await executeRun(`UPDATE tasks SET ${updates.join(', ')} WHERE id = ?`, [...values, parseInt(id, 10)]);
+          const itemsToProcess = args.items && args.items.length > 0 ? args.items : [args];
+          for (const item of itemsToProcess) {
+            const updates = [];
+            const values = [];
+            if (item.status) { updates.push('status = ?'); values.push(item.status); }
+            if (item.priority) { updates.push('priority = ?'); values.push(item.priority); }
+            if (item.title) { updates.push('title = ?'); values.push(item.title); }
+            if (item.target_date) { updates.push('target_date = ?'); values.push(item.target_date); }
+            if (item.target_time) { updates.push('target_time = ?'); values.push(item.target_time); }
+            
+            if (updates.length > 0 && item.task_id) {
+              let ids = Array.isArray(item.task_id) ? item.task_id : (typeof item.task_id === 'string' && item.task_id.includes(',') ? item.task_id.split(',') : [item.task_id]);
+              for (const id of ids) {
+                await executeRun(`UPDATE tasks SET ${updates.join(', ')} WHERE id = ?`, [...values, parseInt(id, 10)]);
+              }
             }
           }
           toolResultsText += `\nNarzędzie UPDATE_TO_DO zwróciło: Success`;
@@ -504,11 +534,34 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
           const res = await learnFact(args.fact, args.category);
           toolResultsText += `\nNarzędzie LEARN_FACT zwróciło: ${JSON.stringify(res)}`;
         } else if (toolCall.function.name === 'ADD_CALENDAR_EVENT') {
-          const res = await executeRun(
-            'INSERT INTO calendar_events (title, event_date, event_time, description, recurrence_rule, reminder_minutes) VALUES (?, ?, ?, ?, ?, ?)',
-            [args.title, args.event_date, args.event_time || null, args.description || null, args.recurrence_rule || null, args.reminder_minutes || null]
-          );
-          toolResultsText += `\nNarzędzie ADD_CALENDAR_EVENT zwróciło: Success, Event ID: ${res.id}`;
+          const itemsToProcess = args.items && args.items.length > 0 ? args.items : [args];
+          for (const item of itemsToProcess) {
+            if (!item.title || !item.event_date) continue;
+            const res = await executeRun(
+              'INSERT INTO calendar_events (title, event_date, event_time, description, recurrence_rule, reminder_minutes) VALUES (?, ?, ?, ?, ?, ?)',
+              [item.title, item.event_date, item.event_time || null, item.description || null, item.recurrence_rule || null, item.reminder_minutes || null]
+            );
+            toolResultsText += `\nNarzędzie ADD_CALENDAR_EVENT zwróciło: Success, Event ID: ${res.id}`;
+          }
+        
+        } else if (toolCall.function.name === 'UPDATE_CALENDAR_EVENT') {
+          const itemsToProcess = args.items && args.items.length > 0 ? args.items : [args];
+          for (const item of itemsToProcess) {
+            const updates = [];
+            const values = [];
+            if (item.title) { updates.push('title = ?'); values.push(item.title); }
+            if (item.event_date) { updates.push('event_date = ?'); values.push(item.event_date); }
+            if (item.event_time) { updates.push('event_time = ?'); values.push(item.event_time); }
+            if (item.description) { updates.push('description = ?'); values.push(item.description); }
+            
+            if (updates.length > 0 && item.id) {
+              let ids = Array.isArray(item.id) ? item.id : (typeof item.id === 'string' && item.id.includes(',') ? item.id.split(',') : [item.id]);
+              for (const id of ids) {
+                await executeRun(`UPDATE calendar_events SET ${updates.join(', ')} WHERE id = ?`, [...values, parseInt(id, 10)]);
+              }
+            }
+          }
+          toolResultsText += `\nNarzędzie UPDATE_CALENDAR_EVENT zwróciło: Success`;
         
         } else if (toolCall.function.name === 'PERFORM_OSINT_SCAN') {
           const res = await performOSINTScan(args.target);
