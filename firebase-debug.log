@@ -1,0 +1,38 @@
+[debug] [2026-06-29T09:14:17.185Z] ----------------------------------------------------------------------
+[debug] [2026-06-29T09:14:17.190Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Jakub Lis\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js projects:list
+[debug] [2026-06-29T09:14:17.191Z] CLI Version:   15.18.0
+[debug] [2026-06-29T09:14:17.191Z] Platform:      win32
+[debug] [2026-06-29T09:14:17.191Z] Node Version:  v22.20.0
+[debug] [2026-06-29T09:14:17.192Z] Time:          Mon Jun 29 2026 11:14:17 GMT+0200 (czas środkowoeuropejski letni)
+[debug] [2026-06-29T09:14:17.192Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-06-29T09:14:17.198Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-06-29T09:14:17.258Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-06-29T09:14:17.259Z] > authorizing via signed-in user (lisjakub2106@gmail.com)
+[debug] [2026-06-29T09:14:17.265Z] Checked if tokens are valid: false, expires at: 1781778899148
+[debug] [2026-06-29T09:14:17.265Z] Checked if tokens are valid: false, expires at: 1781778899148
+[debug] [2026-06-29T09:14:17.266Z] > refreshing access token with scopes: []
+[debug] [2026-06-29T09:14:17.268Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-06-29T09:14:17.268Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-06-29T09:14:17.947Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-06-29T09:14:17.947Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-06-29T09:14:17.968Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2026-06-29T09:14:18.250Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2026-06-29T09:14:18.251Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2026-06-29T09:14:19.456Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2026-06-29T09:14:19.457Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[info] ┌──────────────────────┬────────────────────────┬────────────────┬──────────────────────┐
+│ Project Display Name │ Project ID             │ Project Number │ Resource Location ID │
+├──────────────────────┼────────────────────────┼────────────────┼──────────────────────┤
+│ Mobilny Klub Fox     │ mobilny-klub-fox-df269 │ 295256971129   │ [Not specified]      │
+├──────────────────────┼────────────────────────┼────────────────┼──────────────────────┤
+│ SilvaDus             │ modularis-v6           │ 333709421293   │ [Not specified]      │
+├──────────────────────┼────────────────────────┼────────────────┼──────────────────────┤
+│ PoolDrop             │ pooldrop-hub-v1        │ 690390100664   │ [Not specified]      │
+├──────────────────────┼────────────────────────┼────────────────┼──────────────────────┤
+│ TDMO                 │ tdmo-1                 │ 1009144098013  │ [Not specified]      │
+├──────────────────────┼────────────────────────┼────────────────┼──────────────────────┤
+│ TDMO                 │ tdmo-2                 │ 867953226497   │ [Not specified]      │
+└──────────────────────┴────────────────────────┴────────────────┴──────────────────────┘
+[info] 
+[info] 5 project(s) total.

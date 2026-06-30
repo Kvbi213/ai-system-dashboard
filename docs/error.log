@@ -1,0 +1,123 @@
+[2026-06-15T12:29:58.701Z] [loadRecurringJobs] SQLITE_ERROR: no such column: recurrence_rule
+Error: SQLITE_ERROR: no such column: recurrence_rule
+---
+[2026-06-15T12:29:59.260Z] [loadRecurringJobs] SQLITE_ERROR: no such column: recurrence_rule
+Error: SQLITE_ERROR: no such column: recurrence_rule
+---
+[2026-06-16T08:34:41.563Z] [fetchWeather] self-signed certificate in certificate chain
+Error: self-signed certificate in certificate chain
+    at AxiosError.from (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/node_modules/axios/lib/core/AxiosError.js:77:24)
+    at RedirectableRequest.handleRequestError (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/node_modules/axios/lib/adapters/http.js:1192:27)
+    at RedirectableRequest.emit (node:events:531:35)
+    at eventHandlers.<computed> (C:\Users\Jakub Lis\Desktop\AI system dashboard\node_modules\follow-redirects\index.js:56:24)
+    at ClientRequest.emit (node:events:519:28)
+    at emitErrorEvent (node:_http_client:105:11)
+    at TLSSocket.socketErrorListener (node:_http_client:518:5)
+    at TLSSocket.emit (node:events:531:35)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+    at Axios.request (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/node_modules/axios/lib/core/Axios.js:46:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async fetchWeather (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/modules/scheduler.js:26:24)
+    at async hourlyJob (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/modules/scheduler.js:153:21)
+---
+[2026-06-17T07:12:48.708Z] [Express [POST /api/voice/transcribe]] request entity too large
+PayloadTooLargeError: request entity too large
+    at readStream (C:\Users\Jakub Lis\Desktop\AI system dashboard\node_modules\raw-body\index.js:163:17)
+    at getRawBody (C:\Users\Jakub Lis\Desktop\AI system dashboard\node_modules\raw-body\index.js:116:12)
+    at read (C:\Users\Jakub Lis\Desktop\AI system dashboard\node_modules\body-parser\lib\read.js:79:3)
+    at jsonParser (C:\Users\Jakub Lis\Desktop\AI system dashboard\node_modules\body-parser\lib\types\json.js:138:5)
+    at Layer.handle [as handle_request] (C:\Users\Jakub Lis\Desktop\AI system dashboard\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jakub Lis\Desktop\AI system dashboard\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jakub Lis\Desktop\AI system dashboard\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jakub Lis\Desktop\AI system dashboard\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jakub Lis\Desktop\AI system dashboard\node_modules\express\lib\router\index.js:280:10)
+    at cors (C:\Users\Jakub Lis\Desktop\AI system dashboard\node_modules\cors\lib\index.js:188:7)
+---
+[2026-06-18T15:45:47.818Z] [fetchWeather] getaddrinfo ENOTFOUND api.open-meteo.com
+Error: getaddrinfo ENOTFOUND api.open-meteo.com
+    at AxiosError.from (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/node_modules/axios/lib/core/AxiosError.js:77:24)
+    at RedirectableRequest.handleRequestError (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/node_modules/axios/lib/adapters/http.js:1192:27)
+    at RedirectableRequest.emit (node:events:531:35)
+    at eventHandlers.<computed> (C:\Users\Jakub Lis\Desktop\AI system dashboard\node_modules\follow-redirects\index.js:56:24)
+    at ClientRequest.emit (node:events:519:28)
+    at emitErrorEvent (node:_http_client:105:11)
+    at TLSSocket.socketErrorListener (node:_http_client:518:5)
+    at TLSSocket.emit (node:events:531:35)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+    at Axios.request (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/node_modules/axios/lib/core/Axios.js:46:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async fetchWeather (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/modules/scheduler.js:26:24)
+    at async Timeout.hourlyJob [as _onTimeout] (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/modules/scheduler.js:153:21)
+---
+[2026-06-18T21:39:05.806Z] [fetchWeather] getaddrinfo ENOTFOUND api.open-meteo.com
+Error: getaddrinfo ENOTFOUND api.open-meteo.com
+    at AxiosError.from (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/node_modules/axios/lib/core/AxiosError.js:77:24)
+    at RedirectableRequest.handleRequestError (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/node_modules/axios/lib/adapters/http.js:1192:27)
+    at RedirectableRequest.emit (node:events:531:35)
+    at eventHandlers.<computed> (C:\Users\Jakub Lis\Desktop\AI system dashboard\node_modules\follow-redirects\index.js:56:24)
+    at ClientRequest.emit (node:events:519:28)
+    at emitErrorEvent (node:_http_client:105:11)
+    at TLSSocket.socketErrorListener (node:_http_client:518:5)
+    at TLSSocket.emit (node:events:531:35)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+    at Axios.request (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/node_modules/axios/lib/core/Axios.js:46:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async fetchWeather (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/modules/scheduler.js:26:24)
+    at async Timeout.hourlyJob [as _onTimeout] (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/modules/scheduler.js:153:21)
+---
+[2026-06-18T21:39:11.828Z] [fetchWeather] getaddrinfo ENOTFOUND api.open-meteo.com
+Error: getaddrinfo ENOTFOUND api.open-meteo.com
+    at AxiosError.from (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/node_modules/axios/lib/core/AxiosError.js:77:24)
+    at RedirectableRequest.handleRequestError (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/node_modules/axios/lib/adapters/http.js:1192:27)
+    at RedirectableRequest.emit (node:events:531:35)
+    at eventHandlers.<computed> (C:\Users\Jakub Lis\Desktop\AI system dashboard\node_modules\follow-redirects\index.js:56:24)
+    at ClientRequest.emit (node:events:519:28)
+    at emitErrorEvent (node:_http_client:105:11)
+    at TLSSocket.socketErrorListener (node:_http_client:518:5)
+    at TLSSocket.emit (node:events:531:35)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+    at Axios.request (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/node_modules/axios/lib/core/Axios.js:46:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async fetchWeather (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/modules/scheduler.js:26:24)
+    at async Timeout.hourlyJob [as _onTimeout] (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard/modules/scheduler.js:153:21)
+---
+[2026-06-29T15:02:32.658Z] [POST /api/voice/transcribe] 401 {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+Error: 401 {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+    at APIError.generate (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/node_modules/groq-sdk/error.mjs:39:20)
+    at Groq.makeStatusError (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/node_modules/groq-sdk/core.mjs:256:25)
+    at Groq.makeRequest (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/node_modules/groq-sdk/core.mjs:299:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async transcribeAudio (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/modules/agent.js:322:27)
+    at async file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/core.server.js:200:18
+---
+[2026-06-29T15:02:38.966Z] [POST /api/voice/transcribe] 401 {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+Error: 401 {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+    at APIError.generate (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/node_modules/groq-sdk/error.mjs:39:20)
+    at Groq.makeStatusError (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/node_modules/groq-sdk/core.mjs:256:25)
+    at Groq.makeRequest (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/node_modules/groq-sdk/core.mjs:299:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async transcribeAudio (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/modules/agent.js:322:27)
+    at async file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/core.server.js:200:18
+---
+[2026-06-30T21:16:05.675Z] [POST /api/voice/transcribe] 401 {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+Error: 401 {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+    at APIError.generate (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/node_modules/groq-sdk/error.mjs:39:20)
+    at Groq.makeStatusError (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/node_modules/groq-sdk/core.mjs:256:25)
+    at Groq.makeRequest (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/node_modules/groq-sdk/core.mjs:299:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async transcribeAudio (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/modules/agent.js:344:27)
+    at async file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/core.server.js:200:18
+---
+[2026-06-30T21:16:24.140Z] [POST /api/voice/transcribe] 401 {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+Error: 401 {"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+    at APIError.generate (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/node_modules/groq-sdk/error.mjs:39:20)
+    at Groq.makeStatusError (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/node_modules/groq-sdk/core.mjs:256:25)
+    at Groq.makeRequest (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/node_modules/groq-sdk/core.mjs:299:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async transcribeAudio (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/modules/agent.js:344:27)
+    at async file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/core.server.js:200:18
+---
