@@ -73,7 +73,26 @@ Aplikacja podzielona jest na dwa wysoce zoptymalizowane środowiska:
 Dzięki architekturze plikowej (SQLite), projekt jest gotowy do działania w kilka minut.
 
 ### 1. Wymagania
-Upewnij się, że posiadasz zainstalowane na swoim komputerze środowisko **Node.js** w wersji minimum `18.0.0` oraz standardowy menedżer pakietów `npm`.
+Upewnij się, że posiadasz zainstalowane na swoim komputerze środowisko **Node.js** (wersja minimum `18.0.0`) oraz narzędzie **Git**.
+
+Jeśli ich nie masz, możesz zainstalować je kopiując i wklejając poniższe komendy w swoim terminalu:
+
+**Windows (używając PowerShell jako administrator):**
+```bash
+winget install OpenJS.NodeJS
+winget install Git.Git
+```
+
+**macOS (wymaga Homebrew):**
+```bash
+brew install node git
+```
+
+**Linux (Debian/Ubuntu):**
+```bash
+sudo apt update
+sudo apt install nodejs npm git
+```
 
 ### 2. Klonowanie repozytorium
 Pobierz kod źródłowy na swój dysk:
