@@ -121,7 +121,7 @@ const agentTools = [
       description: 'Usuwa zadanie z bazy na podstawie ID.',
       parameters: {
         type: 'object',
-        properties: { task_id: { type: 'string', description: 'ID zadania, np. 5 lub "all"' } },
+        properties: { task_id: { type: 'string', description: 'ID zadania (np. 5), "all", albo lista ID oddzielona przecinkiem (np. "1, 2, 3")' } },
         required: ['task_id'],
       },
     },
@@ -134,7 +134,7 @@ const agentTools = [
       parameters: {
         type: 'object',
         properties: {
-          task_id: { type: 'string', description: 'ID zadania do zmiany' },
+          task_id: { type: 'string', description: 'ID zadania do zmiany, albo lista ID oddzielona przecinkiem (np. "1, 2, 3")' },
           status: { type: 'string', enum: ['pending', 'completed'] },
           priority: { type: 'string', enum: ['HIGH', 'MEDIUM', 'LOW'] },
           title: { type: 'string' }
@@ -236,7 +236,7 @@ const agentTools = [
           parameters: {
               type: "object",
               properties: {
-                  id: { type: "string", description: "ID wydarzenia z kontekstu" },
+                  id: { type: "string", description: "ID wydarzenia z kontekstu (albo lista oddzielona przecinkiem np. '1, 2, 3')" },
                   event_date: { type: "string", description: "Format YYYY-MM-DD. Użyj jeśli chcesz usunąć wszystkie wydarzenia z danego dnia." }
               }
           }
@@ -444,7 +444,10 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
 
         } else if (toolCall.function.name === 'DELETE_TO_DO') {
           if (args.task_id === 'all') await executeRun('DELETE FROM tasks');
-          else if (args.task_id) await executeRun('DELETE FROM tasks WHERE id = ?', [parseInt(args.task_id, 10)]);
+          else if (args.task_id) {
+            let ids = Array.isArray(args.task_id) ? args.task_id : (typeof args.task_id === 'string' && args.task_id.includes(',') ? args.task_id.split(',') : [args.task_id]);
+            for (const id of ids) await executeRun('DELETE FROM tasks WHERE id = ?', [parseInt(id, 10)]);
+          }
           toolResultsText += `\nNarzędzie DELETE_TO_DO zwróciło: Success`;
           
         } else if (toolCall.function.name === 'UPDATE_TO_DO') {
@@ -455,8 +458,10 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
           if (args.title) { updates.push('title = ?'); values.push(args.title); }
           
           if (updates.length > 0) {
-            values.push(parseInt(args.task_id, 10));
-            await executeRun(`UPDATE tasks SET ${updates.join(', ')} WHERE id = ?`, values);
+            let ids = Array.isArray(args.task_id) ? args.task_id : (typeof args.task_id === 'string' && args.task_id.includes(',') ? args.task_id.split(',') : [args.task_id]);
+            for (const id of ids) {
+              await executeRun(`UPDATE tasks SET ${updates.join(', ')} WHERE id = ?`, [...values, parseInt(id, 10)]);
+            }
           }
           toolResultsText += `\nNarzędzie UPDATE_TO_DO zwróciło: Success`;
           
@@ -510,7 +515,10 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
           toolResultsText += "\nNarzędzie PERFORM_OSINT_SCAN zwróciło: " + JSON.stringify(res);
         } else if (toolCall.function.name === 'DELETE_CALENDAR_EVENT') {
           if (args.id) {
-            await executeRun('DELETE FROM calendar_events WHERE id = ?', [parseInt(args.id, 10)]);
+            let ids = Array.isArray(args.id) ? args.id : (typeof args.id === 'string' && args.id.includes(',') ? args.id.split(',') : [args.id]);
+            for (const id of ids) {
+              await executeRun('DELETE FROM calendar_events WHERE id = ?', [parseInt(id, 10)]);
+            }
             toolResultsText += `\nNarzędzie DELETE_CALENDAR_EVENT zwróciło: Success, usunięto ID ${args.id}`;
           } else if (args.event_date) {
             await executeRun('DELETE FROM calendar_events WHERE event_date = ?', [args.event_date]);
