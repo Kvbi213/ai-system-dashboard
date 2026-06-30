@@ -104,7 +104,12 @@ app.get('/api/system/keys-status', (req, res) => {
 
 app.post('/api/system/keys', (req, res) => {
   const { groq, brave, pushbullet, pin } = req.body;
-  let envContent = fs.readFileSync(path.resolve(__dirname, '.env'), 'utf8');
+  let envContent = '';
+  try {
+    envContent = fs.readFileSync(path.resolve(__dirname, '.env'), 'utf8');
+  } catch (err) {
+    envContent = '';
+  }
 
   const updateOrAppend = (key, val) => {
     if (val && val.trim() !== '') {
