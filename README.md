@@ -97,7 +97,7 @@ sudo apt install nodejs npm git
 ### 2. Klonowanie repozytorium
 Pobierz kod źródłowy na swój dysk:
 ```bash
-git clone https://github.com/Twoj-Nick/ai-system-dashboard.git
+git clone https://github.com/Kvbi213/ai-system-dashboard.git
 cd ai-system-dashboard
 ```
 
