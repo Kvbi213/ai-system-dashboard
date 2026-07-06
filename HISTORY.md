@@ -1,5 +1,21 @@
 ## Wersja Bieżąca
-**v1.8.0**
+**v1.9.0**
+
+## v 1.9.0 — 2026-07-06
+**Typ:** MINOR
+**Zakres:** Moduł Finansów & Aktualizacja Protokołu Pracy
+
+### Zmiany
+- [+] Dodano: Nowa tabela w bazie danych `finances` do obsługi wpisów finansowych.
+- [+] Dodano: Narzędzia dla agenta `ADD_FINANCE_RECORD` oraz `DELETE_FINANCE_RECORD` aby AI mogło automatycznie zapisywać/usuwać wydatki i przychody.
+- [+] Dodano: Kontekst finansowy (saldo miesięczne, ostatnie transakcje) przekazywany do agenta w `processUserIntent`.
+- [+] Dodano: Zakładka "Finanse" w interfejsie graficznym (`FinancePage.jsx`) z listą wpisów, stawkami i możliwością ręcznego dodawania oraz kasowania wpisów.
+- [+] Zmieniono: Dodano regułę 26 (Auto-Commit Protocol) w `ZASADYPRACY.md` wymuszającą na AI natychmiastowe commity.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 1.8.0 — 2026-07-06
 **Typ:** MINOR
