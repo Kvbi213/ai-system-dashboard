@@ -228,6 +228,7 @@ const agentTools = [
                   amount: { type: "number", description: "Kwota (np. 150.50)" },
                   currency: { type: "string", description: "Waluta (np. 'PLN')" },
                   category: { type: "string", description: "Kategoria (np. 'Jedzenie', 'Transport', 'Wynagrodzenie')" },
+                  bucket: { type: "string", description: "Opcjonalnie: 'needs' (użytek comiesięczny), 'wants' (zachcianki), 'savings' (oszczędności). Zgadnij na podstawie opisu, chyba że podano inaczej." },
                   description: { type: "string", description: "Opis transakcji" },
                   transaction_date: { type: "string", description: "Format YYYY-MM-DD" }
               },
@@ -429,7 +430,7 @@ export async function processUserIntent(text, mode = 'worker', options = {}) {
   try {
     const userName = options.userName || 'Użytkownik';
     const today = new Date().toLocaleDateString('pl-PL', { timeZone: 'Europe/Warsaw' });
-    const [weatherData, tasks, logs, userProfile, calendarEvents, notifications, financeBalance, recentFinances] = await Promise.all([
+    const [weatherData, tasks, logs, userProfile, calendarEvents, notifications, financeBalance, recentFinances, financeSettings, bucketSpending] = await Promise.all([
       fetchWeather().catch(() => null),
       executeQuery('SELECT id, title, status, priority, target_date, category FROM tasks ORDER BY created_at DESC LIMIT 10'),
       executeQuery('SELECT type, content, created_at FROM system_logs ORDER BY created_at DESC LIMIT 5'),
@@ -437,7 +438,9 @@ export async function processUserIntent(text, mode = 'worker', options = {}) {
       executeQuery('SELECT id, title, event_date, description FROM calendar_events WHERE event_date >= date("now") ORDER BY event_date ASC LIMIT 5'),
       executeQuery('SELECT COUNT(*) as count FROM phone_notifications WHERE is_read = 0'),
       executeQuery('SELECT SUM(CASE WHEN type="income" THEN amount ELSE -amount END) as balance FROM finances'),
-      executeQuery('SELECT type, amount, category, description, transaction_date FROM finances ORDER BY transaction_date DESC LIMIT 3')
+      executeQuery('SELECT type, amount, category, description, transaction_date FROM finances ORDER BY transaction_date DESC LIMIT 3'),
+      executeQuery('SELECT * FROM finance_settings ORDER BY id DESC LIMIT 1'),
+      executeQuery('SELECT bucket, SUM(amount) as spent FROM finances WHERE type="expense" AND bucket IS NOT NULL AND strftime("%Y-%m", transaction_date) = strftime("%Y-%m", "now") GROUP BY bucket')
     ]);
 
     const systemContext = `
@@ -447,6 +450,8 @@ RECENT TASKS: ${JSON.stringify(tasks)}
 UPCOMING CALENDAR EVENTS: ${JSON.stringify(calendarEvents)}
 RECENT LOGS: ${JSON.stringify(logs)}
 FINANCIAL BALANCE: ${financeBalance[0]?.balance || 0} PLN
+FINANCE SETTINGS (Income/Buckets): ${JSON.stringify(financeSettings[0] || {})}
+CURRENT MONTH BUCKET SPENDING: ${JSON.stringify(bucketSpending || [])}
 RECENT FINANCES: ${JSON.stringify(recentFinances)}
 UNREAD PHONE NOTIFICATIONS COUNT: ${notifications[0]?.count || 0} (Użyj narzędzia GET_PHONE_NOTIFICATIONS, by je przeczytać)
 NEWS PREFERENCES: Operator preferuje wiadomości z kategorii: ${options.newsCategories ? options.newsCategories.join(', ') : 'ai, security'}. Kiedy używasz narzędzia executeWebSearch by pobrać newsy, zawsze buduj zapytanie (query) tak, by zawierało nazwy tych preferowanych kategorii!
@@ -519,8 +524,8 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
           
         } else if (toolCall.function.name === 'ADD_FINANCE_RECORD') {
           const rec = await executeRun(
-            'INSERT INTO finances (type, amount, currency, category, description, transaction_date) VALUES (?, ?, ?, ?, ?, ?)',
-            [args.type, args.amount, args.currency || 'PLN', args.category || 'Inne', args.description || '', args.transaction_date]
+            'INSERT INTO finances (type, amount, currency, category, bucket, description, transaction_date) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [args.type, args.amount, args.currency || 'PLN', args.category || 'Inne', args.bucket || null, args.description || '', args.transaction_date]
           );
           toolResultsText += `\nNarzędzie ADD_FINANCE_RECORD zwróciło: Success, Finance ID: ${rec.id}`;
           

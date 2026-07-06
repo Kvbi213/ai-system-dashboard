@@ -162,6 +162,35 @@ app.post('/api/osint', apiLimiter, async (req, res) => {
 });
 
 // ── FINANCES ───────────────────────────────────────────────────
+app.get('/api/finance/settings', async (req, res) => {
+  try {
+    const rows = await executeQuery('SELECT * FROM finance_settings ORDER BY id DESC LIMIT 1');
+    if (rows.length === 0) {
+      res.json(null);
+    } else {
+      res.json(rows[0]);
+    }
+  } catch (err) {
+    logError('GET /api/finance/settings', err);
+    res.status(500).json({ error: 'Błąd pobierania ustawień finansowych.' });
+  }
+});
+
+app.post('/api/finance/settings', async (req, res) => {
+  const { monthly_income, needs_percent, wants_percent, savings_percent } = req.body;
+  try {
+    await executeRun('DELETE FROM finance_settings'); // Zostawiamy tylko jedne aktualne ustawienia
+    const result = await executeRun(
+      'INSERT INTO finance_settings (monthly_income, needs_percent, wants_percent, savings_percent) VALUES (?, ?, ?, ?)',
+      [monthly_income, needs_percent, wants_percent, savings_percent]
+    );
+    res.json({ success: true, id: result.id });
+  } catch (err) {
+    logError('POST /api/finance/settings', err);
+    res.status(500).json({ error: 'Błąd zapisu ustawień finansowych.' });
+  }
+});
+
 app.get('/api/finances', async (req, res) => {
   try {
     const rows = await executeQuery('SELECT * FROM finances ORDER BY transaction_date DESC');
@@ -173,14 +202,14 @@ app.get('/api/finances', async (req, res) => {
 });
 
 app.post('/api/finances', async (req, res) => {
-  const { type, amount, currency, category, description, transaction_date } = req.body;
+  const { type, amount, currency, category, bucket, description, transaction_date } = req.body;
   if (!type || !amount || !transaction_date) {
     return res.status(400).json({ error: 'Brak wymaganych pól (type, amount, transaction_date).' });
   }
   try {
     const result = await executeRun(
-      'INSERT INTO finances (type, amount, currency, category, description, transaction_date) VALUES (?, ?, ?, ?, ?, ?)',
-      [type, amount, currency || 'PLN', category || 'Inne', description || '', transaction_date]
+      'INSERT INTO finances (type, amount, currency, category, bucket, description, transaction_date) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [type, amount, currency || 'PLN', category || 'Inne', bucket || null, description || '', transaction_date]
     );
     res.json({ success: true, id: result.id });
   } catch (err) {

@@ -103,11 +103,29 @@ db.serialize(() => {
         amount REAL NOT NULL,
         currency TEXT DEFAULT 'PLN',
         category TEXT,
+        bucket TEXT, -- 'needs', 'wants', 'savings'
         description TEXT,
         transaction_date TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Tabela Ustawień Finansowych
+    db.run(`
+      CREATE TABLE IF NOT EXISTS finance_settings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        monthly_income REAL DEFAULT 0,
+        needs_percent REAL DEFAULT 50,
+        wants_percent REAL DEFAULT 30,
+        savings_percent REAL DEFAULT 20,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Migracja - dodanie bucket, jeśli nie istnieje (proste podejście)
+    db.run("ALTER TABLE finances ADD COLUMN bucket TEXT", (err) => {
+      // Ignorujemy błąd jeśli kolumna już istnieje
+    });
 });
 
 // Helpery do operacji na bazie
