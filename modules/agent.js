@@ -69,10 +69,11 @@ OUTPUT SCHEMA (musisz odpowiedzieć dokładnie w formacie JSON):
   "intent": "general_conversation",
   "payload": {},
   "agent_response": "Twoja merytoryczna, chłodna, analityczna odpowiedź.",
-  "mentor_thoughts": "Krótkie przemyślenie analityczne o użytkowniku, zapisywane jako notatka poboczna np. 'Użytkownik wykazuje silne zaangażowanie, co rodzi ryzyko wypalenia.' To przemyślenie musi brzmieć jak suchy log systemowy/obserwacyjny."
+  "mentor_thoughts": "Krótkie przemyślenie analityczne o użytkowniku, zapisywane jako notatka poboczna np. 'Użytkownik wykazuje silne zaangażowanie, co rodzi ryzyko wypalenia.' To przemyślenie musi brzmieć jak suchy log systemowy/obserwacyjny.",
+  "delegate_to_worker": "OPCJONALNIE: Precyzyjna instrukcja dla Workera w 1 osobie, w imieniu użytkownika (np. 'Dodaj wydarzenie do kalendarza na jutro o 18:00: Wyjście z kolegami' lub 'Wyszukaj najnowsze newsy'). Jeśli nie zlecasz niczego, zostaw null."
 }
 
-CRITICAL RULE: ZAWSZE zwracaj "mentor_thoughts" i "agent_response" w JSON.`;
+CRITICAL RULE: ZAWSZE zwracaj "mentor_thoughts", "delegate_to_worker" i "agent_response" w JSON.`;
 
 const agentTools = [
   {
@@ -719,6 +720,24 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
         console.log('[+] Zapisano myśli mentora do pamięci długoterminowej.');
       } catch (err) {
         console.error('[!] Błąd zapisu myśli mentora:', err);
+      }
+    }
+
+    if (mode === 'mentor' && parsed.delegate_to_worker) {
+      console.log(`[*] INFO: Mentor deleguje zadanie do Workera: ${parsed.delegate_to_worker}`);
+      try {
+        const workerOptions = { ...options, isDelegated: true };
+        const workerResponse = await processUserIntent(`[Zlecenie od Mentora działającego w imieniu użytkownika ${userName}]: ${parsed.delegate_to_worker}`, 'worker', workerOptions);
+        
+        parsed.agent_response += `\n\n---\n**🤖 Akcja Workera (Zlecona przez Mentora):**\n${workerResponse.agent_response}`;
+        
+        if (workerResponse.widgets && workerResponse.widgets.length > 0) {
+            parsed.widgets = [...new Set([...(parsed.widgets || []), ...workerResponse.widgets])];
+        }
+        
+        await executeRun("INSERT INTO system_logs (type, content) VALUES ('MENTOR_DELEGATION', ?)", [`Zlecono zadanie do workera: ${parsed.delegate_to_worker}`]);
+      } catch (err) {
+        console.error('[!] Błąd podczas delegacji do Workera:', err);
       }
     }
 

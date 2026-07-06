@@ -1,5 +1,19 @@
 ## Wersja Bieżąca
-**v1.5.0**
+**v1.8.0**
+
+## v 1.8.0 — 2026-07-06
+**Typ:** MINOR
+**Zakres:** Architektura: Delegacja Zadań Mentor -> Worker
+
+### Zmiany
+- [+] Dodano: Mentor (Digital Mentor) może teraz delegować skomplikowane zadania do Workera poprzez polecenie `delegate_to_worker` w swoim outpuci JSON.
+- [+] Dodano: Automatyczne rekursywne wywołanie Workera w tle w `processUserIntent`, jeśli Mentor zgłosił delegację. Wyniki Workera są dołączane do odpowiedzi Mentora.
+- [*] Zmodyfikowano: `agent.js` — poprawa promptu `getMentorPrompt` w celu obsługi nowej funkcjonalności.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 1.5.0 — 2026-06-15
 **Typ:** MINOR

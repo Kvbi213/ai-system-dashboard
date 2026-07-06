@@ -10,7 +10,7 @@ Ten plik służy jako główny notatnik do spisywania błędów (bugów), uwag i
 - [ ] Dodać zakładkę "Finanse" (zarządzanie budżetem wspierane przez AI).
 - [ ] Dodać zakładkę "Treningi" (wspierane przez AI).
 - [ ] Dodać zakładkę "Zarządzanie serwerem".
-- [ ] Połączenie Mentor -> Worker (Mentor może delegować zadania do wykonania przez Workera).
+- [x] Połączenie Mentor -> Worker (Mentor może delegować zadania do wykonania przez Workera).
 - [ ] Wbudowana przeglądarka zintegrowana z kontami użytkownika.
 - [ ] Łatwiejsza konfiguracja początkowa (np. ominięcie płatnego Brave API, autoryzacja kontem Google).
 - [ ] Wsparcie dla innych dostawców modeli AI (NVIDIA API, Google AI Studio itp).
