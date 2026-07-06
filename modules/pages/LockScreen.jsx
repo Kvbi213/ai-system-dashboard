@@ -47,7 +47,7 @@ const LockScreen = ({ onUnlock }) => {
         
         <h2 className="text-2xl font-bold mb-2">Autoryzacja</h2>
         <p className="text-textSecondary text-center text-sm mb-8">
-          Wprowadź kod dostępu, aby odblokować dashboard.
+          Wprowadź kod dostępu, aby odblokować OmniDash.
         </p>
 
         <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">

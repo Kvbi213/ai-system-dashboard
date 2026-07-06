@@ -175,7 +175,7 @@ const SettingsPage = () => {
         </div>
         <div>
           <h1 className="font-mono text-xl text-accentPrimary font-bold tracking-tight">Ustawienia Systemowe</h1>
-          <p className="font-sans text-xs text-textMuted mt-0.5">Konfiguracja środowiska System Dashboard</p>
+          <p className="font-sans text-xs text-textMuted mt-0.5">Konfiguracja środowiska OmniDash</p>
         </div>
       </header>
 
@@ -359,7 +359,7 @@ const SettingsPage = () => {
             <section className="glass-panel p-5 rounded-xl border border-border">
               <SectionHeader icon={Shield} title="Prywatność i Bezpieczeństwo" />
               <div className="space-y-3">
-                <SettingRow label="Tryb Ghost (Incognito)" desc="Dezaktywuje trwałe zapisywanie logów i historii konwersacji czatu AI. Czat po wyjściu z Dashboardu zresetuje się.">
+                <SettingRow label="Tryb Ghost (Incognito)" desc="Dezaktywuje trwałe zapisywanie logów i historii konwersacji czatu AI. Czat po wyjściu z OmniDash zresetuje się.">
                   <Toggle value={ghostMode} onChange={handleToggleGhostMode} />
                 </SettingRow>
               </div>
@@ -446,7 +446,7 @@ const SettingsPage = () => {
               <div className="space-y-3">
                 <div className="p-4 rounded-xl border border-border/50 bg-black/20">
                   <p className="font-semibold text-textPrimary font-sans text-sm mb-1">Zmień Kod PIN</p>
-                  <p className="text-xs text-textMuted leading-relaxed mb-4">Kod ten jest wymagany przy każdym otwarciu Dashboardu.</p>
+                  <p className="text-xs text-textMuted leading-relaxed mb-4">Kod ten jest wymagany przy każdym otwarciu OmniDash.</p>
                   
                   <form onSubmit={async (e) => {
                     e.preventDefault();

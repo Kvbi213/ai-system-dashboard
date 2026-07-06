@@ -5,8 +5,15 @@ Ten plik służy jako główny notatnik do spisywania błędów (bugów), uwag i
 ## 🔴 Krytyczne Błędy do Naprawy
 *(brak)*
 
-## 🟡 Oczekujące Poprawki
-*(brak)*
+## 🟡 Oczekujące Poprawki / Nowe Funkcje
+- [ ] Wymyślić oryginalną nazwę dla projektu.
+- [ ] Dodać zakładkę "Finanse" (zarządzanie budżetem wspierane przez AI).
+- [ ] Dodać zakładkę "Treningi" (wspierane przez AI).
+- [ ] Dodać zakładkę "Zarządzanie serwerem".
+- [ ] Połączenie Mentor -> Worker (Mentor może delegować zadania do wykonania przez Workera).
+- [ ] Wbudowana przeglądarka zintegrowana z kontami użytkownika.
+- [ ] Łatwiejsza konfiguracja początkowa (np. ominięcie płatnego Brave API, autoryzacja kontem Google).
+- [ ] Wsparcie dla innych dostawców modeli AI (NVIDIA API, Google AI Studio itp).
 
 ## 🟢 Zrealizowane (Archiwum)
 - **[Naprawione]** Odczyt czasu z powiadomień Pushbullet był przesunięty o 2h (problem z UTC vs Local Time). Zostało to poprawione bezpośrednio w silniku odczytu bazy w `agent.js`.

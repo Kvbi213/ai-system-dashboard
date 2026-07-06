@@ -1,8 +1,8 @@
-# SYSTEM — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
+# OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
 **Wersja Systemu:** v2.0.0 (Stan na Czerwiec 2026)  
 **Status:** AKTYWNY | PRODUKCJA  
-**Rodzaj:** Kompleksowy Dashboard AI / Asystent Osobisty
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty
 
 ---
 

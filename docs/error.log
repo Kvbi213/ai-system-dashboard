@@ -121,3 +121,16 @@ Error: 401 {"error":{"message":"Invalid API Key","type":"invalid_request_error",
     at async transcribeAudio (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/modules/agent.js:344:27)
     at async file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/core.server.js:200:18
 ---
+[2026-07-06T20:36:59.676Z] [fetchWeather] timeout of 8000ms exceeded
+AxiosError: timeout of 8000ms exceeded
+    at createTimeoutError (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/node_modules/axios/lib/adapters/http.js:551:16)
+    at RedirectableRequest.handleTimeout (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/node_modules/axios/lib/adapters/http.js:1260:17)
+    at RedirectableRequest.emit (node:events:509:20)
+    at Timeout._onTimeout (C:\Users\Jakub Lis\Desktop\AI system dashboard github\node_modules\follow-redirects\index.js:233:12)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+    at Axios.request (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/node_modules/axios/lib/core/Axios.js:46:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async fetchWeather (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/modules/scheduler.js:26:24)
+    at async hourlyJob (file:///C:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/modules/scheduler.js:194:21)
+---

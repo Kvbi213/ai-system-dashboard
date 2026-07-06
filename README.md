@@ -1,6 +1,6 @@
 <div align="center">
   
-# 🌌 AI System Dashboard
+# 🌌 OmniDash
 ### Twój Osobisty Hub Dowodzenia Napędzany Sztuczną Inteligencją
 
 ![Version](https://img.shields.io/badge/Version-1.7.0-blue?style=for-the-badge)
@@ -18,7 +18,7 @@
 
 ## 📖 O Projekcie
 
-**AI System Dashboard** to kompleksowe, lokalne środowisko zarządzania (Local-First), które integruje w sobie zaawansowanego asystenta opartego na architekturze LLM (Groq / LLaMa 3). Projekt został stworzony w paradygmacie *Desktop-First*, z myślą o najwyższej wydajności, pełnej prywatności i bezprecedensowej ergonomii.
+**OmniDash** to kompleksowe, lokalne środowisko zarządzania (Local-First), które integruje w sobie zaawansowanego asystenta opartego na architekturze LLM (Groq / LLaMa 3). Projekt został stworzony w paradygmacie *Desktop-First*, z myślą o najwyższej wydajności, pełnej prywatności i bezprecedensowej ergonomii.
 
 Nie jest to kolejny zwykły czat. Asystent posiada funkcję **Tool Calling** – potrafi samodzielnie wywoływać metody systemowe: modyfikować bazę danych, analizować statystyki CPU/RAM komputera i wyszukiwać najświeższe newsy ze świata bezpośrednio z sieci.
 
