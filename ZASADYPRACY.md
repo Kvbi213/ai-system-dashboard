@@ -27,3 +27,4 @@ Zasady:
 23. Izolacja Poświadczeń: Klucze np. API przechowywane bezpiecznie.
 24. Path Integrity Standard: Sprawdzanie i poszanowanie struktury ścieżek projektowych.
 25. Log Format: Standaryzowane logowanie błędów i informacji.
+26. Auto-Commit Protocol: Każda zmiana kodu, nowa funkcjonalność i aktualizacja musi być po ukończeniu natychmiast wrzucana do repozytorium (git add, commit, push) przez agenta AI.

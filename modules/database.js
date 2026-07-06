@@ -95,6 +95,19 @@ db.serialize(() => {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+    // Tabela Finansów
+    db.run(`
+      CREATE TABLE IF NOT EXISTS finances (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT NOT NULL, -- 'income' lub 'expense'
+        amount REAL NOT NULL,
+        currency TEXT DEFAULT 'PLN',
+        category TEXT,
+        description TEXT,
+        transaction_date TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 });
 
 // Helpery do operacji na bazie

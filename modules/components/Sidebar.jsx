@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, MessageSquare, Search, Settings, ChevronLeft, ChevronRight, LayoutGrid, CalendarDays, BrainCircuit, Crosshair } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Search, Settings, ChevronLeft, ChevronRight, LayoutGrid, CalendarDays, BrainCircuit, Crosshair, Wallet } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -19,6 +19,7 @@ const Sidebar = () => {
     { name: 'Web Search', path: '/search', icon: <Search className="w-6 h-6" /> },
     { name: 'OSINT', path: '/osint', icon: <Crosshair className="w-6 h-6" /> },
     { name: 'Calendar', path: '/calendar', icon: <CalendarDays className="w-6 h-6" /> },
+    { name: 'Finances', path: '/finances', icon: <Wallet className="w-6 h-6" /> },
     { name: 'Widgets', path: '/widgets', icon: <LayoutGrid className="w-6 h-6" /> },
   ];
 

@@ -161,6 +161,44 @@ app.post('/api/osint', apiLimiter, async (req, res) => {
   res.json(result);
 });
 
+// ── FINANCES ───────────────────────────────────────────────────
+app.get('/api/finances', async (req, res) => {
+  try {
+    const rows = await executeQuery('SELECT * FROM finances ORDER BY transaction_date DESC');
+    res.json(rows);
+  } catch (err) {
+    logError('GET /api/finances', err);
+    res.status(500).json({ error: 'Błąd pobierania finansów.' });
+  }
+});
+
+app.post('/api/finances', async (req, res) => {
+  const { type, amount, currency, category, description, transaction_date } = req.body;
+  if (!type || !amount || !transaction_date) {
+    return res.status(400).json({ error: 'Brak wymaganych pól (type, amount, transaction_date).' });
+  }
+  try {
+    const result = await executeRun(
+      'INSERT INTO finances (type, amount, currency, category, description, transaction_date) VALUES (?, ?, ?, ?, ?, ?)',
+      [type, amount, currency || 'PLN', category || 'Inne', description || '', transaction_date]
+    );
+    res.json({ success: true, id: result.id });
+  } catch (err) {
+    logError('POST /api/finances', err);
+    res.status(500).json({ error: 'Błąd dodawania wpisu finansowego.' });
+  }
+});
+
+app.delete('/api/finances/:id', async (req, res) => {
+  try {
+    await executeRun('DELETE FROM finances WHERE id = ?', [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    logError('DELETE /api/finances/:id', err);
+    res.status(500).json({ error: 'Błąd usuwania wpisu finansowego.' });
+  }
+});
+
 // ── AGENT ──────────────────────────────────────────────────────
 app.post('/api/agent', apiLimiter, async (req, res) => {
   const { text, mode, newsCategories, userName } = req.body;

@@ -219,6 +219,39 @@ const agentTools = [
   {
       type: "function",
       function: {
+          name: "ADD_FINANCE_RECORD",
+          description: "Dodaje nowy wpis finansowy (przychód lub wydatek) do budżetu.",
+          parameters: {
+              type: "object",
+              properties: {
+                  type: { type: "string", description: "'income' (przychód) lub 'expense' (wydatek)" },
+                  amount: { type: "number", description: "Kwota (np. 150.50)" },
+                  currency: { type: "string", description: "Waluta (np. 'PLN')" },
+                  category: { type: "string", description: "Kategoria (np. 'Jedzenie', 'Transport', 'Wynagrodzenie')" },
+                  description: { type: "string", description: "Opis transakcji" },
+                  transaction_date: { type: "string", description: "Format YYYY-MM-DD" }
+              },
+              required: ["type", "amount", "transaction_date"]
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
+          name: "DELETE_FINANCE_RECORD",
+          description: "Usuwa wpis finansowy z bazy na podstawie ID.",
+          parameters: {
+              type: "object",
+              properties: {
+                  id: { type: "string", description: "ID transakcji finansowej do usunięcia" }
+              },
+              required: ["id"]
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
           name: "ADD_CALENDAR_EVENT",
           description: "Dodaje wydarzenie do kalendarza na konkretny dzień. Opcjonalnie z godziną, przypomnieniem oraz zasadą powtarzania.",
           parameters: {
@@ -396,13 +429,15 @@ export async function processUserIntent(text, mode = 'worker', options = {}) {
   try {
     const userName = options.userName || 'Użytkownik';
     const today = new Date().toLocaleDateString('pl-PL', { timeZone: 'Europe/Warsaw' });
-    const [weatherData, tasks, logs, userProfile, calendarEvents, notifications] = await Promise.all([
+    const [weatherData, tasks, logs, userProfile, calendarEvents, notifications, financeBalance, recentFinances] = await Promise.all([
       fetchWeather().catch(() => null),
       executeQuery('SELECT id, title, status, priority, target_date, category FROM tasks ORDER BY created_at DESC LIMIT 10'),
       executeQuery('SELECT type, content, created_at FROM system_logs ORDER BY created_at DESC LIMIT 5'),
       getUserProfile(),
       executeQuery('SELECT id, title, event_date, description FROM calendar_events WHERE event_date >= date("now") ORDER BY event_date ASC LIMIT 5'),
-      executeQuery('SELECT COUNT(*) as count FROM phone_notifications WHERE is_read = 0')
+      executeQuery('SELECT COUNT(*) as count FROM phone_notifications WHERE is_read = 0'),
+      executeQuery('SELECT SUM(CASE WHEN type="income" THEN amount ELSE -amount END) as balance FROM finances'),
+      executeQuery('SELECT type, amount, category, description, transaction_date FROM finances ORDER BY transaction_date DESC LIMIT 3')
     ]);
 
     const systemContext = `
@@ -411,6 +446,8 @@ WEATHER: ${JSON.stringify(weatherData)}
 RECENT TASKS: ${JSON.stringify(tasks)}
 UPCOMING CALENDAR EVENTS: ${JSON.stringify(calendarEvents)}
 RECENT LOGS: ${JSON.stringify(logs)}
+FINANCIAL BALANCE: ${financeBalance[0]?.balance || 0} PLN
+RECENT FINANCES: ${JSON.stringify(recentFinances)}
 UNREAD PHONE NOTIFICATIONS COUNT: ${notifications[0]?.count || 0} (Użyj narzędzia GET_PHONE_NOTIFICATIONS, by je przeczytać)
 NEWS PREFERENCES: Operator preferuje wiadomości z kategorii: ${options.newsCategories ? options.newsCategories.join(', ') : 'ai, security'}. Kiedy używasz narzędzia executeWebSearch by pobrać newsy, zawsze buduj zapytanie (query) tak, by zawierało nazwy tych preferowanych kategorii!
 
@@ -479,6 +516,17 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
             for (const id of ids) await executeRun('DELETE FROM tasks WHERE id = ?', [parseInt(id, 10)]);
           }
           toolResultsText += `\nNarzędzie DELETE_TO_DO zwróciło: Success`;
+          
+        } else if (toolCall.function.name === 'ADD_FINANCE_RECORD') {
+          const rec = await executeRun(
+            'INSERT INTO finances (type, amount, currency, category, description, transaction_date) VALUES (?, ?, ?, ?, ?, ?)',
+            [args.type, args.amount, args.currency || 'PLN', args.category || 'Inne', args.description || '', args.transaction_date]
+          );
+          toolResultsText += `\nNarzędzie ADD_FINANCE_RECORD zwróciło: Success, Finance ID: ${rec.id}`;
+          
+        } else if (toolCall.function.name === 'DELETE_FINANCE_RECORD') {
+          await executeRun('DELETE FROM finances WHERE id = ?', [parseInt(args.id, 10)]);
+          toolResultsText += `\nNarzędzie DELETE_FINANCE_RECORD zwróciło: Success`;
           
         } else if (toolCall.function.name === 'UPDATE_TO_DO') {
           const itemsToProcess = args.items && args.items.length > 0 ? args.items : [args];
