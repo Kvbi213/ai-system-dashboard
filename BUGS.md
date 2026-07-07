@@ -6,8 +6,8 @@ Ten plik służy jako główny notatnik do spisywania błędów (bugów), uwag i
 *(brak)*
 
 ## 🟡 Oczekujące Poprawki / Nowe Funkcje
-- [ ] Wymyślić oryginalną nazwę dla projektu.
-- [ ] Dodać zakładkę "Finanse" (zarządzanie budżetem wspierane przez AI).
+- [x] Wymyślić oryginalną nazwę dla projektu. (OmniDash)
+- [x] Dodać zakładkę "Finanse" (zarządzanie budżetem wspierane przez AI).
 - [ ] Dodać zakładkę "Treningi" (wspierane przez AI).
 - [ ] Dodać zakładkę "Zarządzanie serwerem".
 - [x] Połączenie Mentor -> Worker (Mentor może delegować zadania do wykonania przez Workera).
