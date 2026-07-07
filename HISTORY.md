@@ -1,5 +1,18 @@
 ## Wersja Bieżąca
-**v1.9.0**
+**v1.10.0**
+
+## v 1.10.0 — 2026-07-07
+**Typ:** MINOR  
+**Zakres:** Agent God Mode (Server-Sent Events i narzędzia zarządzające)  
+
+### Zmiany
+- [+] Dodano: Server-Sent Events (SSE) w core.server.js i GlobalEventListener w UI
+- [+] Dodano: Narzędzia dla Agenta (CHANGE_UI_TAB, RUN_OSINT_SCAN, UPDATE_SYSTEM_SETTINGS, UPDATE_FINANCE_SETTINGS, RELOAD_SYSTEM)
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 1.9.0 — 2026-07-06
 **Typ:** MINOR

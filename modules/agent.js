@@ -1,12 +1,14 @@
 import Groq from 'groq-sdk';
-import dotenv from 'dotenv';
+import { exec } from 'child_process';
 import { executeQuery, executeRun } from './database.js';
-import { fetchWeather, registerRecurringJob } from './scheduler.js';
+import { registerRecurringJob, clearRecurringJob } from './scheduler.js';
+import { broadcastEvent } from './emitter.js';
 import { executeWebSearch } from './search.js';
 import { readProjectFile, scanProjectDirectory } from './fs_explorer.js';
 import { learnFact, getUserProfile } from './memory.js';
 import { performOSINTScan } from './osint.js';
 import fs from 'fs';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
@@ -247,6 +249,78 @@ const agentTools = [
                   id: { type: "string", description: "ID transakcji finansowej do usunięcia" }
               },
               required: ["id"]
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
+          name: "CHANGE_UI_TAB",
+          description: "Przełącza widok u użytkownika na konkretną zakładkę w czasie rzeczywistym.",
+          parameters: {
+              type: "object",
+              properties: {
+                  tab: { type: "string", description: "Ścieżka zakładki, np. '/', '/chat', '/calendar', '/finances', '/osint', '/memory', '/search'" }
+              },
+              required: ["tab"]
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
+          name: "RUN_OSINT_SCAN",
+          description: "Zleca wykonanie skanowania OSINT na podanym celu i zwraca wyniki do Twojego kontekstu.",
+          parameters: {
+              type: "object",
+              properties: {
+                  target: { type: "string", description: "Adres email, nazwa użytkownika lub domena" }
+              },
+              required: ["target"]
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
+          name: "UPDATE_SYSTEM_SETTINGS",
+          description: "Zmienia ogólne ustawienia systemu OmniDash (np. motyw, język).",
+          parameters: {
+              type: "object",
+              properties: {
+                  theme: { type: "string", description: "Motyw (dark, light)" },
+                  language: { type: "string", description: "Język (np. pl, en)" }
+              },
+              required: []
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
+          name: "UPDATE_FINANCE_SETTINGS",
+          description: "Aktualizuje ustawienia finansowe (deklarowany przychód i proporcje).",
+          parameters: {
+              type: "object",
+              properties: {
+                  monthly_income: { type: "number" },
+                  needs_percent: { type: "number" },
+                  wants_percent: { type: "number" },
+                  savings_percent: { type: "number" }
+              },
+              required: []
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
+          name: "RELOAD_SYSTEM",
+          description: "Wymusza odświeżenie strony u użytkownika (np. po dużej zmianie konfiguracji).",
+          parameters: {
+              type: "object",
+              properties: {},
+              required: []
           }
       }
   },
@@ -499,6 +573,31 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
         if (toolCall.function.name === 'executeWebSearch') {
           const results = await executeWebSearch(args.query);
           toolResultsText += `\nNarzędzie executeWebSearch zwróciło: ${JSON.stringify(results)}`;
+
+        } else if (toolCall.function.name === 'CHANGE_UI_TAB') {
+          broadcastEvent('navigate', { path: args.tab });
+          toolResultsText += `\nNarzędzie CHANGE_UI_TAB: Sukces. Ekran zmieniony na ${args.tab}.`;
+
+        } else if (toolCall.function.name === 'RUN_OSINT_SCAN') {
+          toolResultsText += `\nNarzędzie RUN_OSINT_SCAN: Zlecono w tle (wynik będzie widoczny w zakładce OSINT, nie czekaj na niego).`;
+          broadcastEvent('osint_scan_start', { target: args.target });
+
+        } else if (toolCall.function.name === 'RELOAD_SYSTEM') {
+          broadcastEvent('reload', {});
+          toolResultsText += `\nNarzędzie RELOAD_SYSTEM: Zlecono odświeżenie strony użytkownika.`;
+
+        } else if (toolCall.function.name === 'UPDATE_SYSTEM_SETTINGS') {
+          // Na razie makieta zapisu do settings
+          toolResultsText += `\nNarzędzie UPDATE_SYSTEM_SETTINGS: Ustawienia systemowe zaktualizowane pomyślnie.`;
+          broadcastEvent('system_settings_updated', args);
+
+        } else if (toolCall.function.name === 'UPDATE_FINANCE_SETTINGS') {
+          await executeRun(
+            'INSERT INTO finance_settings (monthly_income, needs_percent, wants_percent, savings_percent) VALUES (?, ?, ?, ?)',
+            [args.monthly_income || 5000, args.needs_percent || 50, args.wants_percent || 30, args.savings_percent || 20]
+          );
+          toolResultsText += `\nNarzędzie UPDATE_FINANCE_SETTINGS: Ustawienia zaktualizowane.`;
+          broadcastEvent('finance_settings_updated', {});
 
         } else if (toolCall.function.name === 'ADD_TO_DO') {
           const itemsToProcess = args.items && args.items.length > 0 ? args.items : [args];

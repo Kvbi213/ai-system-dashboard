@@ -16,6 +16,7 @@ import { executeWebSearch } from './modules/search.js';
 import { getAllFacts, deleteFact } from './modules/memory.js';
 import { startPushbulletListener } from './modules/pushbullet.js';
 import { performOSINTScan } from './modules/osint.js';
+import { clients } from './modules/emitter.js';
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -159,6 +160,25 @@ app.post('/api/osint', apiLimiter, async (req, res) => {
   if (!target) return res.status(400).json({ error: 'Brak podanego celu (target).' });
   const result = await performOSINTScan(target);
   res.json(result);
+});
+
+// ── SSE (Server-Sent Events) ───────────────────────────────────
+app.get('/api/events', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  // Ping klienta zaraz po podłączeniu, by wymusić wysłanie nagłówków
+  res.write('event: ping\ndata: connected\n\n');
+
+  clients.push(res);
+
+  req.on('close', () => {
+    const index = clients.indexOf(res);
+    if (index !== -1) {
+      clients.splice(index, 1);
+    }
+  });
 });
 
 // ── FINANCES ───────────────────────────────────────────────────

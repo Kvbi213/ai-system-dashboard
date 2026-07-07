@@ -19,6 +19,7 @@ import { ChatProvider } from './modules/context/ChatContext';
 import ApiConfigScreen from './modules/components/ApiConfigScreen';
 import OnboardingTour from './modules/components/OnboardingTour';
 import SetupWizard from './modules/components/SetupWizard';
+import GlobalEventListener from './modules/components/GlobalEventListener';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -151,6 +152,7 @@ const App = () => {
   return (
     <ChatProvider>
       <BrowserRouter>
+        <GlobalEventListener />
         <div className="h-[100dvh] w-full bg-background overflow-hidden flex flex-col-reverse md:flex-row font-sans text-textPrimary relative">
           
           <OnboardingTour />
