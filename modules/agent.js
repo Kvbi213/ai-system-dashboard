@@ -1,7 +1,7 @@
 import Groq from 'groq-sdk';
 import { exec } from 'child_process';
 import { executeQuery, executeRun } from './database.js';
-import { registerRecurringJob, clearRecurringJob } from './scheduler.js';
+import { fetchWeather, registerRecurringJob } from './scheduler.js';
 import { broadcastEvent } from './emitter.js';
 import { executeWebSearch } from './search.js';
 import { readProjectFile, scanProjectDirectory } from './fs_explorer.js';
