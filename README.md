@@ -70,68 +70,89 @@ Aplikacja podzielona jest na dwa wysoce zoptymalizowane środowiska:
 
 ## 🚀 Instalacja i Uruchomienie (Krok po Kroku)
 
-Dzięki architekturze plikowej (SQLite), projekt jest gotowy do działania w kilka minut.
+Dzięki architekturze plikowej (SQLite), projekt jest gotowy do działania w kilka minut. Poniżej znajdziesz instrukcje uruchomienia lokalnego (Desktop) oraz wdrożenia na serwer.
 
-### 1. Wymagania
-Upewnij się, że posiadasz zainstalowane na swoim komputerze środowisko **Node.js** (wersja minimum `18.0.0`) oraz narzędzie **Git**.
+### Opcja A: Uruchomienie Lokalne (Desktop - Windows/Mac/Linux)
 
-Jeśli ich nie masz, możesz zainstalować je kopiując i wklejając poniższe komendy w swoim terminalu:
+**1. Wymagania**
+Upewnij się, że masz zainstalowany **Node.js** (min. `18.0.0`) oraz **Git**.
+- **Windows:** `winget install OpenJS.NodeJS` oraz `winget install Git.Git`
+- **Mac:** `brew install node git`
+- **Linux:** `sudo apt update && sudo apt install nodejs npm git`
 
-**Windows (używając PowerShell jako administrator):**
-```bash
-winget install OpenJS.NodeJS
-winget install Git.Git
-```
-
-**macOS (wymaga Homebrew):**
-```bash
-brew install node git
-```
-
-**Linux (Debian/Ubuntu):**
-```bash
-sudo apt update
-sudo apt install nodejs npm git
-```
-
-### 2. Klonowanie repozytorium
-Pobierz kod źródłowy na swój dysk:
+**2. Pobranie i instalacja**
 ```bash
 git clone https://github.com/Kvbi213/ai-system-dashboard.git
 cd ai-system-dashboard
-```
-
-### 3. Instalacja pakietów
-Zainstaluj wszystkie wymagane biblioteki dla backendu i frontendu (są połączone):
-```bash
 npm install
 ```
 
-### 4. Uruchomienie Środowiska
-Zoptymalizowaliśmy proces uruchamiania tak, aby wymagał on absolutnego minimum wiedzy technicznej. Wystarczy uruchomić jeden zintegrowany skrypt!
+**3. Uruchomienie**
+- **Windows:** Dwuklik na `start.bat`
+- **Mac/Linux:** Wpisz `npm run start` w konsoli.
+Następnie wejdź na `http://localhost:5173`.
 
-**Dla użytkowników Windows (Zalecane):**
-Po prostu kliknij dwukrotnie na plik `start.bat` znajdujący się w głównym folderze projektu.
-Skrypt automatycznie:
-- Zweryfikuje obecność Node.js.
-- Pobierze i zainstaluje niezbędne pakiety (jeśli to pierwsze uruchomienie).
-- Stworzy czysty plik konfiguracyjny `.env` zabezpieczający przed błędem serwera.
-- Uruchomi równolegle backend i frontend.
+---
 
-**Dla użytkowników Mac/Linux (lub przez konsole):**
-Możesz uruchomić wszystkie procesy na raz za pomocą jednej prostej komendy:
+### Opcja B: Wdrożenie na Serwerze (Produkcja 24/7)
+
+Aby OmniDash działał bez przerw w tle, zalecane jest użycie menedżera procesów **PM2** oraz opcjonalnie serwera Reverse Proxy (np. Nginx).
+
+#### 🐧 Debian / Ubuntu Linux Server
+
+**1. Instalacja środowiska i PM2**
 ```bash
-npm run start
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs git
+sudo npm install -g pm2
 ```
 
-### 5. Inicjalizacja (Pierwsze kroki)
-Przejdź w przeglądarce pod adres: `http://localhost:5173`
-1. System wykryje świeżą instalację. Zostaniesz powitany w **Ekranie Inicjalizacji**.
-2. Wprowadź wymagane klucze autoryzacyjne:
+**2. Pobranie aplikacji**
+```bash
+cd /opt
+sudo git clone https://github.com/Kvbi213/ai-system-dashboard.git
+cd ai-system-dashboard
+sudo npm install
+```
+
+**3. Uruchomienie w tle i autostart**
+```bash
+sudo pm2 start npm --name "omnidash" -- run start
+sudo pm2 save
+sudo pm2 startup
+```
+
+*(Opcjonalnie)* Jeśli chcesz udostępnić dashboard pod konkretnym portem (np. 80), zainstaluj Nginx (`sudo apt install nginx`) i ustaw blok `proxy_pass http://localhost:5173;`.
+
+#### 🪟 Windows Server
+
+**1. Instalacja środowiska**
+Zainstaluj [Node.js](https://nodejs.org/) oraz [Git dla Windows](https://git-scm.com/download/win). Uruchom PowerShell jako Administrator i wpisz:
+```powershell
+npm install -g pm2
+npm install -g pm2-windows-startup
+pm2-startup install
+```
+
+**2. Pobranie i start aplikacji**
+Pobierz repozytorium do wybranego folderu (np. `C:\OmniDash`), wejdź tam w terminalu i wpisz:
+```powershell
+npm install
+pm2 start npm --name "omnidash" -- run start
+pm2 save
+```
+Aplikacja będzie teraz działać w tle jako usługa systemu Windows, automatycznie wznawiając pracę po restarcie maszyny.
+
+---
+
+### 🔑 Inicjalizacja (Pierwsze kroki - Dotyczy wszystkich środowisk)
+Przejdź w przeglądarce pod adres IP swojego serwera (lub `http://localhost:5173` lokalnie).
+1. System wykryje świeżą instalację i uruchomi **Ekran Inicjalizacji**.
+2. Wprowadź wymagane klucze API:
    - *Groq API Key* (silnik AI)
    - *Brave Search API Key* (wyszukiwarka)
    - *Pushbullet API Key* (powiadomienia)
-3. Zdefiniuj swój unikalny **Kod PIN**, który będzie od teraz kluczem do włączenia całego Dashboardu.
+3. Zdefiniuj swój unikalny **Kod PIN**, który będzie chronił Twój Dashboard przed niepowołanym dostępem.
 4. Zapisz. System się zresetuje i odda Ci pełną kontrolę!
 
 ---
