@@ -305,9 +305,41 @@ app.get('/api/phone/notifications', async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const notifications = await executeQuery('SELECT * FROM phone_notifications ORDER BY created_at DESC LIMIT ?', [limit]);
     res.json(notifications);
-  } catch (err) {
-    logError('GET /api/phone/notifications', err);
-    res.status(500).json({ error: 'Database error' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ── WORKOUTS ───────────────────────────────────────────────────
+app.get('/api/workouts', async (req, res) => {
+  try {
+    const workouts = await executeQuery('SELECT * FROM workouts ORDER BY date DESC, created_at DESC');
+    res.json(workouts);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/workouts', async (req, res) => {
+  try {
+    const { title, type, description, date } = req.body;
+    const result = await executeRun(
+      'INSERT INTO workouts (title, type, description, date) VALUES (?, ?, ?, ?)',
+      [title, type || 'Inne', description || '', date || new Date().toISOString().split('T')[0]]
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/workouts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await executeRun('DELETE FROM workouts WHERE id = ?', [id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

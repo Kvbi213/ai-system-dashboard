@@ -70,9 +70,9 @@ OUTPUT SCHEMA (musisz odpowiedzieć dokładnie w formacie JSON):
 {
   "intent": "general_conversation",
   "payload": {},
-  "agent_response": "Twoja merytoryczna, chłodna, analityczna odpowiedź.",
+  "agent_response": "Główna, naturalna odpowiedź do użytkownika. Jako Mentor masz być chłodnym, merytorycznym i brutalnie szczerym analitykiem, skupiającym się na celu.",
   "mentor_thoughts": "Krótkie przemyślenie analityczne o użytkowniku, zapisywane jako notatka poboczna np. 'Użytkownik wykazuje silne zaangażowanie, co rodzi ryzyko wypalenia.' To przemyślenie musi brzmieć jak suchy log systemowy/obserwacyjny.",
-  "delegate_to_worker": "OPCJONALNIE: Precyzyjna instrukcja dla Workera w 1 osobie, w imieniu użytkownika (np. 'Dodaj wydarzenie do kalendarza na jutro o 18:00: Wyjście z kolegami' lub 'Wyszukaj najnowsze newsy'). Jeśli nie zlecasz niczego, zostaw null."
+  "delegate_to_worker": "OPCJONALNIE: Techniczna, potajemna komenda do Workera (np. 'Dodaj trening: Tytuł X, typ siłowy, opis Y' lub 'Dodaj 200 zł do zachcianek z opisem Z'). Używaj tego ZAWSZE, gdy użytkownik opisuje luźny pomysł na zadanie, trening czy finanse, a Ty musisz sformułować z tego twarde polecenie systemowe. Jeśli nie zlecasz niczego systemowego, zostaw null."
 }
 
 CRITICAL RULE: ZAWSZE zwracaj "mentor_thoughts", "delegate_to_worker" i "agent_response" w JSON.`;
@@ -235,6 +235,23 @@ const agentTools = [
                   transaction_date: { type: "string", description: "Format YYYY-MM-DD" }
               },
               required: ["type", "amount", "transaction_date"]
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
+          name: "ADD_WORKOUT",
+          description: "Zapisuje zaplanowany lub wykonany trening do dziennika aktywności.",
+          parameters: {
+              type: "object",
+              properties: {
+                  title: { type: "string", description: "Tytuł treningu (np. 'Klatka i Biceps', 'Bieganie 10km')" },
+                  type: { type: "string", description: "Typ (np. 'Siłowy', 'Cardio', 'Kalistenika', 'Rozciąganie', 'Inne')" },
+                  description: { type: "string", description: "Szczegółowy plan lub notatki (np. ćwiczenia, serie, powtórzenia)" },
+                  date: { type: "string", description: "Data w formacie YYYY-MM-DD" }
+              },
+              required: ["title", "date"]
           }
       }
   },
@@ -504,7 +521,7 @@ export async function processUserIntent(text, mode = 'worker', options = {}) {
   try {
     const userName = options.userName || 'Użytkownik';
     const today = new Date().toLocaleDateString('pl-PL', { timeZone: 'Europe/Warsaw' });
-    const [weatherData, tasks, logs, userProfile, calendarEvents, notifications, financeBalance, recentFinances, financeSettings, bucketSpending] = await Promise.all([
+    const [weatherData, tasks, logs, userProfile, calendarEvents, notifications, financeBalance, recentFinances, financeSettings, bucketSpending, workouts] = await Promise.all([
       fetchWeather().catch(() => null),
       executeQuery('SELECT id, title, status, priority, target_date, category FROM tasks ORDER BY created_at DESC LIMIT 10'),
       executeQuery('SELECT type, content, created_at FROM system_logs ORDER BY created_at DESC LIMIT 5'),
@@ -514,7 +531,8 @@ export async function processUserIntent(text, mode = 'worker', options = {}) {
       executeQuery('SELECT SUM(CASE WHEN type="income" THEN amount ELSE -amount END) as balance FROM finances'),
       executeQuery('SELECT type, amount, category, description, transaction_date FROM finances ORDER BY transaction_date DESC LIMIT 3'),
       executeQuery('SELECT * FROM finance_settings ORDER BY id DESC LIMIT 1'),
-      executeQuery('SELECT bucket, SUM(amount) as spent FROM finances WHERE type="expense" AND bucket IS NOT NULL AND strftime("%Y-%m", transaction_date) = strftime("%Y-%m", "now") GROUP BY bucket')
+      executeQuery('SELECT bucket, SUM(amount) as spent FROM finances WHERE type="expense" AND bucket IS NOT NULL AND strftime("%Y-%m", transaction_date) = strftime("%Y-%m", "now") GROUP BY bucket'),
+      executeQuery('SELECT * FROM workouts ORDER BY date DESC LIMIT 5')
     ]);
 
     const systemContext = `
@@ -527,6 +545,7 @@ FINANCIAL BALANCE: ${financeBalance[0]?.balance || 0} PLN
 FINANCE SETTINGS (Income/Buckets): ${JSON.stringify(financeSettings[0] || {})}
 CURRENT MONTH BUCKET SPENDING: ${JSON.stringify(bucketSpending || [])}
 RECENT FINANCES: ${JSON.stringify(recentFinances)}
+RECENT WORKOUTS: ${JSON.stringify(workouts || [])}
 UNREAD PHONE NOTIFICATIONS COUNT: ${notifications[0]?.count || 0} (Użyj narzędzia GET_PHONE_NOTIFICATIONS, by je przeczytać)
 NEWS PREFERENCES: Operator preferuje wiadomości z kategorii: ${options.newsCategories ? options.newsCategories.join(', ') : 'ai, security'}. Kiedy używasz narzędzia executeWebSearch by pobrać newsy, zawsze buduj zapytanie (query) tak, by zawierało nazwy tych preferowanych kategorii!
 
@@ -621,6 +640,13 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
           }
           toolResultsText += `\nNarzędzie DELETE_TO_DO zwróciło: Success`;
           
+        } else if (toolCall.function.name === 'ADD_WORKOUT') {
+          const rec = await executeRun(
+            'INSERT INTO workouts (title, type, description, date) VALUES (?, ?, ?, ?)',
+            [args.title, args.type || 'Inne', args.description || '', args.date]
+          );
+          toolResultsText += `\nNarzędzie ADD_WORKOUT zwróciło: Success, Workout ID: ${rec.id}`;
+
         } else if (toolCall.function.name === 'ADD_FINANCE_RECORD') {
           const rec = await executeRun(
             'INSERT INTO finances (type, amount, currency, category, bucket, description, transaction_date) VALUES (?, ?, ?, ?, ?, ?, ?)',

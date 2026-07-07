@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, MessageSquare, Search, Settings, ChevronLeft, ChevronRight, LayoutGrid, CalendarDays, BrainCircuit, Crosshair, Wallet } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Search, Settings, ChevronLeft, ChevronRight, LayoutGrid, CalendarDays, BrainCircuit, Crosshair, Wallet, Dumbbell } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -20,6 +20,7 @@ const Sidebar = () => {
     { name: 'OSINT', path: '/osint', icon: <Crosshair className="w-6 h-6" /> },
     { name: 'Calendar', path: '/calendar', icon: <CalendarDays className="w-6 h-6" /> },
     { name: 'Finances', path: '/finances', icon: <Wallet className="w-6 h-6" /> },
+    { name: 'Workouts', path: '/workouts', icon: <Dumbbell className="w-6 h-6" /> },
     { name: 'Widgets', path: '/widgets', icon: <LayoutGrid className="w-6 h-6" /> },
   ];
 

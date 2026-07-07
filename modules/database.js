@@ -113,14 +113,28 @@ db.serialize(() => {
     // Tabela Ustawień Finansowych
     db.run(`
       CREATE TABLE IF NOT EXISTS finance_settings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        monthly_income REAL DEFAULT 0,
-        needs_percent REAL DEFAULT 50,
-        wants_percent REAL DEFAULT 30,
-        savings_percent REAL DEFAULT 20,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      monthly_income REAL DEFAULT 0,
+      needs_percent REAL DEFAULT 50,
+      wants_percent REAL DEFAULT 30,
+      savings_percent REAL DEFAULT 20,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // Tabela treningów
+  db.run(`
+    CREATE TABLE IF NOT EXISTS workouts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      type TEXT DEFAULT 'Inne',
+      description TEXT,
+      date TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  console.log('[+] Zapewniono istnienie struktur bazy danych.');
 
     // Migracja - dodanie bucket, jeśli nie istnieje (proste podejście)
     db.run("ALTER TABLE finances ADD COLUMN bucket TEXT", (err) => {
