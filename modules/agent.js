@@ -230,11 +230,27 @@ const agentTools = [
                   amount: { type: "number", description: "Kwota (np. 150.50)" },
                   currency: { type: "string", description: "Waluta (np. 'PLN')" },
                   category: { type: "string", description: "Kategoria (np. 'Jedzenie', 'Transport', 'Wynagrodzenie')" },
-                  bucket: { type: "string", description: "Opcjonalnie: 'needs' (użytek comiesięczny), 'wants' (zachcianki), 'savings' (oszczędności). Zgadnij na podstawie opisu, chyba że podano inaczej." },
+                  bucket: { type: "string", description: "Opcjonalnie: 'needs', 'wants', 'savings'. Teraz używaj tego również dla przychodów (income), by przelać środki bezpośrednio do kubełka." },
                   description: { type: "string", description: "Opis transakcji" },
                   transaction_date: { type: "string", description: "Format YYYY-MM-DD" }
               },
               required: ["type", "amount", "transaction_date"]
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
+          name: "TRANSFER_FUNDS",
+          description: "Przelewa środki między dwoma kubełkami w budżecie (np. z 'wants' do 'needs').",
+          parameters: {
+              type: "object",
+              properties: {
+                  amount: { type: "number", description: "Kwota do przelania (np. 150)" },
+                  from_bucket: { type: "string", description: "Kubełek źródłowy: 'needs', 'wants', 'savings' lub 'unassigned'" },
+                  to_bucket: { type: "string", description: "Kubełek docelowy: 'needs', 'wants', 'savings' lub 'unassigned'" }
+              },
+              required: ["amount", "from_bucket", "to_bucket"]
           }
       }
   },
@@ -531,7 +547,7 @@ export async function processUserIntent(text, mode = 'worker', options = {}) {
       executeQuery('SELECT SUM(CASE WHEN type="income" THEN amount ELSE -amount END) as balance FROM finances'),
       executeQuery('SELECT type, amount, category, description, transaction_date FROM finances ORDER BY transaction_date DESC LIMIT 3'),
       executeQuery('SELECT * FROM finance_settings ORDER BY id DESC LIMIT 1'),
-      executeQuery('SELECT bucket, SUM(amount) as spent FROM finances WHERE type="expense" AND bucket IS NOT NULL AND strftime("%Y-%m", transaction_date) = strftime("%Y-%m", "now") GROUP BY bucket'),
+      executeQuery('SELECT bucket, SUM(CASE WHEN type="income" THEN amount ELSE -amount END) as balance FROM finances WHERE bucket IS NOT NULL AND strftime("%Y-%m", transaction_date) = strftime("%Y-%m", "now") GROUP BY bucket'),
       executeQuery('SELECT * FROM workouts ORDER BY date DESC LIMIT 5')
     ]);
 
@@ -543,7 +559,7 @@ UPCOMING CALENDAR EVENTS: ${JSON.stringify(calendarEvents)}
 RECENT LOGS: ${JSON.stringify(logs)}
 FINANCIAL BALANCE: ${financeBalance[0]?.balance || 0} PLN
 FINANCE SETTINGS (Income/Buckets): ${JSON.stringify(financeSettings[0] || {})}
-CURRENT MONTH BUCKET SPENDING: ${JSON.stringify(bucketSpending || [])}
+CURRENT MONTH BUCKET BALANCES: ${JSON.stringify(bucketSpending || [])} (Pokazuje ile masz odłożone w danym kubełku)
 RECENT FINANCES: ${JSON.stringify(recentFinances)}
 RECENT WORKOUTS: ${JSON.stringify(workouts || [])}
 UNREAD PHONE NOTIFICATIONS COUNT: ${notifications[0]?.count || 0} (Użyj narzędzia GET_PHONE_NOTIFICATIONS, by je przeczytać)
@@ -653,6 +669,18 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
             [args.type, args.amount, args.currency || 'PLN', args.category || 'Inne', args.bucket || null, args.description || '', args.transaction_date]
           );
           toolResultsText += `\nNarzędzie ADD_FINANCE_RECORD zwróciło: Success, Finance ID: ${rec.id}`;
+          
+        } else if (toolCall.function.name === 'TRANSFER_FUNDS') {
+          const date = new Date().toISOString().split('T')[0];
+          await executeRun(
+            'INSERT INTO finances (type, amount, currency, category, bucket, description, transaction_date) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            ['expense', args.amount, 'PLN', 'Transfer', args.from_bucket, `Transfer to ${args.to_bucket}`, date]
+          );
+          await executeRun(
+            'INSERT INTO finances (type, amount, currency, category, bucket, description, transaction_date) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            ['income', args.amount, 'PLN', 'Transfer', args.to_bucket, `Transfer from ${args.from_bucket}`, date]
+          );
+          toolResultsText += `\nNarzędzie TRANSFER_FUNDS zwróciło: Success, Przelano ${args.amount} z ${args.from_bucket} do ${args.to_bucket}.`;
           
         } else if (toolCall.function.name === 'DELETE_FINANCE_RECORD') {
           await executeRun('DELETE FROM finances WHERE id = ?', [parseInt(args.id, 10)]);

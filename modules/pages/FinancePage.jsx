@@ -37,18 +37,22 @@ const FinancePage = () => {
       setFinances(finRes.data);
       setSettings(setRes.data);
 
-      let bal = 0;
-      let spent = { needs: 0, wants: 0, savings: 0 };
-      
-      const currentMonth = new Date().toISOString().substring(0, 7); // YYYY-MM
+      let spent = { needs: 0, wants: 0, savings: 0, unassigned: 0 };
       
       finRes.data.forEach(item => {
         if (item.type === 'income') {
           bal += item.amount;
+          if (item.bucket) {
+            spent[item.bucket] = (spent[item.bucket] || 0) + item.amount;
+          } else {
+            spent.unassigned += item.amount;
+          }
         } else {
           bal -= item.amount;
-          if (item.bucket && item.transaction_date.startsWith(currentMonth)) {
-            spent[item.bucket] += item.amount;
+          if (item.bucket) {
+            spent[item.bucket] = (spent[item.bucket] || 0) - item.amount;
+          } else {
+            spent.unassigned -= item.amount;
           }
         }
       });
@@ -66,10 +70,11 @@ const FinancePage = () => {
     loadData();
   }, []);
 
-  const handleSetupSubmit = async (e) => {
-    e.preventDefault();
+  const handleSetupSubmit = async (e, skip = false) => {
+    if (e) e.preventDefault();
     try {
-      await axios.post('/api/finance/settings', setupData);
+      const dataToSubmit = skip ? { monthly_income: 0, needs_percent: 0, wants_percent: 0, savings_percent: 0 } : setupData;
+      await axios.post('/api/finance/settings', dataToSubmit);
       loadData();
     } catch (err) {
       console.error(err);
@@ -141,23 +146,21 @@ const FinancePage = () => {
               </div>
             </div>
 
-            <button type="submit" className="w-full mt-4 py-3 bg-accentPrimary text-black font-bold font-mono rounded-lg hover:scale-[1.02] transition-transform">
-              Rozpocznij Budżetowanie
-            </button>
+            <div className="flex gap-2 mt-4">
+              <button type="submit" className="flex-1 py-3 bg-accentPrimary text-black font-bold font-mono rounded-lg hover:scale-[1.02] transition-transform">
+                Zapisz Ustawienia
+              </button>
+              <button type="button" onClick={(e) => handleSetupSubmit(e, true)} className="flex-1 py-3 bg-white/5 text-textMuted font-bold font-mono rounded-lg hover:bg-white/10 transition-colors">
+                Pomiń
+              </button>
+            </div>
           </form>
         </div>
       </div>
     );
   }
 
-  // Obliczenia budżetów
-  const income = settings.monthly_income;
-  const needsBudget = (income * settings.needs_percent) / 100;
-  const wantsBudget = (income * settings.wants_percent) / 100;
-  const savingsBudget = (income * settings.savings_percent) / 100;
-
-  const getProgressWidth = (spent, budget) => Math.min((spent / budget) * 100, 100) + '%';
-  const getProgressColor = (spent, budget) => (spent > budget ? 'bg-red-500' : 'bg-accentPrimary');
+  // Brak sztywnego wyliczania budżetu z procentów, bazujemy na fizycznym saldzie w bucketSpending
 
   return (
     <div className="w-full h-full flex flex-col gap-6 animate-fade-in pb-20">
@@ -185,54 +188,33 @@ const FinancePage = () => {
       </header>
 
       {/* Kubełki (Buckets) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         
         {/* Needs */}
-        <div className="glass-panel p-6 rounded-xl flex flex-col gap-4 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target className="w-16 h-16" /></div>
-          <div className="flex justify-between items-end relative z-10">
-            <div>
-              <p className="text-xs text-textMuted font-mono">UŻYTEK COMIESIĘCZNY (NEEDS)</p>
-              <p className="text-2xl font-bold font-mono mt-1 text-textPrimary">{(needsBudget - bucketSpending.needs).toFixed(2)}</p>
-              <p className="text-xs text-textMuted font-mono mt-1">z {needsBudget.toFixed(2)} PLN</p>
-            </div>
-            <div className="p-2 bg-blue-500/20 text-blue-400 rounded-lg"><Target className="w-5 h-5" /></div>
-          </div>
-          <div className="w-full bg-black/40 h-2 rounded-full overflow-hidden relative z-10">
-            <div className={`h-full ${getProgressColor(bucketSpending.needs, needsBudget)} transition-all duration-500`} style={{ width: getProgressWidth(bucketSpending.needs, needsBudget) }}></div>
-          </div>
+        <div className="glass-panel p-5 rounded-xl flex flex-col justify-center relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><Target className="w-12 h-12" /></div>
+          <p className="text-[10px] text-textMuted font-mono mb-1">UŻYTEK COMIESIĘCZNY (NEEDS)</p>
+          <p className="text-xl font-bold font-mono text-textPrimary">{(bucketSpending.needs || 0).toFixed(2)} PLN</p>
         </div>
 
         {/* Wants */}
-        <div className="glass-panel p-6 rounded-xl flex flex-col gap-4 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Heart className="w-16 h-16" /></div>
-          <div className="flex justify-between items-end relative z-10">
-            <div>
-              <p className="text-xs text-textMuted font-mono">ZACHCIANKI (WANTS)</p>
-              <p className="text-2xl font-bold font-mono mt-1 text-textPrimary">{(wantsBudget - bucketSpending.wants).toFixed(2)}</p>
-              <p className="text-xs text-textMuted font-mono mt-1">z {wantsBudget.toFixed(2)} PLN</p>
-            </div>
-            <div className="p-2 bg-pink-500/20 text-pink-400 rounded-lg"><Heart className="w-5 h-5" /></div>
-          </div>
-          <div className="w-full bg-black/40 h-2 rounded-full overflow-hidden relative z-10">
-            <div className={`h-full ${getProgressColor(bucketSpending.wants, wantsBudget)} transition-all duration-500`} style={{ width: getProgressWidth(bucketSpending.wants, wantsBudget) }}></div>
-          </div>
+        <div className="glass-panel p-5 rounded-xl flex flex-col justify-center relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><Heart className="w-12 h-12" /></div>
+          <p className="text-[10px] text-textMuted font-mono mb-1">ZACHCIANKI (WANTS)</p>
+          <p className="text-xl font-bold font-mono text-textPrimary">{(bucketSpending.wants || 0).toFixed(2)} PLN</p>
         </div>
 
         {/* Savings */}
-        <div className="glass-panel p-6 rounded-xl flex flex-col gap-4 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Wallet className="w-16 h-16" /></div>
-          <div className="flex justify-between items-end relative z-10">
-            <div>
-              <p className="text-xs text-textMuted font-mono">OSZCZĘDNOŚCI (SAVINGS)</p>
-              <p className="text-2xl font-bold font-mono mt-1 text-textPrimary">{(savingsBudget - bucketSpending.savings).toFixed(2)}</p>
-              <p className="text-xs text-textMuted font-mono mt-1">z {savingsBudget.toFixed(2)} PLN</p>
-            </div>
-            <div className="p-2 bg-green-500/20 text-green-400 rounded-lg"><TrendingUp className="w-5 h-5" /></div>
-          </div>
-          <div className="w-full bg-black/40 h-2 rounded-full overflow-hidden relative z-10">
-            <div className={`h-full ${getProgressColor(bucketSpending.savings, savingsBudget)} transition-all duration-500`} style={{ width: getProgressWidth(bucketSpending.savings, savingsBudget) }}></div>
-          </div>
+        <div className="glass-panel p-5 rounded-xl flex flex-col justify-center relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><TrendingUp className="w-12 h-12" /></div>
+          <p className="text-[10px] text-textMuted font-mono mb-1">OSZCZĘDNOŚCI (SAVINGS)</p>
+          <p className="text-xl font-bold font-mono text-textPrimary">{(bucketSpending.savings || 0).toFixed(2)} PLN</p>
+        </div>
+
+        {/* Unassigned */}
+        <div className="glass-panel p-5 rounded-xl flex flex-col justify-center relative overflow-hidden group border-dashed border-2 border-white/10">
+          <p className="text-[10px] text-textMuted font-mono mb-1">WOLNE ŚRODKI (UNASSIGNED)</p>
+          <p className="text-xl font-bold font-mono text-textPrimary">{(bucketSpending.unassigned || 0).toFixed(2)} PLN</p>
         </div>
 
       </div>
