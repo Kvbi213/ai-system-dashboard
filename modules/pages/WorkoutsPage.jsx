@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Dumbbell, Plus, Trash2, Calendar, Clock, Activity, Flame } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 const WorkoutsPage = () => {
   const [workouts, setWorkouts] = useState([]);
@@ -153,8 +154,18 @@ const WorkoutsPage = () => {
                   </button>
                 </div>
                 {w.description && (
-                  <div className="mt-3 text-sm text-textMuted whitespace-pre-wrap font-mono bg-background/50 p-3 rounded-lg border border-border/50">
-                    {w.description}
+                  <div className="mt-3 text-sm text-textMuted font-mono bg-background/50 p-3 rounded-lg border border-border/50 overflow-hidden">
+                    <ReactMarkdown
+                      components={{
+                        p: ({node, ...props}) => <p className="mb-2" {...props} />,
+                        ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2 space-y-1" {...props} />,
+                        ol: ({node, ...props}) => <ol className="list-decimal pl-4 mb-2 space-y-1" {...props} />,
+                        li: ({node, ...props}) => <li className="marker:text-accentPrimary" {...props} />,
+                        strong: ({node, ...props}) => <strong className="font-bold text-textPrimary" {...props} />
+                      }}
+                    >
+                      {w.description}
+                    </ReactMarkdown>
                   </div>
                 )}
               </div>

@@ -840,7 +840,7 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
         messages,
         response_format: { type: 'json_object' },
         temperature: 0.6,
-        max_tokens: 1000,
+        max_tokens: 4096,
       });
       responseMessage = chatCompletion.choices[0]?.message;
       
@@ -854,7 +854,7 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
           messages,
           response_format: { type: 'json_object' },
           temperature: 0.6,
-          max_tokens: 1000,
+          max_tokens: 4096,
         });
         responseMessage = chatCompletion.choices[0]?.message;
       }
@@ -868,7 +868,11 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
 
     if (!parsed.agent_response || parsed.agent_response.trim() === '' || parsed.agent_response.trim() === '{}') {
       const rawContent = responseMessage?.content?.trim() || "";
-      if (rawContent && rawContent !== '{}' && !rawContent.startsWith('{')) {
+      
+      const match = rawContent.match(/"agent_response"\s*:\s*"([\s\S]*?)(?:"\s*(?:,|}|$))/);
+      if (match && match[1]) {
+        parsed.agent_response = match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+      } else if (rawContent && rawContent !== '{}' && !rawContent.startsWith('{')) {
         parsed.agent_response = rawContent;
       } else {
         parsed.agent_response = "Przetworzyłem Twoje żądanie, ale wystąpił błąd w generowaniu odpowiedzi tekstowej (utracono format).";
