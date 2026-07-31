@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Lock, Unlock, AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const LockScreen = ({ onUnlock }) => {
+  const { t } = useTranslation();
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,7 +23,7 @@ const LockScreen = ({ onUnlock }) => {
         onUnlock();
       }
     } catch (err) {
-      setError('Nieprawidłowy kod PIN.');
+      setError(t('invalidPin'));
       setPin('');
     } finally {
       setLoading(false);
@@ -45,9 +47,9 @@ const LockScreen = ({ onUnlock }) => {
           <Lock size={28} className="text-accentPrimary" strokeWidth={1.5} />
         </div>
         
-        <h2 className="text-2xl font-bold mb-2">Autoryzacja</h2>
+        <h2 className="text-2xl font-bold mb-2">{t('authTitle')}</h2>
         <p className="text-textSecondary text-center text-sm mb-8">
-          Wprowadź kod dostępu, aby odblokować OmniDash.
+          {t('authSubtitle')}
         </p>
 
         <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
@@ -77,10 +79,10 @@ const LockScreen = ({ onUnlock }) => {
           >
             <div className="absolute inset-0 bg-gradient-to-r from-accentPrimary to-accentSecondary transition-transform duration-500 group-hover:scale-110"></div>
             <div className="relative px-8 py-3.5 text-black flex items-center justify-center gap-2">
-              {loading ? 'Weryfikacja...' : (
+              {loading ? t('verifying') : (
                 <>
                   <Unlock size={18} />
-                  <span>Odblokuj</span>
+                  <span>{t('unlock')}</span>
                 </>
               )}
             </div>

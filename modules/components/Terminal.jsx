@@ -171,7 +171,11 @@ const Terminal = () => {
     }
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    recognition.lang = 'pl-PL';
+    const systemLang = localStorage.getItem('system_language') || 'pl';
+    const langMap = { pl: 'pl-PL', en: 'en-US', uk: 'uk-UA', zh: 'zh-CN' };
+    const speechLang = langMap[systemLang] || 'pl-PL';
+
+    recognition.lang = speechLang;
     recognition.continuous = false;
     recognition.interimResults = false;
 
@@ -213,20 +217,24 @@ const Terminal = () => {
          
          window.speechSynthesis.cancel();
          const utterance = new SpeechSynthesisUtterance(textToSpeak);
-         utterance.lang = 'pl-PL';
+         utterance.lang = speechLang;
          
          const voices = window.speechSynthesis.getVoices();
          const voicePref = localStorage.getItem('system_voice_pref') || 'paulina';
          const voiceRate = parseFloat(localStorage.getItem('system_voice_rate')) || 1.8;
          
          let selectedVoice;
-         if (voicePref === 'female' || voicePref === 'paulina') {
-            selectedVoice = voices.find(v => v.name.toLowerCase().includes('paulina') || v.name.toLowerCase().includes('zofia')) || voices.find(v => v.lang.includes('pl') && !v.name.toLowerCase().includes('male') && !v.name.toLowerCase().includes('marek'));
-         } else {
-            selectedVoice = voices.find(v => v.name.toLowerCase().includes('marek') || v.name.toLowerCase().includes('adam')) || voices.find(v => v.lang.includes('pl') && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('mężczyzna')));
+         const shortLang = systemLang;
+         
+         if (shortLang === 'pl') {
+           if (voicePref === 'female' || voicePref === 'paulina') {
+              selectedVoice = voices.find(v => v.name.toLowerCase().includes('paulina') || v.name.toLowerCase().includes('zofia')) || voices.find(v => v.lang.includes('pl') && !v.name.toLowerCase().includes('male') && !v.name.toLowerCase().includes('marek'));
+           } else {
+              selectedVoice = voices.find(v => v.name.toLowerCase().includes('marek') || v.name.toLowerCase().includes('adam')) || voices.find(v => v.lang.includes('pl') && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('mężczyzna')));
+           }
          }
          
-         if (!selectedVoice) selectedVoice = voices.find(v => v.lang.includes('pl'));
+         if (!selectedVoice) selectedVoice = voices.find(v => v.lang.includes(shortLang));
          if (selectedVoice) utterance.voice = selectedVoice;
          
          utterance.pitch = 1.15;
@@ -303,10 +311,12 @@ const Terminal = () => {
           reader.readAsDataURL(blob);
           reader.onloadend = async () => {
             try {
+              const systemLang = localStorage.getItem('system_language') || 'pl';
+              const langMap = { pl: 'pl', en: 'en', uk: 'uk', zh: 'zh' };
               const res = await fetch('/api/voice/transcribe', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ audioData: reader.result })
+                body: JSON.stringify({ audioData: reader.result, language: langMap[systemLang] })
               });
               const data = await res.json();
               if (data.text) {

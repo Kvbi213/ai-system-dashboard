@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, MessageSquare, Search, Settings, ChevronLeft, ChevronRight, LayoutGrid, CalendarDays, BrainCircuit, Crosshair, Wallet, Dumbbell } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const Sidebar = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(() => {
     return localStorage.getItem('system_sidebar_collapsed') === 'true';
@@ -13,15 +15,15 @@ const Sidebar = () => {
   }, [isCollapsed]);
 
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: <LayoutDashboard className="w-6 h-6" /> },
-    { name: 'AI Terminal', path: '/chat', icon: <MessageSquare className="w-6 h-6" /> },
-    { name: 'Memory', path: '/memory', icon: <BrainCircuit className="w-6 h-6" /> },
-    { name: 'Web Search', path: '/search', icon: <Search className="w-6 h-6" /> },
-    { name: 'OSINT', path: '/osint', icon: <Crosshair className="w-6 h-6" /> },
-    { name: 'Calendar', path: '/calendar', icon: <CalendarDays className="w-6 h-6" /> },
-    { name: 'Finances', path: '/finances', icon: <Wallet className="w-6 h-6" /> },
-    { name: 'Workouts', path: '/workouts', icon: <Dumbbell className="w-6 h-6" /> },
-    { name: 'Widgets', path: '/widgets', icon: <LayoutGrid className="w-6 h-6" /> },
+    { name: t('dashboard'), path: '/', icon: <LayoutDashboard className="w-6 h-6" /> },
+    { name: t('terminal'), path: '/chat', icon: <MessageSquare className="w-6 h-6" /> },
+    { name: t('memory'), path: '/memory', icon: <BrainCircuit className="w-6 h-6" /> },
+    { name: t('webSearch'), path: '/search', icon: <Search className="w-6 h-6" /> },
+    { name: t('osint'), path: '/osint', icon: <Crosshair className="w-6 h-6" /> },
+    { name: t('calendar'), path: '/calendar', icon: <CalendarDays className="w-6 h-6" /> },
+    { name: t('finances'), path: '/finances', icon: <Wallet className="w-6 h-6" /> },
+    { name: t('workouts'), path: '/workouts', icon: <Dumbbell className="w-6 h-6" /> },
+    { name: t('widgets'), path: '/widgets', icon: <LayoutGrid className="w-6 h-6" /> },
   ];
 
   return (
@@ -71,7 +73,7 @@ const Sidebar = () => {
       <div className={`w-auto md:w-full px-2 ${isCollapsed ? 'md:px-2 flex justify-center' : 'md:px-6'} mt-0 md:mt-auto flex items-center transition-all`} style={{ animationDelay: '200ms' }}>
         <Link 
           to="/settings"
-          title={isCollapsed ? 'Settings' : undefined}
+          title={isCollapsed ? t('settings') : undefined}
           className={`flex items-center gap-4 p-3 rounded-lg transition-all duration-200 group ${
             location.pathname === '/settings'
               ? 'bg-accentPrimary/10 border border-accentPrimary/50 text-accentPrimary shadow-[0_0_10px_rgba(var(--color-accent-primary),0.1)]' 
@@ -80,7 +82,7 @@ const Sidebar = () => {
         >
           <Settings className={`w-6 h-6 shrink-0 transition-colors ${location.pathname === '/settings' ? 'text-accentPrimary' : 'group-hover:text-accentPrimary'}`} />
           {!isCollapsed && (
-            <span className="hidden md:block font-mono text-sm tracking-wider uppercase font-medium whitespace-nowrap overflow-hidden text-ellipsis">Settings</span>
+            <span className="hidden md:block font-mono text-sm tracking-wider uppercase font-medium whitespace-nowrap overflow-hidden text-ellipsis">{t('settings')}</span>
           )}
         </Link>
       </div>

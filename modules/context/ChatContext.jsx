@@ -135,7 +135,8 @@ export const ChatProvider = ({ children }) => {
         const savedNews = localStorage.getItem('system_news_categories');
         const newsCategories = savedNews ? JSON.parse(savedNews) : ['ai', 'security'];
         const userName = localStorage.getItem('system_user_name') || 'Użytkownik';
-        const { data } = await axios.post('/api/agent', { text: userText, mode: 'mentor', newsCategories, userName }, { timeout: 120000 });
+        const systemLanguage = localStorage.getItem('system_language') || 'pl';
+        const { data } = await axios.post('/api/agent', { text: userText, mode: 'mentor', newsCategories, userName, language: systemLanguage }, { timeout: 120000 });
         const content = data.agent_response || "Błąd parsowania odpowiedzi.";
         setMentorMessages(prev => [...prev, { role: 'ai', content }]);
         if (data.mentor_thoughts) {
@@ -159,7 +160,8 @@ export const ChatProvider = ({ children }) => {
         const savedNews = localStorage.getItem('system_news_categories');
         const newsCategories = savedNews ? JSON.parse(savedNews) : ['ai', 'security'];
         const userName = localStorage.getItem('system_user_name') || 'Użytkownik';
-        const { data } = await axios.post('/api/agent', { text: userText, mode: 'worker', newsCategories, userName }, { timeout: 120000 });
+        const systemLanguage = localStorage.getItem('system_language') || 'pl';
+        const { data } = await axios.post('/api/agent', { text: userText, mode: 'worker', newsCategories, userName, language: systemLanguage }, { timeout: 120000 });
         let content = data.agent_response;
         if (!content && data.payload?.agent_response) content = data.payload.agent_response;
         if (!content && data.payload?.title) content = `Wykonano: ${data.payload.title}`;

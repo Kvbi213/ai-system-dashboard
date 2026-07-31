@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Settings, Shield, Bell, HardDrive, Cpu, Palette, Sun, Moon, Rss, Zap, Lock, Check, LayoutGrid, Mic, Volume2 } from 'lucide-react';
+import { Settings, Shield, Bell, HardDrive, Cpu, Palette, Sun, Moon, Rss, Zap, Lock, Check, LayoutGrid, Mic, Volume2, Globe } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
 
 const Toggle = ({ value, onChange }) => (
@@ -20,10 +21,12 @@ const TABS = [
 ];
 
 const SettingsPage = () => {
+  const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState('personalization');
   const [notifications, setNotifications] = useState(true);
   const [ghostMode, setGhostMode] = useState(false);
   const [theme, setTheme] = useState('dark');
+  const [systemLang, setSystemLang] = useState('pl');
   const [accent, setAccent] = useState('#00FF66');
   const [selectedNewsCategories, setSelectedNewsCategories] = useState(['ai', 'security']);
   const [saved, setSaved] = useState(false);
@@ -45,6 +48,7 @@ const SettingsPage = () => {
 
   useEffect(() => {
     setTheme(localStorage.getItem('system_theme') || 'dark');
+    setSystemLang(localStorage.getItem('system_language') || 'pl');
     setAccent(localStorage.getItem('system_accent_hex') || '#00FF66');
     const savedCats = localStorage.getItem('system_news_categories');
     if (savedCats) setSelectedNewsCategories(JSON.parse(savedCats));
@@ -120,6 +124,12 @@ const SettingsPage = () => {
     setTheme(newTheme);
     localStorage.setItem('system_theme', newTheme);
     document.documentElement.classList.toggle('theme-light', newTheme === 'light');
+  };
+
+  const changeLanguage = (newLang) => {
+    setSystemLang(newLang);
+    i18n.changeLanguage(newLang);
+    localStorage.setItem('system_language', newLang);
   };
 
   const changeAccent = (rgb, hex) => {
@@ -221,6 +231,18 @@ const SettingsPage = () => {
                     className="bg-surface border border-border rounded-lg px-3 py-1.5 focus:border-accentPrimary outline-none text-textPrimary font-mono w-32 md:w-48 text-sm"
                     placeholder="Wpisz imię..."
                   />
+                </SettingRow>
+                <SettingRow label={t('setupLanguage', 'Wybierz język systemu')} desc="Zmiana języka całego interfejsu i agenta AI.">
+                  <select
+                    value={systemLang}
+                    onChange={(e) => changeLanguage(e.target.value)}
+                    className="bg-surface border border-border rounded-lg px-3 py-1.5 focus:border-accentPrimary outline-none text-textPrimary font-mono text-sm"
+                  >
+                    <option value="pl">Polski (PL)</option>
+                    <option value="en">English (EN)</option>
+                    <option value="uk">Українська (UK)</option>
+                    <option value="zh">中文 (ZH)</option>
+                  </select>
                 </SettingRow>
                 <SettingRow label="Motyw Aplikacji" desc="Dark Sci-Fi lub jasny tryb produktywny">
                   <Toggle value={theme === 'light'} onChange={toggleTheme} />

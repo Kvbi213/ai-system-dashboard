@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { Palette, LayoutGrid, Rss, Check, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Palette, LayoutGrid, Rss, Check, ChevronRight, ChevronLeft, Globe } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
 
 const SetupWizard = ({ onComplete }) => {
+  const { t, i18n } = useTranslation();
   const [step, setStep] = useState(1);
   const [theme, setTheme] = useState(() => localStorage.getItem('system_theme') || 'dark');
+  const [systemLang, setSystemLang] = useState(() => localStorage.getItem('system_language') || 'pl');
   const [userName, setUserName] = useState(() => localStorage.getItem('system_user_name') || 'Użytkownik');
   const [accent, setAccent] = useState(() => {
     const savedHex = localStorage.getItem('system_accent_hex');
@@ -55,6 +58,7 @@ const SetupWizard = ({ onComplete }) => {
   const finishSetup = () => {
     // Zapis ustawień
     localStorage.setItem('system_theme', theme);
+    localStorage.setItem('system_language', systemLang);
     localStorage.setItem('system_accent', accent.rgb);
     localStorage.setItem('system_accent_hex', accent.hex);
     document.documentElement.classList.toggle('theme-light', theme === 'light');
@@ -80,6 +84,12 @@ const SetupWizard = ({ onComplete }) => {
     localStorage.setItem('system_theme', newTheme);
   };
 
+  const changeLanguageLive = (newLang) => {
+    setSystemLang(newLang);
+    i18n.changeLanguage(newLang);
+    localStorage.setItem('system_language', newLang);
+  };
+
   const changeAccentLive = (c) => {
     setAccent(c);
     document.documentElement.style.setProperty('--color-accent-primary', c.rgb);
@@ -91,6 +101,20 @@ const SetupWizard = ({ onComplete }) => {
 
   const renderStep1 = () => (
     <div className="space-y-6 animate-fade-in-up">
+      <div>
+        <h3 className="text-sm font-semibold text-textPrimary mb-3 flex items-center gap-2"><Globe className="w-4 h-4 text-accentPrimary" /> {t('setupLanguage', 'Wybierz język systemu')}</h3>
+        <select 
+          value={systemLang}
+          onChange={(e) => changeLanguageLive(e.target.value)}
+          className="w-full bg-surface border border-border rounded-xl px-4 py-3 focus:outline-none focus:border-accentPrimary text-textPrimary font-mono"
+        >
+          <option value="pl">{t('language_pl', 'Polski (PL)')}</option>
+          <option value="en">{t('language_en', 'Angielski (EN)')}</option>
+          <option value="uk">{t('language_uk', 'Ukraiński (UK)')}</option>
+          <option value="zh">{t('language_zh', 'Mandaryński (ZH)')}</option>
+        </select>
+      </div>
+
       <div>
         <h3 className="text-sm font-semibold text-textPrimary mb-3 flex items-center gap-2"><LayoutGrid className="w-4 h-4 text-accentPrimary" /> Twoje Imię / Pseudonim</h3>
         <input 
@@ -233,8 +257,8 @@ const SetupWizard = ({ onComplete }) => {
         {/* Header Wizarda */}
         <div className="p-6 border-b border-border bg-surface/50 flex items-center justify-between">
           <div>
-            <h1 className="font-mono text-2xl font-bold tracking-tighter" style={{ color: accent.hex }}>INITIAL SETUP_</h1>
-            <p className="font-sans text-xs text-textMuted mt-1">Skonfiguruj swoje centrum operacyjne</p>
+            <h1 className="font-mono text-2xl font-bold tracking-tighter" style={{ color: accent.hex }}>{t('setupTitle', 'INITIAL SETUP_')}</h1>
+            <p className="font-sans text-xs text-textMuted mt-1">{t('welcome', 'Skonfiguruj swoje centrum operacyjne')}</p>
           </div>
           <div className="flex gap-2">
             {[1, 2, 3].map(i => (
@@ -265,7 +289,7 @@ const SetupWizard = ({ onComplete }) => {
             className="flex items-center gap-2 px-8 py-2.5 rounded-xl font-mono text-sm font-bold text-black transition-all hover:scale-105"
             style={{ backgroundColor: accent.hex, boxShadow: `0 0 20px ${accent.hex}60` }}
           >
-            {step === 3 ? 'ZAKOŃCZ' : 'DALEJ'} <ChevronRight className="w-4 h-4" />
+            {step === 3 ? t('save', 'ZAKOŃCZ') : 'DALEJ'} <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>

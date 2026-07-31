@@ -519,12 +519,12 @@ async function fetchGroqCompletion(params) {
   }
 }
 
-export async function transcribeAudio(filePath) {
+export async function transcribeAudio(filePath, lang = "pl") {
   try {
     const transcription = await groq.audio.transcriptions.create({
       file: fs.createReadStream(filePath),
       model: "whisper-large-v3",
-      language: "pl",
+      language: lang,
     });
     return transcription.text;
   } catch (err) {
@@ -572,7 +572,7 @@ ${userProfile}
 Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj o tym w sposób rzeczowy i uprzejmy. Użyj narzędzia LEARN_FACT jeśli użytkownik zdradzi coś interesującego o sobie, co może przydać się w przyszłości.
 `;
 
-    const activePrompt = mode === 'mentor' ? getMentorPrompt(userName) : getSystemPrompt(userName) + systemContext;
+    const activePrompt = (mode === 'mentor' ? getMentorPrompt(userName) : getSystemPrompt(userName) + systemContext) + `\n\nCRITICAL INSTRUCTION: You MUST respond in the following language code: ${options.language || 'pl'}.`;
 
     let messages = [
       { role: 'system', content: activePrompt },
@@ -860,22 +860,26 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
       }
     }
 
-    const parsed = JSON.parse(extractJSON(responseMessage?.content || '{}'));
+    let parsed = {};
+    const rawContent = responseMessage?.content?.trim() || "";
+    try {
+      parsed = JSON.parse(extractJSON(rawContent || '{}'));
+    } catch (e) {
+      console.warn("[!] Błąd parsowania JSON, próba odzyskania tekstu...", e.message);
+    }
     
     if (typeof parsed.agent_response === 'object') {
       parsed.agent_response = JSON.stringify(parsed.agent_response);
     }
 
     if (!parsed.agent_response || parsed.agent_response.trim() === '' || parsed.agent_response.trim() === '{}') {
-      const rawContent = responseMessage?.content?.trim() || "";
-      
       const match = rawContent.match(/"agent_response"\s*:\s*"([\s\S]*?)(?:"\s*(?:,|}|$))/);
       if (match && match[1]) {
         parsed.agent_response = match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
       } else if (rawContent && rawContent !== '{}' && !rawContent.startsWith('{')) {
         parsed.agent_response = rawContent;
       } else {
-        parsed.agent_response = "Przetworzyłem Twoje żądanie, ale wystąpił błąd w generowaniu odpowiedzi tekstowej (utracono format).";
+        parsed.agent_response = rawContent || "Błąd formatowania odpowiedzi.";
       }
     }
 

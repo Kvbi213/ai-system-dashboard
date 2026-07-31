@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import WeatherWidget from '../components/WeatherWidget';
 import TodoList from '../components/TodoList';
 import ITNewsTicker from '../components/ITNewsTicker';
@@ -8,6 +9,7 @@ import NewsFeed from '../components/NewsFeed';
 import RoutinesWidget from '../components/RoutinesWidget';
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [time, setTime] = useState(new Date());
   const [newsCategories, setNewsCategories] = useState(() => {
@@ -44,7 +46,7 @@ const Dashboard = () => {
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2 font-mono text-xs text-accentPrimary uppercase tracking-widest">
             <span className="w-2 h-2 rounded-full bg-accentPrimary animate-pulse inline-block" />
-            Status: Nominal
+            {t('statusNominal')}
           </div>
           <WeatherWidget />
         </div>
@@ -75,7 +77,7 @@ const Dashboard = () => {
       <button 
         onClick={() => navigate('/widgets')}
         className="hidden md:flex fixed bottom-8 right-8 w-14 h-14 bg-black/60 backdrop-blur-md border border-accentPrimary/40 rounded-full items-center justify-center text-accentPrimary shadow-[0_0_20px_rgba(0,255,102,0.15)] hover:scale-110 hover:border-accentPrimary hover:shadow-[0_0_30px_rgba(0,255,102,0.3)] transition-all z-50 group"
-        title="Otwórz Katalog Widżetów"
+        title={t('openWidgetCatalog')}
       >
         <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
       </button>

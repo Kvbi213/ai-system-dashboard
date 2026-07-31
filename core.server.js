@@ -279,7 +279,7 @@ app.get('/api/model/status', async (req, res) => {
 
 // ── VOICE TRANSCRIPTION ────────────────────────────────────────
 app.post('/api/voice/transcribe', apiLimiter, async (req, res) => {
-  const { audioData } = req.body;
+  const { audioData, language } = req.body;
   if (!audioData) return res.status(400).json({ error: 'Brak danych audio' });
   if (audioData.length > 20000000) return res.status(413).json({ error: 'Plik audio jest zbyt duży' });
   
@@ -289,7 +289,7 @@ app.post('/api/voice/transcribe', apiLimiter, async (req, res) => {
     const buffer = Buffer.from(base64Content, 'base64');
     fs.writeFileSync(tmpPath, buffer);
     
-    const text = await transcribeAudio(tmpPath);
+    const text = await transcribeAudio(tmpPath, language || 'pl');
     res.json({ text });
   } catch (err) {
     logError('POST /api/voice/transcribe', err);

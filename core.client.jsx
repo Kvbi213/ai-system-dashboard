@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import axios from 'axios';
+import './modules/i18n';
 import './assets/styles/index.css';
 
 import Sidebar from './modules/components/Sidebar';
