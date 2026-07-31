@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { CheckSquare, Square, ListTodo, Trash2, Plus, Flag, RotateCcw, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const PRIORITY_CONFIG = {
   HIGH: { color: '#FF3366', label: 'HIGH', bg: 'rgba(255,51,102,0.12)', border: 'rgba(255,51,102,0.35)' },
@@ -21,6 +22,7 @@ const PriorityBadge = ({ priority }) => {
 };
 
 const TodoList = () => {
+  const { t } = useTranslation();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -88,12 +90,12 @@ const TodoList = () => {
       {/* Header */}
       <div className="flex items-center gap-2 border-b border-border pb-2.5 flex-shrink-0">
         <ListTodo className="text-accentSecondary w-5 h-5" />
-        <h2 className="font-mono text-sm uppercase tracking-widest text-textMuted flex-1">Task Pipeline</h2>
-        <span className="font-mono text-xs text-textMuted">{pending.length} aktywne</span>
+        <h2 className="font-mono text-sm uppercase tracking-widest text-textMuted flex-1">{t('todoTitle')}</h2>
+        <span className="font-mono text-xs text-textMuted">{pending.length} {t('todoActive')}</span>
         <button
           onClick={() => setShowForm(v => !v)}
           className="p-1.5 rounded-lg text-textMuted hover:text-accentPrimary hover:bg-accentPrimary/10 transition-all"
-          title="Dodaj zadanie"
+          title={t('todoAdd')}
         >
           {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
         </button>
@@ -106,7 +108,7 @@ const TodoList = () => {
             type="text"
             value={form.title}
             onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-            placeholder="Tytuł zadania..."
+            placeholder={t('todoTitlePlaceholder')}
             className="w-full bg-transparent border border-border rounded-lg px-3 py-2 text-sm font-sans text-textPrimary placeholder:text-textMuted focus:outline-none focus:border-accentPrimary transition-colors"
             autoFocus
           />
@@ -116,18 +118,18 @@ const TodoList = () => {
               onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
               className="flex-1 bg-surface border border-border rounded-lg px-2 py-1.5 text-xs font-mono text-textPrimary focus:outline-none focus:border-accentPrimary"
             >
-              <option value="HIGH">Priorytet: HIGH</option>
-              <option value="MEDIUM">Priorytet: MEDIUM</option>
-              <option value="LOW">Priorytet: LOW</option>
+              <option value="HIGH">{t('todoPrioHigh')}</option>
+              <option value="MEDIUM">{t('todoPrioMed')}</option>
+              <option value="LOW">{t('todoPrioLow')}</option>
             </select>
             <select
               value={form.category}
               onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
               className="flex-1 bg-surface border border-border rounded-lg px-2 py-1.5 text-xs font-mono text-textPrimary focus:outline-none focus:border-accentPrimary"
             >
-              <option value="jednorazowe">Jednorazowe</option>
-              <option value="powtarzalne">Powtarzalne</option>
-              <option value="inne">Inne</option>
+              <option value="jednorazowe">{t('todoCatOnce')}</option>
+              <option value="powtarzalne">{t('todoCatRepeat')}</option>
+              <option value="inne">{t('todoCatOther')}</option>
             </select>
           </div>
           <button
@@ -135,7 +137,7 @@ const TodoList = () => {
             disabled={submitting || !form.title.trim()}
             className="w-full py-1.5 rounded-lg font-mono text-xs font-bold tracking-wider bg-accentPrimary/20 border border-accentPrimary/40 text-accentPrimary hover:bg-accentPrimary/30 transition-all disabled:opacity-40"
           >
-            {submitting ? 'DODAWANIE...' : '+ DODAJ ZADANIE'}
+            {submitting ? t('todoAdding') : t('todoAddBtn')}
           </button>
         </form>
       )}
@@ -147,7 +149,7 @@ const TodoList = () => {
         ) : tasks.length === 0 ? (
           <div className="text-center text-textMuted text-xs font-mono mt-6 space-y-2">
             <ListTodo className="w-8 h-8 mx-auto opacity-20" />
-            <p>Brak aktywnych procesów.</p>
+            <p>{t('todoNoActive')}</p>
           </div>
         ) : (
           <>
@@ -165,7 +167,7 @@ const TodoList = () => {
                     <PriorityBadge priority={task.priority} />
                     {task.category === 'powtarzalne' && (
                       <span className="flex items-center gap-0.5 text-[9px] font-mono text-accentSecondary/70">
-                        <RotateCcw className="w-2.5 h-2.5" /> cykliczne
+                        <RotateCcw className="w-2.5 h-2.5" /> {t('todoCyclic')}
                       </span>
                     )}
                     {task.target_date && (
@@ -180,7 +182,7 @@ const TodoList = () => {
             ))}
             {done.length > 0 && (
               <div className="pt-2 border-t border-border/40">
-                <p className="font-mono text-[10px] text-textMuted uppercase tracking-widest mb-1.5 px-1">Ukończone ({done.length})</p>
+                <p className="font-mono text-[10px] text-textMuted uppercase tracking-widest mb-1.5 px-1">{t('todoCompleted')} ({done.length})</p>
                 {done.slice(0, 3).map(task => (
                   <div
                     key={task.id}

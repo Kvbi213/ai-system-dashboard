@@ -9,7 +9,9 @@ import NewsFeed from '../components/NewsFeed';
 import RoutinesWidget from '../components/RoutinesWidget';
 
 const Dashboard = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const langMap = { pl: 'pl-PL', en: 'en-US', uk: 'uk-UA', zh: 'zh-CN' };
+  const currentLocale = langMap[i18n.language] || 'pl-PL';
   const navigate = useNavigate();
   const [time, setTime] = useState(new Date());
   const [newsCategories, setNewsCategories] = useState(() => {
@@ -37,10 +39,10 @@ const Dashboard = () => {
       >
         <div className="flex flex-col">
           <span className="font-mono text-3xl text-accentPrimary font-bold tracking-tighter tabular-nums neon-text" style={{ textShadow: 'none', animation: 'none', color: 'var(--color-accent-primary-hex)' }}>
-            {time.toLocaleTimeString('pl-PL', { hour12: false })}
+            {time.toLocaleTimeString(currentLocale, { hour12: false })}
           </span>
           <span className="font-mono text-xs text-textMuted uppercase tracking-widest mt-0.5">
-            {time.toLocaleDateString('pl-PL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            {time.toLocaleDateString(currentLocale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </span>
         </div>
         <div className="flex items-center gap-6">

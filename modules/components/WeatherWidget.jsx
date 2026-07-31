@@ -1,25 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Cloud, Sun, CloudRain, Wind, AlertTriangle, Droplets, Eye } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const WMO_ICONS = {
-  0: { icon: Sun, label: 'Słonecznie' },
-  1: { icon: Sun, label: 'Głównie słonecznie' },
-  2: { icon: Cloud, label: 'Częściowe zachmurzenie' },
-  3: { icon: Cloud, label: 'Zachmurzenie' },
-  45: { icon: Eye, label: 'Mgła' },
-  51: { icon: CloudRain, label: 'Mżawka' },
-  61: { icon: CloudRain, label: 'Lekki deszcz' },
-  63: { icon: CloudRain, label: 'Deszcz' },
-  80: { icon: CloudRain, label: 'Przelotne opady' },
+  0: { icon: Sun, labelKey: 'weatherSunny' },
+  1: { icon: Sun, labelKey: 'weatherMostlySunny' },
+  2: { icon: Cloud, labelKey: 'weatherPartlyCloudy' },
+  3: { icon: Cloud, labelKey: 'weatherCloudy' },
+  45: { icon: Eye, labelKey: 'weatherFog' },
+  51: { icon: CloudRain, labelKey: 'weatherDrizzle' },
+  61: { icon: CloudRain, labelKey: 'weatherLightRain' },
+  63: { icon: CloudRain, labelKey: 'weatherRain' },
+  80: { icon: CloudRain, labelKey: 'weatherShowers' },
 };
 
 const getWeatherIcon = (code) => {
-  if (!code && code !== 0) return { icon: Cloud, label: 'Brak danych' };
+  if (!code && code !== 0) return { icon: Cloud, labelKey: 'weatherNoData' };
   const entry = WMO_ICONS[code] || (code <= 3 ? WMO_ICONS[0] : code <= 67 ? WMO_ICONS[61] : WMO_ICONS[80]);
-  return entry || { icon: Cloud, label: '' };
+  return entry || { icon: Cloud, labelKey: '' };
 };
 
 const WeatherWidget = () => {
+  const { t } = useTranslation();
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -87,12 +89,12 @@ const WeatherWidget = () => {
     return (
       <div className="flex items-center gap-2 text-red-400 font-mono opacity-80">
         <AlertTriangle className="w-4 h-4" />
-        <span className="text-xs">Brak danych</span>
+        <span className="text-xs">{t('weatherNoData')}</span>
       </div>
     );
   }
 
-  const { icon: WeatherIcon, label } = getWeatherIcon(weather.weathercode);
+  const { icon: WeatherIcon, labelKey } = getWeatherIcon(weather.weathercode);
 
   return (
     <div className="flex flex-col items-end gap-1.5 animate-fade-in-up">
@@ -104,7 +106,7 @@ const WeatherWidget = () => {
           <Wind className="w-3 h-3" />{weather.windspeed} km/h
         </span>
       </div>
-      <span className="text-[10px] text-textMuted font-mono">{label}</span>
+      <span className="text-[10px] text-textMuted font-mono">{labelKey ? t(labelKey) : ''}</span>
       {/* Mini 3h forecast */}
       {forecast.length > 0 && (
         <div className="flex gap-3 mt-0.5">

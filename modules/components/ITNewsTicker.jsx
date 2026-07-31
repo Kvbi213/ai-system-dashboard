@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Rss, ExternalLink, RefreshCw, Cpu, Shield, Zap, Lock, ChevronRight, AlertCircle } from 'lucide-react';
 import { CATEGORY_CONFIG } from '../config/constants';
+import { useTranslation } from 'react-i18next';
 
 const ITNewsTicker = ({ selectedCategories }) => {
+  const { t, i18n } = useTranslation();
+  const langMap = { pl: 'pl-PL', en: 'en-US', uk: 'uk-UA', zh: 'zh-CN' };
+  const currentLocale = langMap[i18n.language] || 'pl-PL';
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -57,19 +61,19 @@ const ITNewsTicker = ({ selectedCategories }) => {
       <div className="flex items-center justify-between border-b border-border pb-3 flex-shrink-0">
         <div className="flex items-center gap-2">
           <IconComponent className="w-5 h-5" style={{ color: currentCatConfig.color }} />
-          <h2 className="font-mono text-sm uppercase tracking-widest text-textMuted">IT Intel Feed</h2>
+          <h2 className="font-mono text-sm uppercase tracking-widest text-textMuted">{t('newsTickerTitle')}</h2>
           <span className="w-2 h-2 rounded-full animate-pulse ml-1" style={{ backgroundColor: currentCatConfig.color }} />
         </div>
         <div className="flex items-center gap-2">
           {lastFetch && (
             <span className="font-mono text-[10px] text-textMuted hidden sm:block">
-              {lastFetch.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+              {lastFetch.toLocaleTimeString(currentLocale, { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
           <button
             onClick={fetchNews}
             className="p-1.5 rounded-lg text-textMuted hover:text-accentPrimary hover:bg-accentPrimary/10 transition-all"
-            title="Odśwież"
+            title={t('newsRefresh')}
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -108,7 +112,7 @@ const ITNewsTicker = ({ selectedCategories }) => {
           className="flex items-center gap-2 rounded-lg px-3 py-2 flex-shrink-0 overflow-hidden"
           style={{ backgroundColor: `${currentCatConfig.color}10`, borderLeft: `2px solid ${currentCatConfig.color}` }}
         >
-          <span className="font-mono text-[9px] uppercase tracking-widest flex-shrink-0" style={{ color: currentCatConfig.color }}>LIVE</span>
+          <span className="font-mono text-[9px] uppercase tracking-widest flex-shrink-0" style={{ color: currentCatConfig.color }}>{t('newsLive')}</span>
           <p className="font-mono text-xs text-textPrimary truncate">
             {articles[tickerIndex]?.title}
           </p>
@@ -127,10 +131,10 @@ const ITNewsTicker = ({ selectedCategories }) => {
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-full gap-2 text-center">
             <AlertCircle className="w-8 h-8 text-textMuted opacity-40" />
-            <p className="text-xs font-mono text-textMuted">Brak połączenia z feed. Serwer pobiera dane...</p>
+            <p className="text-xs font-mono text-textMuted">{t('newsConnError')}</p>
           </div>
         ) : articles.length === 0 ? (
-          <div className="text-center text-textMuted text-xs font-mono mt-6">Brak wyników dla tej kategorii.</div>
+          <div className="text-center text-textMuted text-xs font-mono mt-6">{t('newsNoResults')}</div>
         ) : (
           articles.map((article, i) => (
             <a

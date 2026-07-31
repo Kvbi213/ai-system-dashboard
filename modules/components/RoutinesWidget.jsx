@@ -2,8 +2,10 @@ import React from 'react';
 import { Sun, Moon, Zap, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useChatContext } from '../context/ChatContext';
+import { useTranslation } from 'react-i18next';
 
 const RoutinesWidget = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { sendCommand } = useChatContext();
 
@@ -15,8 +17,8 @@ const RoutinesWidget = () => {
 
   const routines = [
     {
-      title: 'Poranny Raport',
-      description: 'Pogoda, dzisiejszy kalendarz, zadania',
+      title: t('routinesMorningReport'),
+      description: t('routinesMorningDesc'),
       icon: <Sun className="w-6 h-6 text-yellow-500" />,
       command: 'Wygeneruj szczegółowy Poranny Raport. Pobierz aktualną pogodę, wylistuj moje nadchodzące wydarzenia z kalendarza, a następnie podaj mi moje zadania do zrobienia na dzisiaj. Podsumuj to w zwięzły i motywujący sposób.',
       bgColor: 'bg-yellow-500/10',
@@ -24,8 +26,8 @@ const RoutinesWidget = () => {
       hoverBorder: 'hover:border-yellow-500/80'
     },
     {
-      title: 'Wieczorny Skan',
-      description: 'Podsumowanie dnia, IT News',
+      title: t('routinesEveningScan'),
+      description: t('routinesEveningDesc'),
       icon: <Moon className="w-6 h-6 text-blue-400" />,
       command: 'Zrób Wieczorny Skan. Pobierz 3 najciekawsze nowości ze świata IT/AI z dzisiaj, zobacz moje ukończone zadania z dzisiaj i wygeneruj krótkie podsumowanie całego dnia.',
       bgColor: 'bg-blue-400/10',
@@ -33,8 +35,8 @@ const RoutinesWidget = () => {
       hoverBorder: 'hover:border-blue-400/80'
     },
     {
-      title: 'Status Systemu',
-      description: 'Zasoby, obciążenie, pamięć',
+      title: t('routinesSystemStatus'),
+      description: t('routinesSystemDesc'),
       icon: <Activity className="w-6 h-6 text-green-500" />,
       command: 'Zrób szybki audyt Statusu Systemu. Wyświetl widżet z logami i zrób krótkie podsumowanie stabilności infrastruktury System.',
       bgColor: 'bg-green-500/10',
@@ -42,8 +44,8 @@ const RoutinesWidget = () => {
       hoverBorder: 'hover:border-green-500/80'
     },
     {
-      title: 'Zresetuj Kontekst',
-      description: 'Wyczyść czat i bufor',
+      title: t('routinesResetCtx'),
+      description: t('routinesResetDesc'),
       icon: <Zap className="w-6 h-6 text-accentPrimary" />,
       command: '/clear', // Zakładając, że na backendzie można obsłużyć komendę czyszczącą, albo po prostu wyśle ukryty tekst. Pamiętajmy, że na razie czyścimy po prostu pytając o coś nowego.
       bgColor: 'bg-accentPrimary/10',
@@ -58,7 +60,7 @@ const RoutinesWidget = () => {
       
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-mono text-sm uppercase text-textMuted tracking-wider flex items-center gap-2">
-          <Zap className="w-4 h-4 text-accentPrimary" /> Procedury / Makra
+          <Zap className="w-4 h-4 text-accentPrimary" /> {t('routinesTitle')}
         </h2>
       </div>
 

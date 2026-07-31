@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Smartphone, Bell, BellRing, Clock, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const NotificationsWidget = () => {
+  const { t, i18n } = useTranslation();
+  const langMap = { pl: 'pl-PL', en: 'en-US', uk: 'uk-UA', zh: 'zh-CN' };
+  const currentLocale = langMap[i18n.language] || 'pl-PL';
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,12 +35,12 @@ const NotificationsWidget = () => {
       <div className="flex items-center justify-between px-2">
         <div className="flex items-center gap-2">
           <Smartphone className="w-5 h-5 text-accentPrimary" />
-          <h3 className="font-bold text-accentPrimary uppercase tracking-widest text-sm">Signal Intercept</h3>
+          <h3 className="font-bold text-accentPrimary uppercase tracking-widest text-sm">{t('notifTitle')}</h3>
         </div>
         <button 
           onClick={fetchNotifications}
           className="text-textMuted hover:text-accentPrimary transition-colors"
-          title="Odśwież"
+          title={t('notifRefresh')}
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
         </button>
@@ -46,7 +50,7 @@ const NotificationsWidget = () => {
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-textMuted opacity-50 space-y-2">
             <Bell className="w-8 h-8" />
-            <span className="text-xs uppercase">Brak sygnałów</span>
+            <span className="text-xs uppercase">{t('notifNoSignals')}</span>
           </div>
         ) : (
           notifications.map(notif => (
@@ -68,7 +72,7 @@ const NotificationsWidget = () => {
                 <div className="flex items-center gap-1 opacity-50 text-[10px]">
                   <Clock className="w-3 h-3" />
                   <span>
-                    {new Date(notif.created_at).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(notif.created_at).toLocaleTimeString(currentLocale, { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               </div>
