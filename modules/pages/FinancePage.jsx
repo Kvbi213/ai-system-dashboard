@@ -1,8 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Plus, Trash2, TrendingUp, TrendingDown, Wallet, DollarSign, Settings2, Target, Heart } from 'lucide-react';
 
 const FinancePage = () => {
+  const { t } = useTranslation();
+
   const [finances, setFinances] = useState([]);
   const [settings, setSettings] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -107,7 +110,7 @@ const FinancePage = () => {
     }
   };
 
-  if (isLoading) return <div className="p-8 text-center text-textMuted font-mono">Wczytywanie finansów...</div>;
+  if (isLoading) return <div className="p-8 text-center text-textMuted font-mono">{t("finLoading", "Wczytywanie finansów...")}</div>;
 
   if (!settings) {
     return (
@@ -117,13 +120,13 @@ const FinancePage = () => {
             <div className="p-4 bg-accentPrimary/20 text-accentPrimary rounded-full mb-4">
               <Wallet className="w-10 h-10" />
             </div>
-            <h1 className="text-2xl font-bold font-mono text-accentPrimary">Konfiguracja Budżetu</h1>
-            <p className="text-sm text-textMuted mt-2 font-sans">Złota zasada 50/30/20 pozwala AI inteligentnie zarządzać Twoimi wydatkami.</p>
+            <h1 className="text-2xl font-bold font-mono text-accentPrimary">{t("finSetupTitle", "Konfiguracja Budżetu")}</h1>
+            <p className="text-sm text-textMuted mt-2 font-sans">{t("finSetupDesc", "Złota zasada 50/30/20 pozwala AI inteligentnie zarządzać Twoimi wydatkami.")}</p>
           </div>
           
           <form onSubmit={handleSetupSubmit} className="space-y-5">
             <div>
-              <label className="text-xs font-mono text-textMuted block mb-1">Deklarowany Stały Przychód (Miesięczny)</label>
+              <label className="text-xs font-mono text-textMuted block mb-1">{t("finIncome", "Deklarowany Stały Przychód (Miesięczny)")}</label>
               <div className="flex items-center gap-2 bg-black/30 border border-border rounded-lg p-2.5">
                 <DollarSign className="w-5 h-5 text-textMuted" />
                 <input type="number" required value={setupData.monthly_income} onChange={e => setSetupData({...setupData, monthly_income: parseFloat(e.target.value) || 0})} className="w-full bg-transparent text-textPrimary font-mono outline-none" />
@@ -133,15 +136,15 @@ const FinancePage = () => {
             
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="text-xs font-mono text-textMuted block mb-1">Potrzeby (%)</label>
+                <label className="text-xs font-mono text-textMuted block mb-1">{t("finNeeds", "Potrzeby (%)")}</label>
                 <input type="number" required value={setupData.needs_percent} onChange={e => setSetupData({...setupData, needs_percent: parseFloat(e.target.value) || 0})} className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono outline-none" />
               </div>
               <div>
-                <label className="text-xs font-mono text-textMuted block mb-1">Zachcianki (%)</label>
+                <label className="text-xs font-mono text-textMuted block mb-1">{t("finWants", "Zachcianki (%)")}</label>
                 <input type="number" required value={setupData.wants_percent} onChange={e => setSetupData({...setupData, wants_percent: parseFloat(e.target.value) || 0})} className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono outline-none" />
               </div>
               <div>
-                <label className="text-xs font-mono text-textMuted block mb-1">Oszczędności (%)</label>
+                <label className="text-xs font-mono text-textMuted block mb-1">{t("finSavings", "Oszczędności (%)")}</label>
                 <input type="number" required value={setupData.savings_percent} onChange={e => setSetupData({...setupData, savings_percent: parseFloat(e.target.value) || 0})} className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono outline-none" />
               </div>
             </div>
@@ -170,8 +173,8 @@ const FinancePage = () => {
             <Wallet className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="font-mono text-xl text-accentPrimary font-bold tracking-tight">Finanse Inteligentne</h1>
-            <p className="font-sans text-xs text-textMuted mt-0.5">Stan ogólny: <span className={balance >= 0 ? 'text-green-400' : 'text-red-400'}>{balance.toFixed(2)} PLN</span></p>
+            <h1 className="font-mono text-xl text-accentPrimary font-bold tracking-tight">{t("finTitle", "Finanse Inteligentne")}</h1>
+            <p className="font-sans text-xs text-textMuted mt-0.5">{t("finTotal", "Stan ogólny: ")}<span className={balance >= 0 ? 'text-green-400' : 'text-red-400'}>{balance.toFixed(2)} PLN</span></p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -182,7 +185,7 @@ const FinancePage = () => {
             onClick={() => setShowModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-accentPrimary/20 hover:bg-accentPrimary/30 text-accentPrimary rounded-lg transition-colors border border-accentPrimary/30"
           >
-            <Plus className="w-4 h-4" /> Dodaj wpis
+            <Plus className="w-4 h-4" /> {t("finAdd", "Dodaj wpis")}
           </button>
         </div>
       </header>
@@ -193,27 +196,27 @@ const FinancePage = () => {
         {/* Needs */}
         <div className="glass-panel p-5 rounded-xl flex flex-col justify-center relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><Target className="w-12 h-12" /></div>
-          <p className="text-[10px] text-textMuted font-mono mb-1">UŻYTEK COMIESIĘCZNY (NEEDS)</p>
+          <p className="text-[10px] text-textMuted font-mono mb-1">{t("finBucketNeeds", "UŻYTEK COMIESIĘCZNY (NEEDS)")}</p>
           <p className="text-xl font-bold font-mono text-textPrimary">{(bucketSpending.needs || 0).toFixed(2)} PLN</p>
         </div>
 
         {/* Wants */}
         <div className="glass-panel p-5 rounded-xl flex flex-col justify-center relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><Heart className="w-12 h-12" /></div>
-          <p className="text-[10px] text-textMuted font-mono mb-1">ZACHCIANKI (WANTS)</p>
+          <p className="text-[10px] text-textMuted font-mono mb-1">{t("finBucketWants", "ZACHCIANKI (WANTS)")}</p>
           <p className="text-xl font-bold font-mono text-textPrimary">{(bucketSpending.wants || 0).toFixed(2)} PLN</p>
         </div>
 
         {/* Savings */}
         <div className="glass-panel p-5 rounded-xl flex flex-col justify-center relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><TrendingUp className="w-12 h-12" /></div>
-          <p className="text-[10px] text-textMuted font-mono mb-1">OSZCZĘDNOŚCI (SAVINGS)</p>
+          <p className="text-[10px] text-textMuted font-mono mb-1">{t("finBucketSavings", "OSZCZĘDNOŚCI (SAVINGS)")}</p>
           <p className="text-xl font-bold font-mono text-textPrimary">{(bucketSpending.savings || 0).toFixed(2)} PLN</p>
         </div>
 
         {/* Unassigned */}
         <div className="glass-panel p-5 rounded-xl flex flex-col justify-center relative overflow-hidden group border-dashed border-2 border-white/10">
-          <p className="text-[10px] text-textMuted font-mono mb-1">WOLNE ŚRODKI (UNASSIGNED)</p>
+          <p className="text-[10px] text-textMuted font-mono mb-1">{t("finBucketUnassigned", "WOLNE ŚRODKI (UNASSIGNED)")}</p>
           <p className="text-xl font-bold font-mono text-textPrimary">{(bucketSpending.unassigned || 0).toFixed(2)} PLN</p>
         </div>
 
@@ -222,11 +225,11 @@ const FinancePage = () => {
       {/* List */}
       <div className="glass-panel rounded-xl overflow-hidden flex-1 flex flex-col">
         <div className="p-4 border-b border-border bg-black/20 font-mono text-sm font-bold text-accentPrimary flex justify-between">
-          <span>Historia Transakcji</span>
+          <span>{t("finHistory", "Historia Transakcji")}</span>
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
           {finances.length === 0 ? (
-            <p className="text-textMuted text-sm text-center py-10 font-mono">Brak wpisów finansowych.</p>
+            <p className="text-textMuted text-sm text-center py-10 font-mono">{t("finNoEntries", "Brak wpisów finansowych.")}</p>
           ) : (
             finances.map(item => (
               <div key={item.id} className="flex justify-between items-center p-4 bg-black/20 hover:bg-black/40 border border-border/50 rounded-lg transition-colors group">
@@ -262,44 +265,44 @@ const FinancePage = () => {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-background border border-border rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
             <div className="p-4 border-b border-border flex justify-between items-center bg-black/20">
-              <h2 className="font-mono text-accentPrimary font-bold">Nowa Transakcja</h2>
+              <h2 className="font-mono text-accentPrimary font-bold">{t("finNewTrans", "Nowa Transakcja")}</h2>
               <button onClick={() => setShowModal(false)} className="text-textMuted hover:text-white transition-colors">✕</button>
             </div>
             <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
               
               <div className="flex gap-2 bg-black/30 p-1 rounded-lg border border-border/50">
-                <button type="button" onClick={() => setFormData({...formData, type: 'expense'})} className={`flex-1 py-2 text-sm font-bold font-mono rounded-md transition-colors ${formData.type === 'expense' ? 'bg-red-500/20 text-red-400' : 'text-textMuted hover:text-textPrimary'}`}>WYDATEK</button>
-                <button type="button" onClick={() => setFormData({...formData, type: 'income'})} className={`flex-1 py-2 text-sm font-bold font-mono rounded-md transition-colors ${formData.type === 'income' ? 'bg-green-500/20 text-green-400' : 'text-textMuted hover:text-textPrimary'}`}>PRZYCHÓD</button>
+                <button type="button" onClick={() => setFormData({...formData, type: 'expense'})} className={`flex-1 py-2 text-sm font-bold font-mono rounded-md transition-colors ${formData.type === 'expense' ? 'bg-red-500/20 text-red-400' : 'text-textMuted hover:text-textPrimary'}`}>{t("finExpense", "WYDATEK")}</button>
+                <button type="button" onClick={() => setFormData({...formData, type: 'income'})} className={`flex-1 py-2 text-sm font-bold font-mono rounded-md transition-colors ${formData.type === 'income' ? 'bg-green-500/20 text-green-400' : 'text-textMuted hover:text-textPrimary'}`}>{t("finIncomeBtn", "PRZYCHÓD")}</button>
               </div>
 
               <div>
-                <label className="text-xs font-mono text-textMuted mb-1 block">Kwota (PLN)</label>
+                <label className="text-xs font-mono text-textMuted mb-1 block">{t("finAmount", "Kwota (PLN)")}</label>
                 <input type="number" step="0.01" required value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-accentPrimary outline-none transition-colors" placeholder="0.00" />
               </div>
 
               {formData.type === 'expense' && (
                 <div>
-                  <label className="text-xs font-mono text-textMuted mb-1 block">Kubełek (Bucket)</label>
+                  <label className="text-xs font-mono text-textMuted mb-1 block">{t("finBucketLabel", "Kubełek (Bucket)")}</label>
                   <select value={formData.bucket} onChange={e => setFormData({...formData, bucket: e.target.value})} className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-accentPrimary outline-none transition-colors">
-                    <option value="needs">Potrzeby (Needs)</option>
-                    <option value="wants">Zachcianki (Wants)</option>
-                    <option value="savings">Oszczędności (Savings)</option>
+                    <option value="needs">{t("finOptNeeds", "Potrzeby (Needs)")}</option>
+                    <option value="wants">{t("finOptWants", "Zachcianki (Wants)")}</option>
+                    <option value="savings">{t("finOptSavings", "Oszczędności (Savings)")}</option>
                   </select>
                 </div>
               )}
               
               <div>
-                <label className="text-xs font-mono text-textMuted mb-1 block">Kategoria</label>
-                <input type="text" required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-accentPrimary outline-none transition-colors" placeholder="np. Jedzenie, Wypłata" />
+                <label className="text-xs font-mono text-textMuted mb-1 block">{t("finCategory", "Kategoria")}</label>
+                <input type="text" required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-accentPrimary outline-none transition-colors" placeholder={t("finCatPlaceholder", "np. Jedzenie, Wypłata")} />
               </div>
               
               <div>
-                <label className="text-xs font-mono text-textMuted mb-1 block">Opis (opcjonalnie)</label>
-                <input type="text" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-accentPrimary outline-none transition-colors" placeholder="np. Zakupy w Biedronce" />
+                <label className="text-xs font-mono text-textMuted mb-1 block">{t("finDesc", "Opis (opcjonalnie)")}</label>
+                <input type="text" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-accentPrimary outline-none transition-colors" placeholder={t("finDescPlaceholder", "np. Zakupy w Biedronce")} />
               </div>
 
               <div>
-                <label className="text-xs font-mono text-textMuted mb-1 block">Data</label>
+                <label className="text-xs font-mono text-textMuted mb-1 block">{t("finDate", "Data")}</label>
                 <input type="date" required value={formData.transaction_date} onChange={e => setFormData({...formData, transaction_date: e.target.value})} className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-accentPrimary outline-none transition-colors" />
               </div>
 

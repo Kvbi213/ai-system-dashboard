@@ -14,10 +14,10 @@ const Toggle = ({ value, onChange }) => (
 );
 
 const TABS = [
-  { id: 'personalization', label: 'Personalizacja', icon: Palette },
-  { id: 'privacy', label: 'Prywatność', icon: Shield },
-  { id: 'system', label: 'System', icon: Cpu },
-  { id: 'security', label: 'Bezpieczeństwo', icon: Lock }
+  { id: 'personalization', label: t('tabPersonalization', 'Personalizacja'), icon: Palette },
+  { id: 'privacy', label: t('tabPrivacy', 'Prywatność'), icon: Shield },
+  { id: 'system', label: t('tabSystem', 'System'), icon: Cpu },
+  { id: 'security', label: t('tabSecurity', 'Bezpieczeństwo'), icon: Lock }
 ];
 
 const SettingsPage = () => {
@@ -78,7 +78,7 @@ const SettingsPage = () => {
 
   const testVoice = () => {
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance("Testuję ustawienia głosu. Mam nadzieję, że brzmię dobrze.");
+    const utterance = new SpeechSynthesisUtterance(t("testVoiceText", "Testuję ustawienia głosu. Mam nadzieję, że brzmię dobrze."));
     utterance.lang = 'pl-PL';
     utterance.rate = voiceRate;
     
@@ -217,9 +217,9 @@ const SettingsPage = () => {
           <div className="space-y-4 animate-fade-in-up">
             {/* --- WYGLĄD --- */}
             <section className="glass-panel p-5 rounded-xl border border-border">
-              <SectionHeader icon={Palette} title="Wygląd i Personalizacja" />
+              <SectionHeader icon={Palette} title={t('appearanceTitle', 'Wygląd i Personalizacja')} />
               <div className="space-y-3">
-                <SettingRow label="Imię / Pseudonim" desc="Twoja nazwa, której asystent AI używa zwracając się do Ciebie.">
+                <SettingRow label={t("userNameLabel", "Imię / Pseudonim")} desc={t("userNameDesc", "Twoja nazwa, której asystent AI używa zwracając się do Ciebie.")}>
                   <input
                     type="text"
                     value={userName}
@@ -229,10 +229,10 @@ const SettingsPage = () => {
                       window.dispatchEvent(new CustomEvent('userNameChanged', { detail: e.target.value }));
                     }}
                     className="bg-surface border border-border rounded-lg px-3 py-1.5 focus:border-accentPrimary outline-none text-textPrimary font-mono w-32 md:w-48 text-sm"
-                    placeholder="Wpisz imię..."
+                    placeholder={t("userNamePlaceholder", "Wpisz imię...")}
                   />
                 </SettingRow>
-                <SettingRow label={t('setupLanguage', 'Wybierz język systemu')} desc="Zmiana języka całego interfejsu i agenta AI.">
+                <SettingRow label={t('setupLanguage', 'Wybierz język systemu')} desc={t("languageDesc", "Zmiana języka całego interfejsu i agenta AI.")}>
                   <select
                     value={systemLang}
                     onChange={(e) => changeLanguage(e.target.value)}
@@ -244,11 +244,11 @@ const SettingsPage = () => {
                     <option value="zh">中文 (ZH)</option>
                   </select>
                 </SettingRow>
-                <SettingRow label="Motyw Aplikacji" desc="Dark Sci-Fi lub jasny tryb produktywny">
+                <SettingRow label={t("appThemeLabel", "Motyw Aplikacji")} desc={t("appThemeDesc", "Dark Sci-Fi lub jasny tryb produktywny")}>
                   <Toggle value={theme === 'light'} onChange={toggleTheme} />
                 </SettingRow>
                 <div className="p-4 rounded-xl border border-border/50 bg-black/20">
-                  <p className="font-semibold text-textPrimary font-sans text-sm mb-3">Kolor Akcentu</p>
+                  <p className="font-semibold text-textPrimary font-sans text-sm mb-3">{t("accentColorLabel", "Kolor Akcentu")}</p>
                   <div className="flex gap-3 flex-wrap">
                     {COLOR_PRESETS.map(c => (
                       <button
@@ -276,31 +276,31 @@ const SettingsPage = () => {
 
             {/* --- WIDOCZNE WIDŻETY --- */}
             <section className="glass-panel p-5 rounded-xl border border-border">
-              <SectionHeader icon={LayoutGrid} title="Katalog Widżetów (Widoczność)" />
+              <SectionHeader icon={LayoutGrid} title={t("widgetCatalogTitle", "Katalog Widżetów (Widoczność)")} />
               <div className="space-y-3">
-                <SettingRow label="Token & Cost Tracker" desc="Zużycie API tokenów.">
+                <SettingRow label="Token & Cost Tracker" desc={t("tokenTrackerDesc", "Zużycie API tokenów.")}>
                   <Toggle value={activeWidgets.tokenTracker} onChange={(v) => updateActiveWidgets('tokenTracker', v)} />
                 </SettingRow>
-                <SettingRow label="Model Status" desc="Ping i specyfikacja LLM.">
+                <SettingRow label="Model Status" desc={t("modelStatusDesc", "Ping i specyfikacja LLM.")}>
                   <Toggle value={activeWidgets.modelStatus} onChange={(v) => updateActiveWidgets('modelStatus', v)} />
                 </SettingRow>
-                <SettingRow label="Prompt Vault" desc="Biblioteka gotowych zapytań.">
+                <SettingRow label="Prompt Vault" desc={t("promptVaultDesc", "Biblioteka gotowych zapytań.")}>
                   <Toggle value={activeWidgets.promptVault} onChange={(v) => updateActiveWidgets('promptVault', v)} />
                 </SettingRow>
-                <SettingRow label="Agent Queue" desc="Kolejka zadań w tle.">
+                <SettingRow label="Agent Queue" desc={t("agentQueueDesc", "Kolejka zadań w tle.")}>
                   <Toggle value={activeWidgets.agentQueue} onChange={(v) => updateActiveWidgets('agentQueue', v)} />
                 </SettingRow>
                 <div className="h-px bg-border/50 my-2"></div>
-                <SettingRow label="System Monitor" desc="Moduł metryk sprzętowych.">
+                <SettingRow label="System Monitor" desc={t("sysMonitorDesc", "Moduł metryk sprzętowych.")}>
                   <Toggle value={activeWidgets.systemMonitor} onChange={(v) => updateActiveWidgets('systemMonitor', v)} />
                 </SettingRow>
-                <SettingRow label="Network Monitor" desc="Śledzenie opóźnień sieciowych.">
+                <SettingRow label="Network Monitor" desc={t("networkMonitorDesc", "Śledzenie opóźnień sieciowych.")}>
                   <Toggle value={activeWidgets.networkMonitor} onChange={(v) => updateActiveWidgets('networkMonitor', v)} />
                 </SettingRow>
-                <SettingRow label="Crypto Tracker" desc="Notowania kryptowalut.">
+                <SettingRow label="Crypto Tracker" desc={t("cryptoTrackerDesc", "Notowania kryptowalut.")}>
                   <Toggle value={activeWidgets.cryptoTracker} onChange={(v) => updateActiveWidgets('cryptoTracker', v)} />
                 </SettingRow>
-                <SettingRow label="Scratchpad" desc="Twój lokalny notatnik hakerski.">
+                <SettingRow label="Scratchpad" desc={t("scratchpadDesc", "Twój lokalny notatnik hakerski.")}>
                   <Toggle value={activeWidgets.quickNotes} onChange={(v) => updateActiveWidgets('quickNotes', v)} />
                 </SettingRow>
               </div>
@@ -308,15 +308,15 @@ const SettingsPage = () => {
 
             {/* --- SYSTEM MONITOR --- */}
             <section className="glass-panel p-5 rounded-xl border border-border">
-              <SectionHeader icon={Cpu} title="System Monitor (Konfiguracja Pasków)" />
+              <SectionHeader icon={Cpu} title={t("sysMonitorConfigTitle", "System Monitor (Konfiguracja Pasków)")} />
               <div className="space-y-3">
-                <SettingRow label="Wskaźnik CPU" desc="Pokaż zużycie procesora.">
+                <SettingRow label={t("cpuLabel", "Wskaźnik CPU")} desc={t("cpuDesc", "Pokaż zużycie procesora.")}>
                   <Toggle value={sysMonitorPrefs.cpu} onChange={(v) => updateSysPrefs('cpu', v)} />
                 </SettingRow>
-                <SettingRow label="Wskaźnik RAM" desc="Pokaż zużycie pamięci operacyjnej.">
+                <SettingRow label={t("ramLabel", "Wskaźnik RAM")} desc={t("ramDesc", "Pokaż zużycie pamięci operacyjnej.")}>
                   <Toggle value={sysMonitorPrefs.ram} onChange={(v) => updateSysPrefs('ram', v)} />
                 </SettingRow>
-                <SettingRow label="Wskaźnik Uptime" desc="Pokaż czas od uruchomienia systemu.">
+                <SettingRow label={t("uptimeLabel", "Wskaźnik Uptime")} desc={t("uptimeDesc", "Pokaż czas od uruchomienia systemu.")}>
                   <Toggle value={sysMonitorPrefs.uptime} onChange={(v) => updateSysPrefs('uptime', v)} />
                 </SettingRow>
               </div>
@@ -324,8 +324,8 @@ const SettingsPage = () => {
 
             {/* --- PREFERENCJE NEWSÓW --- */}
             <section className="glass-panel p-5 rounded-xl border border-border">
-              <SectionHeader icon={Rss} title="Preferencje Kanału IT News" />
-              <p className="text-xs text-textMuted mb-4 -mt-2">Wybierz kategorie widoczne w widżecie IT Intel Feed. Minimum jedna kategoria.</p>
+              <SectionHeader icon={Rss} title={t("newsPrefsTitle", "Preferencje Kanału IT News")} />
+              <p className="text-xs text-textMuted mb-4 -mt-2">{t("newsPrefsDesc", "Wybierz kategorie widoczne w widżecie IT Intel Feed. Minimum jedna kategoria.")}</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                 {NEWS_CATEGORIES.map(cat => {
                   const CatIcon = cat.icon;
@@ -369,7 +369,7 @@ const SettingsPage = () => {
                   color: saved ? '#00FF66' : 'var(--color-accent-primary-hex)',
                 }}
               >
-                {saved ? '✓ ZAPISANO PREFERENCJE' : 'ZAPISZ PREFERENCJE NEWSÓW'}
+                {saved ? t('newsPrefsSaved', '✓ ZAPISANO PREFERENCJE') : t('newsPrefsSave', 'ZAPISZ PREFERENCJE NEWSÓW')}
               </button>
             </section>
           </div>
@@ -379,9 +379,9 @@ const SettingsPage = () => {
           <div className="space-y-4 animate-fade-in-up">
             {/* --- PRYWATNOŚĆ --- */}
             <section className="glass-panel p-5 rounded-xl border border-border">
-              <SectionHeader icon={Shield} title="Prywatność i Bezpieczeństwo" />
+              <SectionHeader icon={Shield} title={t("privacyTitle", "Prywatność i Bezpieczeństwo")} />
               <div className="space-y-3">
-                <SettingRow label="Tryb Ghost (Incognito)" desc="Dezaktywuje trwałe zapisywanie logów i historii konwersacji czatu AI. Czat po wyjściu z OmniDash zresetuje się.">
+                <SettingRow label={t("ghostModeLabel", "Tryb Ghost (Incognito)")} desc={t("ghostModeDesc", "Dezaktywuje trwałe zapisywanie logów i historii konwersacji czatu AI. Czat po wyjściu z OmniDash zresetuje się.")}>
                   <Toggle value={ghostMode} onChange={handleToggleGhostMode} />
                 </SettingRow>
               </div>
@@ -389,17 +389,17 @@ const SettingsPage = () => {
 
             {/* --- PAMIĘĆ --- */}
             <section className="glass-panel p-5 rounded-xl border border-red-500/20">
-              <SectionHeader icon={HardDrive} title="Zarządzanie Pamięcią" className="text-red-400" />
+              <SectionHeader icon={HardDrive} title={t("storageTitle", "Zarządzanie Pamięcią")} className="text-red-400" />
               <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between p-4 bg-red-500/5 rounded-xl border border-red-500/10">
                 <div>
-                  <p className="font-bold text-red-400 font-sans text-sm">Wyczyszczenie Pamięci Podręcznej</p>
-                  <p className="text-xs text-red-400/60 mt-0.5">Trwale usuwa pliki tymczasowe, indeksy i historię czatu.</p>
+                  <p className="font-bold text-red-400 font-sans text-sm">{t("clearCacheLabel", "Wyczyszczenie Pamięci Podręcznej")}</p>
+                  <p className="text-xs text-red-400/60 mt-0.5">{t("clearCacheDesc", "Trwale usuwa pliki tymczasowe, indeksy i historię czatu.")}</p>
                 </div>
                 <button
                   className="bg-red-500/20 hover:bg-red-500/40 border border-red-500 text-red-400 px-5 py-2 rounded-xl font-mono font-bold text-sm transition-all hover:shadow-[0_0_15px_rgba(255,50,50,0.3)] w-full sm:w-auto flex-shrink-0"
                   onClick={() => {
                     localStorage.removeItem('system_chat_history');
-                    alert('Pamięć i historia czatu zostały wyczyszczone.');
+                    alert(t('cacheClearedMsg', 'Pamięć i historia czatu zostały wyczyszczone.'));
                   }}
                 >
                   PURGE CACHE
@@ -413,9 +413,9 @@ const SettingsPage = () => {
           <div className="space-y-4 animate-fade-in-up">
             {/* --- SYSTEMOWE --- */}
             <section className="glass-panel p-5 rounded-xl border border-border">
-              <SectionHeader icon={Bell} title="Preferencje Systemowe" />
+              <SectionHeader icon={Bell} title={t("sysPrefsTitle", "Preferencje Systemowe")} />
               <div className="space-y-3">
-                <SettingRow label="Powiadomienia Dźwiękowe" desc="Sygnały audio przy zakończeniu procesów w tle.">
+                <SettingRow label={t("soundNotifsLabel", "Powiadomienia Dźwiękowe")} desc={t("soundNotifsDesc", "Sygnały audio przy zakończeniu procesów w tle.")}>
                   <Toggle value={notifications} onChange={setNotifications} />
                 </SettingRow>
               </div>
@@ -423,30 +423,30 @@ const SettingsPage = () => {
 
             {/* --- GŁOS AI --- */}
             <section className="glass-panel p-5 rounded-xl border border-border">
-              <SectionHeader icon={Mic} title="Asystent Głosowy" />
+              <SectionHeader icon={Mic} title={t("voiceAssistantTitle", "Asystent Głosowy")} />
               <div className="space-y-4">
                 <div className="p-4 rounded-xl border border-border/50 bg-black/20">
                   <div className="flex justify-between items-center mb-2">
-                    <p className="font-semibold text-textPrimary font-sans text-sm">Wybór Głosu</p>
+                    <p className="font-semibold text-textPrimary font-sans text-sm">{t("voiceSelectLabel", "Wybór Głosu")}</p>
                     <button onClick={testVoice} className="text-xs bg-accentPrimary/20 text-accentPrimary px-3 py-1.5 rounded-lg hover:bg-accentPrimary/40 flex items-center gap-1 transition-colors">Testuj głos <Volume2 className="w-3.5 h-3.5" /></button>
                   </div>
-                  <p className="text-xs text-textMuted mb-3">Wybierz płeć głosu asystenta.</p>
+                  <p className="text-xs text-textMuted mb-3">{t("voiceSelectDesc", "Wybierz płeć głosu asystenta.")}</p>
                   <select 
                     value={voicePref === 'paulina' ? 'female' : voicePref} 
                     onChange={(e) => updateVoicePref(e.target.value)}
                     className="w-full bg-surface border border-border rounded-lg px-3 py-2.5 text-sm font-mono text-textPrimary focus:outline-none focus:border-accentPrimary"
                   >
-                    <option value="female">Głos Damski (Paulina/Zofia)</option>
-                    <option value="male">Głos Męski (Marek/Adam)</option>
+                    <option value="female">{t("voiceFemale", "Głos Damski (Paulina/Zofia)")}</option>
+                    <option value="male">{t("voiceMale", "Głos Męski (Marek/Adam)")}</option>
                   </select>
                 </div>
                 
                 <div className="p-4 rounded-xl border border-border/50 bg-black/20">
                   <div className="flex justify-between items-center mb-2">
-                    <p className="font-semibold text-textPrimary font-sans text-sm">Prędkość mowy (Rate): {voiceRate.toFixed(1)}x</p>
+                    <p className="font-semibold text-textPrimary font-sans text-sm">{t("voiceRateLabel", "Prędkość mowy (Rate):")} {voiceRate.toFixed(1)}x</p>
                     <button onClick={testVoice} className="text-xs bg-accentPrimary/20 text-accentPrimary px-3 py-1.5 rounded-lg hover:bg-accentPrimary/40 flex items-center gap-1 transition-colors">Testuj prędkość <Volume2 className="w-3.5 h-3.5" /></button>
                   </div>
-                  <p className="text-xs text-textMuted mb-4">Dostosuj szybkość, z jaką agent odczytuje odpowiedzi.</p>
+                  <p className="text-xs text-textMuted mb-4">{t("voiceRateDesc", "Dostosuj szybkość, z jaką agent odczytuje odpowiedzi.")}</p>
                   <input 
                     type="range" 
                     min="0.5" max="2.0" step="0.1" 
@@ -464,11 +464,11 @@ const SettingsPage = () => {
         {activeTab === 'security' && (
           <div className="space-y-4 animate-fade-in-up">
             <section className="glass-panel p-5 rounded-xl border border-border">
-              <SectionHeader icon={Lock} title="Zabezpieczenia i Autoryzacja" />
+              <SectionHeader icon={Lock} title={t("securityTitle", "Zabezpieczenia i Autoryzacja")} />
               <div className="space-y-3">
                 <div className="p-4 rounded-xl border border-border/50 bg-black/20">
-                  <p className="font-semibold text-textPrimary font-sans text-sm mb-1">Zmień Kod PIN</p>
-                  <p className="text-xs text-textMuted leading-relaxed mb-4">Kod ten jest wymagany przy każdym otwarciu OmniDash.</p>
+                  <p className="font-semibold text-textPrimary font-sans text-sm mb-1">{t("changePinLabel", "Zmień Kod PIN")}</p>
+                  <p className="text-xs text-textMuted leading-relaxed mb-4">{t("changePinDesc", "Kod ten jest wymagany przy każdym otwarciu OmniDash.")}</p>
                   
                   <form onSubmit={async (e) => {
                     e.preventDefault();
@@ -477,15 +477,15 @@ const SettingsPage = () => {
                     try {
                       const res = await axios.post('/api/auth/change-pin', { oldPin, newPin });
                       if (res.data.success) {
-                        alert('Zaktualizowano kod PIN!');
+                        alert(t('pinUpdatedMsg', 'Zaktualizowano kod PIN!'));
                         e.target.reset();
                       }
                     } catch (err) {
-                      alert('Błąd zmiany PINu: ' + (err.response?.data?.error || err.message));
+                      alert(t('pinErrorMsg', 'Błąd zmiany PINu: ') + (err.response?.data?.error || err.message));
                     }
                   }} className="flex flex-col gap-3">
-                    <input type="password" name="oldPin" placeholder="Obecny PIN" required className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 focus:border-accentPrimary outline-none text-textPrimary font-mono w-full max-w-xs" />
-                    <input type="password" name="newPin" placeholder="Nowy PIN" required className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 focus:border-accentPrimary outline-none text-textPrimary font-mono w-full max-w-xs" />
+                    <input type="password" name="oldPin" placeholder={t("oldPinPlaceholder", "Obecny PIN")} required className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 focus:border-accentPrimary outline-none text-textPrimary font-mono w-full max-w-xs" />
+                    <input type="password" name="newPin" placeholder={t("newPinPlaceholder", "Nowy PIN")} required className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 focus:border-accentPrimary outline-none text-textPrimary font-mono w-full max-w-xs" />
                     <button type="submit" className="bg-accentPrimary text-black font-bold py-2 px-4 rounded-lg self-start mt-2 hover:bg-accentPrimary/80 transition-colors">
                       Zapisz Nowy PIN
                     </button>
@@ -493,11 +493,11 @@ const SettingsPage = () => {
                 </div>
 
                 <div className="p-4 rounded-xl border border-red-500/20 bg-black/20 mt-4">
-                  <p className="font-semibold text-red-400 font-sans text-sm mb-1">Reset do Ustawień Fabrycznych</p>
-                  <p className="text-xs text-red-400/60 leading-relaxed mb-4">Ta operacja usunie wszystkie dane z bazy danych oraz prywatne klucze API. Jest to nieodwracalne.</p>
+                  <p className="font-semibold text-red-400 font-sans text-sm mb-1">{t("factoryResetLabel", "Reset do Ustawień Fabrycznych")}</p>
+                  <p className="text-xs text-red-400/60 leading-relaxed mb-4">{t("factoryResetDesc", "Ta operacja usunie wszystkie dane z bazy danych oraz prywatne klucze API. Jest to nieodwracalne.")}</p>
                   
                   <button onClick={async () => {
-                    if (window.confirm("UWAGA! Czy na pewno chcesz wyczyścić bazę danych i usunąć klucze API? Operacja jest nieodwracalna.")) {
+                    if (window.confirm(t("factoryResetConfirm", "UWAGA! Czy na pewno chcesz wyczyścić bazę danych i usunąć klucze API? Operacja jest nieodwracalna."))) {
                       try {
                         await axios.post('/api/system/reset');
                         localStorage.removeItem('system_onboarding_completed');
@@ -505,10 +505,10 @@ const SettingsPage = () => {
                         localStorage.removeItem('system_chat_history');
                         localStorage.removeItem('system_mentor_history');
                         localStorage.removeItem('system_thoughts_log');
-                        alert('System zresetowany. Konieczne będzie podanie kluczy przy ponownym uruchomieniu.');
+                        alert(t('factoryResetDone', 'System zresetowany. Konieczne będzie podanie kluczy przy ponownym uruchomieniu.'));
                         window.location.href = '/';
                       } catch (err) {
-                        alert('Błąd podczas resetowania systemu: ' + err.message);
+                        alert(t('factoryResetError', 'Błąd podczas resetowania systemu: ') + err.message);
                       }
                     }
                   }} className="bg-red-500/20 hover:bg-red-500/40 border border-red-500 text-red-400 font-bold py-2 px-4 rounded-lg self-start mt-2 transition-colors">

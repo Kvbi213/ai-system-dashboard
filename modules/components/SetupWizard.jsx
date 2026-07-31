@@ -116,18 +116,18 @@ const SetupWizard = ({ onComplete }) => {
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-textPrimary mb-3 flex items-center gap-2"><LayoutGrid className="w-4 h-4 text-accentPrimary" /> Twoje Imię / Pseudonim</h3>
+        <h3 className="text-sm font-semibold text-textPrimary mb-3 flex items-center gap-2"><LayoutGrid className="w-4 h-4 text-accentPrimary" /> {t("userNameSetupTitle", "Twoje Imię / Pseudonim")}</h3>
         <input 
           type="text" 
           value={userName} 
           onChange={(e) => setUserName(e.target.value)} 
           className="w-full bg-surface border border-border rounded-xl px-4 py-3 focus:outline-none focus:border-accentPrimary text-textPrimary"
-          placeholder="np. Twój pseudonim"
+          placeholder={t("userNameSetupPlaceholder", "np. Twój pseudonim")}
         />
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-textPrimary mb-3 flex items-center gap-2"><Palette className="w-4 h-4 text-accentPrimary" /> Motyw Aplikacji</h3>
+        <h3 className="text-sm font-semibold text-textPrimary mb-3 flex items-center gap-2"><Palette className="w-4 h-4 text-accentPrimary" /> {t("appThemeSetupTitle", "Motyw Aplikacji")}</h3>
         <div className="flex gap-4">
           <button onClick={() => changeThemeLive('dark')} className={`flex-1 p-4 rounded-xl border-2 transition-all ${theme === 'dark' ? 'border-accentPrimary bg-accentPrimary/10' : 'border-border/50 hover:border-border bg-surface/50'}`}>
             <span className="font-mono text-sm font-bold text-textPrimary">Dark Sci-Fi</span>
@@ -139,7 +139,7 @@ const SetupWizard = ({ onComplete }) => {
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-textPrimary mb-3 flex items-center gap-2"><Palette className="w-4 h-4 text-accentPrimary" /> Kolor Główny</h3>
+        <h3 className="text-sm font-semibold text-textPrimary mb-3 flex items-center gap-2"><Palette className="w-4 h-4 text-accentPrimary" /> {t("mainColorSetupTitle", "Kolor Główny")}</h3>
         <div className="grid grid-cols-5 md:grid-cols-7 gap-4">
           {COLOR_PRESETS.map(c => (
             <button
@@ -167,7 +167,7 @@ const SetupWizard = ({ onComplete }) => {
 
   const renderStep2 = () => {
     // Grupowanie
-    const sections = ['IT & Tech', 'Świat i Nauka', 'Rozrywka i Lifestyle'];
+    const sections = [t('catItTech', 'IT & Tech'), t('catScience', 'Świat i Nauka'), t('catLifestyle', 'Rozrywka i Lifestyle')];
     return (
       <div className="space-y-6 animate-fade-in-up max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
         {sections.map(section => (
@@ -209,7 +209,7 @@ const SetupWizard = ({ onComplete }) => {
 
   const renderStep3 = () => (
     <div className="space-y-4 animate-fade-in-up">
-      <h3 className="text-sm font-semibold text-textPrimary mb-3 flex items-center gap-2"><LayoutGrid className="w-4 h-4 text-accentPrimary" /> Moduły Ekranu Głównego</h3>
+      <h3 className="text-sm font-semibold text-textPrimary mb-3 flex items-center gap-2"><LayoutGrid className="w-4 h-4 text-accentPrimary" /> {t("modulesSetupTitle", "Moduły Ekranu Głównego")}</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {Object.entries({
           systemMonitor: 'System Monitor',

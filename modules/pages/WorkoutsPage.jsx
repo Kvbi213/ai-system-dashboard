@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Dumbbell, Plus, Trash2, Calendar, Clock, Activity, Flame } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 
 const WorkoutsPage = () => {
+  const { t } = useTranslation();
+
   const [workouts, setWorkouts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -78,14 +81,14 @@ const WorkoutsPage = () => {
             <Dumbbell className="w-8 h-8 text-accentPrimary" />
             Dziennik Treningowy
           </h1>
-          <p className="text-textMuted mt-1 font-mono text-sm">Zarządzaj swoimi treningami przy pomocy AI.</p>
+          <p className="text-textMuted mt-1 font-mono text-sm">{t("workDesc", "Zarządzaj swoimi treningami przy pomocy AI.")}</p>
         </div>
         <button 
           onClick={() => setShowModal(true)}
           className="flex items-center gap-2 px-4 py-2 bg-accentPrimary text-background font-bold rounded-lg hover:bg-accentPrimary/90 transition-colors shadow-[0_0_15px_rgba(var(--color-accent-primary),0.4)]"
         >
           <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">Nowy Trening</span>
+          <span className="hidden sm:inline">{t("workNew", "Nowy Trening")}</span>
         </button>
       </div>
 
@@ -95,7 +98,7 @@ const WorkoutsPage = () => {
             <Activity className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm text-textMuted font-mono">Zapisane Treningi</p>
+            <p className="text-sm text-textMuted font-mono">{t("workSaved", "Zapisane Treningi")}</p>
             <p className="text-2xl font-bold">{workouts.length}</p>
           </div>
         </div>
@@ -104,7 +107,7 @@ const WorkoutsPage = () => {
             <Calendar className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm text-textMuted font-mono">Ostatni Trening</p>
+            <p className="text-sm text-textMuted font-mono">{t("workLast", "Ostatni Trening")}</p>
             <p className="text-xl font-bold">{workouts.length > 0 ? workouts[0].date : 'Brak'}</p>
           </div>
         </div>
@@ -113,22 +116,22 @@ const WorkoutsPage = () => {
             <Flame className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm text-textMuted font-mono">Wsparcie AI</p>
-            <p className="text-xs text-textMuted mt-1">Poproś Mentora o ułożenie planu. Worker zapisze go automatycznie.</p>
+            <p className="text-sm text-textMuted font-mono">{t("workAISupport", "Wsparcie AI")}</p>
+            <p className="text-xs text-textMuted mt-1">{t("workAISupportDesc", "Poproś Mentora o ułożenie planu. Worker zapisze go automatycznie.")}</p>
           </div>
         </div>
       </div>
 
       <div className="flex-1 glass-panel rounded-2xl border border-border overflow-hidden flex flex-col">
         <div className="p-4 border-b border-border bg-surface/50 font-mono text-sm text-textMuted flex justify-between">
-          <span>Historia Treningów</span>
+          <span>{t("workHistory", "Historia Treningów")}</span>
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {workouts.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-textMuted space-y-4">
               <Dumbbell className="w-12 h-12 opacity-20" />
-              <p>Brak zapisanych treningów.</p>
-              <p className="text-sm">Porada: Zapytaj Mentora w AI Terminalu o rozpisanie dzisiejszego treningu!</p>
+              <p>{t("workNoSaved", "Brak zapisanych treningów.")}</p>
+              <p className="text-sm">{t("workTip", "Porada: Zapytaj Mentora w AI Terminalu o rozpisanie dzisiejszego treningu!")}</p>
             </div>
           ) : (
             workouts.map((w) => (
@@ -183,7 +186,7 @@ const WorkoutsPage = () => {
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-mono text-textMuted mb-1">Tytuł (np. Klatka i Biceps)</label>
+                <label className="block text-xs font-mono text-textMuted mb-1">{t("workFormTitle", "Tytuł (np. Klatka i Biceps)")}</label>
                 <input 
                   type="text" 
                   required
@@ -195,7 +198,7 @@ const WorkoutsPage = () => {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-mono text-textMuted mb-1">Data</label>
+                  <label className="block text-xs font-mono text-textMuted mb-1">{t("workFormDate", "Data")}</label>
                   <input 
                     type="date" 
                     required
@@ -205,23 +208,23 @@ const WorkoutsPage = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-mono text-textMuted mb-1">Typ</label>
+                  <label className="block text-xs font-mono text-textMuted mb-1">{t("workFormType", "Typ")}</label>
                   <select 
                     value={formData.type}
                     onChange={(e) => setFormData({...formData, type: e.target.value})}
                     className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-textPrimary focus:outline-none focus:border-accentPrimary appearance-none"
                   >
-                    <option value="Siłowy">Siłowy</option>
-                    <option value="Cardio">Cardio</option>
-                    <option value="Kalistenika">Kalistenika</option>
-                    <option value="Rozciąganie">Rozciąganie</option>
-                    <option value="Inne">Inne</option>
+                    <option value="Siłowy">{t("workTypeStrength", "Siłowy")}</option>
+                    <option value="Cardio">{t("workTypeCardio", "Cardio")}</option>
+                    <option value="Kalistenika">{t("workTypeCalisthenics", "Kalistenika")}</option>
+                    <option value="Rozciąganie">{t("workTypeStretch", "Rozciąganie")}</option>
+                    <option value="Inne">{t("workTypeOther", "Inne")}</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-mono text-textMuted mb-1">Opis / Plan (Opcjonalnie)</label>
+                <label className="block text-xs font-mono text-textMuted mb-1">{t("workFormDesc", "Opis / Plan (Opcjonalnie)")}</label>
                 <textarea 
                   rows="4"
                   value={formData.description}

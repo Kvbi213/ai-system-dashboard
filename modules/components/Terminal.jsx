@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Terminal as TerminalIcon, Send, Code, BrainCircuit, Lightbulb, X, Mic, Loader2, Copy, Check, Radio } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import WeatherWidget from './WeatherWidget';
 import ITNewsTicker from './ITNewsTicker';
@@ -10,6 +11,8 @@ import NotificationsWidget from './NotificationsWidget';
 import { useChatContext } from '../context/ChatContext';
 
 const ChatMessage = ({ msg }) => {
+  const { t } = useTranslation();
+
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -121,13 +124,13 @@ const Terminal = () => {
   const endOfMessagesRef = useRef(null);
 
   const availableCommands = [
-    { cmd: '/clear', desc: 'Czyści ekran obecnego trybu' },
-    { cmd: '/purge', desc: 'Agresywnie czyści pamięć i ekran' },
-    { cmd: '/mode worker', desc: 'Przełącza na tryb inżynieryjny' },
-    { cmd: '/mode mentor', desc: 'Przełącza na tryb analityczny' },
-    { cmd: '/export', desc: 'Zapisuje historię czatu do pliku TXT' },
-    { cmd: '/ping', desc: 'Sprawdza łączność i opóźnienie' },
-    { cmd: '/help', desc: 'Wyświetla listę poleceń' }
+    { cmd: '/clear', desc: t('termCmdClear', 'Czyści ekran obecnego trybu') },
+    { cmd: '/purge', desc: t('termCmdPurge', 'Agresywnie czyści pamięć i ekran') },
+    { cmd: '/mode worker', desc: t('termCmdWorker', 'Przełącza na tryb inżynieryjny') },
+    { cmd: '/mode mentor', desc: t('termCmdMentor', 'Przełącza na tryb analityczny') },
+    { cmd: '/export', desc: t('termCmdExport', 'Zapisuje historię czatu do pliku TXT') },
+    { cmd: '/ping', desc: t('termCmdPing', 'Sprawdza łączność i opóźnienie') },
+    { cmd: '/help', desc: t('termCmdHelp', 'Wyświetla listę poleceń') }
   ];
 
   const filteredCommands = input.startsWith('/') 
@@ -165,7 +168,7 @@ const Terminal = () => {
 
   const startLiveConversation = () => {
     if (!('webkitSpeechRecognition' in window)) {
-      alert("Twoja przegldarka nie obsuguje SpeechRecognition.");
+      alert(t("termNoSpeech", "Twoja przeglądarka nie obsługuje SpeechRecognition."));
       setIsLiveMode(false);
       return;
     }
@@ -334,7 +337,7 @@ const Terminal = () => {
         mediaRecorderRef.current.start();
         setIsRecording(true);
       } catch (err) {
-        console.error("Brak dostępu do mikrofonu", err);
+        console.error(t("termNoMic", "Brak dostępu do mikrofonu"), err);
       }
     }
   };
@@ -373,7 +376,7 @@ const Terminal = () => {
           <button 
             onClick={() => setShowThoughts(!showThoughts)}
             className={`p-2 rounded-lg transition-colors border border-transparent ${showThoughts ? 'bg-accentPrimary text-black' : 'text-accentPrimary hover:bg-accentPrimary/20 hover:border-accentPrimary/50'}`}
-            title="Przemyślenia AI"
+            title={t("termThoughts", "Przemyślenia AI")}
           >
             <Lightbulb className="w-4 h-4" />
           </button>
@@ -391,7 +394,7 @@ const Terminal = () => {
                <div className={`absolute inset-0 rounded-full border-2 border-accentPrimary transition-all duration-[3000ms] ${isListening ? 'animate-spin opacity-50' : 'opacity-10'}`} style={{ borderStyle: 'dashed' }}></div>
             </div>
             <div className="mt-4 font-mono text-sm tracking-widest text-accentPrimary opacity-80">
-              {isSpeaking ? 'JARVIS // MÓWI' : (isListening ? 'JARVIS // NASŁUCHUJE' : 'JARVIS // OCZEKUJE')}
+              {isSpeaking ? t('termJarvisSpeaks', 'JARVIS // MÓWI') : (isListening ? t('termJarvisListens', 'JARVIS // NASŁUCHUJE') : t('termJarvisWaits', 'JARVIS // OCZEKUJE'))}
             </div>
           </div>
 
@@ -463,7 +466,7 @@ const Terminal = () => {
           type="button" 
           onClick={toggleLiveMode}
           className={`p-1.5 rounded-full transition-all flex items-center justify-center ${isLiveMode ? 'bg-accentPrimary text-black animate-pulse shadow-[0_0_15px_currentColor]' : 'text-textMuted hover:text-accentPrimary hover:bg-accentPrimary/10'}`}
-          title="Tryb ciągłej rozmowy"
+          title={t("termContinuousMode", "Tryb ciągłej rozmowy")}
         >
           <Radio className="w-4 h-4" />
         </button>
@@ -472,7 +475,7 @@ const Terminal = () => {
           onClick={toggleRecording}
           disabled={isTranscribing}
           className={`p-1.5 rounded-full transition-all flex items-center justify-center ${isRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'text-textMuted hover:text-accentPrimary hover:bg-accentPrimary/10'}`}
-          title="Nagrywanie gosowe"
+          title={t("termVoiceRecord", "Nagrywanie głosowe")}
         >
           {isTranscribing ? <Loader2 className="w-4 h-4 animate-spin text-accentPrimary" /> : <Mic className="w-4 h-4" />}
         </button>
@@ -481,7 +484,7 @@ const Terminal = () => {
           type="text" 
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={mode === 'worker' ? "Wprowadź komendę..." : "Wygadaj się..."}
+          placeholder={mode === 'worker' ? t("termInputWorker", "Wprowadź komendę...") : t("termInputMentor", "Wygadaj się...")}
           className="flex-1 bg-transparent border-none outline-none font-mono text-sm text-textPrimary placeholder:text-border"
           autoComplete="off"
           autoFocus
@@ -496,7 +499,7 @@ const Terminal = () => {
         <div className="absolute top-12 right-2 w-64 bg-background border border-accentPrimary/40 rounded-xl shadow-[0_0_20px_rgba(var(--color-accent-primary),0.15)] z-10 flex flex-col overflow-hidden animate-fade-in-up">
           <div className="p-3 border-b border-border/50 flex justify-between items-center bg-black/20">
             <span className="font-mono text-[10px] uppercase text-accentPrimary font-bold tracking-wider flex items-center gap-2">
-              <Lightbulb className="w-3 h-3" /> Wewnętrzny Dziennik
+              <Lightbulb className="w-3 h-3" /> {t("termInternalLog", "Wewnętrzny Dziennik")}
             </span>
             <button onClick={() => setShowThoughts(false)} className="text-textMuted hover:text-textPrimary"><X className="w-3 h-3" /></button>
           </div>

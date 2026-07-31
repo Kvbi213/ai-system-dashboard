@@ -1,8 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Search, ShieldAlert, Globe, Crosshair, MapPin, Database, Clock, Server, FileText } from 'lucide-react';
 
 const OSINTPage = () => {
+  const { t } = useTranslation();
+
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
@@ -33,7 +36,7 @@ const OSINTPage = () => {
           <h1 className="text-2xl font-bold uppercase tracking-widest text-textPrimary drop-shadow-[0_0_10px_rgba(var(--color-accent-primary-hex),0.5)]">
             OSINT Intel
           </h1>
-          <p className="text-xs text-textMuted font-mono">Wywiad jawnoźródłowy & Analiza</p>
+          <p className="text-xs text-textMuted font-mono">{t("osintDesc", "Wywiad jawnoźródłowy & Analiza")}</p>
         </div>
       </div>
 
@@ -44,7 +47,7 @@ const OSINTPage = () => {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Szefie, prześwietl domenę google.com..."
+            placeholder={t("osintPlaceholder", "Szefie, prześwietl domenę google.com...")}
             className="w-full bg-surface border border-border rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-accentPrimary transition-colors font-mono text-sm"
           />
         </div>
@@ -53,7 +56,7 @@ const OSINTPage = () => {
           disabled={loading || !query.trim()}
           className="bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/50 hover:bg-accentPrimary hover:text-black font-bold px-6 py-3 rounded-lg transition-all disabled:opacity-50 flex items-center gap-2"
         >
-          {loading ? 'SKANOWANIE...' : 'URUCHOM SKAN'}
+          {loading ? t('osintScanning', 'SKANOWANIE...') : t('osintRun', 'URUCHOM SKAN')}
         </button>
       </form>
 
@@ -69,11 +72,11 @@ const OSINTPage = () => {
           
           <div className="flex items-center gap-2 mb-6">
             <span className="text-xs font-mono text-textMuted uppercase bg-black/50 px-3 py-1 rounded-full border border-border">
-              CEL: <span className="text-accentPrimary">{results.target_value}</span> ({results.target_type})
+              {t("osintTarget", "CEL: ")}<span className="text-accentPrimary">{results.target_value}</span> ({results.target_type})
             </span>
             {results.resolved_ip && (
               <span className="text-xs font-mono text-textMuted uppercase bg-black/50 px-3 py-1 rounded-full border border-border">
-                Rozwiązane IP: <span className="text-accentSecondary">{results.resolved_ip}</span>
+                {t("osintResolved", "Rozwiązane IP: ")}<span className="text-accentSecondary">{results.resolved_ip}</span>
               </span>
             )}
           </div>
@@ -85,14 +88,14 @@ const OSINTPage = () => {
               <div className="glass-panel p-5 rounded-xl border border-border hover:border-accentPrimary/50 transition-colors">
                 <div className="flex items-center gap-2 mb-4 text-accentPrimary border-b border-border/50 pb-2">
                   <MapPin className="w-5 h-5" />
-                  <h2 className="font-mono font-bold uppercase tracking-wide">Geolokalizacja</h2>
+                  <h2 className="font-mono font-bold uppercase tracking-wide">{t("osintGeo", "Geolokalizacja")}</h2>
                 </div>
                 <div className="space-y-3 font-mono text-sm">
-                  <div className="flex justify-between border-b border-border/30 pb-1"><span className="text-textMuted">IP:</span> <span>{results.geo.ip}</span></div>
-                  <div className="flex justify-between border-b border-border/30 pb-1"><span className="text-textMuted">Kraj:</span> <span>{results.geo.country}</span></div>
-                  <div className="flex justify-between border-b border-border/30 pb-1"><span className="text-textMuted">Miasto:</span> <span>{results.geo.city || 'N/A'}</span></div>
-                  <div className="flex justify-between border-b border-border/30 pb-1"><span className="text-textMuted">Organizacja:</span> <span className="text-right pl-4">{results.geo.organization_name || results.geo.organization || 'N/A'}</span></div>
-                  <div className="flex justify-between"><span className="text-textMuted">Koordynaty:</span> <span>{results.geo.latitude}, {results.geo.longitude}</span></div>
+                  <div className="flex justify-between border-b border-border/30 pb-1"><span className="text-textMuted">{t("osintIP", "IP:")}</span> <span>{results.geo.ip}</span></div>
+                  <div className="flex justify-between border-b border-border/30 pb-1"><span className="text-textMuted">{t("osintCountry", "Kraj:")}</span> <span>{results.geo.country}</span></div>
+                  <div className="flex justify-between border-b border-border/30 pb-1"><span className="text-textMuted">{t("osintCity", "Miasto:")}</span> <span>{results.geo.city || 'N/A'}</span></div>
+                  <div className="flex justify-between border-b border-border/30 pb-1"><span className="text-textMuted">{t("osintOrg", "Organizacja:")}</span> <span className="text-right pl-4">{results.geo.organization_name || results.geo.organization || 'N/A'}</span></div>
+                  <div className="flex justify-between"><span className="text-textMuted">{t("osintCoords", "Koordynaty:")}</span> <span>{results.geo.latitude}, {results.geo.longitude}</span></div>
                 </div>
               </div>
             )}
@@ -102,15 +105,15 @@ const OSINTPage = () => {
               <div className="glass-panel p-5 rounded-xl border border-border hover:border-accentPrimary/50 transition-colors">
                 <div className="flex items-center gap-2 mb-4 text-accentPrimary border-b border-border/50 pb-2">
                   <Clock className="w-5 h-5" />
-                  <h2 className="font-mono font-bold uppercase tracking-wide">Wayback Machine</h2>
+                  <h2 className="font-mono font-bold uppercase tracking-wide">{t("osintWayback", "Wayback Machine")}</h2>
                 </div>
                 <div className="space-y-3 font-mono text-sm">
                   {results.wayback.archived_snapshots?.closest?.available ? (
                     <>
                       <div className="flex items-center gap-2 text-green-400 mb-2">
-                        <Database className="w-4 h-4" /> <span>Znaleziono Snapshot</span>
+                        <Database className="w-4 h-4" /> <span>{t("osintSnapshotFound", "Znaleziono Snapshot")}</span>
                       </div>
-                      <div className="flex justify-between border-b border-border/30 pb-1"><span className="text-textMuted">Ostatni zrzut:</span> <span>{results.wayback.archived_snapshots.closest.timestamp.substring(0,8)}</span></div>
+                      <div className="flex justify-between border-b border-border/30 pb-1"><span className="text-textMuted">{t("osintLastSnap", "Ostatni zrzut:")}</span> <span>{results.wayback.archived_snapshots.closest.timestamp.substring(0,8)}</span></div>
                       <div className="mt-4">
                         <a href={results.wayback.archived_snapshots.closest.url} target="_blank" rel="noreferrer" className="block text-center w-full py-2 bg-accentPrimary/10 text-accentPrimary rounded hover:bg-accentPrimary/30 transition-colors border border-accentPrimary/30">
                           OTWÓRZ ARCHIWUM
@@ -118,7 +121,7 @@ const OSINTPage = () => {
                       </div>
                     </>
                   ) : (
-                    <p className="text-textMuted flex items-center gap-2"><Globe className="w-4 h-4"/> Brak danych w Archive.org</p>
+                    <p className="text-textMuted flex items-center gap-2"><Globe className="w-4 h-4"/>{t("osintNoArchive", " Brak danych w Archive.org")}</p>
                   )}
                 </div>
               </div>
@@ -129,7 +132,7 @@ const OSINTPage = () => {
               <div className="glass-panel p-5 rounded-xl border border-border md:col-span-2 lg:col-span-3 hover:border-accentPrimary/50 transition-colors">
                 <div className="flex items-center gap-2 mb-4 text-accentPrimary border-b border-border/50 pb-2">
                   <ShieldAlert className="w-5 h-5" />
-                  <h2 className="font-mono font-bold uppercase tracking-wide">Pwned Passwords (Wycieki)</h2>
+                  <h2 className="font-mono font-bold uppercase tracking-wide">{t("osintPwned", "Pwned Passwords (Wycieki)")}</h2>
                 </div>
                 <div className="font-mono text-sm bg-black/40 p-4 rounded-lg border border-border/30">
                   {results.hibp > 0 ? (
@@ -138,8 +141,8 @@ const OSINTPage = () => {
                         <ShieldAlert className="w-6 h-6" />
                       </div>
                       <div>
-                        <p className="text-red-400 font-bold text-lg">KRYTYCZNE: Hasło wyciekło {results.hibp} razy!</p>
-                        <p className="text-textMuted mt-1">To hasło pojawiło się w znanych, opublikowanych wyciekach danych. Zalecana natychmiastowa zmiana wszędzie tam, gdzie zostało użyte.</p>
+                        <p className="text-red-400 font-bold text-lg">{t("osintCritical", "KRYTYCZNE: Hasło wyciekło ")}{results.hibp}{t("osintTimes", " razy!")}</p>
+                        <p className="text-textMuted mt-1">{t("osintPwnedDesc", "To hasło pojawiło się w znanych, opublikowanych wyciekach danych. Zalecana natychmiastowa zmiana wszędzie tam, gdzie zostało użyte.")}</p>
                       </div>
                     </div>
                   ) : (
@@ -148,8 +151,8 @@ const OSINTPage = () => {
                         <ShieldAlert className="w-6 h-6" />
                       </div>
                       <div>
-                        <p className="text-green-400 font-bold text-lg">BEZPIECZNIE: Hasło nie znalezione w bazie wycieków.</p>
-                        <p className="text-textMuted mt-1">Hasło nie figuruje w darmowej bazie HIBP. Pamiętaj jednak o zasadach tworzenia silnych haseł.</p>
+                        <p className="text-green-400 font-bold text-lg">{t("osintSafe", "BEZPIECZNIE: Hasło nie znalezione w bazie wycieków.")}</p>
+                        <p className="text-textMuted mt-1">{t("osintSafeDesc", "Hasło nie figuruje w darmowej bazie HIBP. Pamiętaj jednak o zasadach tworzenia silnych haseł.")}</p>
                       </div>
                     </div>
                   )}
@@ -162,7 +165,7 @@ const OSINTPage = () => {
               <div className="glass-panel p-5 rounded-xl border border-border md:col-span-2 lg:col-span-3 hover:border-accentPrimary/50 transition-colors flex flex-col h-96">
                 <div className="flex items-center gap-2 mb-4 text-accentPrimary border-b border-border/50 pb-2 shrink-0">
                   <Server className="w-5 h-5" />
-                  <h2 className="font-mono font-bold uppercase tracking-wide">Rekordy DNS (HackerTarget)</h2>
+                  <h2 className="font-mono font-bold uppercase tracking-wide">{t("osintDNS", "Rekordy DNS (HackerTarget)")}</h2>
                 </div>
                 <pre className="text-[11px] text-green-400 font-mono whitespace-pre-wrap bg-black/60 p-4 rounded-lg overflow-y-auto custom-scrollbar flex-1 border border-border/30">
                   {results.dns}
@@ -175,7 +178,7 @@ const OSINTPage = () => {
               <div className="glass-panel p-5 rounded-xl border border-border md:col-span-2 lg:col-span-3 hover:border-accentPrimary/50 transition-colors flex flex-col h-[500px]">
                 <div className="flex items-center gap-2 mb-4 text-accentPrimary border-b border-border/50 pb-2 shrink-0">
                   <FileText className="w-5 h-5" />
-                  <h2 className="font-mono font-bold uppercase tracking-wide">WHOIS / Rejestr (HackerTarget)</h2>
+                  <h2 className="font-mono font-bold uppercase tracking-wide">{t("osintWhois", "WHOIS / Rejestr (HackerTarget)")}</h2>
                 </div>
                 <pre className="text-[11px] text-textMuted font-mono whitespace-pre-wrap bg-black/60 p-4 rounded-lg overflow-y-auto custom-scrollbar flex-1 border border-border/30">
                   {results.whois}

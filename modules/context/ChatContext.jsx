@@ -1,9 +1,12 @@
+import { useTranslation } from 'react-i18next';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 const ChatContext = createContext();
 
 export const ChatProvider = ({ children }) => {
+  const { t } = useTranslation();
+
   const [mode, setMode] = useState('worker');
   const [showThoughts, setShowThoughts] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -14,7 +17,7 @@ export const ChatProvider = ({ children }) => {
       const saved = localStorage.getItem('system_chat_history');
       if (saved) return JSON.parse(saved);
     }
-    return [{ role: 'ai', content: 'SYSTEM ONLINE. Oczekuję na polecenia, mordo.' }];
+    return [{ role: 'ai', content: t('chatOnlineWorker', 'SYSTEM ONLINE. Oczekuję na polecenia, mordo.') }];
   });
 
   const [mentorMessages, setMentorMessages] = useState(() => {
@@ -23,11 +26,11 @@ export const ChatProvider = ({ children }) => {
       const saved = localStorage.getItem('system_mentor_history');
       if (saved) return JSON.parse(saved);
     }
-    return [{ role: 'ai', content: 'Cześć. Z czym się dzisiaj mierzysz? Chłodna analiza bez słodzenia gwarantowana.' }];
+    return [{ role: 'ai', content: t('chatOnlineMentor', 'Cześć. Z czym się dzisiaj mierzysz? Chłodna analiza bez słodzenia gwarantowana.') }];
   });
 
   const [thoughtsLog, setThoughtsLog] = useState([
-    "System Mentor aktywowany. Oczekiwanie na dane wejściowe...",
+    t("chatMentorActive", "System Mentor aktywowany. Oczekiwanie na dane wejściowe..."),
   ]);
 
   useEffect(() => {
@@ -57,16 +60,16 @@ export const ChatProvider = ({ children }) => {
 
       if (cmd === '/clear') {
         if (mode === 'worker') {
-          setWorkerMessages([{ role: 'ai', content: 'SYSTEM ONLINE. Oczekuję na polecenia, mordo.' }]);
+          setWorkerMessages([{ role: 'ai', content: t('chatOnlineWorker', 'SYSTEM ONLINE. Oczekuję na polecenia, mordo.') }]);
         } else {
-          setMentorMessages([{ role: 'ai', content: 'Cześć. Z czym się dzisiaj mierzysz? Chłodna analiza bez słodzenia gwarantowana.' }]);
-          setThoughtsLog(["System Mentor zresetowany. Oczekiwanie na dane wejściowe..."]);
+          setMentorMessages([{ role: 'ai', content: t('chatOnlineMentor', 'Cześć. Z czym się dzisiaj mierzysz? Chłodna analiza bez słodzenia gwarantowana.') }]);
+          setThoughtsLog([t("chatMentorReset", "System Mentor zresetowany. Oczekiwanie na dane wejściowe...")]);
         }
         return;
       }
       
       if (cmd === '/help') {
-        pushSysMsg(`Dostępne polecenia systemowe:\n- /clear - czyści ekran obecnego trybu.\n- /purge - agresywnie usuwa lokalną historię z pamięci cache i czyści ekran.\n- /mode [worker|mentor] - przełącza tryb sztucznej inteligencji.\n- /export - zapisuje log z rozmową do pliku na dysku twardym.\n- /ping - weryfikuje łączność i opóźnienie do API System.`);
+        pushSysMsg(t('chatHelpMsg', 'Dostępne polecenia systemowe:\n- /clear - czyści ekran obecnego trybu.\n- /purge - agresywnie usuwa lokalną historię z pamięci cache i czyści ekran.\n- /mode [worker|mentor] - przełącza tryb sztucznej inteligencji.\n- /export - zapisuje log z rozmową do pliku na dysku twardym.\n- /ping - weryfikuje łączność i opóźnienie do API System.'));
         return;
       }
 
@@ -76,13 +79,13 @@ export const ChatProvider = ({ children }) => {
           setMode(newMode);
           setTimeout(() => {
             if (newMode === 'worker') {
-              setWorkerMessages(prev => [...prev, { role: 'ai', content: '[*] INFO: Przełączono na tryb inżynieryjny (WORKER).', isSystem: true }]);
+              setWorkerMessages(prev => [...prev, { role: 'ai', content: t('chatSwitchedWorker', '[*] INFO: Przełączono na tryb inżynieryjny (WORKER).'), isSystem: true }]);
             } else {
-              setMentorMessages(prev => [...prev, { role: 'ai', content: '[*] INFO: Przełączono na tryb analityczny (MENTOR).', isSystem: true }]);
+              setMentorMessages(prev => [...prev, { role: 'ai', content: t('chatSwitchedMentor', '[*] INFO: Przełączono na tryb analityczny (MENTOR).'), isSystem: true }]);
             }
           }, 0);
         } else {
-          pushSysMsg(`[!] BŁĄD: Nieznany tryb. Użyj: /mode worker lub /mode mentor`);
+          pushSysMsg(t('chatUnknownMode', '[!] BŁĄD: Nieznany tryb. Użyj: /mode worker lub /mode mentor'));
         }
         return;
       }
@@ -96,34 +99,34 @@ export const ChatProvider = ({ children }) => {
         a.href = url;
         a.download = `system_log_${mode}_${new Date().toISOString().slice(0,10)}.txt`;
         a.click();
-        pushSysMsg(`[+] SUCCESS: Pomyślnie wyeksportowano log konwersacji trybu ${mode.toUpperCase()}.`);
+        pushSysMsg(t('chatExportSuccess', '[+] SUCCESS: Pomyślnie wyeksportowano log konwersacji trybu ') + mode.toUpperCase());
         return;
       }
 
       if (cmd === '/purge') {
         localStorage.removeItem(mode === 'worker' ? 'system_chat_history' : 'system_mentor_history');
         if (mode === 'worker') {
-          setWorkerMessages([{ role: 'ai', content: 'SYSTEM ONLINE. Pamięć podręczna całkowicie wyczyszczona.' }]);
+          setWorkerMessages([{ role: 'ai', content: t('chatPurgeWorker', 'SYSTEM ONLINE. Pamięć podręczna całkowicie wyczyszczona.') }]);
         } else {
-          setMentorMessages([{ role: 'ai', content: 'Pamięć długoterminowa zresetowana. Czekam na nowe wytyczne.' }]);
-          setThoughtsLog(["System Mentor uruchomiony (PURGED)."]);
+          setMentorMessages([{ role: 'ai', content: t('chatPurgeMentor1', 'Pamięć długoterminowa zresetowana. Czekam na nowe wytyczne.') }]);
+          setThoughtsLog([t("chatPurgeMentor2", "System Mentor uruchomiony (PURGED).")]);
         }
         return;
       }
 
       if (cmd === '/ping') {
         const start = Date.now();
-        pushSysMsg(`[*] INFO: PINGowanie systemu...`);
+        pushSysMsg(t('chatPing', '[*] INFO: PINGowanie systemu...'));
         axios.get('/api/weather', { timeout: 5000 }).then(() => {
           const end = Date.now();
-          pushSysMsg(`[+] SUCCESS: Połączenie stabilne. Opóźnienie: ${end - start}ms.`);
+          pushSysMsg(t('chatPingSuccess', '[+] SUCCESS: Połączenie stabilne. Opóźnienie: ') + (end - start) + 'ms.');
         }).catch(err => {
-          pushSysMsg(`[!] ERROR: Połączenie niestabilne. Błąd: ${err.message}`);
+          pushSysMsg(t('chatPingError', '[!] ERROR: Połączenie niestabilne. Błąd: ') + err.message);
         });
         return;
       }
 
-      pushSysMsg(`[!] BŁĄD: Nieznana komenda '${cmd}'. Wpisz /help, aby zobaczyć listę.`);
+      pushSysMsg(t('chatUnknownCmd', '[!] BŁĄD: Nieznana komenda ') + cmd + '. Wpisz /help, aby zobaczyć listę.');
       return;
     }
 
@@ -137,7 +140,7 @@ export const ChatProvider = ({ children }) => {
         const userName = localStorage.getItem('system_user_name') || 'Użytkownik';
         const systemLanguage = localStorage.getItem('system_language') || 'pl';
         const { data } = await axios.post('/api/agent', { text: userText, mode: 'mentor', newsCategories, userName, language: systemLanguage }, { timeout: 120000 });
-        const content = data.agent_response || "Błąd parsowania odpowiedzi.";
+        const content = data.agent_response || t("chatParseErr", "Błąd parsowania odpowiedzi.");
         setMentorMessages(prev => [...prev, { role: 'ai', content }]);
         if (data.mentor_thoughts) {
           const time = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
@@ -146,9 +149,9 @@ export const ChatProvider = ({ children }) => {
         setIsProcessing(false);
         return { content, widgets: [] };
       } catch (err) {
-        setMentorMessages(prev => [...prev, { role: 'ai', content: `BŁĄD POŁĄCZENIA: ${err.message}` }]);
+        setMentorMessages(prev => [...prev, { role: 'ai', content: t('chatConnErr', 'BŁĄD POŁĄCZENIA: ') + err.message }]);
         setIsProcessing(false);
-        return { content: "Przepraszam, wystąpił błąd połączenia.", widgets: [] };
+        return { content: t("chatSorryErr", "Przepraszam, wystąpił błąd połączenia."), widgets: [] };
       }
     }
 
@@ -164,7 +167,7 @@ export const ChatProvider = ({ children }) => {
         const { data } = await axios.post('/api/agent', { text: userText, mode: 'worker', newsCategories, userName, language: systemLanguage }, { timeout: 120000 });
         let content = data.agent_response;
         if (!content && data.payload?.agent_response) content = data.payload.agent_response;
-        if (!content && data.payload?.title) content = `Wykonano: ${data.payload.title}`;
+        if (!content && data.payload?.title) content = t('chatDone', 'Wykonano: ') + data.payload.title;
         if (!content) content = JSON.stringify(data.payload || data);
         const widgets = data.widgets || (data.widget ? [data.widget] : []);
         setWorkerMessages(prev => [...prev, { role: 'ai', content, widgets }]);
@@ -180,7 +183,7 @@ export const ChatProvider = ({ children }) => {
 
     setWorkerMessages(prev => [...prev, {
       role: 'ai',
-      content: `BŁĄD POŁĄCZENIA: Serwer niedostępny po 3 próbach. Sprawdź czy backend działa na porcie 5000. (${lastError?.message})`
+      content: t('chatTimeout', 'BŁĄD POŁĄCZENIA: Serwer niedostępny po 3 próbach. Sprawdź czy backend działa na porcie 5000. ') + '(' + lastError?.message + ')'
     }]);
     setIsProcessing(false);
   };
