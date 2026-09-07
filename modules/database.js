@@ -121,6 +121,22 @@ export const initDB = () => {
           )
         `);
 
+        db.run(`
+          CREATE TABLE IF NOT EXISTS timetable (
+            id TEXT PRIMARY KEY,
+            day TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            time_start TEXT NOT NULL,
+            time_end TEXT NOT NULL,
+            room TEXT,
+            teacher TEXT,
+            type TEXT DEFAULT 'Wykład',
+            color TEXT DEFAULT 'indigo',
+            notes TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+
         console.log('[+] Zapewniono istnienie struktur bazy danych.');
         resolve();
       } catch (err) {

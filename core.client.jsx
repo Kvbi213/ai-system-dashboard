@@ -15,6 +15,7 @@ import WidgetsPage from './modules/pages/WidgetsPage';
 import CalendarPage from './modules/pages/CalendarPage';
 import FinancePage from './modules/pages/FinancePage';
 import WorkoutsPage from './modules/pages/WorkoutsPage';
+import TimetablePage from './modules/pages/TimetablePage';
 import MemoryPage from './modules/pages/MemoryPage';
 import OSINTPage from './modules/pages/OSINTPage';
 import LockScreen from './modules/pages/LockScreen';
@@ -220,6 +221,7 @@ const App = () => {
               <Route path="/search" element={<SearchPage />} />
               <Route path="/osint" element={<OSINTPage />} />
               <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/timetable" element={<TimetablePage />} />
               <Route path="/finances" element={<FinancePage />} />
               <Route path="/workouts" element={<WorkoutsPage />} />
               <Route path="/widgets" element={<WidgetsPage />} />

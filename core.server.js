@@ -23,6 +23,7 @@ import tasksRouter from './modules/routes/tasks.js';
 import calendarRouter from './modules/routes/calendar.js';
 import workoutsRouter from './modules/routes/workouts.js';
 import memoryRouter from './modules/routes/memory.js';
+import timetableRouter from './modules/routes/timetable.js';
 import phoneRouter from './modules/routes/phone.js';
 import logsRouter from './modules/routes/logs.js';
 import firebaseRouter from './modules/routes/firebase.js';
@@ -63,6 +64,7 @@ app.use('/api/news', newsRouter); // news-brief is also in newsRouter as /brief
 app.use('/api/tasks', tasksRouter);
 app.use('/api/calendar', calendarRouter); // schedule is /schedule inside calendarRouter
 app.use('/api/workouts', workoutsRouter);
+app.use('/api/timetable', timetableRouter);
 app.use('/api/memory', memoryRouter);
 app.use('/api/phone', phoneRouter);
 app.use('/api/logs', logsRouter);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, MessageSquare, Search, Settings, ChevronLeft, ChevronRight, LayoutGrid, CalendarDays, BrainCircuit, Crosshair, Wallet, Dumbbell, Globe, Server } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Search, Settings, ChevronLeft, ChevronRight, LayoutGrid, CalendarDays, BrainCircuit, Crosshair, Wallet, Dumbbell, Globe, Server, GraduationCap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const Sidebar = () => {
@@ -31,6 +31,7 @@ const Sidebar = () => {
   const navItems = [
     { name: 'Pulpit', path: '/', icon: <LayoutDashboard className="w-6 h-6" /> },
     { name: 'Asystent AI', path: '/chat', icon: <MessageSquare className="w-6 h-6" /> },
+    { name: 'Plan Lekcji', path: '/timetable', icon: <GraduationCap className="w-6 h-6" /> },
     { name: 'Pamięć / Notatki', path: '/memory', icon: <BrainCircuit className="w-6 h-6" />, badge: '3' },
     { name: 'Baza Wiedzy', path: '/osint', icon: <Crosshair className="w-6 h-6" />, badge: 'Nowe' },
     { name: 'Kalendarz', path: '/calendar', icon: <CalendarDays className="w-6 h-6" /> },

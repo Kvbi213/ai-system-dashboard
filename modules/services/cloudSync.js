@@ -7,7 +7,8 @@ export const CLOUD_COLLECTIONS = {
   WORKOUTS: 'workouts',
   CALENDAR: 'calendar',
   OPERATOR_BRAIN: 'operator_brain',
-  CHAT_HISTORY: 'chat_history'
+  CHAT_HISTORY: 'chat_history',
+  TIMETABLE: 'timetable'
 };
 
 export const INITIAL_FIRESTORE_DATA = {
@@ -39,6 +40,17 @@ export const INITIAL_FIRESTORE_DATA = {
   ],
   chat_history: [
     { id: 'm1', role: 'ai', content: 'SYSTEM ONLINE. Silnik openai/gpt-oss-120b połączony przez Vercel Serverless Gateway. Baza Firestore zsynchronizowana.', timestamp: new Date().toISOString() }
+  ],
+  timetable: [
+    { id: 't1', day: 'monday', subject: 'Matematyka Dyskretna', time_start: '08:00', time_end: '09:30', room: 'Sala 104', teacher: 'dr inż. Kowalski', type: 'Wykład', color: 'indigo', notes: 'Zadania z relacji i teorii grafów' },
+    { id: 't2', day: 'monday', subject: 'Architektura Systemów AI', time_start: '09:45', time_end: '11:15', room: 'Lab AI 202', teacher: 'prof. Nowak', type: 'Laboratorium', color: 'emerald', notes: 'Implementacja potoków RAG i modeli LLM' },
+    { id: 't3', day: 'tuesday', subject: 'Bazy Danych i Cloud Computing', time_start: '10:00', time_end: '11:30', room: 'Sala 302', teacher: 'dr Wiśniewska', type: 'Ćwiczenia', color: 'cyan', notes: 'Optymalizacja zapytań i indeksy NoSQL' },
+    { id: 't4', day: 'tuesday', subject: 'Sieci Komputerowe & Bezpieczeństwo', time_start: '11:45', time_end: '13:15', room: 'Lab Net 12', teacher: 'mgr Lis', type: 'Laboratorium', color: 'purple', notes: 'Analiza pakietów i konfiguracja firewall' },
+    { id: 't5', day: 'wednesday', subject: 'Język Angielski Techniczny (C1)', time_start: '09:00', time_end: '10:30', room: 'Sala 15', teacher: 'mgr Smith', type: 'Lektorat', color: 'amber', notes: 'Prezentacja case-study systemów rozproszonych' },
+    { id: 't6', day: 'wednesday', subject: 'Programowanie Reaktywne', time_start: '12:00', time_end: '13:30', room: 'Audytorium A', teacher: 'dr Kamiński', type: 'Wykład', color: 'blue', notes: 'Architektura event-driven i RxJS' },
+    { id: 't7', day: 'thursday', subject: 'Algorytmy i Złożoność Obliczeniowa', time_start: '08:30', time_end: '10:00', room: 'Sala 204', teacher: 'prof. Zieliński', type: 'Ćwiczenia', color: 'rose', notes: 'Kolokwium z programowania dynamicznego' },
+    { id: 't8', day: 'thursday', subject: 'Uczenie Maszynowe', time_start: '10:15', time_end: '11:45', room: 'Lab AI 202', teacher: 'dr Maj', type: 'Laboratorium', color: 'emerald', notes: 'Trening modeli klasyfikacyjnych w PyTorch' },
+    { id: 't9', day: 'friday', subject: 'Seminarium Projektowe OmniDash', time_start: '11:00', time_end: '13:00', room: 'Sala Konferencyjna B', teacher: 'dr inż. Lewandowski', type: 'Projekt', color: 'cyan', notes: 'Obrona sprintu i testy integracyjne' }
   ]
 };
 

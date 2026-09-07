@@ -84,6 +84,12 @@ function getClientContextSummary() {
     if (rawBrain) operatorBrain = JSON.parse(rawBrain);
   } catch {}
 
+  let timetable = [];
+  try {
+    const rawTimetable = localStorage.getItem('cloud_cache_timetable');
+    if (rawTimetable) timetable = JSON.parse(rawTimetable);
+  } catch {}
+
   const now = new Date();
   const dateStr = now.toLocaleDateString('pl-PL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const timeStr = now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
@@ -96,6 +102,7 @@ function getClientContextSummary() {
     finances: Array.isArray(finances) ? finances : [],
     workouts: Array.isArray(workouts) ? workouts : [],
     operatorBrain: Array.isArray(operatorBrain) ? operatorBrain : [],
+    timetable: Array.isArray(timetable) ? timetable : [],
     dateStr,
     timeStr
   };
@@ -164,6 +171,20 @@ function determineWidgets(userText, aiResponse = '') {
     widgets.push('system');
   }
 
+  if (
+    combined.includes('lekcj') || 
+    combined.includes('plan lekcji') || 
+    combined.includes('zajęcia') || 
+    combined.includes('zajęć') || 
+    combined.includes('szkoł') || 
+    combined.includes('uczelni') || 
+    combined.includes('timetable') || 
+    combined.includes('harmonogram') || 
+    combined.includes('przedmiot')
+  ) {
+    widgets.push('timetable');
+  }
+
   return Array.from(new Set(widgets));
 }
 
@@ -186,7 +207,8 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
         calendar: context.calendar,
         finances: context.finances,
         workouts: context.workouts,
-        operatorBrain: context.operatorBrain
+        operatorBrain: context.operatorBrain,
+        timetable: context.timetable
       },
       customApiKey: groqKey && groqKey.startsWith('gsk_') ? groqKey : undefined
     };

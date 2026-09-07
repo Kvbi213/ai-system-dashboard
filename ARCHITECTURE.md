@@ -1,17 +1,17 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.5.1 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.6.0 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA  
 **Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Vercel Serverless & Firebase Cloud)
 
 ---
 
 ## 1. WSTĘP I PARADYGMATY
-System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-oss-120b` (Groq SDK). Projekt łączy w sobie cechy inteligentnego terminala poleceń, zarządzania zadaniami (To-Do), kalendarza, elastycznego budżetu (konfigurowalne proporcje potrzeb, zachcianek i oszczędności), planera treningów, długoterminowej pamięci (Operator Brain), monitoringu systemu oraz wyszukiwania w sieci na żywo (Brave Search API).
+System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-oss-120b` (Groq SDK). Projekt łączy w sobie cechy inteligentnego terminala poleceń, zarządzania zadaniami (To-Do), planu lekcji i harmonogramu zajęć (Timetable), kalendarza, elastycznego budżetu (konfigurowalne proporcje potrzeb, zachcianek i oszczędności), planera treningów, długoterminowej pamięci (Operator Brain), monitoringu systemu oraz wyszukiwania w sieci na żywo (Brave Search API).
 
 **Główne Paradygmaty:**
 1. **Multi-Cloud Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (`https://void-potato-7721.web.app`), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`https://ai-system-dashboard.vercel.app/api/agent`).
-2. **LLM with Live Web Intelligence:** Cała logika kognitywna oparta jest na modelu `openai/gpt-oss-120b`. Prompt systemowy otrzymuje wstrzyknięty w czasie rzeczywistym pełen stan 6 kategorii danych użytkownika (Zadania, Kalendarz, Finanse, Treningi, Operator Brain, Historia Chatu) oraz natychmiastowe dane z sieci za pośrednictwem Brave Search API (`api.search.brave.com`).
+2. **LLM with Live Web & Timetable Intelligence:** Cała logika kognitywna oparta jest na modelu `openai/gpt-oss-120b`. Prompt systemowy otrzymuje wstrzyknięty w czasie rzeczywistym pełen stan 7 kategorii danych użytkownika (Zadania, Plan Lekcji, Kalendarz, Finanse, Treningi, Operator Brain, Historia Chatu) oraz natychmiastowe dane z sieci za pośrednictwem Brave Search API (`api.search.brave.com`).
 3. **Clean & Modern Aesthetics**: Interfejs zaprojektowany jest w oparciu o czyste linie, glassmorphism, elegancką i nowoczesną typografię. Asystent J.A.R.V.I.S (główny rdzeń/Mentor) jest przyjazny i analityczny, z kolei F.R.I.D.A.Y (Worker) wykonuje zadania w hiper-profesjonalnym i inżynieryjnym tonie.
 
 ---
@@ -38,40 +38,45 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │
 ├── /modules/                  ← Główna logika i komponenty.
 │   ├── agent.js               ← System podłączający się do API LLM (lokalnie i chmurowo).
-│   ├── database.js            ← Abstrakcja nad SQLite dla środowiska lokalnego.
+│   ├── database.js            ← Abstrakcja nad SQLite dla środowiska lokalnego (w tym tabela timetable).
 │   ├── firebase.js            ← Most z chmurą Firebase Admin SDK.
 │   ├── firebaseClient.js      ← Klient frontendowy Firebase Web SDK (Auth, Firestore).
 │   │
 │   ├── /services/             ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
-│   │   ├── cloudSync.js       ← Dwukierunkowa subskrypcja 6 kolekcji Firestore z auto-inicjalizacją.
+│   │   ├── cloudSync.js       ← Dwukierunkowa subskrypcja 7 kolekcji Firestore z auto-inicjalizacją.
 │   │   └── clientAiDispatcher.js ← Autonomiczny silnik zapytań LLM (openai/gpt-oss-120b) przez Vercel Gateway.
 │   │
 │   ├── /ai/                   ← Pliki konfiguracyjne dla agentów AI.
 │   │   ├── prompts.js         ← Zbiór promptów systemowych (Worker, Mentor).
 │   │   └── tools.js           ← Definicje narzędzi (Tool Calling) dla agentów.
 │   │
-│   ├── /routes/             ← Modułowe routery Express, dzielące ruch na sekcje:
-│   │   ├── auth.js, system.js, finance.js, ai.js, osint.js, weather.js, news.js, tasks.js, calendar.js, workouts.js, memory.js, phone.js, logs.js, events.js, firebase.js
-│   │   └── middleware.js    ← Middleware m.in. zabezpieczające i limitujące zapytania.
+│   ├── /routes/             ← Modułowe routery Express:
+│   │   ├── auth.js, system.js, finance.js, ai.js, osint.js, weather.js, news.js, tasks.js, calendar.js, workouts.js, timetable.js, memory.js, phone.js, logs.js, events.js, firebase.js
+│   │   └── middleware.js    ← Middleware zabezpieczające i limitujące zapytania.
 │   │
 │   ├── /components/         ← Reużywalne klocki UI w React.
 │   │   ├── CommandPalette.jsx ← Globalna paleta komend i szybkich akcji (Ctrl + K).
+│   │   ├── Sidebar.jsx      ← Lewy pasek nawigacyjny z zakładką Plan Lekcji (GraduationCap).
 │   │   ├── ErrorBoundary.jsx← Strażnik awarii interfejsu (Crash Guard & Recovery Screen).
-│   │   ├── Terminal.jsx     ← Zaawansowany terminal czatu: asymetryczne dymki wiadomości (Operator vs AI), ustrukturyzowane listy Markdown z liniami gałęziowymi, bloki kodu z kopiowaniem, synteza mowy (TTS), szybkie podpowiedzi (Quick Prompts) i automatyczne przewijanie.
-│   │   ├── TodoList.jsx     ← Interaktywna lista to-do z obsługą priorytetów i deadline'ów.
-│   │   └── ... (pozostałe widżety UI)
+│   │   ├── Terminal.jsx     ← Zaawansowany terminal czatu z Markdown i TTS.
+│   │   ├── TodoList.jsx     ← Interaktywna lista to-do z obsługą priorytetów.
 │   │   └── ... (pozostałe widżety UI)
 │   │
 │   └── /pages/              ← Konkretne podstrony w React Router.
-│       ├── Dashboard.jsx    ← Strona startowa. Siatka (grid) wszystkich mniejszych widżetów.
-│       ├── ChatPage.jsx     ← Pełnoekranowy Terminal.
+│       ├── Dashboard.jsx    ← Strona startowa. Siatka wszystkich widżetów.
+│       ├── ChatPage.jsx     ← Pełnoekranowy Terminal AI.
+│       ├── TimetablePage.jsx← Plan Lekcji & Zajęć (Live Tracker, widok osi czasu i siatki, CRUD, Firestore sync).
+│       ├── CalendarPage.jsx ← Kalendarz operacyjny i terminarz zdarzeń.
+│       ├── FinancePage.jsx  ← Finanse, budżet (konfigurowalne wagi procentowe) i statystyki.
+│       ├── WorkoutsPage.jsx ← Dziennik sesji treningowych.
+│       ├── MemoryPage.jsx   ← Pamięć długoterminowa asystenta (Operator Brain).
 │       ├── SearchPage.jsx   ← Wyszukiwarka zintegrowana z Brave Search.
-│       └── SettingsPage.jsx ← Sterowanie motywem, preferencjami i akcentami (zapis w localStorage).
+│       └── SettingsPage.jsx ← Centrum kategorii Firestore, motywy i diagnostyka bramy.
 │
 ├── /data/                   ← Magazyn danych lokalnych.
-│   └── tasks.sqlite         ← Baza SQL przechowująca zadania, powiadomienia i logi systemowe.
+│   └── tasks.sqlite         ← Baza SQL przechowująca zadania, harmonogram lekcji i logi.
 │
-└── /docs/                   ← Hub dokumentacji (logi błędów ERROR_DIFF, archiwa zmian, logi serwera).
+└── /docs/                   ← Hub dokumentacji (logi wersji SemVer, błędy ERROR_DIFF, mapy architektoniczne).
 ```
 
 

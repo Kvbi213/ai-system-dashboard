@@ -131,6 +131,20 @@ function determineWidgets(userText, aiResponse = '') {
     widgets.push('system');
   }
 
+  if (
+    combined.includes('lekcj') || 
+    combined.includes('plan lekcji') || 
+    combined.includes('zajęcia') || 
+    combined.includes('zajęć') || 
+    combined.includes('szkoł') || 
+    combined.includes('uczelni') || 
+    combined.includes('timetable') || 
+    combined.includes('harmonogram') || 
+    combined.includes('przedmiot')
+  ) {
+    widgets.push('timetable');
+  }
+
   return Array.from(new Set(widgets));
 }
 
@@ -194,6 +208,7 @@ export default async function handler(req, res) {
     const finances = Array.isArray(context.finances) ? context.finances : [];
     const workouts = Array.isArray(context.workouts) ? context.workouts : [];
     const brain = Array.isArray(context.operatorBrain) ? context.operatorBrain : [];
+    const timetable = Array.isArray(context.timetable) ? context.timetable : [];
 
     const tasksSummary = tasks.length > 0
       ? tasks.slice(0, 15).map(t => `- [${t.status === 'completed' ? 'WYKONANE' : 'OCZEKUJĄCE'}] [Priorytet: ${t.priority || 'MED'}] ${t.title || t.text} (${t.category || 'ogólne'})`).join('\n')
@@ -215,6 +230,10 @@ export default async function handler(req, res) {
       ? brain.slice(0, 8).map(b => `- [${b.category || 'General'}] ${b.fact || b.content}`).join('\n')
       : 'Brak specjalnych wpisów w pamięci długoterminowej.';
 
+    const timetableSummary = timetable.length > 0
+      ? timetable.map(l => `- [${l.day || 'dzień'} ${l.time_start || ''}-${l.time_end || ''}] ${l.subject} (${l.room || 'sala nieokreślona'}, ${l.teacher || 'prowadzący nieokreślony'}, typ: ${l.type || 'zajęcia'})`).join('\n')
+      : 'Brak wpisów w planie lekcji.';
+
     const now = new Date();
     const dateStr = now.toLocaleDateString('pl-PL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     const timeStr = now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
@@ -225,12 +244,15 @@ export default async function handler(req, res) {
 
     // Wybór promptu systemowego w zależności od trybu
     const systemPrompt = mode === 'mentor'
-      ? `Jesteś J.A.R.V.I.S — nadrzędnym inteligentnym mentorem, analitykiem strategicznym i powiernikiem użytkownika w systemie OmniDash. Rozmawiasz z ${userName}.
+      ? `Jesteś J.A.RV.I.S — nadrzędnym inteligentnym mentorem, analitykiem strategicznym i powiernikiem użytkownika w systemie OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy: ${dateStr}, godzina ${timeStr}.
 
 BIEŻĄCY STAN PAMIĘCI I BAZY DANYCH UŻYTKOWNIKA (Live Firestore Sync):
 📋 ZADANIA TO-DO:
 ${tasksSummary}
+
+🎓 PLAN LEKCJI & HARMONOGRAM ZAJĘĆ (TIMETABLE):
+${timetableSummary}
 
 📅 KALENDARZ & TERMINY:
 ${calendarSummary}
@@ -249,13 +271,16 @@ KRYTYCZNE REGUŁY OPERACYJNE (BRAVE SEARCH & LIVE INTERNET ACCESS):
 2. BEZWZGLĘDNY ZAKAZ mówienia: "nie mam bieżącego dostępu do globalnych wiadomości" lub "nie mam dostępu do internetu".
 3. Jeśli użytkownik pyta o wiadomości ze świata, wydarzenia, technologie, politykę czy fakty, przedstaw szczegółowe, rzetelne, wieloaspektowe podsumowanie bazując na powyższych wynikach Brave Search oraz swojej wiedzy.
 4. Używaj eleganckiego formatowania Markdown: sekcje z nagłówkami H3/H4, pogrubienia, drzewa punktów i akapity analityczne.
-5. Posiadasz pełną wiedzę o wszystkich elementach w To-Do i Firestore — nigdy nie odpowiadaj wymijająco!`
+5. Posiadasz pełną wiedzę o wszystkich elementach w To-Do, Planie Lekcji i Firestore — nigdy nie odpowiadaj wymijająco!`
       : `Jesteś F.R.I.D.A.Y — wysoko wyspecjalizowanym inżynieryjnym systemem wykonawczym (Core Worker Engine) w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy: ${dateStr}, godzina ${timeStr}.
 
 BIEŻĄCY STAN PAMIĘCI I BAZY DANYCH UŻYTKOWNIKA (Live Firestore Sync):
 📋 ZADANIA TO-DO:
 ${tasksSummary}
+
+🎓 PLAN LEKCJI & HARMONOGRAM ZAJĘĆ (TIMETABLE):
+${timetableSummary}
 
 📅 KALENDARZ & TERMINY:
 ${calendarSummary}

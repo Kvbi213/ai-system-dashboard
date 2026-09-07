@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Search, Terminal, CheckSquare, FileText, Calendar, Wallet, 
   Dumbbell, Shield, Settings, Lock, Sun, Moon, Sparkles, Globe, 
-  Cpu, ArrowRight, CornerDownLeft, Plus 
+  Cpu, ArrowRight, CornerDownLeft, Plus, GraduationCap 
 } from 'lucide-react';
 import { saveCloudDocument } from '../services/cloudSync';
 
@@ -112,6 +112,7 @@ const CommandPalette = () => {
     // Nawigacja
     { id: 'nav_dash', label: 'Przejdź do: Pulpit Główny', category: 'Nawigacja', icon: Cpu, type: 'navigate', path: '/' },
     { id: 'nav_chat', label: 'Przejdź do: Asystent AI (Chat Terminal)', category: 'Nawigacja', icon: Terminal, type: 'navigate', path: '/chat' },
+    { id: 'nav_timetable', label: 'Przejdź do: Plan Lekcji & Zajęć', category: 'Nawigacja', icon: GraduationCap, type: 'navigate', path: '/timetable' },
     { id: 'nav_fin', label: 'Przejdź do: Finanse & Budżet 50/30/20', category: 'Nawigacja', icon: Wallet, type: 'navigate', path: '/finances' },
     { id: 'nav_cal', label: 'Przejdź do: Kalendarz Operacyjny', category: 'Nawigacja', icon: Calendar, type: 'navigate', path: '/calendar' },
     { id: 'nav_work', label: 'Przejdź do: Treningi & Fitness', category: 'Nawigacja', icon: Dumbbell, type: 'navigate', path: '/workouts' },

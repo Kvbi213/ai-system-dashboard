@@ -591,9 +591,10 @@ const SettingsPage = () => {
                   </p>
 
                   {/* Kafelki kategorii */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 my-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-3">
                     {[
                       { id: 'tasks', name: 'Zadania To-Do', icon: '📋' },
+                      { id: 'timetable', name: 'Plan Lekcji', icon: '🎓' },
                       { id: 'finances', name: 'Finanse & Budżet', icon: '💰' },
                       { id: 'workouts', name: 'Treningi', icon: '🏋️' },
                       { id: 'calendar', name: 'Kalendarz', icon: '📅' },
@@ -635,7 +636,7 @@ const SettingsPage = () => {
                       <span className="text-xs text-emerald-400 font-mono">
                         {collectionSyncResult.error 
                           ? `[!] Błąd: ${collectionSyncResult.error}` 
-                          : `[+] Pomyślnie zsynchronizowano wszystkie 6 kategorii w chmurze!`}
+                          : `[+] Pomyślnie zsynchronizowano wszystkie 7 kategorii w chmurze!`}
                       </span>
                     )}
                   </div>
