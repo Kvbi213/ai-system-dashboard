@@ -116,18 +116,18 @@ const WorkoutsPage = () => {
   }, [workouts]);
 
   return (
-    <div className="h-full flex flex-col space-y-6 animate-soft-enter relative pb-20 overflow-hidden">
+    <div className="h-full flex flex-col space-y-4 sm:space-y-6 animate-soft-enter relative pb-20 md:pb-0 overflow-hidden">
       {/* Header */}
-      <header className="glass-panel p-5 rounded-xl border border-border flex items-center justify-between gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
-        <div className="flex items-center gap-4">
+      <header className="glass-panel p-4 sm:p-5 rounded-xl border border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
+        <div className="flex items-center gap-3 sm:gap-4">
           <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
             <Dumbbell className="w-5 h-5 text-accentPrimary" />
           </div>
           <div className="flex flex-col">
             <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-0.5">
-              <span className="flex items-center text-lg font-medium text-textMuted/70">OmniDash</span>
-              <span className="shrink-0 text-lg font-medium text-textMuted/70">/</span>
-              <span className="flex items-center text-lg font-medium text-textPrimary">Trening & Fitness</span>
+              <span className="flex items-center text-base sm:text-lg font-medium text-textMuted/70">OmniDash</span>
+              <span className="shrink-0 text-base sm:text-lg font-medium text-textMuted/70">/</span>
+              <span className="flex items-center text-base sm:text-lg font-medium text-textPrimary">Trening & Fitness</span>
             </nav>
             <p className="font-sans text-xs text-textMuted mt-0.5">
               Zarządzaj swoimi sesjami treningowymi z automatyczną synchronizacją Firestore.
@@ -136,7 +136,7 @@ const WorkoutsPage = () => {
         </div>
         <button 
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-accentPrimary/20 hover:bg-accentPrimary/30 text-accentPrimary border border-accentPrimary/40 text-sm font-mono font-bold rounded-lg transition-all shadow-[0_0_15px_rgba(0,229,255,0.15)]"
+          className="w-full sm:w-auto justify-center flex items-center gap-2 px-4 py-2.5 bg-accentPrimary/20 hover:bg-accentPrimary/30 text-accentPrimary border border-accentPrimary/40 text-sm font-mono font-bold rounded-lg transition-all shadow-[0_0_15px_rgba(0,229,255,0.15)] active:scale-95"
         >
           <Plus className="w-4 h-4 text-accentPrimary" />
           <span>{t("workNew", "Nowy Trening")}</span>
@@ -144,44 +144,44 @@ const WorkoutsPage = () => {
       </header>
 
       {/* Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
-        <div className="glass-panel p-4 rounded-xl border border-border flex items-center gap-4 group">
-          <div className="p-3 bg-orange-500/20 text-orange-400 rounded-xl border border-orange-500/30 group-hover:scale-105 transition-transform">
-            <Activity className="w-5 h-5" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 shrink-0">
+        <div className="glass-panel p-3 sm:p-4 rounded-xl border border-border flex items-center gap-3 sm:gap-4 group">
+          <div className="p-2.5 sm:p-3 bg-orange-500/20 text-orange-400 rounded-xl border border-orange-500/30 group-hover:scale-105 transition-transform shrink-0">
+            <Activity className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
-            <p className="text-[11px] text-textMuted font-mono uppercase tracking-wider">{t("workSaved", "Zapisane Treningi")}</p>
-            <p className="text-2xl font-bold font-mono text-textPrimary">{workouts.length}</p>
-          </div>
-        </div>
-
-        <div className="glass-panel p-4 rounded-xl border border-border flex items-center gap-4 group">
-          <div className="p-3 bg-cyan-500/20 text-cyan-400 rounded-xl border border-cyan-500/30 group-hover:scale-105 transition-transform">
-            <Calendar className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-[11px] text-textMuted font-mono uppercase tracking-wider">{t("workLast", "Ostatni Trening")}</p>
-            <p className="text-base font-bold font-mono text-textPrimary">{workouts.length > 0 ? workouts[0].date : 'Brak sesji'}</p>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] text-textMuted font-mono uppercase tracking-wider truncate">{t("workSaved", "Zapisane")}</p>
+            <p className="text-xl sm:text-2xl font-bold font-mono text-textPrimary">{workouts.length}</p>
           </div>
         </div>
 
-        <div className="glass-panel p-4 rounded-xl border border-border flex items-center gap-4 group">
-          <div className="p-3 bg-rose-500/20 text-rose-400 rounded-xl border border-rose-500/30 group-hover:scale-105 transition-transform">
-            <Flame className="w-5 h-5" />
+        <div className="glass-panel p-3 sm:p-4 rounded-xl border border-border flex items-center gap-3 sm:gap-4 group">
+          <div className="p-2.5 sm:p-3 bg-cyan-500/20 text-cyan-400 rounded-xl border border-cyan-500/30 group-hover:scale-105 transition-transform shrink-0">
+            <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
-            <p className="text-[11px] text-textMuted font-mono uppercase tracking-wider">Siłowy / Cardio</p>
-            <p className="text-base font-bold font-mono text-textPrimary">{stats.countByType.siłowy} / {stats.countByType.cardio}</p>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] text-textMuted font-mono uppercase tracking-wider truncate">{t("workLast", "Ostatni")}</p>
+            <p className="text-sm sm:text-base font-bold font-mono text-textPrimary truncate">{workouts.length > 0 ? workouts[0].date : 'Brak sesji'}</p>
           </div>
         </div>
 
-        <div className="glass-panel p-4 rounded-xl border border-border flex items-center gap-4 group">
-          <div className="p-3 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-5 h-5" />
+        <div className="glass-panel p-3 sm:p-4 rounded-xl border border-border flex items-center gap-3 sm:gap-4 group">
+          <div className="p-2.5 sm:p-3 bg-rose-500/20 text-rose-400 rounded-xl border border-rose-500/30 group-hover:scale-105 transition-transform shrink-0">
+            <Flame className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
-            <p className="text-[11px] text-textMuted font-mono uppercase tracking-wider">Kalistenika & Inne</p>
-            <p className="text-base font-bold font-mono text-textPrimary">{stats.countByType.kalistenika + stats.countByType.rozciąganie}</p>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] text-textMuted font-mono uppercase tracking-wider truncate">Siłowy / Cardio</p>
+            <p className="text-sm sm:text-base font-bold font-mono text-textPrimary truncate">{stats.countByType.siłowy} / {stats.countByType.cardio}</p>
+          </div>
+        </div>
+
+        <div className="glass-panel p-3 sm:p-4 rounded-xl border border-border flex items-center gap-3 sm:gap-4 group">
+          <div className="p-2.5 sm:p-3 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30 group-hover:scale-105 transition-transform shrink-0">
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] text-textMuted font-mono uppercase tracking-wider truncate">Kalistenika & Inne</p>
+            <p className="text-sm sm:text-base font-bold font-mono text-textPrimary truncate">{stats.countByType.kalistenika + stats.countByType.rozciąganie}</p>
           </div>
         </div>
       </div>
@@ -189,15 +189,15 @@ const WorkoutsPage = () => {
       {/* Main Content Area */}
       <div className="flex-1 glass-panel rounded-xl border border-border overflow-hidden flex flex-col min-h-[350px]">
         {/* Bar Controls */}
-        <div className="p-4 border-b border-border bg-black/20 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="p-3 sm:p-4 border-b border-border bg-black/20 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
             <span className="font-mono text-sm font-bold text-accentPrimary">{t("workHistory", "Historia Treningów")}</span>
             <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-accentPrimary/10 text-accentPrimary border border-accentPrimary/20">
               {filteredWorkouts.length}
             </span>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <div className="relative flex-1 sm:w-56">
               <Search className="w-3.5 h-3.5 text-textMuted absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
@@ -209,22 +209,22 @@ const WorkoutsPage = () => {
               />
             </div>
 
-            <div className="flex items-center bg-black/30 border border-border rounded-lg p-0.5 text-xs font-mono">
+            <div className="flex items-center bg-black/30 border border-border rounded-lg p-0.5 text-xs font-mono overflow-x-auto touch-pan-x">
               <button
                 onClick={() => setSelectedType('all')}
-                className={`px-2.5 py-1 rounded transition-colors ${selectedType === 'all' ? 'bg-accentPrimary text-black font-bold' : 'text-textMuted hover:text-white'}`}
+                className={`px-2.5 py-1 rounded transition-colors whitespace-nowrap ${selectedType === 'all' ? 'bg-accentPrimary text-black font-bold' : 'text-textMuted hover:text-white'}`}
               >
                 Wszystkie
               </button>
               <button
                 onClick={() => setSelectedType('siłowy')}
-                className={`px-2 py-1 rounded transition-colors ${selectedType === 'siłowy' ? 'bg-orange-500/20 text-orange-400 font-bold' : 'text-textMuted hover:text-white'}`}
+                className={`px-2 py-1 rounded transition-colors whitespace-nowrap ${selectedType === 'siłowy' ? 'bg-orange-500/20 text-orange-400 font-bold' : 'text-textMuted hover:text-white'}`}
               >
                 Siłowy
               </button>
               <button
                 onClick={() => setSelectedType('cardio')}
-                className={`px-2 py-1 rounded transition-colors ${selectedType === 'cardio' ? 'bg-rose-500/20 text-rose-400 font-bold' : 'text-textMuted hover:text-white'}`}
+                className={`px-2 py-1 rounded transition-colors whitespace-nowrap ${selectedType === 'cardio' ? 'bg-rose-500/20 text-rose-400 font-bold' : 'text-textMuted hover:text-white'}`}
               >
                 Cardio
               </button>
@@ -260,7 +260,7 @@ const WorkoutsPage = () => {
                   </div>
                   <button 
                     onClick={() => handleDelete(w.id)}
-                    className="p-1.5 rounded-lg text-textMuted hover:text-rose-400 hover:bg-rose-400/10 transition-colors opacity-0 group-hover:opacity-100"
+                    className="p-1.5 rounded-lg text-textMuted hover:text-rose-400 hover:bg-rose-400/10 transition-colors opacity-80 sm:opacity-0 sm:group-hover:opacity-100"
                     title="Usuń trening"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -289,9 +289,9 @@ const WorkoutsPage = () => {
 
       {/* Modal Nowy Trening */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="glass-panel p-6 rounded-2xl border border-border w-full max-w-md shadow-2xl animate-scale-in bg-background">
-            <h2 className="text-lg font-bold font-mono mb-4 flex items-center gap-2 text-accentPrimary">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="glass-panel p-5 sm:p-6 rounded-2xl border border-border w-full max-w-md max-h-[90dvh] overflow-y-auto shadow-2xl animate-scale-in bg-background">
+            <h2 className="text-base sm:text-lg font-bold font-mono mb-4 flex items-center gap-2 text-accentPrimary">
               <Plus className="w-5 h-5 text-accentPrimary" />
               Dodaj Sesję Treningową
             </h2>

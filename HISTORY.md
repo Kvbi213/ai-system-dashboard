@@ -1,5 +1,22 @@
 ## Wersja Bieżąca
-**v2.7.0**
+**v2.8.0**
+
+## v 2.8.0 — 2026-09-07
+**Typ:** MINOR  
+**Zakres:** Kompleksowa Przebudowa Architektury Mobilnej & Touch UX (Górny Pasek App Bar, Dolny Pasek Quick Bar, Wysuwana Szuflada Modułów & Motywów, Responsywność Siatek 2x2 i Modali)
+
+### Zmiany
+- [+] Dodano: Nowy Mobile Top App Bar w `Sidebar.jsx` z logotypem AG, dynamicznym wskaźnikiem aktywnego widoku, pulsem statusu online oraz skrótem wyszukiwarki.
+- [+] Dodano: Natywny Mobile Bottom Quick Bar w `Sidebar.jsx` z bezpiecznym marginesem iOS (`safe-area-inset-bottom`), 4 kluczowymi zakładkami (`Pulpit`, `Czat AI`, `Plan Lekcji`, `Finanse`) oraz przyciskiem menu `Więcej`.
+- [+] Dodano: Wysuwaną szufladę mobilną (Bottom Sheet Drawer) z efektem rozmytego szkła, 2-kolumnową siatką wszystkich modułów systemu, 1-dotykowym przełącznikiem motywów stylistycznych oraz łączem do Ustawień.
+- [*] Zmodyfikowano: `core.client.jsx` — reorganizacja kontenera nadrzędnego (`flex-col md:flex-row`) oraz wprowadzenie bezpiecznego odstępu `pb-20 md:pb-0` eliminującego przesłanianie treści przez dolny pasek nawigacyjny.
+- [*] Zmodyfikowano: Responsywność wszystkich modułów i stron (`Dashboard.jsx`, `ChatPage.jsx`, `Terminal.jsx`, `TimetablePage.jsx`, `FinancePage.jsx`, `WorkoutsPage.jsx`, `CalendarPage.jsx`, `SettingsPage.jsx`, `WidgetsPage.jsx`, `MemoryPage.jsx`, `OSINTPage.jsx`, `ServerPage.jsx`, `SearchPage.jsx`, `LockScreen.jsx`) — bezpieczne modale z przewijaniem pionowym `max-h-[90dvh] overflow-y-auto`, 2-kolumnowe siatki metryk na smartfonach, zabezpieczenie `min-w-0` przed rozszerzaniem formularzy przez klawiatury dotykowe oraz przyciski akcji widoczne na ekranach dotykowych.
+- [*] Zmodyfikowano: Pomyślnie zrekompilowano (0 błędów) i wdrożono do chmury produkcyjnej.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 2.7.0 — 2026-09-07
 **Typ:** MINOR  

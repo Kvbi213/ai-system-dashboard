@@ -118,23 +118,23 @@ const CalendarPage = () => {
       <button 
         key={`day-${i}`}
         onClick={() => setSelectedDate(iterDate)}
-        className={`relative min-h-[80px] p-2 flex flex-col items-start justify-start border transition-all duration-200 
+        className={`relative min-h-[50px] sm:min-h-[80px] p-1 sm:p-2 flex flex-col items-start justify-start border transition-all duration-200 active:scale-95 
           ${isSelected ? 'border-accentPrimary bg-accentPrimary/10 shadow-[inset_0_0_10px_rgba(var(--color-accent-primary),0.2)]' : 'border-border/50 glass-panel hover:bg-surface'}
         `}
       >
-        <span className={`text-sm font-mono font-bold ${isToday ? 'text-accentPrimary' : 'text-textPrimary'}`}>
+        <span className={`text-xs sm:text-sm font-mono font-bold ${isToday ? 'text-accentPrimary' : 'text-textPrimary'}`}>
           {i}
         </span>
         
         {hasEvents && (
-          <div className="absolute top-2 right-2 flex gap-1">
+          <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex gap-0.5 sm:gap-1">
             {dayEvents.map((_, idx) => (
-              <div key={idx} className="w-2 h-2 rounded-full bg-accentPrimary shadow-[0_0_5px_rgba(var(--color-accent-primary),0.8)]"></div>
+              <div key={idx} className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-accentPrimary shadow-[0_0_5px_rgba(var(--color-accent-primary),0.8)]"></div>
             ))}
           </div>
         )}
 
-        <div className="mt-2 w-full flex flex-col gap-1 overflow-hidden">
+        <div className="hidden sm:flex mt-2 w-full flex-col gap-1 overflow-hidden">
           {dayEvents.slice(0, 2).map((ev) => (
             <div key={ev.id} className="text-[10px] uppercase font-mono tracking-wider truncate text-accentPrimary/80 bg-accentPrimary/10 px-1 rounded">
               {ev.title}
@@ -157,40 +157,40 @@ const CalendarPage = () => {
   const upcomingEvents = safeEvents.filter(e => e.event_date >= todayString).sort((a, b) => new Date(a.event_date) - new Date(b.event_date));
 
   return (
-    <div className="w-full h-full flex flex-col gap-6 relative z-10 animate-soft-enter overflow-hidden">
-      <header className="glass-panel p-5 rounded-xl border border-border flex items-center gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
+    <div className="w-full h-full flex flex-col gap-4 sm:gap-6 relative z-10 animate-soft-enter overflow-y-auto md:overflow-hidden pb-20 md:pb-0">
+      <header className="glass-panel p-4 sm:p-5 rounded-xl border border-border flex items-center gap-3 sm:gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
         <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
           <CalendarIcon className="w-5 h-5 text-textPrimary" />
         </div>
         <div className="flex flex-col">
           <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-0.5">
-            <span className="flex items-center text-lg font-medium text-textMuted/70">OmniDash</span>
-            <span className="shrink-0 text-lg font-medium text-textMuted/70">/</span>
-            <span className="flex items-center text-lg font-medium text-textPrimary">Kalendarz</span>
+            <span className="flex items-center text-base sm:text-lg font-medium text-textMuted/70">OmniDash</span>
+            <span className="shrink-0 text-base sm:text-lg font-medium text-textMuted/70">/</span>
+            <span className="flex items-center text-base sm:text-lg font-medium text-textPrimary">Kalendarz</span>
           </nav>
           <p className="font-sans text-xs text-textMuted mt-0.5">System zarządzania czasem</p>
         </div>
       </header>
 
-      <div className="flex-1 flex flex-col xl:flex-row gap-6 min-h-0">
+      <div className="flex-1 flex flex-col xl:flex-row gap-4 sm:gap-6 min-h-0">
         
         {/* LIFT: MAIN CALENDAR GRID */}
-        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar pr-2">
+        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar pr-0 sm:pr-2">
           
           {/* Header Kalendarza (Nawigacja) */}
-          <div className="glass-panel p-4 rounded-t-2xl border border-border border-b-0 flex items-center justify-between shrink-0">
-            <h2 className="text-2xl font-bold font-mono text-accentPrimary tracking-tight">
+          <div className="glass-panel p-3 sm:p-4 rounded-t-xl sm:rounded-t-2xl border border-border border-b-0 flex items-center justify-between shrink-0">
+            <h2 className="text-lg sm:text-2xl font-bold font-mono text-accentPrimary tracking-tight">
               {monthNames[currentMonth]} <span className="text-textPrimary">{currentYear}</span>
             </h2>
-            <div className="flex gap-2">
-              <button onClick={prevMonth} className="p-2 glass-panel border border-border hover:border-accentPrimary hover:text-accentPrimary rounded-lg transition-colors">
-                <ChevronLeft className="w-5 h-5" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <button onClick={prevMonth} className="p-1.5 sm:p-2 glass-panel border border-border hover:border-accentPrimary hover:text-accentPrimary rounded-lg transition-colors active:scale-95">
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
-              <button onClick={() => setCurrentDate(new Date())} className="px-4 py-2 font-mono text-sm uppercase glass-panel border border-border hover:border-accentPrimary hover:text-accentPrimary rounded-lg transition-colors">
+              <button onClick={() => setCurrentDate(new Date())} className="px-2.5 sm:px-4 py-1.5 sm:py-2 font-mono text-xs sm:text-sm uppercase glass-panel border border-border hover:border-accentPrimary hover:text-accentPrimary rounded-lg transition-colors active:scale-95">
                 Dziś
               </button>
-              <button onClick={nextMonth} className="p-2 glass-panel border border-border hover:border-accentPrimary hover:text-accentPrimary rounded-lg transition-colors">
-                <ChevronRight className="w-5 h-5" />
+              <button onClick={nextMonth} className="p-1.5 sm:p-2 glass-panel border border-border hover:border-accentPrimary hover:text-accentPrimary rounded-lg transition-colors active:scale-95">
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
           </div>
@@ -198,14 +198,14 @@ const CalendarPage = () => {
           {/* Dni tygodnia */}
           <div className="grid grid-cols-7 glass-panel border-x border-t border-border/50 shrink-0">
             {dayNames.map(day => (
-              <div key={day} className="py-2 text-center text-xs font-mono font-bold tracking-widest text-textMuted uppercase border-b border-border/50">
+              <div key={day} className="py-1.5 sm:py-2 text-center text-[10px] sm:text-xs font-mono font-bold tracking-wider text-textMuted uppercase border-b border-border/50">
                 {day}
               </div>
             ))}
           </div>
 
           {/* Siatka Dni */}
-          <div className="grid grid-cols-7 glass-panel border border-border/50 rounded-b-2xl overflow-hidden shrink-0">
+          <div className="grid grid-cols-7 glass-panel border border-border/50 rounded-b-xl sm:rounded-b-2xl overflow-hidden shrink-0">
             {gridCells}
           </div>
 
@@ -240,32 +240,32 @@ const CalendarPage = () => {
         </div>
 
         {/* RIGHT: SELECTED DAY DETAILS */}
-        <div className="w-full xl:w-96 glass-panel rounded-2xl border border-border flex flex-col shrink-0 h-[400px] xl:h-auto overflow-hidden">
-          <div className="p-6 border-b border-border bg-surface/30">
-            <h3 className="font-mono text-sm tracking-widest text-textMuted uppercase mb-1">Wybrana Data</h3>
-            <div className="text-2xl font-bold text-accentPrimary">
+        <div className="w-full xl:w-96 glass-panel rounded-2xl border border-border flex flex-col shrink-0 min-h-[260px] xl:h-auto overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-border bg-surface/30">
+            <h3 className="font-mono text-xs sm:text-sm tracking-widest text-textMuted uppercase mb-1">Wybrana Data</h3>
+            <div className="text-xl sm:text-2xl font-bold text-accentPrimary">
               {selectedDate.getDate()} {monthNames[selectedDate.getMonth()]} {selectedDate.getFullYear()}
             </div>
             {formatDateString(selectedDate) === formatDateString(new Date()) && (
-              <div className="inline-block mt-2 px-2 py-1 bg-accentPrimary/20 text-accentPrimary text-xs font-mono rounded uppercase tracking-wider border border-accentPrimary/30">
+              <div className="inline-block mt-2 px-2 py-0.5 sm:py-1 bg-accentPrimary/20 text-accentPrimary text-xs font-mono rounded uppercase tracking-wider border border-accentPrimary/30">
                 Dzisiaj
               </div>
             )}
           </div>
           
-          <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
+          <div className="flex-1 p-4 sm:p-6 overflow-y-auto custom-scrollbar">
             {selectedDayEvents.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-textMuted font-mono space-y-4 opacity-50">
-                <CalendarIcon className="w-12 h-12" />
-                <p className="text-sm">Brak aktywności tego dnia.</p>
+              <div className="h-full flex flex-col items-center justify-center text-textMuted font-mono space-y-3 py-6 opacity-50">
+                <CalendarIcon className="w-8 h-8 sm:w-12 sm:h-12" />
+                <p className="text-xs sm:text-sm">Brak aktywności tego dnia.</p>
               </div>
             ) : (
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3 sm:gap-4">
                 {selectedDayEvents.map(ev => (
-                  <div key={`det-${ev.id}`} className="p-4 rounded-xl bg-surface/50 border border-border group relative">
+                  <div key={`det-${ev.id}`} className="p-3 sm:p-4 rounded-xl bg-surface/50 border border-border group relative">
                     <button 
                       onClick={() => deleteEvent(ev.id)} 
-                      className="absolute top-4 right-4 text-textMuted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      className="absolute top-3 sm:top-4 right-3 sm:right-4 text-textMuted hover:text-red-500 transition-colors opacity-80 sm:opacity-0 sm:group-hover:opacity-100 p-1"
                       title="Usuń wydarzenie"
                     >
                       <Trash2 className="w-4 h-4" />

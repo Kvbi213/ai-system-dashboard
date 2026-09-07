@@ -31,31 +31,31 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className="flex flex-col h-full gap-4 pb-20 md:pb-0">
+    <div className="flex flex-col h-full gap-3 sm:gap-4 overflow-hidden">
       {/* Header Bar */}
       <header
-        className="glass-panel flex-shrink-0 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-0 px-5 py-3 opacity-0 animate-soft-enter"
+        className="glass-panel flex-shrink-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 p-3.5 sm:p-5 opacity-0 animate-soft-enter"
         style={{ animationDelay: '50ms' }}
       >
         <div className="flex flex-col">
-          <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-1">
-            <span className="flex items-center text-lg font-medium text-textMuted/70">OmniDash</span>
-            <span className="shrink-0 text-xl font-medium text-textMuted/70">/</span>
-            <span className="flex items-center text-xl font-medium text-textPrimary">Pulpit</span>
+          <nav aria-label="breadcrumb" className="hidden sm:flex items-center space-x-2 text-sm text-textMuted mb-1">
+            <span className="flex items-center text-base font-medium text-textMuted/70">OmniDash</span>
+            <span className="shrink-0 text-lg font-medium text-textMuted/70">/</span>
+            <span className="flex items-center text-base font-medium text-textPrimary">Pulpit</span>
           </nav>
-          <p className="text-sm font-medium text-textMuted mb-4">Przeglądaj wszystkie moduły i aktywności systemu.</p>
+          <p className="hidden md:block text-xs sm:text-sm font-medium text-textMuted mb-2">Przeglądaj wszystkie moduły i aktywności systemu.</p>
           
-          <div className="flex items-baseline gap-4 mt-1">
-            <span className="font-sans text-3xl text-textPrimary font-bold tracking-tight tabular-nums">
+          <div className="flex items-baseline gap-3 sm:gap-4">
+            <span className="font-sans text-2xl sm:text-3xl text-textPrimary font-bold tracking-tight tabular-nums">
               {time.toLocaleTimeString(currentLocale, { hour12: false })}
             </span>
-            <span className="font-sans text-sm text-textMuted">
+            <span className="font-sans text-xs sm:text-sm text-textMuted">
               {time.toLocaleDateString(currentLocale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 font-sans text-sm text-accentPrimary font-medium">
+        <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-t-0 border-border/40">
+          <div className="flex items-center gap-2 font-sans text-xs sm:text-sm text-accentPrimary font-medium">
             <span className="w-2.5 h-2.5 rounded-full bg-accentPrimary animate-pulse inline-block" />
             Wszystko działa prawidłowo
           </div>
@@ -64,22 +64,22 @@ const Dashboard = () => {
       </header>
 
       {/* Main Grid */}
-      <main className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 overflow-y-auto p-1">
+      <main className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 sm:gap-6 flex-1 overflow-y-auto p-1 min-h-0">
         {/* Todo */}
-        <div id="tour-todo" className="lg:col-span-1 lg:row-span-2 min-h-[400px] opacity-0 animate-soft-enter" style={{ animationDelay: '100ms' }}>
+        <div id="tour-todo" className="lg:col-span-1 lg:row-span-2 min-h-[350px] sm:min-h-[400px] opacity-0 animate-soft-enter" style={{ animationDelay: '100ms' }}>
           <TodoList />
         </div>
 
         {/* IT News */}
-        <div className="lg:col-span-2 min-h-[300px] opacity-0 animate-soft-enter" style={{ animationDelay: '150ms' }}>
+        <div className="lg:col-span-2 min-h-[250px] sm:min-h-[300px] opacity-0 animate-soft-enter" style={{ animationDelay: '150ms' }}>
           <ITNewsTicker selectedCategories={newsCategories} />
         </div>
 
         {/* Routines & NewsFeed */}
-        <div className="lg:col-span-1 min-h-[250px] opacity-0 animate-soft-enter" style={{ animationDelay: '200ms' }}>
+        <div className="lg:col-span-1 min-h-[220px] sm:min-h-[250px] opacity-0 animate-soft-enter" style={{ animationDelay: '200ms' }}>
           <RoutinesWidget />
         </div>
-        <div className="lg:col-span-1 min-h-[250px] opacity-0 animate-soft-enter" style={{ animationDelay: '250ms' }}>
+        <div className="lg:col-span-1 min-h-[220px] sm:min-h-[250px] opacity-0 animate-soft-enter" style={{ animationDelay: '250ms' }}>
           <NewsFeed />
         </div>
       </main>

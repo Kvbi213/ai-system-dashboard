@@ -224,16 +224,16 @@ const App = () => {
     <ChatProvider>
       <BrowserRouter>
         <GlobalEventListener />
-        <div className="h-[100dvh] w-full bg-background overflow-hidden flex flex-col-reverse md:flex-row font-sans text-textPrimary relative">
+        <div className="h-[100dvh] w-full bg-background overflow-hidden flex flex-col md:flex-row font-sans text-textPrimary relative">
           
           <OnboardingTour />
           <CommandPalette />
           
-          {/* Lewy pasek nawigacyjny */}
+          {/* Nawigacja (Desktop Sidebar + Mobilny Header i Bottom Bar) */}
           <Sidebar />
 
           {/* Główny obszar zawartości (Router) */}
-          <div className="flex-1 h-full p-4 md:p-8 overflow-hidden min-w-0">
+          <div className="flex-1 h-full p-2.5 sm:p-4 md:p-8 overflow-hidden min-w-0 flex flex-col pb-20 md:pb-0">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/chat" element={<ChatPage />} />

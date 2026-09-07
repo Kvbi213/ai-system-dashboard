@@ -29,38 +29,38 @@ const OSINTPage = () => {
   };
 
   return (
-    <div className="h-full flex flex-col overflow-hidden text-textPrimary animate-soft-enter p-2 md:p-4">
-      <header className="glass-panel p-5 rounded-xl border border-border flex items-center justify-between gap-4 mb-6 shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
-        <div className="flex items-center gap-4">
+    <div className="h-full flex flex-col overflow-hidden text-textPrimary animate-soft-enter p-2 sm:p-4 pb-20 md:pb-4">
+      <header className="glass-panel p-4 sm:p-5 rounded-xl border border-border flex items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6 shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
+        <div className="flex items-center gap-3 sm:gap-4">
           <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
             <Crosshair className="w-5 h-5 text-textPrimary" />
           </div>
           <div className="flex flex-col">
             <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-0.5">
-              <span className="flex items-center text-lg font-medium text-textMuted/70">OmniDash</span>
-              <span className="shrink-0 text-lg font-medium text-textMuted/70">/</span>
-              <span className="flex items-center text-lg font-medium text-textPrimary">Baza Wiedzy</span>
+              <span className="flex items-center text-base sm:text-lg font-medium text-textMuted/70">OmniDash</span>
+              <span className="shrink-0 text-base sm:text-lg font-medium text-textMuted/70">/</span>
+              <span className="flex items-center text-base sm:text-lg font-medium text-textPrimary">Baza Wiedzy</span>
             </nav>
             <p className="font-sans text-xs text-textMuted mt-0.5">{t("osintDesc", "Wywiad jawnoźródłowy & Analiza")}</p>
           </div>
         </div>
       </header>
 
-      <form onSubmit={handleScan} className="flex gap-4 mb-6 shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '100ms' }}>
-        <div className="relative flex-1 max-w-xl">
+      <form onSubmit={handleScan} className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6 shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '100ms' }}>
+        <div className="relative flex-1 max-w-none sm:max-w-xl">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-textMuted" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("osintPlaceholder", "Szefie, prześwietl domenę google.com...")}
-            className="w-full bg-surface border border-border rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-accentPrimary transition-colors font-mono text-sm"
+            className="w-full bg-surface border border-border rounded-lg pl-10 pr-4 py-2.5 sm:py-3 focus:outline-none focus:border-accentPrimary transition-colors font-mono text-sm"
           />
         </div>
         <button
           type="submit"
           disabled={loading || !query.trim()}
-          className="bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/50 hover:bg-accentPrimary hover:text-black font-bold px-6 py-3 rounded-lg transition-all disabled:opacity-50 flex items-center gap-2"
+          className="bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/50 hover:bg-accentPrimary hover:text-black font-bold px-6 py-2.5 sm:py-3 rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95 w-full sm:w-auto"
         >
           {loading ? t('osintScanning', 'SKANOWANIE...') : t('osintRun', 'URUCHOM SKAN')}
         </button>

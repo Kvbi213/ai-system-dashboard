@@ -11,19 +11,41 @@ content = content.replace(
 );
 fs.writeFileSync(path.join(targetDir, 'modules/services/cloudSync.js'), content, 'utf8');
 
+// 1b. firebaseClient.js stub
+const firebaseClientStub = `export const app = null;
+export const auth = null;
+export const googleProvider = null;
+export const firestore = null;
+export const signInWithPopup = async () => null;
+export const signOut = async () => {};
+export const ALLOWED_OWNER_EMAIL = "marektowarek21372137@gmail.com";
+`;
+fs.writeFileSync(path.join(targetDir, 'modules/firebaseClient.js'), firebaseClientStub, 'utf8');
+
 // 2. Updated pages & components
 const filesToSync = [
+  'modules/pages/Dashboard.jsx',
+  'modules/pages/ChatPage.jsx',
+  'modules/pages/TimetablePage.jsx',
   'modules/pages/FinancePage.jsx',
+  'modules/pages/WorkoutsPage.jsx',
+  'modules/pages/CalendarPage.jsx',
   'modules/pages/SettingsPage.jsx',
   'modules/pages/WidgetsPage.jsx',
+  'modules/pages/MemoryPage.jsx',
+  'modules/pages/OSINTPage.jsx',
+  'modules/pages/ServerPage.jsx',
+  'modules/pages/SearchPage.jsx',
+  'modules/pages/LockScreen.jsx',
   'modules/components/Sidebar.jsx',
+  'modules/components/Terminal.jsx',
   'modules/components/SystemMonitor.jsx',
   'modules/components/ModelWidget.jsx',
   'modules/services/clientAiDispatcher.js',
   'core.client.jsx',
   'assets/styles/index.css',
   'HISTORY.md',
-  'docs/versions/v2.7.0.md'
+  'docs/versions/v2.8.0.md'
 ];
 
 filesToSync.forEach(relPath => {

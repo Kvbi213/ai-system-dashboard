@@ -312,65 +312,65 @@ const TimetablePage = () => {
   };
 
   return (
-    <div className="flex flex-col h-full gap-5 pb-20 md:pb-0 font-sans">
+    <div className="flex flex-col h-full gap-3 sm:gap-5 overflow-hidden font-sans">
       {/* 1. Header Bar */}
-      <header className="glass-panel p-5 rounded-2xl border border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 flex-shrink-0 shadow-lg">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-accentPrimary/20 border border-accentPrimary/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(var(--color-accent-primary),0.2)]">
-            <GraduationCap className="w-6 h-6 text-accentPrimary" />
+      <header className="glass-panel p-3.5 sm:p-5 rounded-2xl border border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 flex-shrink-0 shadow-lg">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-accentPrimary/20 border border-accentPrimary/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(var(--color-accent-primary),0.2)]">
+            <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-accentPrimary" />
           </div>
           <div>
-            <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-0.5">
+            <nav aria-label="breadcrumb" className="hidden sm:flex items-center space-x-2 text-sm text-textMuted mb-0.5">
               <span className="text-sm font-medium text-textMuted/70">OmniDash</span>
               <span className="text-sm font-medium text-textMuted/70">/</span>
               <span className="text-sm font-medium text-textPrimary">Harmonogram</span>
             </nav>
-            <h1 className="text-xl md:text-2xl font-bold text-textPrimary tracking-tight flex items-center gap-2">
+            <h1 className="text-lg sm:text-2xl font-bold text-textPrimary tracking-tight flex items-center gap-2">
               Plan Lekcji & Zajęć
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-accentPrimary/10 text-accentPrimary border border-accentPrimary/30">
-                LIVE FIRESTORE
+              <span className="text-[10px] sm:text-[11px] font-mono px-2 py-0.5 rounded-full bg-accentPrimary/10 text-accentPrimary border border-accentPrimary/30">
+                LIVE
               </span>
             </h1>
-            <p className="text-xs text-textMuted mt-0.5">
+            <p className="hidden md:block text-xs text-textMuted mt-0.5">
               Tygodniowy rozkład zajęć akademickich i dydaktycznych ze statystykami i powiadomieniami na żywo.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+        <div className="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end pt-1 sm:pt-0 border-t sm:border-t-0 border-border/40">
           <div className="flex items-center bg-surface border border-white/10 rounded-xl p-1">
             <button
               onClick={() => setViewMode('cards')}
-              className={`p-2 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${viewMode === 'cards' ? 'bg-accentPrimary/20 text-accentPrimary shadow-sm' : 'text-textMuted hover:text-textPrimary'}`}
+              className={`p-1.5 sm:p-2 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${viewMode === 'cards' ? 'bg-accentPrimary/20 text-accentPrimary shadow-sm' : 'text-textMuted hover:text-textPrimary'}`}
               title="Widok kart"
             >
               <List className="w-4 h-4" />
-              <span className="hidden sm:inline">Karty</span>
+              <span className="inline">Karty</span>
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${viewMode === 'grid' ? 'bg-accentPrimary/20 text-accentPrimary shadow-sm' : 'text-textMuted hover:text-textPrimary'}`}
+              className={`p-1.5 sm:p-2 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${viewMode === 'grid' ? 'bg-accentPrimary/20 text-accentPrimary shadow-sm' : 'text-textMuted hover:text-textPrimary'}`}
               title="Widok siatki tygodniowej"
             >
               <LayoutGrid className="w-4 h-4" />
-              <span className="hidden sm:inline">Siatka</span>
+              <span className="inline">Siatka</span>
             </button>
           </div>
 
           <button
             onClick={() => handleOpenAddModal(selectedDay !== 'all' ? selectedDay : 'monday')}
-            className="flex items-center gap-2 px-4 py-2.5 bg-accentPrimary text-background font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(var(--color-accent-primary),0.3)] hover:brightness-110 active:scale-95 transition-all"
+            className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-accentPrimary text-background font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(var(--color-accent-primary),0.3)] hover:brightness-110 active:scale-95 transition-all shrink-0"
           >
             <Plus className="w-4 h-4" />
-            Dodaj Lekcję
+            <span>Dodaj Lekcję</span>
           </button>
         </div>
       </header>
 
       {/* 2. Statystyki & Trwające Zajęcia (Live Tracker) */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 flex-shrink-0">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 flex-shrink-0">
         {/* Live Class Tracker */}
-        <div className="md:col-span-2 glass-panel p-4 rounded-xl border border-white/10 flex flex-col justify-between relative overflow-hidden bg-gradient-to-br from-surface/80 to-surface/30">
+        <div className="col-span-2 md:col-span-2 glass-panel p-3.5 sm:p-4 rounded-xl border border-white/10 flex flex-col justify-between relative overflow-hidden bg-gradient-to-br from-surface/80 to-surface/30">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <span className={`w-2.5 h-2.5 rounded-full ${activeLesson ? 'bg-emerald-400 animate-ping' : 'bg-accentPrimary'}`}></span>
@@ -719,69 +719,71 @@ const TimetablePage = () => {
             })}
           </div>
         ) : (
-          /* Widok Siatki Tygodniowej (Tabela Dni Pon-Pt/Nd) */
-          <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-7 gap-3 min-w-[700px]">
-            {DAYS.map(day => {
-              const dayLessons = filteredLessons.filter(l => l.day === day.id);
-              const isToday = day.id === todayDayId;
+          /* Widok Siatki Tygodniowej (Tabela Dni Pon-Pt/Nd z horyzontalnym scrollem na mobile) */
+          <div className="overflow-x-auto custom-scrollbar touch-pan-x pb-2 min-h-0 flex-1">
+            <div className="grid grid-cols-7 gap-3 min-w-[720px] h-full">
+              {DAYS.map(day => {
+                const dayLessons = filteredLessons.filter(l => l.day === day.id);
+                const isToday = day.id === todayDayId;
 
-              return (
-                <div 
-                  key={day.id} 
-                  className={`glass-panel p-3 rounded-xl border flex flex-col h-full min-h-[420px] ${
-                    isToday ? 'border-accentPrimary/50 bg-accentPrimary/5' : 'border-white/10 bg-surface/30'
-                  }`}
-                >
-                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
-                    <div>
-                      <span className="font-bold text-xs text-textPrimary uppercase block">{day.short}</span>
-                      <span className="text-[10px] text-textMuted">{day.label}</span>
-                    </div>
-                    {isToday && (
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 flex-1 overflow-y-auto pr-0.5 no-scrollbar">
-                    {dayLessons.length === 0 ? (
-                      <div className="h-full flex flex-col items-center justify-center text-center p-2 text-textMuted/40 text-[11px]">
-                        Brak
-                      </div>
-                    ) : (
-                      dayLessons.map(lesson => {
-                        const style = COLOR_MAP[lesson.color] || COLOR_MAP.indigo;
-                        return (
-                          <div
-                            key={lesson.id}
-                            onClick={() => handleOpenEditModal(lesson)}
-                            className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:scale-[1.02] ${style.badge} ${style.border}`}
-                          >
-                            <div className="text-[10px] font-mono font-bold opacity-80 mb-0.5">
-                              {lesson.time_start} - {lesson.time_end}
-                            </div>
-                            <div className="text-xs font-bold text-textPrimary line-clamp-2 leading-tight">
-                              {lesson.subject}
-                            </div>
-                            {lesson.room && (
-                              <div className="text-[10px] text-textMuted font-mono mt-1 flex items-center gap-1">
-                                <MapPin className="w-2.5 h-2.5 shrink-0" /> {lesson.room}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-
-                  <button
-                    onClick={() => handleOpenAddModal(day.id)}
-                    className="w-full mt-2 py-1.5 rounded-lg border border-dashed border-white/10 hover:border-accentPrimary/50 hover:bg-accentPrimary/10 text-textMuted hover:text-accentPrimary text-[11px] font-mono flex items-center justify-center gap-1 transition-colors"
+                return (
+                  <div 
+                    key={day.id} 
+                    className={`glass-panel p-3 rounded-xl border flex flex-col h-full min-h-[420px] ${
+                      isToday ? 'border-accentPrimary/50 bg-accentPrimary/5' : 'border-white/10 bg-surface/30'
+                    }`}
                   >
-                    <Plus className="w-3 h-3" /> Dodaj
-                  </button>
-                </div>
-              );
-            })}
+                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
+                      <div>
+                        <span className="font-bold text-xs text-textPrimary uppercase block">{day.short}</span>
+                        <span className="text-[10px] text-textMuted">{day.label}</span>
+                      </div>
+                      {isToday && (
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 flex-1 overflow-y-auto pr-0.5 no-scrollbar">
+                      {dayLessons.length === 0 ? (
+                        <div className="h-full flex flex-col items-center justify-center text-center p-2 text-textMuted/40 text-[11px]">
+                          Brak
+                        </div>
+                      ) : (
+                        dayLessons.map(lesson => {
+                          const style = COLOR_MAP[lesson.color] || COLOR_MAP.indigo;
+                          return (
+                            <div
+                              key={lesson.id}
+                              onClick={() => handleOpenEditModal(lesson)}
+                              className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:scale-[1.02] ${style.badge} ${style.border}`}
+                            >
+                              <div className="text-[10px] font-mono font-bold opacity-80 mb-0.5">
+                                {lesson.time_start} - {lesson.time_end}
+                              </div>
+                              <div className="text-xs font-bold text-textPrimary line-clamp-2 leading-tight">
+                                {lesson.subject}
+                              </div>
+                              {lesson.room && (
+                                <div className="text-[10px] text-textMuted font-mono mt-1 flex items-center gap-1">
+                                  <MapPin className="w-2.5 h-2.5 shrink-0" /> {lesson.room}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => handleOpenAddModal(day.id)}
+                      className="w-full mt-2 py-1.5 rounded-lg border border-dashed border-white/10 hover:border-accentPrimary/50 hover:bg-accentPrimary/10 text-textMuted hover:text-accentPrimary text-[11px] font-mono flex items-center justify-center gap-1 transition-colors"
+                    >
+                      <Plus className="w-3 h-3" /> Dodaj
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </main>

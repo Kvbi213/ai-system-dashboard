@@ -231,20 +231,21 @@ const FinancePage = () => {
   const savingsLen = (stats.buckets.savings / totalSpend) * circumference;
 
   return (
-    <div className="w-full h-full flex flex-col gap-6 animate-soft-enter pb-20 overflow-hidden">
+    <div className="w-full h-full flex flex-col gap-3 sm:gap-6 animate-soft-enter overflow-hidden">
       {/* Header */}
-      <header className="glass-panel p-5 rounded-xl border border-border flex items-center justify-between gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
-        <div className="flex items-center gap-4">
+      <header className="glass-panel p-3.5 sm:p-5 rounded-xl border border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
+        <div className="flex items-center gap-3 sm:gap-4">
           <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
             <Wallet className="w-5 h-5 text-accentPrimary" />
           </div>
           <div className="flex flex-col">
-            <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-0.5">
-              <span className="flex items-center text-lg font-medium text-textMuted/70">OmniDash</span>
-              <span className="shrink-0 text-lg font-medium text-textMuted/70">/</span>
-              <span className="flex items-center text-lg font-medium text-textPrimary">Finanse & Budżet</span>
+            <nav aria-label="breadcrumb" className="hidden sm:flex items-center space-x-2 text-sm text-textMuted mb-0.5">
+              <span className="text-sm font-medium text-textMuted/70">OmniDash</span>
+              <span className="shrink-0 text-sm font-medium text-textMuted/70">/</span>
+              <span className="text-sm font-medium text-textPrimary">Finanse & Budżet</span>
             </nav>
-            <p className="font-sans text-xs text-textMuted mt-0.5">
+            <h1 className="text-lg sm:text-xl font-bold text-textPrimary tracking-tight">Finanse & Budżet</h1>
+            <p className="font-sans text-[11px] sm:text-xs text-textMuted mt-0.5">
               {t("finTotal", "Stan ogólny:")}{' '}
               <span className={`font-mono font-bold ${stats.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {stats.balance >= 0 ? '+' : ''}{stats.balance.toFixed(2)} PLN
@@ -253,7 +254,7 @@ const FinancePage = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end pt-1 sm:pt-0 border-t sm:border-t-0 border-border/40">
           <button 
             onClick={() => {
               setSetupData({
@@ -264,14 +265,14 @@ const FinancePage = () => {
               });
               setShowModal('settings');
             }} 
-            className="p-2.5 bg-white/5 hover:bg-white/10 rounded-lg text-textMuted transition-colors border border-border/40"
+            className="p-2 sm:p-2.5 bg-white/5 hover:bg-white/10 rounded-lg text-textMuted transition-colors border border-border/40"
             title="Konfiguracja wskaźników budżetowych"
           >
-            <Settings2 className="w-5 h-5" />
+            <Settings2 className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           <button 
             onClick={() => setShowModal('transaction')}
-            className="flex items-center gap-2 px-4 py-2.5 bg-accentPrimary/20 hover:bg-accentPrimary/30 text-accentPrimary rounded-lg transition-all border border-accentPrimary/40 shadow-[0_0_15px_rgba(0,229,255,0.15)] font-mono text-sm font-semibold"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-accentPrimary/20 hover:bg-accentPrimary/30 text-accentPrimary rounded-lg transition-all border border-accentPrimary/40 shadow-[0_0_15px_rgba(0,229,255,0.15)] font-mono text-xs sm:text-sm font-semibold shrink-0"
           >
             <Plus className="w-4 h-4" /> {t("finAdd", "Dodaj wpis")}
           </button>
@@ -279,7 +280,7 @@ const FinancePage = () => {
       </header>
 
       {/* Kubełki (Buckets) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 shrink-0">
         {/* Needs */}
         <div 
           onClick={() => {

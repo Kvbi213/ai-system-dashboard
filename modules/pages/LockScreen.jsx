@@ -110,9 +110,9 @@ const LockScreen = ({ onUnlock }) => {
       <div className="absolute bottom-0 right-1/4 w-[700px] h-[700px] bg-accentSecondary/10 rounded-full blur-[160px] mix-blend-screen opacity-30 animate-pulse-slow pointer-events-none transition-colors duration-1000" style={{ animationDelay: '2s' }}></div>
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div>
 
-      <div className="bg-surface/80 backdrop-blur-3xl border border-border rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center relative z-10 animate-fade-in-up">
-        <div className="w-16 h-16 rounded-2xl bg-accentPrimary/10 flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(var(--color-accent-primary),0.2)]">
-          <Lock size={28} className="text-accentPrimary" strokeWidth={1.5} />
+      <div className="bg-surface/80 backdrop-blur-3xl border border-border rounded-3xl p-6 sm:p-8 max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center relative z-10 animate-fade-in-up max-h-[95dvh] overflow-y-auto custom-scrollbar">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-accentPrimary/10 flex items-center justify-center mb-4 sm:mb-6 shadow-[0_0_20px_rgba(var(--color-accent-primary),0.2)] shrink-0">
+          <Lock size={26} className="text-accentPrimary" strokeWidth={1.5} />
         </div>
         
         <h2 className="text-2xl font-bold mb-2">{t('authTitle')}</h2>

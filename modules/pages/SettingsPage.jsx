@@ -485,33 +485,35 @@ const SettingsPage = () => {
   );
 
   const SettingRow = ({ label, desc, children }) => (
-    <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 hover:border-border transition-colors bg-black/20">
-      <div className="mr-4">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl border border-border/50 hover:border-border transition-colors bg-black/20">
+      <div className="mr-0 sm:mr-4">
         <p className="font-semibold text-textPrimary font-sans text-sm">{label}</p>
         <p className="text-xs text-textMuted mt-0.5 leading-relaxed">{desc}</p>
       </div>
-      {children}
+      <div className="flex items-center self-end sm:self-auto shrink-0">
+        {children}
+      </div>
     </div>
   );
 
   return (
-    <div id="tour-settings" className="flex flex-col h-full gap-5 pb-20 md:pb-0">
-      <header className="glass-panel p-5 rounded-xl border border-border flex items-center gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
+    <div id="tour-settings" className="flex flex-col h-full gap-4 sm:gap-5 pb-20 md:pb-0">
+      <header className="glass-panel p-4 sm:p-5 rounded-xl border border-border flex items-center gap-3 sm:gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
         <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
           <Settings className="w-5 h-5 text-textPrimary" />
         </div>
         <div className="flex flex-col">
           <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-0.5">
-            <span className="flex items-center text-lg font-medium text-textMuted/70">OmniDash</span>
-            <span className="shrink-0 text-lg font-medium text-textMuted/70">/</span>
-            <span className="flex items-center text-lg font-medium text-textPrimary">Ustawienia</span>
+            <span className="flex items-center text-base sm:text-lg font-medium text-textMuted/70">OmniDash</span>
+            <span className="shrink-0 text-base sm:text-lg font-medium text-textMuted/70">/</span>
+            <span className="flex items-center text-base sm:text-lg font-medium text-textPrimary">Ustawienia</span>
           </nav>
           <p className="font-sans text-xs text-textMuted mt-0.5">Zaawansowana konfiguracja środowiska, motywów i nawigacji</p>
         </div>
       </header>
 
       {/* TABS NAVIGATION */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 flex-shrink-0">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 flex-shrink-0 touch-pan-x custom-scrollbar">
         {TABS.map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -519,7 +521,7 @@ const SettingsPage = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold transition-all border whitespace-nowrap ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-mono text-xs font-bold transition-all border whitespace-nowrap active:scale-95 ${
                 isActive 
                   ? 'bg-accentPrimary/10 border-accentPrimary text-accentPrimary shadow-[0_0_10px_rgba(var(--color-accent-primary),0.2)]' 
                   : 'bg-surface border-border text-textMuted hover:text-textPrimary hover:border-border/80'

@@ -59,16 +59,16 @@ const MemoryPage = () => {
   }, {});
 
   return (
-    <div className="h-full flex flex-col glass-panel rounded-xl border border-border p-6 relative overflow-hidden animate-soft-enter">
+    <div className="h-full flex flex-col glass-panel rounded-xl border border-border p-4 sm:p-6 relative overflow-hidden animate-soft-enter pb-20 md:pb-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-border/50">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6 pb-4 border-b border-border/50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-accentPrimary/10 border border-accentPrimary/30 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-accentPrimary/10 border border-accentPrimary/30 flex items-center justify-center shrink-0">
             <BrainCircuit className="w-6 h-6 text-accentPrimary" />
           </div>
           <div>
-            <h1 className="font-mono text-xl text-textPrimary uppercase tracking-wider font-bold flex items-center gap-2">
-              Operator Brain <span className="text-xs px-2 py-0.5 rounded-full bg-accentPrimary/20 text-accentPrimary font-normal">Firestore CloudSync</span>
+            <h1 className="font-mono text-lg sm:text-xl text-textPrimary uppercase tracking-wider font-bold flex flex-wrap items-center gap-2">
+              Operator Brain <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-accentPrimary/20 text-accentPrimary font-normal">Firestore CloudSync</span>
             </h1>
             <p className="text-xs text-textMuted font-mono mt-0.5">
               Pamięć długoterminowa asystenta AI zsynchronizowana w chmurze
@@ -76,14 +76,14 @@ const MemoryPage = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 font-mono text-xs text-textMuted px-3 py-1.5 rounded-lg bg-black/30 border border-border">
+        <div className="flex items-center justify-between sm:justify-end gap-3">
+          <div className="flex items-center gap-2 font-mono text-xs text-textMuted px-3 py-1.5 rounded-lg bg-black/30 border border-border">
             <Database className="w-3.5 h-3.5 text-accentPrimary" />
             <span>Wpisy: <strong className="text-textPrimary">{safeFacts.length}</strong></span>
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-accentPrimary/20 hover:bg-accentPrimary/30 border border-accentPrimary/40 text-accentPrimary font-mono text-xs font-bold transition-all shadow-[0_0_12px_rgba(0,229,255,0.15)]"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-accentPrimary/20 hover:bg-accentPrimary/30 border border-accentPrimary/40 text-accentPrimary font-mono text-xs font-bold transition-all shadow-[0_0_12px_rgba(0,229,255,0.15)] active:scale-95"
           >
             <Plus className="w-4 h-4" /> Dodaj Fakt
           </button>
@@ -124,7 +124,7 @@ const MemoryPage = () => {
                     </div>
                     <button 
                       onClick={() => deleteFact(fact.id)}
-                      className="absolute top-2.5 right-2.5 text-textMuted hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded"
+                      className="absolute top-2.5 right-2.5 text-textMuted hover:text-rose-400 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1.5 rounded active:scale-95"
                       title="Usuń z pamięci"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -139,8 +139,8 @@ const MemoryPage = () => {
 
       {/* Modal Dodawania Faktu */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-background border border-border rounded-xl w-full max-w-md overflow-hidden shadow-2xl animate-scale-in">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-fade-in">
+          <div className="bg-background border border-border rounded-xl w-full max-w-md max-h-[90dvh] overflow-y-auto shadow-2xl animate-scale-in">
             <div className="p-4 border-b border-border flex justify-between items-center bg-black/20">
               <h2 className="font-mono text-accentPrimary font-bold text-sm flex items-center gap-2">
                 <BrainCircuit className="w-4 h-4" /> Nowy Wpis Pamięci Długoterminowej

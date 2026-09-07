@@ -716,7 +716,7 @@ const Terminal = () => {
 
       {/* Quick Prompt Chips */}
       {!isLiveMode && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 no-scrollbar shrink-0">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 no-scrollbar shrink-0 touch-pan-x -mx-1 px-1">
           {QUICK_PROMPTS.map((qp, idx) => (
             <button
               key={idx}
@@ -733,7 +733,7 @@ const Terminal = () => {
 
       {/* Autocomplete Dropdown */}
       {filteredCommands.length > 0 && (
-        <div className="absolute bottom-16 left-4 z-20 bg-background border-2 border-border rounded-xl shadow-2xl shadow-black/80 p-2 min-w-[280px] animate-fade-in-up">
+        <div className="absolute bottom-16 left-2 right-2 sm:right-auto sm:left-4 z-20 bg-background border-2 border-border rounded-xl shadow-2xl shadow-black/80 p-2 sm:min-w-[280px] animate-fade-in-up">
           {filteredCommands.map((item, idx) => (
             <button
               key={idx}
@@ -748,12 +748,12 @@ const Terminal = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="relative flex items-center bg-surface border border-border rounded-full px-4 py-2 gap-2 shadow-sm focus-within:border-accentPrimary focus-within:ring-1 focus-within:ring-accentPrimary transition-all">
+      <form onSubmit={handleSubmit} className="relative flex items-center bg-surface border border-border rounded-full px-3 py-1.5 sm:px-4 sm:py-2 gap-1.5 sm:gap-2 shadow-sm focus-within:border-accentPrimary focus-within:ring-1 focus-within:ring-accentPrimary transition-all">
 
         <button 
           type="button" 
           onClick={toggleLiveMode}
-          className={`p-1.5 rounded-full transition-all flex items-center justify-center ${isLiveMode ? 'bg-accentPrimary text-black animate-pulse shadow-[0_0_15px_currentColor]' : 'text-textMuted hover:text-accentPrimary hover:bg-accentPrimary/10'}`}
+          className={`p-1.5 sm:p-2 rounded-full transition-all flex items-center justify-center shrink-0 active:scale-95 ${isLiveMode ? 'bg-accentPrimary text-black animate-pulse shadow-[0_0_15px_currentColor]' : 'text-textMuted hover:text-accentPrimary hover:bg-accentPrimary/10'}`}
           title={t("termContinuousMode", "Tryb ciągłej rozmowy")}
         >
           <Radio className="w-4 h-4" />
@@ -762,7 +762,7 @@ const Terminal = () => {
           type="button" 
           onClick={toggleRecording}
           disabled={isTranscribing}
-          className={`p-1.5 rounded-full transition-all flex items-center justify-center ${isRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'text-textMuted hover:text-accentPrimary hover:bg-accentPrimary/10'}`}
+          className={`p-1.5 sm:p-2 rounded-full transition-all flex items-center justify-center shrink-0 active:scale-95 ${isRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'text-textMuted hover:text-accentPrimary hover:bg-accentPrimary/10'}`}
           title={t("termVoiceRecord", "Nagrywanie głosowe")}
         >
           {isTranscribing ? <Loader2 className="w-4 h-4 animate-spin text-accentPrimary" /> : <Mic className="w-4 h-4" />}
@@ -773,11 +773,11 @@ const Terminal = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Napisz wiadomość..."
-          className="flex-1 bg-transparent border-none outline-none font-sans text-sm text-textPrimary placeholder:text-textMuted"
+          className="flex-1 min-w-0 bg-transparent border-none outline-none font-sans text-xs sm:text-sm text-textPrimary placeholder:text-textMuted"
           autoComplete="off"
           autoFocus
         />
-        <button type="submit" disabled={isProcessing || !input.trim()} className="text-accentPrimary hover:text-textPrimary transition-colors disabled:opacity-50">
+        <button type="submit" disabled={isProcessing || !input.trim()} className="text-accentPrimary hover:text-textPrimary transition-colors disabled:opacity-50 p-1.5 sm:p-2 shrink-0 active:scale-95">
           <Send className="w-4 h-4" />
         </button>
       </form>
