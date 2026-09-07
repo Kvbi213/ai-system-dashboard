@@ -70,10 +70,27 @@ const App = () => {
       document.documentElement.style.setProperty('--color-accent-secondary', savedAccentHex);
     }
 
+    const isCloudMode = window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com');
+
     const checkKeysStatus = () => {
       const token = sessionStorage.getItem('dashboard_token');
+
+      if (isCloudMode) {
+        if (token && (token.startsWith('firebase_') || token.startsWith('cloud_') || token.startsWith('pin_'))) {
+          setIsAuthenticated(true);
+        }
+        setIsVerifying(false);
+        return;
+      }
+
       axios.get('/api/system/keys-status')
         .then((res) => {
+          if (typeof res.data !== 'object' || !res.data) {
+            if (token) setIsAuthenticated(true);
+            setIsVerifying(false);
+            return;
+          }
+
           if (res.data.missing && res.data.missing.length > 0) {
             setMissingKeys(res.data.missing);
             setIsVerifying(false);
@@ -95,8 +112,8 @@ const App = () => {
           }
         })
         .catch((err) => {
-          console.error("Błąd pobierania statusu kluczy, ponawianie za 1s:", err);
-          setTimeout(checkKeysStatus, 1000);
+          console.warn("Brak połączenia z API serwera:", err.message);
+          setIsVerifying(false);
         });
     };
 
