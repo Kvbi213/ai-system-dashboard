@@ -1,5 +1,24 @@
 ## Wersja Bieżąca
-**v2.3.2**
+**v2.4.0**
+
+## v 2.4.0 — 2026-09-07
+**Typ:** MINOR
+**Zakres:** Nowa Architektura Wizualna Czatu (Drzewiaste Listy Markdown, Code Blocks, Bubble UI, TTS & Quick Prompts)
+
+### Zmiany
+- [+] Dodano: Kompleksowy renderer Markdown w `Terminal.jsx` z obsługą wielopoziomowych list z pionowymi liniami gałęziowymi (`border-l-2 border-accentPrimary/30`), świecącymi węzłami sekcji (`glowing accent nodes`) oraz czytelną hierarchią typograficzną.
+- [+] Dodano: Nowy asymetryczny interfejs dymków wiadomości: dedykowane karty wiadomości Operatora (wyrównane do prawej, z plakietką `OPERATOR`, ikoną i znacznikiem czasu) oraz karty Asystenta z nagłówkiem tożsamości (`J.A.R.V.I.S` / `F.R.I.D.A.Y`), etykietą modelu `openai/gpt-oss-120b` i paskiem akcji.
+- [+] Dodano: Komponent `CodeBlock` dla bloków kodu z wyróżnieniem języka oraz przyciskiem natychmiastowego kopiowania kodu (`Copy Code`) ze wskaźnikiem potwierdzenia.
+- [+] Dodano: Syntezę mowy na żądanie (przycisk TTS przy każdej wypowiedzi asystenta z możliwością odsłuchania i zatrzymania).
+- [+] Dodano: Pasek szybkich podpowiedzi (`Quick Prompts`) z pigułkami akcji (To-Do, Pogoda, Wiadomości IT, Status systemu, /clear) do natychmiastowego wywoływania zapytań 1-kliknięciem.
+- [+] Dodano: Pływający przycisk *"Przewiń na dół"* pojawiający się dynamicznie podczas przeglądania wcześniejszej historii czatu.
+- [*] Zmodyfikowano: `ChatContext.jsx` wzbogacony o precyzyjne znaczniki czasu ISO dla każdej wiadomości użytkownika i asystenta.
+- [*] Zmodyfikowano: Pomyślnie zrekompilowano i opublikowano wersję produkcyjną na Firebase Hosting (`https://void-potato-7721.web.app`) oraz w lokalnej instancji Pulpitu.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 2.3.2 — 2026-09-07
 **Typ:** PATCH

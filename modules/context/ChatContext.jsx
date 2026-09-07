@@ -69,15 +69,16 @@ export const ChatProvider = ({ children }) => {
     if (userText.startsWith('/')) {
       const [cmd, ...args] = userText.toLowerCase().split(' ');
       const pushSysMsg = (content) => {
-        if (mode === 'worker') setWorkerMessages(prev => [...prev, { role: 'ai', content, isSystem: true }]);
-        else setMentorMessages(prev => [...prev, { role: 'ai', content, isSystem: true }]);
+        const sysMsg = { role: 'ai', content, isSystem: true, timestamp: new Date().toISOString() };
+        if (mode === 'worker') setWorkerMessages(prev => [...prev, sysMsg]);
+        else setMentorMessages(prev => [...prev, sysMsg]);
       };
 
       if (cmd === '/clear') {
         if (mode === 'worker') {
-          setWorkerMessages([{ role: 'ai', content: t('chatOnlineWorker', 'SYSTEM ONLINE. Oczekuję na polecenia, mordo.') }]);
+          setWorkerMessages([{ role: 'ai', content: t('chatOnlineWorker', 'SYSTEM ONLINE. Oczekuję na polecenia, mordo.'), timestamp: new Date().toISOString() }]);
         } else {
-          setMentorMessages([{ role: 'ai', content: t('chatOnlineMentor', 'Cześć. Z czym się dzisiaj mierzysz? Chłodna analiza bez słodzenia gwarantowana.') }]);
+          setMentorMessages([{ role: 'ai', content: t('chatOnlineMentor', 'Cześć. Z czym się dzisiaj mierzysz? Chłodna analiza bez słodzenia gwarantowana.'), timestamp: new Date().toISOString() }]);
           setThoughtsLog([t("chatMentorReset", "System Mentor zresetowany. Oczekiwanie na dane wejściowe...")]);
         }
         return;
@@ -94,9 +95,9 @@ export const ChatProvider = ({ children }) => {
           setMode(newMode);
           setTimeout(() => {
             if (newMode === 'worker') {
-              setWorkerMessages(prev => [...prev, { role: 'ai', content: t('chatSwitchedWorker', '[*] INFO: Przełączono na tryb inżynieryjny (WORKER).'), isSystem: true }]);
+              setWorkerMessages(prev => [...prev, { role: 'ai', content: t('chatSwitchedWorker', '[*] INFO: Przełączono na tryb inżynieryjny (WORKER).'), isSystem: true, timestamp: new Date().toISOString() }]);
             } else {
-              setMentorMessages(prev => [...prev, { role: 'ai', content: t('chatSwitchedMentor', '[*] INFO: Przełączono na tryb analityczny (MENTOR).'), isSystem: true }]);
+              setMentorMessages(prev => [...prev, { role: 'ai', content: t('chatSwitchedMentor', '[*] INFO: Przełączono na tryb analityczny (MENTOR).'), isSystem: true, timestamp: new Date().toISOString() }]);
             }
           }, 0);
         } else {
@@ -107,7 +108,7 @@ export const ChatProvider = ({ children }) => {
 
       if (cmd === '/export') {
         const msgs = mode === 'worker' ? workerMessages : mentorMessages;
-        const textToSave = msgs.map(m => `[${m.role.toUpperCase()}]: ${m.content}`).join('\\n\\n');
+        const textToSave = msgs.map(m => `[${m.role.toUpperCase()}]: ${m.content}`).join('\n\n');
         const blob = new Blob([textToSave], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -121,9 +122,9 @@ export const ChatProvider = ({ children }) => {
       if (cmd === '/purge') {
         localStorage.removeItem(mode === 'worker' ? 'system_chat_history' : 'system_mentor_history');
         if (mode === 'worker') {
-          setWorkerMessages([{ role: 'ai', content: t('chatPurgeWorker', 'SYSTEM ONLINE. Pamięć podręczna całkowicie wyczyszczona.') }]);
+          setWorkerMessages([{ role: 'ai', content: t('chatPurgeWorker', 'SYSTEM ONLINE. Pamięć podręczna całkowicie wyczyszczona.'), timestamp: new Date().toISOString() }]);
         } else {
-          setMentorMessages([{ role: 'ai', content: t('chatPurgeMentor1', 'Pamięć długoterminowa zresetowana. Czekam na nowe wytyczne.') }]);
+          setMentorMessages([{ role: 'ai', content: t('chatPurgeMentor1', 'Pamięć długoterminowa zresetowana. Czekam na nowe wytyczne.'), timestamp: new Date().toISOString() }]);
           setThoughtsLog([t("chatPurgeMentor2", "System Mentor uruchomiony (PURGED).")]);
         }
         return;
@@ -151,9 +152,10 @@ export const ChatProvider = ({ children }) => {
     const newsCategories = savedNews ? JSON.parse(savedNews) : ['ai', 'security'];
     const userName = localStorage.getItem('system_user_name') || 'Użytkownik';
     const systemLanguage = localStorage.getItem('system_language') || 'pl';
+    const nowIso = new Date().toISOString();
 
     if (mode === 'mentor') {
-      setMentorMessages(prev => [...prev, { role: 'user', content: userText }]);
+      setMentorMessages(prev => [...prev, { role: 'user', content: userText, timestamp: nowIso }]);
       try {
         const result = await dispatchAiQuery({
           text: userText,
@@ -164,7 +166,7 @@ export const ChatProvider = ({ children }) => {
         });
 
         const content = result.content || t("chatParseErr", "Błąd parsowania odpowiedzi.");
-        setMentorMessages(prev => [...prev, { role: 'ai', content }]);
+        setMentorMessages(prev => [...prev, { role: 'ai', content, timestamp: new Date().toISOString() }]);
         if (result.mentor_thoughts) {
           const time = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
           setThoughtsLog(prev => [`${time} > ${result.mentor_thoughts}`, ...prev]);
@@ -172,14 +174,14 @@ export const ChatProvider = ({ children }) => {
         setIsProcessing(false);
         return { content, widgets: result.widgets || [] };
       } catch (err) {
-        setMentorMessages(prev => [...prev, { role: 'ai', content: t('chatConnErr', 'BŁĄD POŁĄCZENIA: ') + err.message }]);
+        setMentorMessages(prev => [...prev, { role: 'ai', content: t('chatConnErr', 'BŁĄD POŁĄCZENIA: ') + err.message, timestamp: new Date().toISOString() }]);
         setIsProcessing(false);
         return { content: t("chatSorryErr", "Przepraszam, wystąpił błąd połączenia."), widgets: [] };
       }
     }
 
     // WORKER MODE
-    setWorkerMessages(prev => [...prev, { role: 'user', content: userText }]);
+    setWorkerMessages(prev => [...prev, { role: 'user', content: userText, timestamp: nowIso }]);
     try {
       const result = await dispatchAiQuery({
         text: userText,
@@ -191,13 +193,14 @@ export const ChatProvider = ({ children }) => {
 
       const content = result.content || t('chatDone', 'Polecenie zrealizowane.');
       const widgets = result.widgets || [];
-      setWorkerMessages(prev => [...prev, { role: 'ai', content, widgets }]);
+      setWorkerMessages(prev => [...prev, { role: 'ai', content, widgets, timestamp: new Date().toISOString() }]);
       setIsProcessing(false);
       return { content, widgets };
     } catch (error) {
       setWorkerMessages(prev => [...prev, {
         role: 'ai',
-        content: t('chatTimeout', 'BŁĄD POŁĄCZENIA: ') + (error?.message || 'Nieznany błąd')
+        content: t('chatTimeout', 'BŁĄD POŁĄCZENIA: ') + (error?.message || 'Nieznany błąd'),
+        timestamp: new Date().toISOString()
       }]);
       setIsProcessing(false);
     }

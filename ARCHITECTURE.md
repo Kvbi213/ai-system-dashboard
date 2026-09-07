@@ -1,6 +1,6 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.3.2 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.4.0 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA  
 **Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop & Firebase Cloud)
 
@@ -55,7 +55,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   ├── /components/         ← Reużywalne klocki UI w React.
 │   │   ├── CommandPalette.jsx ← Globalna paleta komend i szybkich akcji (Ctrl + K).
 │   │   ├── ErrorBoundary.jsx← Strażnik awarii interfejsu (Crash Guard & Recovery Screen).
-│   │   ├── Terminal.jsx     ← Złożony widget czatu tekstowego z obsługą renderingu markdownu i widżetów w locie.
+│   │   ├── Terminal.jsx     ← Zaawansowany terminal czatu: asymetryczne dymki wiadomości (Operator vs AI), ustrukturyzowane listy Markdown z liniami gałęziowymi, bloki kodu z kopiowaniem, synteza mowy (TTS), szybkie podpowiedzi (Quick Prompts) i automatyczne przewijanie.
 │   │   ├── TodoList.jsx     ← Interaktywna lista to-do z obsługą priorytetów i deadline'ów.
 │   │   └── ... (pozostałe widżety UI)
 │   │   └── ... (pozostałe widżety UI)
