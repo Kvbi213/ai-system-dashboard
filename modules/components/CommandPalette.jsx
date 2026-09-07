@@ -85,11 +85,13 @@ const CommandPalette = () => {
     if (subMode === 'quick_task') {
       const newTask = {
         id: Date.now().toString(),
-        text: subInput.trim(),
-        completed: false,
+        title: subInput.trim(),
+        status: 'pending',
+        priority: 'MEDIUM',
+        category: 'jednorazowe',
         created_at: new Date().toISOString()
       };
-      await saveCloudDocument('todos', newTask.id, newTask);
+      await saveCloudDocument('tasks', newTask.id, newTask);
       showToast('Dodano nowe zadanie do Cloud Firestore!');
     } else if (subMode === 'quick_note') {
       const newNote = {

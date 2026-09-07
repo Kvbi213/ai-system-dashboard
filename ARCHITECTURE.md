@@ -1,6 +1,6 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.3.1 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.3.2 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA  
 **Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop & Firebase Cloud)
 
@@ -42,7 +42,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   │
 │   ├── /services/           ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
 │   │   ├── cloudSync.js     ← Dwukierunkowa subskrypcja Firestore z optymistycznym cache'em.
-│   │   └── clientAiDispatcher.js ← Autonomiczny silnik zapytań LLM z bezpośrednim fallbackiem do Groq.
+│   │   └── clientAiDispatcher.js ← Autonomiczny silnik zapytań LLM (openai/gpt-oss-120b) z wstrzykiwaniem kontekstu zadań/kalendarza, dynamicznym montowaniem widżetów i inteligentnym fallbackiem.
 │   │
 │   ├── /ai/                 ← Pliki konfiguracyjne dla agentów AI.
 │   │   ├── prompts.js       ← Zbiór promptów systemowych (Worker, Mentor).

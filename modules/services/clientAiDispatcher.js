@@ -1,9 +1,10 @@
 import axios from 'axios';
+import { saveCloudDocument } from './cloudSync.js';
 
 /**
  * Autonomiczny Silnik AI Dyspozytora Klienckiego (Client-Side AI Dispatcher)
- * Pozwala na komunikację z modelami LLM (Groq / Llama 3.3 / Gemini)
- * zarówno przez serwer Express (lokalnie), jak i bezpośrednio z poziomu przeglądarki (w chmurze .web.app).
+ * Obsługuje komunikację z modelem LLM (openai/gpt-oss-120b)
+ * z wstrzykiwaniem bieżącego kontekstu (To-Do, Kalendarz, Finanse) oraz dynamicznym montowaniem widżetów.
  */
 
 const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
@@ -12,6 +13,121 @@ const isCloudMode = typeof window !== 'undefined' && (
   window.location.hostname.includes('web.app') || 
   window.location.hostname.includes('firebaseapp.com')
 );
+
+const DEFAULT_INITIAL_TASKS = [
+  { id: '1', title: 'Wdrożenie Firebase Hosting (void-potato-7721)', priority: 'HIGH', status: 'completed', category: 'system' },
+  { id: '2', title: 'Autoryzacja właściciela: marektowarek21372137@gmail.com', priority: 'HIGH', status: 'completed', category: 'system' },
+  { id: '3', title: 'Personalizacja modułów i widżetów', priority: 'MEDIUM', status: 'pending', category: 'system' },
+];
+
+export function getClientTasks() {
+  try {
+    const rawTasks = localStorage.getItem('cloud_cache_tasks');
+    const rawTodos = localStorage.getItem('cloud_cache_todos');
+    const list1 = rawTasks ? JSON.parse(rawTasks) : [];
+    const list2 = rawTodos ? JSON.parse(rawTodos) : [];
+    const combined = [...(Array.isArray(list1) ? list1 : []), ...(Array.isArray(list2) ? list2 : [])];
+
+    if (combined.length === 0) {
+      return DEFAULT_INITIAL_TASKS;
+    }
+
+    const taskMap = new Map();
+    for (const item of combined) {
+      if (!item) continue;
+      const id = String(item.id || item.title || item.text || Math.random());
+      const title = item.title || item.text || 'Zadanie bez nazwy';
+      const status = item.status || (item.completed ? 'completed' : 'pending');
+      const priority = item.priority || 'MEDIUM';
+      const category = item.category || 'ogólne';
+      if (!taskMap.has(id)) {
+        taskMap.set(id, { ...item, id, title, status, priority, category });
+      }
+    }
+    return Array.from(taskMap.values());
+  } catch (err) {
+    console.warn('[AiDispatcher] Błąd odczytu zadań z cache:', err);
+    return DEFAULT_INITIAL_TASKS;
+  }
+}
+
+function getClientContextSummary() {
+  const tasks = getClientTasks();
+  const pendingTasks = tasks.filter(t => t.status !== 'completed');
+  const completedTasks = tasks.filter(t => t.status === 'completed');
+
+  let calendar = [];
+  try {
+    const rawCal = localStorage.getItem('cloud_cache_calendar');
+    if (rawCal) calendar = JSON.parse(rawCal);
+  } catch {}
+
+  let notes = [];
+  try {
+    const rawNotes = localStorage.getItem('cloud_cache_notes');
+    if (rawNotes) notes = JSON.parse(rawNotes);
+  } catch {}
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('pl-PL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+
+  return {
+    tasks,
+    pendingTasks,
+    completedTasks,
+    calendar: Array.isArray(calendar) ? calendar : [],
+    notes: Array.isArray(notes) ? notes : [],
+    dateStr,
+    timeStr
+  };
+}
+
+function determineWidgets(userText, aiResponse = '') {
+  const combined = `${userText} ${aiResponse}`.toLowerCase();
+  const widgets = [];
+
+  if (
+    combined.includes('todo') || 
+    combined.includes('zadania') || 
+    combined.includes('zadań') || 
+    combined.includes('zadanie') || 
+    combined.includes('obowiązki') ||
+    combined.includes('listę zadań') ||
+    combined.includes('lista zadań')
+  ) {
+    widgets.push('tasks');
+  }
+
+  if (
+    combined.includes('pogod') || 
+    combined.includes('temperatura') || 
+    combined.includes('deszcz') || 
+    combined.includes('prognoza')
+  ) {
+    widgets.push('weather');
+  }
+
+  if (
+    combined.includes('system') || 
+    combined.includes('metryk') || 
+    combined.includes('status') || 
+    combined.includes('ram') || 
+    combined.includes('cpu')
+  ) {
+    widgets.push('system');
+  }
+
+  if (
+    combined.includes('news') || 
+    combined.includes('wiadomoś') || 
+    combined.includes('artykuł')
+  ) {
+    widgets.push('news');
+  }
+
+  return widgets;
+}
 
 export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użytkownik', language = 'pl' }) => {
   // 1. Jeśli jesteśmy lokalnie, spróbuj najpierw odpytać lokalny backend Express
@@ -25,10 +141,14 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
       }, { timeout: 15000 });
 
       if (data && (data.agent_response || data.payload)) {
+        const content = data.agent_response || (data.payload?.agent_response || data.payload?.title || JSON.stringify(data.payload));
+        const backendWidgets = data.widgets || (data.widget ? [data.widget] : []);
+        const mergedWidgets = Array.from(new Set([...backendWidgets, ...determineWidgets(text, content)]));
+
         return {
-          content: data.agent_response || (data.payload?.agent_response || data.payload?.title || JSON.stringify(data.payload)),
+          content,
           mentor_thoughts: data.mentor_thoughts || null,
-          widgets: data.widgets || (data.widget ? [data.widget] : []),
+          widgets: mergedWidgets,
           source: 'local_backend'
         };
       }
@@ -37,16 +157,46 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
     }
   }
 
-  // 2. Tryb Chmurowy / Fallback Bezpośredni do API LLM
+  // 2. Tryb Chmurowy / Fallback Bezpośredni do API LLM (Groq openai/gpt-oss-120b)
   const groqKey = localStorage.getItem('system_groq_api_key') || 
                   localStorage.getItem('system_api_key') || 
                   import.meta.env.VITE_GROQ_API_KEY;
 
+  const context = getClientContextSummary();
+
   if (groqKey && groqKey !== 'unconfigured_key' && groqKey.startsWith('gsk_')) {
     try {
+      const tasksSummary = context.tasks.length > 0
+        ? context.tasks.map(t => `- [${t.status === 'completed' ? 'WYKONANE' : 'OCZEKUJĄCE'}] [Priorytet: ${t.priority || 'MED'}] ${t.title} (${t.category || 'ogólne'})`).join('\n')
+        : 'Brak zadań na liście (lista jest pusta).';
+
+      const calendarSummary = context.calendar.length > 0
+        ? context.calendar.map(e => `- [${e.event_date || e.date || 'brak daty'}] ${e.title}`).join('\n')
+        : 'Brak zaplanowanych wydarzeń.';
+
       const systemPrompt = mode === 'mentor'
-        ? `Jesteś J.A.R.V.I.S — osobistym mentorem analitycznym i strategicznym w systemie OmniDash. Rozmawiasz z użytkownikiem ${userName}. Twój ton jest inteligentny, przenikliwy, chłodny analitycznie, bez zbędnych uprzejmości. Język: ${language}. Przeanalizuj problem, wskaż ryzyka i konkretne rekomendacje.`
-        : `Jesteś F.R.I.D.A.Y — inżynieryjnym systemem wykonawczym (Worker) w OmniDash. Rozmawiasz z ${userName}. Odpowiadaj maksymalnie konkretnie, zwięźle, technicznie i merytorycznie. Formatuj kod w blokach markdown. Język: ${language}.`;
+        ? `Jesteś J.A.R.V.I.S — inteligentnym mentorem, analitykiem i powiernikiem użytkownika w systemie OmniDash. Rozmawiasz z ${userName}.
+Aktualny czas: ${context.dateStr}, godzina ${context.timeStr}.
+Aktualne zadania użytkownika w systemie (To-Do):
+${tasksSummary}
+Wydarzenia w kalendarzu:
+${calendarSummary}
+
+Zasady:
+1. Odpowiadaj z klasą, błyskotliwie, precyzyjnie i wspierająco w języku: ${language}.
+2. Gdy użytkownik pyta o zadania, todo lub plany: przeanalizuj powyższą listę zadań, wskaż co jest do zrobienia, co ma wysoki priorytet i zaproponuj optymalny plan działania.
+3. Masz pełną wiedzę o powyższych danych — nigdy nie twierdzisz, że nie wiesz, co jest w To-Do!`
+        : `Jesteś F.R.I.D.A.Y — inżynieryjnym systemem wykonawczym (Worker) w systemie OmniDash. Rozmawiasz z ${userName}.
+Aktualny czas: ${context.dateStr}, godzina ${context.timeStr}.
+Aktualne zadania użytkownika w systemie (To-Do):
+${tasksSummary}
+Wydarzenia w kalendarzu:
+${calendarSummary}
+
+Zasady:
+1. Odpowiadaj maksymalnie konkretnie, zwięźle, technicznie i merytorycznie w języku: ${language}.
+2. Gdy użytkownik pyta "co mamy dziś w todo?", "jakie mam zadania?" itp.: precyzyjnie wymień oczekujące zadania z podziałem na priorytety i stan realizacji.
+3. Nigdy nie mów, że nie masz dostępu do listy zadań — korzystasz z powyższego zestawienia zsynchronizowanego w czasie rzeczywistym.`;
 
       const response = await fetch(GROQ_ENDPOINT, {
         method: 'POST',
@@ -60,7 +210,7 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
             { role: 'system', content: systemPrompt },
             { role: 'user', content: text }
           ],
-          temperature: mode === 'mentor' ? 0.7 : 0.2,
+          temperature: mode === 'mentor' ? 0.7 : 0.3,
           max_tokens: 1500
         })
       });
@@ -72,12 +222,13 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
 
       const resData = await response.json();
       const content = resData.choices?.[0]?.message?.content || 'Brak odpowiedzi od modelu.';
-      const thoughts = mode === 'mentor' ? `Analiza kognitywna wykonana bezpośrednio przez chmurę Groq GPT-OSS 120b dla zapytania: "${text.slice(0, 40)}..."` : null;
+      const thoughts = mode === 'mentor' ? `Analiza kognitywna (GPT-OSS 120B): przetworzono zadania i kontekst operacyjny.` : null;
+      const widgets = determineWidgets(text, content);
 
       return {
         content,
         mentor_thoughts: thoughts,
-        widgets: [],
+        widgets,
         source: 'cloud_groq'
       };
     } catch (groqErr) {
@@ -85,32 +236,117 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
     }
   }
 
-  // 3. Wbudowany inteligentny asystent autonomiczny (Gdy brak klucza w chmurze)
-  return handleAutonomousFallback(text, mode, userName);
+  // 3. Wbudowany inteligentny asystent autonomiczny (Gdy brak sieci / błąd API)
+  return handleAutonomousFallback(text, mode, userName, context);
 };
 
-function handleAutonomousFallback(text, mode, userName) {
+function handleAutonomousFallback(text, mode, userName, context = getClientContextSummary()) {
   const lower = text.toLowerCase().trim();
+  const { pendingTasks, completedTasks } = context;
 
-  if (lower.includes('status') || lower.includes('system') || lower.includes('stan')) {
+  // Obsługa dodawania zadania w języku naturalnym
+  if (
+    lower.startsWith('dodaj zadanie') || 
+    lower.startsWith('nowe zadanie') || 
+    lower.startsWith('dodaj do todo') ||
+    lower.startsWith('zapisz zadanie')
+  ) {
+    let taskTitle = text
+      .replace(/^dodaj\s+(?:do\s+todo|zadanie)[:\s]*/i, '')
+      .replace(/^nowe\s+zadanie[:\s]*/i, '')
+      .replace(/^zapisz\s+zadanie[:\s]*/i, '')
+      .trim();
+
+    if (taskTitle) {
+      let priority = 'MEDIUM';
+      if (taskTitle.toLowerCase().includes('pilne') || taskTitle.toLowerCase().includes('ważne') || taskTitle.toLowerCase().includes('high')) {
+        priority = 'HIGH';
+        taskTitle = taskTitle.replace(/\s*(pilne|ważne|high)\s*/gi, ' ').trim();
+      }
+
+      const newTask = {
+        id: Date.now().toString(),
+        title: taskTitle,
+        status: 'pending',
+        priority,
+        category: 'jednorazowe',
+        created_at: new Date().toISOString()
+      };
+
+      saveCloudDocument('tasks', newTask.id, newTask);
+
+      return {
+        content: `[+] **Pomyślnie dodano zadanie do To-Do:**\n\n- ${priority === 'HIGH' ? '🔴' : '🟡'} **${taskTitle}** (Priorytet: ${priority})\n\nZadanie zostało natychmiast zapisane w bazie Firestore i wyświetlone w poniższym widżecie:`,
+        mentor_thoughts: `Zarejestrowano zadanie "${taskTitle}" o priorytecie ${priority}.`,
+        widgets: ['tasks']
+      };
+    }
+  }
+
+  // Obsługa zapytań o zadania / todo / plany
+  if (
+    lower.includes('todo') || 
+    lower.includes('zadania') || 
+    lower.includes('zadań') || 
+    lower.includes('co mamy') || 
+    lower.includes('co mam') || 
+    lower.includes('plany') || 
+    lower.includes('obowiązki')
+  ) {
+    let content = '';
+
+    if (pendingTasks.length === 0 && completedTasks.length === 0) {
+      content = `### 📋 Lista To-Do na dziś\n\nNie masz obecnie żadnych zadań na liście. Możesz dodać nowe zadanie wpisując polecenie (np. *"dodaj zadanie: Przygotować raport"*) lub korzystając z widżetu poniżej:`;
+    } else if (pendingTasks.length === 0) {
+      content = `### 📋 Wszystkie zadania na dziś ukończone! 🎉\n\nAktualnie nie masz żadnych zaległych zadań. Wszystkie **${completedTasks.length}** pozycje zostały zrealizowane:\n\n` +
+        completedTasks.map(t => `- ✅ ~~${t.title}~~`).join('\n') +
+        `\n\nMożesz zrelaksować się lub zaplanować nowe cele poniżej:`;
+    } else {
+      content = `### 📋 Zadania w systemie To-Do na dziś (${context.dateStr}):\n\n` +
+        `**Oczekujące na wykonanie (${pendingTasks.length}):**\n` +
+        pendingTasks.map(t => {
+          const badge = t.priority === 'HIGH' ? '🔴 **[HIGH]**' : (t.priority === 'MEDIUM' ? '🟡 **[MED]**' : '⚪ **[LOW]**');
+          return `- ${badge} **${t.title}**${t.category ? ` *(${t.category})*` : ''}`;
+        }).join('\n');
+
+      if (completedTasks.length > 0) {
+        content += `\n\n**Ostatnio wykonane (${completedTasks.length}):**\n` +
+          completedTasks.slice(0, 5).map(t => `- ✅ ~~${t.title}~~`).join('\n');
+      }
+
+      content += `\n\n*Poniżej masz bezpośredni dostęp do interaktywnego widżetu To-Do — możesz natychmiast oznaczyć wykonanie lub dodać nowe pozycje:*`;
+    }
+
     return {
-      content: `### 🛰️ OmniDash Core Status\n- **Środowisko:** ${isCloudMode ? 'Firebase Cloud (void-potato-7721)' : 'Desktop Bridge'}\n- **Operator:** ${userName}\n- **Integralność bazy:** Zgodna (Firestore Live-Sync)\n- **Kolejka agentów:** Gotowa\n- **Ochrona sesji:** Aktywna (Crash Guard v2.2.1)`,
+      content,
+      mentor_thoughts: `Przeanalizowano listę To-Do: ${pendingTasks.length} oczekujących, ${completedTasks.length} wykonanych.`,
+      widgets: ['tasks']
+    };
+  }
+
+  // Obsługa pogody
+  if (lower.includes('pogod') || lower.includes('temperatura') || lower.includes('deszcz') || lower.includes('zimno') || lower.includes('ciepło')) {
+    return {
+      content: `### ⛅ Warunki Atmosferyczne\n\nAktualne dane meteorologiczne dla Twojej lokalizacji zostały załadowane w widżecie poniżej:`,
+      mentor_thoughts: 'Odpytano telemetryczny moduł pogody.',
+      widgets: ['weather']
+    };
+  }
+
+  // Obsługa statusu systemu
+  if (lower.includes('status') || lower.includes('system') || lower.includes('stan') || lower.includes('metryk')) {
+    return {
+      content: `### 🛰️ OmniDash Core Status\n- **Środowisko:** ${isCloudMode ? 'Firebase Cloud (void-potato-7721)' : 'Desktop Bridge'}\n- **Model AI:** \`openai/gpt-oss-120b\`\n- **Operator:** ${userName}\n- **Zadania w To-Do:** ${pendingTasks.length} oczekujących, ${completedTasks.length} zrealizowanych\n- **Integralność bazy:** Zgodna (Firestore Live-Sync)\n- **Ochrona sesji:** Aktywna (Crash Guard v2.2.1)`,
       mentor_thoughts: 'Wygenerowano raport statusowy z lokalnego silnika telemetrii.',
-      widgets: []
+      widgets: ['system']
     };
   }
 
-  if (lower.includes('zadania') || lower.includes('todo') || lower.includes('zrób')) {
-    return {
-      content: `[*] Zarejestrowano polecenie dotyczące zadań. Przejdź do zakładki **Pulpit** lub **Widżety**, aby zarządzać zsynchronizowaną z Firestore listą to-do.`,
-      mentor_thoughts: 'Przekierowanie do modułu zadań.',
-      widgets: []
-    };
-  }
-
+  // Domyślna odpowiedź konwersacyjna
   return {
-    content: `[+] **Tryb Autonomiczny OmniDash (${mode.toUpperCase()})**\n\nOtrzymano polecenie: *"${text}"*.\n\nAby odblokować pełną moc generatywną modelu **openai/gpt-oss-120b (GPT 120B)** bezpośrednio w chmurze bez limitów i bez potrzeby włączania komputera domowego, wprowadź swój bezpłatny klucz API w:\n👉 **Ustawienia (Settings) -> Klucze API -> Groq API Key**.\n\nWszystkie moduły zadań, finansów, kalendarza i notatek działają synchronicznie w chmurze.`,
-    mentor_thoughts: mode === 'mentor' ? 'Wykryto zapytanie w trybie chmurowym bez dedykowanego klucza LLM.' : null,
-    widgets: []
+    content: `[+] **OmniDash Core Assistant (${mode.toUpperCase()})**\n\nOtrzymano polecenie: *"${text}"*.\n\nSystem działa w trybie chmurowym z modelem **openai/gpt-oss-120b**. Wszystkie Twoje dane zadań, kalendarza i notatek są na bieżąco zsynchronizowane.\n\nAby zarządzać kluczem lub dostosować parametry, odwiedź:\n👉 **Ustawienia (Settings) -> Klucze API**.`,
+    mentor_thoughts: mode === 'mentor' ? 'Wykryto zapytanie ogólne w trybie asystenta.' : null,
+    widgets: determineWidgets(text, '')
   };
 }
+

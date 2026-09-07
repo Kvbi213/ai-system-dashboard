@@ -1,5 +1,24 @@
 ## Wersja Bieżąca
-**v2.3.1**
+**v2.3.2**
+
+## v 2.3.2 — 2026-09-07
+**Typ:** PATCH
+**Zakres:** Kognitywna Integracja Kontekstu Zadań & Dynamiczny Dispatcher UI
+
+### Zmiany
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` — wyeliminowano statyczny, sztywny komunikat przekierowujący do Pulpitu przy pytaniach o zadania To-Do.
+- [+] Dodano: Automatyczne wstrzykiwanie bieżącego stanu bazy zadań, kalendarza i notatek do promptu systemowego modelu `openai/gpt-oss-120b` w przeglądarce, dzięki czemu model w pełni zna i analizuje zadania użytkownika.
+- [+] Dodano: Dynamiczne wykrywanie intencji i montowanie widżetów (`widgets: ['tasks']`, `'weather'`, `'system'`, `'news'`) bezpośrednio pod dymkiem odpowiedzi asystenta w Terminalu.
+- [+] Dodano: Obsługa konwersacyjnego dodawania zadań bezpośrednio z czatu (np. *"dodaj zadanie: Przygotować raport pilne"*) z natychmiastowym zapisem do Cloud Firestore.
+- [+] Dodano: Wzbogacony inteligentny fallback offline, generujący ustrukturyzowane zestawienie oczekujących i zrealizowanych zadań z identyfikatorami priorytetów wraz z widżetem To-Do.
+- [*] Zmodyfikowano: `modules/components/CommandPalette.jsx` — ujednolicono schemat zapisu zadań (`title`, `status`, `priority`) do wspólnej kolekcji `tasks`.
+- [*] Zmodyfikowano: `vite.config.js` oraz `.env` — zapewniono stałe wstrzykiwanie `VITE_GROQ_API_KEY` do bundla produkcyjnego.
+- [*] Zmodyfikowano: Pomyślnie zrekompilowano i opublikowano nową wersję na Firebase Hosting (`https://void-potato-7721.web.app`) oraz w lokalnej instancji Pulpitu.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 2.3.1 — 2026-09-07
 **Typ:** PATCH
