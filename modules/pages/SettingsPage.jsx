@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Settings, Shield, Bell, HardDrive, Cpu, Palette, Sun, Moon, Rss, Zap, Lock, Check, LayoutGrid, Mic, Volume2, Globe } from 'lucide-react';
+import { Settings, Shield, Bell, HardDrive, Cpu, Palette, Sun, Moon, Rss, Zap, Lock, Check, LayoutGrid, Mic, Volume2, Globe, Sparkles, Cloud, Database, BrainCircuit, Activity } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
+import { initializeAllFirestoreCollections, CLOUD_COLLECTIONS } from '../services/cloudSync';
 
 const Toggle = ({ value, onChange }) => (
   <button
@@ -37,6 +38,10 @@ const SettingsPage = () => {
   const [firebaseStatus, setFirebaseStatus] = useState(null);
   const [syncingFirebase, setSyncingFirebase] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
+  const [initializingCollections, setInitializingCollections] = useState(false);
+  const [collectionSyncResult, setCollectionSyncResult] = useState(null);
+  const [testingGateway, setTestingGateway] = useState(false);
+  const [gatewayStatus, setGatewayStatus] = useState(null);
 
   useEffect(() => {
     axios.get('/api/firebase/status')
@@ -519,6 +524,58 @@ const SettingsPage = () => {
                   </form>
                 </div>
 
+                {/* --- VERCEL SERVERLESS AI GATEWAY --- */}
+                <div className="p-4 rounded-xl border border-accentPrimary/40 bg-black/30 mt-4 shadow-[0_0_20px_rgba(0,229,255,0.06)]">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-5 h-5 text-accentPrimary" />
+                      <p className="font-semibold text-textPrimary font-sans text-sm">Vercel Serverless AI Gateway (openai/gpt-oss-120b)</p>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/30 font-bold">
+                      PRODUKCJA
+                    </span>
+                  </div>
+                  <p className="text-xs text-textMuted leading-relaxed mb-3">
+                    Brama serverless hostowana na Vercel (<strong className="text-textPrimary font-mono">https://ai-system-dashboard.vercel.app/api/agent</strong>). Zapewnia pełną obsługę nagłówków CORS dla przeglądarki, bezpośrednie połączenie z modelem <span className="text-accentPrimary font-mono font-bold">openai/gpt-oss-120b</span> oraz wstrzykiwanie kontekstu zadań, kalendarza, finansów i pamięci długoterminowej.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setTestingGateway(true);
+                        setGatewayStatus(null);
+                        try {
+                          const start = Date.now();
+                          const res = await axios.get('https://ai-system-dashboard.vercel.app/api/status', { timeout: 8000 });
+                          const latency = Date.now() - start;
+                          setGatewayStatus({ success: true, latency, data: res.data });
+                        } catch (err) {
+                          setGatewayStatus({ success: false, error: err.message });
+                        } finally {
+                          setTestingGateway(false);
+                        }
+                      }}
+                      disabled={testingGateway}
+                      className="bg-accentPrimary/20 hover:bg-accentPrimary/30 border border-accentPrimary/50 text-accentPrimary font-bold py-2 px-4 rounded-lg transition-colors text-xs flex items-center gap-2 disabled:opacity-50 font-mono"
+                    >
+                      <Activity className="w-3.5 h-3.5" />
+                      {testingGateway ? "Testowanie połączenia..." : "Testuj Vercel Gateway (Status & Ping)"}
+                    </button>
+                    {gatewayStatus && (
+                      <span className={`text-xs font-mono px-2.5 py-1 rounded-md border ${
+                        gatewayStatus.success 
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
+                          : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                      }`}>
+                        {gatewayStatus.success 
+                          ? `[+] ONLINE (${gatewayStatus.latency}ms) — Model: ${gatewayStatus.data?.model || 'gpt-oss-120b'}` 
+                          : `[!] BŁĄD: ${gatewayStatus.error}`}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* --- CENTRUM KOLEKCJI FIRESTORE (MULTI-COLLECTION HUB) --- */}
                 <div className="p-4 rounded-xl border border-accentPrimary/30 bg-black/20 mt-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -526,22 +583,60 @@ const SettingsPage = () => {
                       <p className="font-semibold text-textPrimary font-sans text-sm">Baza Chmurowa Firebase Firestore (void-potato-7721)</p>
                     </div>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/30">
-                      {firebaseStatus?.connected ? "POŁĄCZONO (WARSZAWA)" : "INICJALIZACJA..."}
+                      {firebaseStatus?.connected ? "POŁĄCZONO (WARSZAWA)" : "LIVE CLOUD SYNC"}
                     </span>
                   </div>
                   <p className="text-xs text-textMuted leading-relaxed mb-3">
                     Projekt: <strong className="text-textPrimary font-mono">void-potato-7721</strong> (Void Potato Matrix) w regionie <strong className="text-textPrimary">europe-central2</strong>. Bezpieczeństwo oparte o restrykcyjne reguły Firestore: dostęp wyłącznie dla <span className="text-accentPrimary font-mono">marektowarek21372137@gmail.com</span>.
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+
+                  {/* Kafelki kategorii */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 my-3">
+                    {[
+                      { id: 'tasks', name: 'Zadania To-Do', icon: '📋' },
+                      { id: 'finances', name: 'Finanse & Budżet', icon: '💰' },
+                      { id: 'workouts', name: 'Treningi', icon: '🏋️' },
+                      { id: 'calendar', name: 'Kalendarz', icon: '📅' },
+                      { id: 'operator_brain', name: 'Operator Brain', icon: '🧠' },
+                      { id: 'chat_history', name: 'Historia Chatu', icon: '💬' },
+                    ].map(col => (
+                      <div key={col.id} className="p-2.5 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm">{col.icon}</span>
+                          <span className="text-xs font-mono text-textPrimary">{col.name}</span>
+                        </div>
+                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center mt-3">
                     <button
-                      onClick={handleFirebaseSync}
-                      disabled={syncingFirebase}
-                      className="bg-accentPrimary/20 hover:bg-accentPrimary/30 border border-accentPrimary/50 text-accentPrimary font-bold py-2 px-4 rounded-lg transition-colors text-xs flex items-center gap-2 disabled:opacity-50"
+                      type="button"
+                      onClick={async () => {
+                        setInitializingCollections(true);
+                        setCollectionSyncResult(null);
+                        try {
+                          const res = await initializeAllFirestoreCollections();
+                          setCollectionSyncResult(res);
+                        } catch (err) {
+                          setCollectionSyncResult({ error: err.message });
+                        } finally {
+                          setInitializingCollections(false);
+                        }
+                      }}
+                      disabled={initializingCollections}
+                      className="bg-accentPrimary/20 hover:bg-accentPrimary/30 border border-accentPrimary/50 text-accentPrimary font-bold py-2 px-4 rounded-lg transition-colors text-xs flex items-center gap-2 disabled:opacity-50 font-mono"
                     >
-                      {syncingFirebase ? "Synchronizacja w toku..." : "Zsynchronizuj bazę SQLite do Firestore"}
+                      <Database className="w-3.5 h-3.5" />
+                      {initializingCollections ? "Inicjalizacja i synchronizacja..." : "Zainicjalizuj i Zsynchronizuj Wszystkie Kategorie w Firestore"}
                     </button>
-                    {syncMessage && (
-                      <span className="text-xs text-textPrimary font-mono">{syncMessage}</span>
+                    {collectionSyncResult && (
+                      <span className="text-xs text-emerald-400 font-mono">
+                        {collectionSyncResult.error 
+                          ? `[!] Błąd: ${collectionSyncResult.error}` 
+                          : `[+] Pomyślnie zsynchronizowano wszystkie 6 kategorii w chmurze!`}
+                      </span>
                     )}
                   </div>
                 </div>

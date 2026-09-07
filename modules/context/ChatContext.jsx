@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { dispatchAiQuery } from '../services/clientAiDispatcher';
+import { subscribeCollection, saveCloudDocument } from '../services/cloudSync';
 
 const ChatContext = createContext();
 
@@ -19,7 +20,7 @@ export const ChatProvider = ({ children }) => {
         const saved = localStorage.getItem('system_chat_history');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
         }
       } catch (e) {
         console.warn('Nie udało się załadować historii czatu:', e);
@@ -35,7 +36,7 @@ export const ChatProvider = ({ children }) => {
         const saved = localStorage.getItem('system_mentor_history');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
         }
       } catch (e) {
         console.warn('Nie udało się załadować historii mentora:', e);
@@ -47,6 +48,41 @@ export const ChatProvider = ({ children }) => {
   const [thoughtsLog, setThoughtsLog] = useState([
     t("chatMentorActive", "System Mentor aktywowany. Oczekiwanie na dane wejściowe..."),
   ]);
+
+  // Subskrypcja chmurowej historii chatu z Firestore (chat_history)
+  useEffect(() => {
+    const ghostMode = localStorage.getItem('system_ghost_mode') === 'true';
+    if (ghostMode) return;
+
+    const unsubscribe = subscribeCollection('chat_history', (cloudMsgs) => {
+      if (Array.isArray(cloudMsgs) && cloudMsgs.length > 0) {
+        // Posortuj chronologicznie
+        const sorted = [...cloudMsgs].sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
+        
+        const workerFromCloud = sorted.filter(m => !m.chatMode || m.chatMode === 'worker');
+        const mentorFromCloud = sorted.filter(m => m.chatMode === 'mentor');
+
+        if (workerFromCloud.length > 0) {
+          setWorkerMessages(prev => {
+            // Połącz unikalne po id lub treści
+            const existingIds = new Set(prev.map(p => p.id || p.content));
+            const newItems = workerFromCloud.filter(c => !existingIds.has(c.id || c.content));
+            return newItems.length > 0 ? [...prev, ...newItems] : prev;
+          });
+        }
+
+        if (mentorFromCloud.length > 0) {
+          setMentorMessages(prev => {
+            const existingIds = new Set(prev.map(p => p.id || p.content));
+            const newItems = mentorFromCloud.filter(c => !existingIds.has(c.id || c.content));
+            return newItems.length > 0 ? [...prev, ...newItems] : prev;
+          });
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const ghostMode = localStorage.getItem('system_ghost_mode') === 'true';
@@ -65,6 +101,7 @@ export const ChatProvider = ({ children }) => {
   const sendCommand = async (inputStr) => {
     if (!inputStr.trim()) return;
     const userText = inputStr.trim();
+    const ghostMode = localStorage.getItem('system_ghost_mode') === 'true';
 
     if (userText.startsWith('/')) {
       const [cmd, ...args] = userText.toLowerCase().split(' ');
@@ -153,9 +190,16 @@ export const ChatProvider = ({ children }) => {
     const userName = localStorage.getItem('system_user_name') || 'Użytkownik';
     const systemLanguage = localStorage.getItem('system_language') || 'pl';
     const nowIso = new Date().toISOString();
+    const userMsgId = Date.now().toString();
+
+    const userMsg = { id: userMsgId, role: 'user', content: userText, timestamp: nowIso, chatMode: mode };
+
+    if (!ghostMode) {
+      saveCloudDocument('chat_history', userMsgId, userMsg);
+    }
 
     if (mode === 'mentor') {
-      setMentorMessages(prev => [...prev, { role: 'user', content: userText, timestamp: nowIso }]);
+      setMentorMessages(prev => [...prev, userMsg]);
       try {
         const result = await dispatchAiQuery({
           text: userText,
@@ -166,7 +210,14 @@ export const ChatProvider = ({ children }) => {
         });
 
         const content = result.content || t("chatParseErr", "Błąd parsowania odpowiedzi.");
-        setMentorMessages(prev => [...prev, { role: 'ai', content, timestamp: new Date().toISOString() }]);
+        const aiMsgId = (Date.now() + 1).toString();
+        const aiMsg = { id: aiMsgId, role: 'ai', content, timestamp: new Date().toISOString(), chatMode: 'mentor' };
+        
+        setMentorMessages(prev => [...prev, aiMsg]);
+        if (!ghostMode) {
+          saveCloudDocument('chat_history', aiMsgId, aiMsg);
+        }
+
         if (result.mentor_thoughts) {
           const time = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
           setThoughtsLog(prev => [`${time} > ${result.mentor_thoughts}`, ...prev]);
@@ -181,7 +232,7 @@ export const ChatProvider = ({ children }) => {
     }
 
     // WORKER MODE
-    setWorkerMessages(prev => [...prev, { role: 'user', content: userText, timestamp: nowIso }]);
+    setWorkerMessages(prev => [...prev, userMsg]);
     try {
       const result = await dispatchAiQuery({
         text: userText,
@@ -193,7 +244,14 @@ export const ChatProvider = ({ children }) => {
 
       const content = result.content || t('chatDone', 'Polecenie zrealizowane.');
       const widgets = result.widgets || [];
-      setWorkerMessages(prev => [...prev, { role: 'ai', content, widgets, timestamp: new Date().toISOString() }]);
+      const aiMsgId = (Date.now() + 1).toString();
+      const aiMsg = { id: aiMsgId, role: 'ai', content, widgets, timestamp: new Date().toISOString(), chatMode: 'worker' };
+
+      setWorkerMessages(prev => [...prev, aiMsg]);
+      if (!ghostMode) {
+        saveCloudDocument('chat_history', aiMsgId, aiMsg);
+      }
+
       setIsProcessing(false);
       return { content, widgets };
     } catch (error) {

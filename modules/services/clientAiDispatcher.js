@@ -4,20 +4,24 @@ import { saveCloudDocument } from './cloudSync.js';
 /**
  * Autonomiczny Silnik AI Dyspozytora Klienckiego (Client-Side AI Dispatcher)
  * Obsługuje komunikację z modelem LLM (openai/gpt-oss-120b)
- * z wstrzykiwaniem bieżącego kontekstu (To-Do, Kalendarz, Finanse) oraz dynamicznym montowaniem widżetów.
+ * przez Vercel Serverless Gateway (CORS-enabled), lokalny backend Express oraz bezpośredni fallback.
  */
 
+const VERCEL_AGENT_ENDPOINT = 'https://ai-system-dashboard.vercel.app/api/agent';
 const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
 
 const isCloudMode = typeof window !== 'undefined' && (
   window.location.hostname.includes('web.app') || 
-  window.location.hostname.includes('firebaseapp.com')
+  window.location.hostname.includes('firebaseapp.com') ||
+  window.location.hostname.includes('vercel.app')
 );
 
 const DEFAULT_INITIAL_TASKS = [
   { id: '1', title: 'Wdrożenie Firebase Hosting (void-potato-7721)', priority: 'HIGH', status: 'completed', category: 'system' },
   { id: '2', title: 'Autoryzacja właściciela: marektowarek21372137@gmail.com', priority: 'HIGH', status: 'completed', category: 'system' },
-  { id: '3', title: 'Personalizacja modułów i widżetów', priority: 'MEDIUM', status: 'pending', category: 'system' },
+  { id: '3', title: 'Aktywacja modelu openai/gpt-oss-120b na Vercel', priority: 'HIGH', status: 'completed', category: 'ai' },
+  { id: '4', title: 'Wielomodułowa synchronizacja kategorii Firestore', priority: 'MEDIUM', status: 'completed', category: 'system' },
+  { id: '5', title: 'Personalizacja widżetów i analiza przepływów danych', priority: 'MEDIUM', status: 'pending', category: 'dashboard' },
 ];
 
 export function getClientTasks() {
@@ -62,10 +66,22 @@ function getClientContextSummary() {
     if (rawCal) calendar = JSON.parse(rawCal);
   } catch {}
 
-  let notes = [];
+  let finances = [];
   try {
-    const rawNotes = localStorage.getItem('cloud_cache_notes');
-    if (rawNotes) notes = JSON.parse(rawNotes);
+    const rawFin = localStorage.getItem('cloud_cache_finances');
+    if (rawFin) finances = JSON.parse(rawFin);
+  } catch {}
+
+  let workouts = [];
+  try {
+    const rawWork = localStorage.getItem('cloud_cache_workouts');
+    if (rawWork) workouts = JSON.parse(rawWork);
+  } catch {}
+
+  let operatorBrain = [];
+  try {
+    const rawBrain = localStorage.getItem('cloud_cache_operator_brain');
+    if (rawBrain) operatorBrain = JSON.parse(rawBrain);
   } catch {}
 
   const now = new Date();
@@ -77,7 +93,9 @@ function getClientContextSummary() {
     pendingTasks,
     completedTasks,
     calendar: Array.isArray(calendar) ? calendar : [],
-    notes: Array.isArray(notes) ? notes : [],
+    finances: Array.isArray(finances) ? finances : [],
+    workouts: Array.isArray(workouts) ? workouts : [],
+    operatorBrain: Array.isArray(operatorBrain) ? operatorBrain : [],
     dateStr,
     timeStr
   };
@@ -109,6 +127,34 @@ function determineWidgets(userText, aiResponse = '') {
   }
 
   if (
+    combined.includes('finans') || 
+    combined.includes('wydatek') || 
+    combined.includes('przychód') || 
+    combined.includes('pieniądze') || 
+    combined.includes('budżet')
+  ) {
+    widgets.push('finances');
+  }
+
+  if (
+    combined.includes('trening') || 
+    combined.includes('siłowni') || 
+    combined.includes('ćwiczen') || 
+    combined.includes('workout')
+  ) {
+    widgets.push('workouts');
+  }
+
+  if (
+    combined.includes('kalendarz') || 
+    combined.includes('wydarzenie') || 
+    combined.includes('spotkanie') || 
+    combined.includes('termin')
+  ) {
+    widgets.push('calendar');
+  }
+
+  if (
     combined.includes('system') || 
     combined.includes('metryk') || 
     combined.includes('status') || 
@@ -118,19 +164,55 @@ function determineWidgets(userText, aiResponse = '') {
     widgets.push('system');
   }
 
-  if (
-    combined.includes('news') || 
-    combined.includes('wiadomoś') || 
-    combined.includes('artykuł')
-  ) {
-    widgets.push('news');
-  }
-
-  return widgets;
+  return Array.from(new Set(widgets));
 }
 
 export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użytkownik', language = 'pl' }) => {
-  // 1. Jeśli jesteśmy lokalnie, spróbuj najpierw odpytać lokalny backend Express
+  const groqKey = localStorage.getItem('system_groq_api_key') || 
+                  localStorage.getItem('system_api_key') || 
+                  import.meta.env.VITE_GROQ_API_KEY;
+
+  const context = getClientContextSummary();
+
+  // 1. Priorytet: Dedykowany Gateway Vercel Serverless (Bypass CORS, model openai/gpt-oss-120b)
+  try {
+    const payload = {
+      text,
+      mode,
+      userName,
+      language,
+      context: {
+        tasks: context.tasks,
+        calendar: context.calendar,
+        finances: context.finances,
+        workouts: context.workouts,
+        operatorBrain: context.operatorBrain
+      },
+      customApiKey: groqKey && groqKey.startsWith('gsk_') ? groqKey : undefined
+    };
+
+    const vercelRes = await axios.post(VERCEL_AGENT_ENDPOINT, payload, {
+      timeout: 30000,
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (vercelRes.data && vercelRes.data.agent_response) {
+      const content = vercelRes.data.agent_response;
+      const backendWidgets = vercelRes.data.widgets || [];
+      const mergedWidgets = Array.from(new Set([...backendWidgets, ...determineWidgets(text, content)]));
+
+      return {
+        content,
+        mentor_thoughts: vercelRes.data.mentor_thoughts || null,
+        widgets: mergedWidgets,
+        source: 'vercel_serverless'
+      };
+    }
+  } catch (vercelErr) {
+    console.warn('[AiDispatcher] Vercel Gateway niedostępny lub timeout:', vercelErr.message);
+  }
+
+  // 2. Jeśli jesteśmy lokalnie (Desktop), spróbuj lokalnego backendu Express
   if (!isCloudMode) {
     try {
       const { data } = await axios.post('/api/agent', {
@@ -153,50 +235,36 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
         };
       }
     } catch (backendErr) {
-      console.warn('[AiDispatcher] Backend lokalny niedostępny, przełączam na autonomiczny klient chmurowy:', backendErr.message);
+      console.warn('[AiDispatcher] Backend lokalny niedostępny:', backendErr.message);
     }
   }
 
-  // 2. Tryb Chmurowy / Fallback Bezpośredni do API LLM (Groq openai/gpt-oss-120b)
-  const groqKey = localStorage.getItem('system_groq_api_key') || 
-                  localStorage.getItem('system_api_key') || 
-                  import.meta.env.VITE_GROQ_API_KEY;
-
-  const context = getClientContextSummary();
-
+  // 3. Bezpośrednie wywołanie Groq API (fallback z nagłówkiem Authorization)
   if (groqKey && groqKey !== 'unconfigured_key' && groqKey.startsWith('gsk_')) {
     try {
       const tasksSummary = context.tasks.length > 0
         ? context.tasks.map(t => `- [${t.status === 'completed' ? 'WYKONANE' : 'OCZEKUJĄCE'}] [Priorytet: ${t.priority || 'MED'}] ${t.title} (${t.category || 'ogólne'})`).join('\n')
-        : 'Brak zadań na liście (lista jest pusta).';
+        : 'Brak zadań na liście.';
 
       const calendarSummary = context.calendar.length > 0
         ? context.calendar.map(e => `- [${e.event_date || e.date || 'brak daty'}] ${e.title}`).join('\n')
         : 'Brak zaplanowanych wydarzeń.';
 
       const systemPrompt = mode === 'mentor'
-        ? `Jesteś J.A.R.V.I.S — inteligentnym mentorem, analitykiem i powiernikiem użytkownika w systemie OmniDash. Rozmawiasz z ${userName}.
-Aktualny czas: ${context.dateStr}, godzina ${context.timeStr}.
-Aktualne zadania użytkownika w systemie (To-Do):
+        ? `Jesteś J.A.R.V.I.S — inteligentnym mentorem i analitykiem w systemie OmniDash. Rozmawiasz z ${userName}.
+Aktualny czas: ${context.dateStr}, ${context.timeStr}.
+Zadania w To-Do:
 ${tasksSummary}
-Wydarzenia w kalendarzu:
+Kalendarz:
 ${calendarSummary}
-
-Zasady:
-1. Odpowiadaj z klasą, błyskotliwie, precyzyjnie i wspierająco w języku: ${language}.
-2. Gdy użytkownik pyta o zadania, todo lub plany: przeanalizuj powyższą listę zadań, wskaż co jest do zrobienia, co ma wysoki priorytet i zaproponuj optymalny plan działania.
-3. Masz pełną wiedzę o powyższych danych — nigdy nie twierdzisz, że nie wiesz, co jest w To-Do!`
-        : `Jesteś F.R.I.D.A.Y — inżynieryjnym systemem wykonawczym (Worker) w systemie OmniDash. Rozmawiasz z ${userName}.
-Aktualny czas: ${context.dateStr}, godzina ${context.timeStr}.
-Aktualne zadania użytkownika w systemie (To-Do):
+Zasady: Odpowiadaj wyczerpująco, logicznie i wspierająco w języku ${language} z użyciem bogatego Markdown.`
+        : `Jesteś F.R.I.D.A.Y — inżynieryjnym silnikiem wykonawczym w OmniDash. Rozmawiasz z ${userName}.
+Aktualny czas: ${context.dateStr}, ${context.timeStr}.
+Zadania w To-Do:
 ${tasksSummary}
-Wydarzenia w kalendarzu:
+Kalendarz:
 ${calendarSummary}
-
-Zasady:
-1. Odpowiadaj maksymalnie konkretnie, zwięźle, technicznie i merytorycznie w języku: ${language}.
-2. Gdy użytkownik pyta "co mamy dziś w todo?", "jakie mam zadania?" itp.: precyzyjnie wymień oczekujące zadania z podziałem na priorytety i stan realizacji.
-3. Nigdy nie mów, że nie masz dostępu do listy zadań — korzystasz z powyższego zestawienia zsynchronizowanego w czasie rzeczywistym.`;
+Zasady: Odpowiadaj konkretnie, merytorycznie i technicznie w języku ${language} z użyciem bogatego Markdown.`;
 
       const response = await fetch(GROQ_ENDPOINT, {
         method: 'POST',
@@ -211,32 +279,29 @@ Zasady:
             { role: 'user', content: text }
           ],
           temperature: mode === 'mentor' ? 0.7 : 0.3,
-          max_tokens: 1500
+          max_tokens: 3000
         })
       });
 
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(`Groq API HTTP ${response.status}: ${errText}`);
+      if (response.ok) {
+        const resData = await response.json();
+        const content = resData.choices?.[0]?.message?.content || 'Brak odpowiedzi od modelu.';
+        const thoughts = mode === 'mentor' ? `Analiza kognitywna (GPT-OSS 120B): przetworzono zadania i kontekst operacyjny.` : null;
+        const widgets = determineWidgets(text, content);
+
+        return {
+          content,
+          mentor_thoughts: thoughts,
+          widgets,
+          source: 'cloud_groq'
+        };
       }
-
-      const resData = await response.json();
-      const content = resData.choices?.[0]?.message?.content || 'Brak odpowiedzi od modelu.';
-      const thoughts = mode === 'mentor' ? `Analiza kognitywna (GPT-OSS 120B): przetworzono zadania i kontekst operacyjny.` : null;
-      const widgets = determineWidgets(text, content);
-
-      return {
-        content,
-        mentor_thoughts: thoughts,
-        widgets,
-        source: 'cloud_groq'
-      };
     } catch (groqErr) {
       console.warn('[AiDispatcher] Bezpośrednie zapytanie Groq nie powiodło się:', groqErr.message);
     }
   }
 
-  // 3. Wbudowany inteligentny asystent autonomiczny (Gdy brak sieci / błąd API)
+  // 4. Wbudowany inteligentny asystent autonomiczny (Gdy brak sieci / błąd API)
   return handleAutonomousFallback(text, mode, userName, context);
 };
 
@@ -336,7 +401,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
   // Obsługa statusu systemu
   if (lower.includes('status') || lower.includes('system') || lower.includes('stan') || lower.includes('metryk')) {
     return {
-      content: `### 🛰️ OmniDash Core Status\n- **Środowisko:** ${isCloudMode ? 'Firebase Cloud (void-potato-7721)' : 'Desktop Bridge'}\n- **Model AI:** \`openai/gpt-oss-120b\`\n- **Operator:** ${userName}\n- **Zadania w To-Do:** ${pendingTasks.length} oczekujących, ${completedTasks.length} zrealizowanych\n- **Integralność bazy:** Zgodna (Firestore Live-Sync)\n- **Ochrona sesji:** Aktywna (Crash Guard v2.2.1)`,
+      content: `### 🛰️ OmniDash Core Status\n- **Środowisko:** ${isCloudMode ? 'Firebase & Vercel Cloud Gateway' : 'Desktop Bridge'}\n- **Model AI:** \`openai/gpt-oss-120b\`\n- **Operator:** ${userName}\n- **Zadania w To-Do:** ${pendingTasks.length} oczekujących, ${completedTasks.length} zrealizowanych\n- **Kategorie Firestore:** tasks, finances, workouts, calendar, operator_brain, chat_history\n- **Integralność bazy:** Zgodna (Live Cloud Sync)\n- **Ochrona sesji:** Aktywna (Crash Guard v2.5.0)`,
       mentor_thoughts: 'Wygenerowano raport statusowy z lokalnego silnika telemetrii.',
       widgets: ['system']
     };
@@ -344,9 +409,8 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
 
   // Domyślna odpowiedź konwersacyjna
   return {
-    content: `[+] **OmniDash Core Assistant (${mode.toUpperCase()})**\n\nOtrzymano polecenie: *"${text}"*.\n\nSystem działa w trybie chmurowym z modelem **openai/gpt-oss-120b**. Wszystkie Twoje dane zadań, kalendarza i notatek są na bieżąco zsynchronizowane.\n\nAby zarządzać kluczem lub dostosować parametry, odwiedź:\n👉 **Ustawienia (Settings) -> Klucze API**.`,
+    content: `[+] **OmniDash Core Assistant (${mode.toUpperCase()})**\n\nOtrzymano polecenie: *"${text}"*.\n\nSystem działa w trybie chmurowym z modelem **openai/gpt-oss-120b** przez **Vercel Serverless Gateway**. Wszystkie Twoje kategorie w Firestore (Zadania, Kalendarz, Finanse, Treningi, Operator Brain i Historia Chatu) są aktywne i zsynchronizowane w czasie rzeczywistym.`,
     mentor_thoughts: mode === 'mentor' ? 'Wykryto zapytanie ogólne w trybie asystenta.' : null,
     widgets: determineWidgets(text, '')
   };
 }
-

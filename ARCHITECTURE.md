@@ -1,18 +1,18 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.4.0 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.5.0 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop & Firebase Cloud)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Vercel Serverless & Firebase Cloud)
 
 ---
 
 ## 1. WSTĘP I PARADYGMATY
-System to zintegrowane środowisko asystenckie oparte na modelu LLM (obecnie openai/gpt-oss-120b od Groq). Projekt łączy w sobie cechy inteligentnego terminala poleceń, zarządzania zadaniami (To-Do), kalendarza, czytnika newsów IT oraz monitoringu systemu. 
+System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-oss-120b` (Groq SDK). Projekt łączy w sobie cechy inteligentnego terminala poleceń, zarządzania zadaniami (To-Do), kalendarza, budżetu 50/30/20, planera treningów, długoterminowej pamięci (Operator Brain) oraz monitoringu systemu.
 
 **Główne Paradygmaty:**
-1. **Desktop-First & Local-First:** Frontend i backend działają lokalnie na maszynie dewelopera (Windows z mostem do WSL/Node.js). Baza danych to plikowy SQLite z mostem synchronizacyjnym do Cloud Firestore.
-2. **LLM as the Core Engine:** Cała logika decyzyjna w zakresie rozumienia poleceń oparta jest na LLM. LLM decyduje jakie funkcje systemowe (Tool Calling) wywołać, a odpowiedź formatuje do ścisłego schematu JSON.
-3. **Clean & Modern Aesthetics**: Interfejs zaprojektowany jest w oparciu o czyste linie, glassmorphism, elegancką i nowoczesną typografię. Asystent J.A.R.V.I.S (główny rdzeń/Mentor) jest przyjazny i inteligentny, z kolei F.R.I.D.A.Y (Worker) wykonuje zadania w hiper-profesjonalnym i zwięzłym tonie.
+1. **Multi-Cloud Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (`https://void-potato-7721.web.app`), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`https://ai-system-dashboard.vercel.app/api/agent`).
+2. **LLM as the Core Engine:** Cała logika kognitywna oparta jest na modelu `openai/gpt-oss-120b`. Prompt systemowy otrzymuje wstrzyknięty w czasie rzeczywistym pełen stan 6 kategorii danych użytkownika (Zadania, Kalendarz, Finanse, Treningi, Operator Brain, Historia Chatu).
+3. **Clean & Modern Aesthetics**: Interfejs zaprojektowany jest w oparciu o czyste linie, glassmorphism, elegancką i nowoczesną typografię. Asystent J.A.R.V.I.S (główny rdzeń/Mentor) jest przyjazny i analityczny, z kolei F.R.I.D.A.Y (Worker) wykonuje zadania w hiper-profesjonalnym i inżynieryjnym tonie.
 
 ---
 
@@ -23,30 +23,32 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 ```
 [Katalog Główny]
 │
-├── core.server.js           ← Mózg backendu. Punkt wejścia dla Express.js i rejestracja routerów.
-├── core.client.jsx          ← Mózg frontendu. Punkt wejścia dla aplikacji React.
-├── index.html               ← Plik ładujący skrypt kliencki do przeglądarki.
+├── /api/                      ← Funkcje Vercel Serverless (Node.js Gateway)
+│   ├── agent.js               ← CORS-enabled proxy do openai/gpt-oss-120b z wstrzykiwaniem kontekstu
+│   └── status.js              ← Healthcheck i pomiar opóźnień (ping)
 │
-├── ZASADYPRACY.md           ← Nadrzędny Rygor Operacyjny (System Prompt dla deweloperów AI).
-├── ARCHITECTURE.md          ← (Ten plik) Centralne źródło prawdy o systemie.
-├── HISTORY.md               ← Niemutowalny rejestr wersji (Changlog SemVer).
+├── core.server.js             ← Mózg backendu lokalnego (Express.js).
+├── core.client.jsx            ← Mózg frontendu (React 18 + React Router).
+├── index.html                 ← Plik ładujący aplikację SPA.
+├── vercel.json                ← Konfiguracja routingu i rewrites Vercel.
 │
-├── /modules/                ← Główna logika i komponenty.
-│   ├── agent.js             ← System podłączający się do API LLM, przetwarzający zapytania.
-│   ├── database.js          ← Abstrakcja nad SQLite, zawiera metody `executeQuery` i `executeRun`.
-│   ├── firebase.js          ← Most z chmurą Firebase Admin SDK i bazą danych Firestore.
-│   ├── firebaseClient.js    ← Klient frontendowy Firebase Web SDK (Auth, Firestore).
-│   ├── scheduler.js         ← Wbudowany "cron" do odpalania zautomatyzowanych procesów.
-│   ├── search.js            ← Wrapper na Brave Search API.
-│   ├── pushbullet.js        ← Skrypt nasłuchujący WebSockets API Pushbullet dla powiadomień.
+├── ZASADYPRACY.md             ← Nadrzędny Rygor Operacyjny [PRIORYTET ZERO].
+├── ARCHITECTURE.md            ← (Ten plik) Centralne źródło prawdy o systemie.
+├── HISTORY.md                 ← Niemutowalny rejestr wersji (SemVer append-only).
+│
+├── /modules/                  ← Główna logika i komponenty.
+│   ├── agent.js               ← System podłączający się do API LLM (lokalnie i chmurowo).
+│   ├── database.js            ← Abstrakcja nad SQLite dla środowiska lokalnego.
+│   ├── firebase.js            ← Most z chmurą Firebase Admin SDK.
+│   ├── firebaseClient.js      ← Klient frontendowy Firebase Web SDK (Auth, Firestore).
 │   │
-│   ├── /services/           ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
-│   │   ├── cloudSync.js     ← Dwukierunkowa subskrypcja Firestore z optymistycznym cache'em.
-│   │   └── clientAiDispatcher.js ← Autonomiczny silnik zapytań LLM (openai/gpt-oss-120b) z wstrzykiwaniem kontekstu zadań/kalendarza, dynamicznym montowaniem widżetów i inteligentnym fallbackiem.
+│   ├── /services/             ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
+│   │   ├── cloudSync.js       ← Dwukierunkowa subskrypcja 6 kolekcji Firestore z auto-inicjalizacją.
+│   │   └── clientAiDispatcher.js ← Autonomiczny silnik zapytań LLM (openai/gpt-oss-120b) przez Vercel Gateway.
 │   │
-│   ├── /ai/                 ← Pliki konfiguracyjne dla agentów AI.
-│   │   ├── prompts.js       ← Zbiór promptów systemowych (Worker, Mentor).
-│   │   └── tools.js         ← Definicje narzędzi (Tool Calling) dla agentów.
+│   ├── /ai/                   ← Pliki konfiguracyjne dla agentów AI.
+│   │   ├── prompts.js         ← Zbiór promptów systemowych (Worker, Mentor).
+│   │   └── tools.js           ← Definicje narzędzi (Tool Calling) dla agentów.
 │   │
 │   ├── /routes/             ← Modułowe routery Express, dzielące ruch na sekcje:
 │   │   ├── auth.js, system.js, finance.js, ai.js, osint.js, weather.js, news.js, tasks.js, calendar.js, workouts.js, memory.js, phone.js, logs.js, events.js, firebase.js

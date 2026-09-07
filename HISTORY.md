@@ -1,9 +1,28 @@
 ## Wersja Bieżąca
-**v2.4.0**
+**v2.5.0**
 
-## v 2.4.0 — 2026-09-07
-**Typ:** MINOR
-**Zakres:** Nowa Architektura Wizualna Czatu (Drzewiaste Listy Markdown, Code Blocks, Bubble UI, TTS & Quick Prompts)
+## v 2.5.0 — 2026-09-07
+**Typ:** MINOR  
+**Zakres:** Vercel Serverless AI Gateway (openai/gpt-oss-120b), Pełna Integracja 6 Kategorii Firestore & Trwały Multi-Device Sync  
+
+### Zmiany
+- [+] Dodano: `api/agent.js` — dedykowana bezstanowa funkcja serverless Node.js hostowana na Vercel (`https://ai-system-dashboard.vercel.app/api/agent`), eliminująca blokady CORS przeglądarki, obsługująca model `openai/gpt-oss-120b` (Groq SDK) z pulą 3500 tokenów i głębokim promptem analitycznym.
+- [+] Dodano: `api/status.js` — punkt końcowy monitoringu zdrowia i opóźnień bramy Vercel z nagłówkami CORS.
+- [+] Dodano: `vercel.json` — konfigurację wdrożeniową dla Vercel z regułami rewrites dla API i routingu SPA.
+- [+] Dodano: Pełną integrację 6 kategorii danych w Cloud Firestore: `tasks` (zadania To-Do), `finances` (budżet 50/30/20), `workouts` (treningi), `calendar` (terminarz), `operator_brain` (pamięć długoterminowa) oraz `chat_history` (trwała historia konwersacji).
+- [+] Dodano: `initializeAllFirestoreCollections()` w `modules/services/cloudSync.js` z kompletnym zestawem danych starterowych dla każdej kategorii i automatyczną synchronizacją.
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` — skierowano wszystkie zapytania LLM na Vercel Gateway, wstrzykując w czasie rzeczywistym stan wszystkich 6 kategorii danych do promptu systemowego modelu `openai/gpt-oss-120b`.
+- [*] Zmodyfikowano: `modules/pages/MemoryPage.jsx` — w pełni zintegrowano z kolekcją `operator_brain` w Firestore w czasie rzeczywistym wraz z modalem dodawania faktów.
+- [*] Zmodyfikowano: `modules/context/ChatContext.jsx` — dodano automatyczną, trwałą synchronizację wiadomości z kolekcją `chat_history` w Firestore (niezależnie od urządzenia i przeglądarki).
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` — dodano panel diagnostyczny Vercel AI Gateway (pomiar opóźnienia ping w ms) oraz Centrum Kategorii Firestore z 1-kliknięciową auto-inicjalizacją.
+- [*] Zmodyfikowano: Pomyślnie zbudowano i opublikowano na Vercel Production (`https://ai-system-dashboard.vercel.app`) oraz zaktualizowano Firebase Hosting (`https://void-potato-7721.web.app`).
+- [*] Zmodyfikowano: Zsynchronizowano i zrekompilowano katalog `AI SYSTEM DASHBOARD GITHUB - BEZ FIREBASE`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
+
 
 ### Zmiany
 - [+] Dodano: Kompleksowy renderer Markdown w `Terminal.jsx` z obsługą wielopoziomowych list z pionowymi liniami gałęziowymi (`border-l-2 border-accentPrimary/30`), świecącymi węzłami sekcji (`glowing accent nodes`) oraz czytelną hierarchią typograficzną.
