@@ -1,5 +1,23 @@
 ## Wersja Bieżąca
-**v2.2.1**
+**v2.3.0**
+
+## v 2.3.0 — 2026-09-07
+**Typ:** MINOR
+**Zakres:** Architektura Rozproszona (CloudSync, Standalone AI Dispatcher, Charts 50/30/20, Omni Command Palette)
+
+### Zmiany
+- [+] Dodano: `modules/services/cloudSync.js` z obsługą dwukierunkowej synchronizacji Firestore w czasie rzeczywistym (Zadania, Notatki, Kalendarz, Finanse, Treningi).
+- [+] Dodano: `modules/services/clientAiDispatcher.js` hybrydowy dyspozytor AI z bezpośrednim dostępem do Groq Llama 3.3 70b z poziomu przeglądarki.
+- [+] Dodano: `modules/components/CommandPalette.jsx` globalna paleta komend (`Ctrl + K`) do szybkiej nawigacji i akcji w systemie.
+- [+] Dodano: Pierścień SVG Donut Chart w `FinancePage.jsx` do wizualizacji alokacji budżetu 50/30/20 oraz dynamiczny wskaźnik przepływów Cashflow.
+- [*] Zmodyfikowano: `ChatContext.jsx` zintegrowany z nowym silnikiem `dispatchAiQuery`.
+- [*] Zmodyfikowano: `WorkoutsPage.jsx` wzbogacony o kategoryzację, analitykę i synchronizację chmurową.
+- [*] Zmodyfikowano: Pomyślnie zbudowano i wdrożono produkcję na `https://void-potato-7721.web.app`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 2.2.1 — 2026-09-07
 **Typ:** PATCH

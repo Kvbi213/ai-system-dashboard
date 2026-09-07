@@ -1,17 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { TerminalSquare, Save, Trash2 } from 'lucide-react';
+import { TerminalSquare, Save, Trash2, Cloud } from 'lucide-react';
+import { saveCloudDocument, subscribeCollection } from '../services/cloudSync.js';
 
 const QuickNotes = () => {
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState(() => localStorage.getItem('system_quicknotes') || '');
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    const savedNote = localStorage.getItem('system_quicknotes');
-    if (savedNote) setNote(savedNote);
+    const unsub = subscribeCollection('notes', (items) => {
+      const qn = items.find(i => i.id === 'quicknote_main');
+      if (qn && qn.content !== undefined) {
+        setNote(qn.content);
+        localStorage.setItem('system_quicknotes', qn.content);
+      }
+    });
+    return () => unsub();
   }, []);
 
   const handleSave = () => {
     localStorage.setItem('system_quicknotes', note);
+    saveCloudDocument('notes', 'quicknote_main', { content: note });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -20,6 +28,7 @@ const QuickNotes = () => {
     if (confirm('Czy na pewno chcesz usunąć notatki?')) {
       setNote('');
       localStorage.removeItem('system_quicknotes');
+      saveCloudDocument('notes', 'quicknote_main', { content: '' });
     }
   };
 

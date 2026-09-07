@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { CheckSquare, Square, ListTodo, Trash2, Plus, Flag, RotateCcw, X } from 'lucide-react';
+import { CheckSquare, Square, ListTodo, Trash2, Plus, Flag, RotateCcw, X, Cloud } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { subscribeCollection, saveCloudDocument, deleteCloudDocument, updateCloudDocumentField } from '../services/cloudSync.js';
 
 const PRIORITY_CONFIG = {
   HIGH: { color: '#FF3366', label: 'HIGH', bg: 'rgba(255,51,102,0.12)', border: 'rgba(255,51,102,0.35)' },
@@ -31,78 +32,52 @@ const TodoList = () => {
 
   const isCloudMode = typeof window !== 'undefined' && (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com'));
 
-  const getFallbackTasks = () => {
-    try {
-      const saved = localStorage.getItem('system_tasks');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.warn(e);
-    }
-    return [
-      { id: '1', title: 'Wdrożenie Firebase Hosting (void-potato-7721)', priority: 'HIGH', status: 'completed', category: 'system' },
-      { id: '2', title: 'Autoryzacja właściciela: marektowarek21372137@gmail.com', priority: 'HIGH', status: 'completed', category: 'system' },
-      { id: '3', title: 'Personalizacja modułów i widżetów', priority: 'MEDIUM', status: 'pending', category: 'system' },
-    ];
-  };
-
-  const saveTasksLocal = (newTasks) => {
-    try {
-      localStorage.setItem('system_tasks', JSON.stringify(newTasks));
-    } catch (e) {
-      console.warn(e);
-    }
-  };
-
-  const fetchTasks = async () => {
-    if (isCloudMode) {
-      setTasks(getFallbackTasks());
-      setLoading(false);
-      return;
-    }
-    try {
-      const { data } = await axios.get('/api/tasks');
-      if (Array.isArray(data)) {
-        setTasks(data);
-      } else {
-        setTasks(getFallbackTasks());
-      }
-    } catch (err) {
-      console.warn('Używam lokalnych zadań:', err.message);
-      setTasks(getFallbackTasks());
-    } finally {
-      setLoading(false);
-    }
-  };
+  const getFallbackTasks = () => [
+    { id: '1', title: 'Wdrożenie Firebase Hosting (void-potato-7721)', priority: 'HIGH', status: 'completed', category: 'system' },
+    { id: '2', title: 'Autoryzacja właściciela: marektowarek21372137@gmail.com', priority: 'HIGH', status: 'completed', category: 'system' },
+    { id: '3', title: 'Personalizacja modułów i widżetów', priority: 'MEDIUM', status: 'pending', category: 'system' },
+  ];
 
   useEffect(() => {
-    fetchTasks();
-    const interval = setInterval(fetchTasks, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    // 1. Subskrypcja Firestore w czasie rzeczywistym (Live Sync)
+    const unsubscribe = subscribeCollection('tasks', (cloudTasks) => {
+      if (Array.isArray(cloudTasks)) {
+        setTasks(cloudTasks);
+        setLoading(false);
+      }
+    }, getFallbackTasks());
+
+    // 2. Jeśli serwer lokalny działa, pobierz zadania z bazy SQLite
+    if (!isCloudMode) {
+      axios.get('/api/tasks')
+        .then(res => {
+          if (Array.isArray(res.data) && res.data.length > 0) {
+            setTasks(res.data);
+            res.data.forEach(t => saveCloudDocument('tasks', t.id, t));
+          }
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    }
+
+    return () => unsubscribe();
+  }, [isCloudMode]);
 
   const toggleTask = async (id, currentStatus) => {
     const newStatus = currentStatus === 'pending' ? 'completed' : 'pending';
-    setTasks(prev => {
-      const updated = (Array.isArray(prev) ? prev : []).map(t => t.id === id ? { ...t, status: newStatus } : t);
-      if (isCloudMode) saveTasksLocal(updated);
-      return updated;
-    });
+    setTasks(prev => (Array.isArray(prev) ? prev : []).map(t => t.id === id ? { ...t, status: newStatus } : t));
+    await updateCloudDocumentField('tasks', id, { status: newStatus });
     if (!isCloudMode) {
-      try { await axios.patch(`/api/tasks/${id}/status`, { status: newStatus }); }
-      catch { fetchTasks(); }
+      try { await axios.patch(`/api/tasks/${id}/status`, { status: newStatus }); } catch {}
     }
   };
 
   const deleteTask = async (id, e) => {
     e.stopPropagation();
-    setTasks(prev => {
-      const updated = (Array.isArray(prev) ? prev : []).filter(t => t.id !== id);
-      if (isCloudMode) saveTasksLocal(updated);
-      return updated;
-    });
+    setTasks(prev => (Array.isArray(prev) ? prev : []).filter(t => t.id !== id));
+    await deleteCloudDocument('tasks', id);
     if (!isCloudMode) {
-      try { await axios.delete(`/api/tasks/${id}`); }
-      catch { fetchTasks(); }
+      try { await axios.delete(`/api/tasks/${id}`); } catch {}
     }
   };
 
@@ -120,41 +95,20 @@ const TodoList = () => {
       status: 'pending'
     };
 
-    if (isCloudMode) {
-      setTasks(prev => {
-        const updated = [newTask, ...(Array.isArray(prev) ? prev : [])];
-        saveTasksLocal(updated);
-        return updated;
-      });
-      setForm({ title: '', priority: 'MEDIUM', category: 'jednorazowe' });
-      setShowForm(false);
-      setSubmitting(false);
-      return;
+    setTasks(prev => [newTask, ...(Array.isArray(prev) ? prev : [])]);
+    await saveCloudDocument('tasks', newTask.id, newTask);
+
+    if (!isCloudMode) {
+      try {
+        await axios.post('/api/tasks', newTask);
+      } catch (err) {
+        console.warn('Backend offline, task zachowany w chmurze i cache:', err.message);
+      }
     }
 
-    try {
-      await axios.post('/api/tasks', {
-        title: form.title.trim(),
-        priority: form.priority,
-        category: form.category,
-        target_date: new Date().toISOString().split('T')[0],
-        target_time: '12:00',
-      });
-      setForm({ title: '', priority: 'MEDIUM', category: 'jednorazowe' });
-      setShowForm(false);
-      fetchTasks();
-    } catch (err) {
-      console.error('Error adding task, saving locally', err);
-      setTasks(prev => {
-        const updated = [newTask, ...(Array.isArray(prev) ? prev : [])];
-        saveTasksLocal(updated);
-        return updated;
-      });
-      setForm({ title: '', priority: 'MEDIUM', category: 'jednorazowe' });
-      setShowForm(false);
-    } finally {
-      setSubmitting(false);
-    }
+    setForm({ title: '', priority: 'MEDIUM', category: 'jednorazowe' });
+    setShowForm(false);
+    setSubmitting(false);
   };
 
   const safeTasks = Array.isArray(tasks) ? tasks : [];

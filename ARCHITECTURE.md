@@ -1,6 +1,6 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.2.1 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.3.0 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA  
 **Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop & Firebase Cloud)
 
@@ -10,7 +10,7 @@
 System to zintegrowane środowisko asystenckie oparte na modelu LLM (obecnie Llama-3.3-70b-versatile od Groq). Projekt łączy w sobie cechy inteligentnego terminala poleceń, zarządzania zadaniami (To-Do), kalendarza, czytnika newsów IT oraz monitoringu systemu. 
 
 **Główne Paradygmaty:**
-1. **Desktop-First & Local-First:** Frontend i backend działają lokalnie na maszynie dewelopera (Windows z mostem do WSL/Node.js). Baza danych to plikowy SQLite.
+1. **Desktop-First & Local-First:** Frontend i backend działają lokalnie na maszynie dewelopera (Windows z mostem do WSL/Node.js). Baza danych to plikowy SQLite z mostem synchronizacyjnym do Cloud Firestore.
 2. **LLM as the Core Engine:** Cała logika decyzyjna w zakresie rozumienia poleceń oparta jest na LLM. LLM decyduje jakie funkcje systemowe (Tool Calling) wywołać, a odpowiedź formatuje do ścisłego schematu JSON.
 3. **Clean & Modern Aesthetics**: Interfejs zaprojektowany jest w oparciu o czyste linie, glassmorphism, elegancką i nowoczesną typografię. Asystent J.A.R.V.I.S (główny rdzeń/Mentor) jest przyjazny i inteligentny, z kolei F.R.I.D.A.Y (Worker) wykonuje zadania w hiper-profesjonalnym i zwięzłym tonie.
 
@@ -40,6 +40,10 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   ├── search.js            ← Wrapper na Brave Search API.
 │   ├── pushbullet.js        ← Skrypt nasłuchujący WebSockets API Pushbullet dla powiadomień.
 │   │
+│   ├── /services/           ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
+│   │   ├── cloudSync.js     ← Dwukierunkowa subskrypcja Firestore z optymistycznym cache'em.
+│   │   └── clientAiDispatcher.js ← Autonomiczny silnik zapytań LLM z bezpośrednim fallbackiem do Groq.
+│   │
 │   ├── /ai/                 ← Pliki konfiguracyjne dla agentów AI.
 │   │   ├── prompts.js       ← Zbiór promptów systemowych (Worker, Mentor).
 │   │   └── tools.js         ← Definicje narzędzi (Tool Calling) dla agentów.
@@ -49,9 +53,11 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   │   └── middleware.js    ← Middleware m.in. zabezpieczające i limitujące zapytania.
 │   │
 │   ├── /components/         ← Reużywalne klocki UI w React.
+│   │   ├── CommandPalette.jsx ← Globalna paleta komend i szybkich akcji (Ctrl + K).
 │   │   ├── ErrorBoundary.jsx← Strażnik awarii interfejsu (Crash Guard & Recovery Screen).
 │   │   ├── Terminal.jsx     ← Złożony widget czatu tekstowego z obsługą renderingu markdownu i widżetów w locie.
 │   │   ├── TodoList.jsx     ← Interaktywna lista to-do z obsługą priorytetów i deadline'ów.
+│   │   └── ... (pozostałe widżety UI)
 │   │   └── ... (pozostałe widżety UI)
 │   │
 │   └── /pages/              ← Konkretne podstrony w React Router.

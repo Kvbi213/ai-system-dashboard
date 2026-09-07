@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Calendar as CalendarIcon, Trash2, Clock, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { subscribeCollection, saveCloudDocument, deleteCloudDocument } from '../services/cloudSync.js';
 
 const CalendarPage = () => {
   const [events, setEvents] = useState([]);
@@ -15,49 +16,38 @@ const CalendarPage = () => {
   const isCloudMode = typeof window !== 'undefined' && (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com'));
 
   const getFallbackEvents = () => {
-    try {
-      const saved = localStorage.getItem('system_calendar_events');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.warn(e);
-    }
     const today = new Date().toISOString().split('T')[0];
     return [
       { id: '1', title: 'Start Systemu OmniDash', event_date: today, event_time: '09:00', priority: 'HIGH' }
     ];
   };
 
-  const fetchEvents = async () => {
-    if (isCloudMode) {
-      setEvents(getFallbackEvents());
-      setIsLoading(false);
-      return;
-    }
-    try {
-      const { data } = await axios.get('/api/calendar');
-      if (Array.isArray(data)) {
-        setEvents(data);
-      } else {
-        setEvents(getFallbackEvents());
-      }
-    } catch (err) {
-      console.warn('Używam lokalnych wydarzeń:', err.message);
-      setEvents(getFallbackEvents());
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    const unsubscribe = subscribeCollection('calendar', (cloudEvents) => {
+      if (Array.isArray(cloudEvents)) {
+        setEvents(cloudEvents);
+        setIsLoading(false);
+      }
+    }, getFallbackEvents());
+
+    if (!isCloudMode) {
+      axios.get('/api/calendar')
+        .then(res => {
+          if (Array.isArray(res.data) && res.data.length > 0) {
+            setEvents(res.data);
+            res.data.forEach(e => saveCloudDocument('calendar', e.id, e));
+          }
+        })
+        .catch(() => {})
+        .finally(() => setIsLoading(false));
+    }
+
+    return () => unsubscribe();
+  }, [isCloudMode]);
 
   const deleteEvent = async (id) => {
-    setEvents(prev => {
-      const updated = (Array.isArray(prev) ? prev : []).filter(e => e.id !== id);
-      try { localStorage.setItem('system_calendar_events', JSON.stringify(updated)); } catch {}
-      return updated;
-    });
+    setEvents(prev => (Array.isArray(prev) ? prev : []).filter(e => e.id !== id));
+    await deleteCloudDocument('calendar', id);
     if (!isCloudMode) {
       try {
         await axios.delete(`/api/calendar/${id}`);

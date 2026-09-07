@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { dispatchAiQuery } from '../services/clientAiDispatcher';
 
 const ChatContext = createContext();
 
@@ -146,22 +147,30 @@ export const ChatProvider = ({ children }) => {
 
     setIsProcessing(true);
 
+    const savedNews = localStorage.getItem('system_news_categories');
+    const newsCategories = savedNews ? JSON.parse(savedNews) : ['ai', 'security'];
+    const userName = localStorage.getItem('system_user_name') || 'Użytkownik';
+    const systemLanguage = localStorage.getItem('system_language') || 'pl';
+
     if (mode === 'mentor') {
       setMentorMessages(prev => [...prev, { role: 'user', content: userText }]);
       try {
-        const savedNews = localStorage.getItem('system_news_categories');
-        const newsCategories = savedNews ? JSON.parse(savedNews) : ['ai', 'security'];
-        const userName = localStorage.getItem('system_user_name') || 'Użytkownik';
-        const systemLanguage = localStorage.getItem('system_language') || 'pl';
-        const { data } = await axios.post('/api/agent', { text: userText, mode: 'mentor', newsCategories, userName, language: systemLanguage }, { timeout: 120000 });
-        const content = data.agent_response || t("chatParseErr", "Błąd parsowania odpowiedzi.");
+        const result = await dispatchAiQuery({
+          text: userText,
+          mode: 'mentor',
+          newsCategories,
+          userName,
+          language: systemLanguage
+        });
+
+        const content = result.content || t("chatParseErr", "Błąd parsowania odpowiedzi.");
         setMentorMessages(prev => [...prev, { role: 'ai', content }]);
-        if (data.mentor_thoughts) {
+        if (result.mentor_thoughts) {
           const time = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
-          setThoughtsLog(prev => [`${time} > ${data.mentor_thoughts}`, ...prev]);
+          setThoughtsLog(prev => [`${time} > ${result.mentor_thoughts}`, ...prev]);
         }
         setIsProcessing(false);
-        return { content, widgets: [] };
+        return { content, widgets: result.widgets || [] };
       } catch (err) {
         setMentorMessages(prev => [...prev, { role: 'ai', content: t('chatConnErr', 'BŁĄD POŁĄCZENIA: ') + err.message }]);
         setIsProcessing(false);
@@ -171,35 +180,27 @@ export const ChatProvider = ({ children }) => {
 
     // WORKER MODE
     setWorkerMessages(prev => [...prev, { role: 'user', content: userText }]);
-    let lastError = null;
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      try {
-        const savedNews = localStorage.getItem('system_news_categories');
-        const newsCategories = savedNews ? JSON.parse(savedNews) : ['ai', 'security'];
-        const userName = localStorage.getItem('system_user_name') || 'Użytkownik';
-        const systemLanguage = localStorage.getItem('system_language') || 'pl';
-        const { data } = await axios.post('/api/agent', { text: userText, mode: 'worker', newsCategories, userName, language: systemLanguage }, { timeout: 120000 });
-        let content = data.agent_response;
-        if (!content && data.payload?.agent_response) content = data.payload.agent_response;
-        if (!content && data.payload?.title) content = t('chatDone', 'Wykonano: ') + data.payload.title;
-        if (!content) content = JSON.stringify(data.payload || data);
-        const widgets = data.widgets || (data.widget ? [data.widget] : []);
-        setWorkerMessages(prev => [...prev, { role: 'ai', content, widgets }]);
-        setIsProcessing(false);
-        return { content, widgets };
-      } catch (error) {
-        lastError = error;
-        if (attempt < 3) {
-          await new Promise(r => setTimeout(r, 1500 * attempt));
-        }
-      }
-    }
+    try {
+      const result = await dispatchAiQuery({
+        text: userText,
+        mode: 'worker',
+        newsCategories,
+        userName,
+        language: systemLanguage
+      });
 
-    setWorkerMessages(prev => [...prev, {
-      role: 'ai',
-      content: t('chatTimeout', 'BŁĄD POŁĄCZENIA: Serwer niedostępny po 3 próbach. Sprawdź czy backend działa na porcie 5000. ') + '(' + lastError?.message + ')'
-    }]);
-    setIsProcessing(false);
+      const content = result.content || t('chatDone', 'Polecenie zrealizowane.');
+      const widgets = result.widgets || [];
+      setWorkerMessages(prev => [...prev, { role: 'ai', content, widgets }]);
+      setIsProcessing(false);
+      return { content, widgets };
+    } catch (error) {
+      setWorkerMessages(prev => [...prev, {
+        role: 'ai',
+        content: t('chatTimeout', 'BŁĄD POŁĄCZENIA: ') + (error?.message || 'Nieznany błąd')
+      }]);
+      setIsProcessing(false);
+    }
   };
 
   const value = {

@@ -26,6 +26,7 @@ import OnboardingTour from './modules/components/OnboardingTour';
 import SetupWizard from './modules/components/SetupWizard';
 import GlobalEventListener from './modules/components/GlobalEventListener';
 import ErrorBoundary from './modules/components/ErrorBoundary';
+import CommandPalette from './modules/components/CommandPalette';
 
 // Globalny interceptor zabezpieczający przed parsowaniem HTML jako JSON w przypadku braku backendu / hostingu statycznego
 axios.interceptors.response.use(
@@ -206,6 +207,7 @@ const App = () => {
         <div className="h-[100dvh] w-full bg-background overflow-hidden flex flex-col-reverse md:flex-row font-sans text-textPrimary relative">
           
           <OnboardingTour />
+          <CommandPalette />
           
           {/* Lewy pasek nawigacyjny */}
           <Sidebar />

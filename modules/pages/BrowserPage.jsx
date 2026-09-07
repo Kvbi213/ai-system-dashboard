@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, RotateCw, Home, Shield, ExternalLink } from 'lucide-react';
+import { Search, RotateCw, Home, Shield, ExternalLink, Globe } from 'lucide-react';
 
 const BrowserPage = () => {
   const { t } = useTranslation();
