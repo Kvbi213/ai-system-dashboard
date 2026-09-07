@@ -1,5 +1,20 @@
 ## Wersja Bieżąca
-**v2.6.0**
+**v2.6.1**
+
+## v 2.6.1 — 2026-09-07
+**Typ:** PATCH  
+**Zakres:** Plan Lekcji — Rygorystyczna Selekcja Grupy 1 (38 Jednostek Lekcyjnych) & Pełna Synchronizacja Multi-Platform  
+
+### Zmiany
+- [*] Zmodyfikowano: Oczyszczono plan lekcji w `modules/services/cloudSync.js`, Firestore oraz SQLite — usunięto wszystkie pozycje drugiej grupy. Użytkownik przypisany jest bezwzględnie do Grupy 1 (pierwsza pozycja na każdym dzielonym bloku).
+- [*] Zmodyfikowano: Wykonano migrację 38 zajęć bezpośrednio do kolekcji `timetable` w Cloud Firestore (`void-potato-7721`) oraz lokalnej bazy SQLite (`data/tasks.sqlite`).
+- [*] Zmodyfikowano: Skompilowano z wynikiem 0 błędów i wdrożono na **Firebase Hosting** (`https://void-potato-7721.web.app`) oraz **Vercel Production** (`https://ai-system-dashboard.vercel.app`).
+- [*] Zmodyfikowano: Zaktualizowano i zrekompilowano repozytorium `AI SYSTEM DASHBOARD GITHUB - BEZ FIREBASE`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 2.6.0 — 2026-09-07
 **Typ:** MINOR  

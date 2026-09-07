@@ -45,26 +45,26 @@ export const INITIAL_FIRESTORE_DATA = {
     {
         "id": "mon_2",
         "day": "monday",
-        "subject": "Informatyka / Język niemiecki",
+        "subject": "Informatyka",
         "time_start": "08:50",
         "time_end": "09:35",
-        "room": "Sala 17 / Sala 14",
-        "teacher": "AB / GP",
+        "room": "Sala 17",
+        "teacher": "AB",
         "type": "Laboratorium",
         "color": "emerald",
-        "notes": "Podział na grupy: Gr 1: Informatyka (AB, s. 17) | Gr 2: J. niemiecki (GP, s. 14)"
+        "notes": "Grupa 1"
     },
     {
         "id": "mon_3",
         "day": "monday",
-        "subject": "Informatyka / Język angielski zawodowy",
+        "subject": "Informatyka",
         "time_start": "09:40",
         "time_end": "10:25",
-        "room": "Sala 17 / Sz1",
-        "teacher": "AB / ZJ",
+        "room": "Sala 17",
+        "teacher": "AB",
         "type": "Laboratorium",
         "color": "emerald",
-        "notes": "Podział na grupy: Gr 1: Informatyka (AB, s. 17) | Gr 2: J. angielski zawodowy (ZJ, Sz1)"
+        "notes": "Grupa 1"
     },
     {
         "id": "mon_4",
@@ -76,7 +76,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "KP",
         "type": "Wykład",
         "color": "amber",
-        "notes": "Lekcja 4"
+        "notes": ""
     },
     {
         "id": "mon_5",
@@ -88,7 +88,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "MS",
         "type": "Wykład",
         "color": "cyan",
-        "notes": "Lekcja 5"
+        "notes": ""
     },
     {
         "id": "mon_6",
@@ -100,7 +100,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "PW",
         "type": "Laboratorium",
         "color": "indigo",
-        "notes": "Lekcja 6: Teoria i architektura systemów"
+        "notes": "Teoria i architektura systemów"
     },
     {
         "id": "mon_7",
@@ -112,7 +112,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "PW",
         "type": "Laboratorium",
         "color": "indigo",
-        "notes": "Lekcja 7: Warsztaty praktyczne"
+        "notes": "Warsztaty praktyczne"
     },
     {
         "id": "mon_8",
@@ -124,31 +124,31 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "PS",
         "type": "Wykład",
         "color": "purple",
-        "notes": "Lekcja 8"
+        "notes": ""
     },
     {
         "id": "tue_1",
         "day": "tuesday",
-        "subject": "Pracownia urządzeń techniki komput. / Pracownia systemów oper.",
+        "subject": "Pracownia urządzeń techniki komputerowej",
         "time_start": "08:00",
         "time_end": "08:45",
-        "room": "Sala 1.16 / Sala 1.15",
-        "teacher": "PW / SR",
+        "room": "Sala 1.16",
+        "teacher": "PW",
         "type": "Laboratorium",
         "color": "indigo",
-        "notes": "Gr 1: Pracownia urządzeń (PW, 1.16) | Gr 2: Pracownia systemów (SR, 1.15)"
+        "notes": "Grupa 1"
     },
     {
         "id": "tue_2",
         "day": "tuesday",
-        "subject": "Pracownia urządzeń techniki komput. / Pracownia systemów oper.",
+        "subject": "Pracownia urządzeń techniki komputerowej",
         "time_start": "08:50",
         "time_end": "09:35",
-        "room": "Sala 1.16 / Sala 1.15",
-        "teacher": "PW / SR",
+        "room": "Sala 1.16",
+        "teacher": "PW",
         "type": "Laboratorium",
         "color": "indigo",
-        "notes": "Gr 1: Pracownia urządzeń (PW, 1.16) | Gr 2: Pracownia systemów (SR, 1.15)"
+        "notes": "Grupa 1"
     },
     {
         "id": "tue_3",
@@ -165,50 +165,50 @@ export const INITIAL_FIRESTORE_DATA = {
     {
         "id": "tue_4",
         "day": "tuesday",
-        "subject": "Wychowanie fizyczne / Język angielski",
+        "subject": "Wychowanie fizyczne",
         "time_start": "10:40",
         "time_end": "11:25",
-        "room": "Hala / Sala 18",
-        "teacher": "Gł / ZJ",
+        "room": "Hala",
+        "teacher": "Gł",
         "type": "Ćwiczenia",
         "color": "cyan",
-        "notes": "Gr 1: WF (Gł, Hala) | Gr 2: J. angielski (ZJ, s. 18)"
+        "notes": "Grupa 1"
     },
     {
         "id": "tue_5",
         "day": "tuesday",
-        "subject": "Wychowanie fizyczne / Pracownia urządzeń techniki komput.",
+        "subject": "Wychowanie fizyczne",
         "time_start": "11:30",
         "time_end": "12:15",
-        "room": "Hala / Sala 16",
-        "teacher": "Gł / BG",
+        "room": "Hala",
+        "teacher": "Gł",
         "type": "Ćwiczenia",
         "color": "cyan",
-        "notes": "Gr 1: WF (Gł, Hala) | Gr 2: Pracownia urządzeń (BG, s. 16)"
+        "notes": "Grupa 1"
     },
     {
         "id": "tue_6",
         "day": "tuesday",
-        "subject": "Pracownia systemów oper. / Pracownia urządzeń techniki komput.",
+        "subject": "Pracownia systemów operacyjnych",
         "time_start": "12:20",
         "time_end": "13:05",
-        "room": "Sala 1.2 / Sala 16",
-        "teacher": "SR / BG",
+        "room": "Sala 1.2",
+        "teacher": "SR",
         "type": "Laboratorium",
         "color": "indigo",
-        "notes": "Gr 1: Pracownia systemów (SR, 1.2) | Gr 2: Pracownia urządzeń (BG, s. 16)"
+        "notes": "Grupa 1"
     },
     {
         "id": "tue_7",
         "day": "tuesday",
-        "subject": "Pracownia systemów oper. / Wychowanie fizyczne",
+        "subject": "Pracownia systemów operacyjnych",
         "time_start": "13:15",
         "time_end": "14:00",
-        "room": "Sala 1.2 / Hala",
-        "teacher": "SR / LK",
+        "room": "Sala 1.2",
+        "teacher": "SR",
         "type": "Laboratorium",
         "color": "indigo",
-        "notes": "Gr 1: Pracownia systemów (SR, 1.2) | Gr 2: WF (LK, Hala)"
+        "notes": "Grupa 1"
     },
     {
         "id": "tue_8",
@@ -220,7 +220,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "ZB",
         "type": "Wykład",
         "color": "rose",
-        "notes": "Lekcja 8"
+        "notes": ""
     },
     {
         "id": "wed_4",
@@ -232,7 +232,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "R3",
         "type": "Wykład",
         "color": "amber",
-        "notes": "Lekcja 4"
+        "notes": ""
     },
     {
         "id": "wed_5",
@@ -244,7 +244,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "JŁ",
         "type": "Wykład",
         "color": "emerald",
-        "notes": "Lekcja 5"
+        "notes": ""
     },
     {
         "id": "wed_6",
@@ -256,7 +256,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "BG",
         "type": "Laboratorium",
         "color": "indigo",
-        "notes": "Lekcja 6: Sprzęt i diagnostyka"
+        "notes": "Sprzęt i diagnostyka"
     },
     {
         "id": "wed_7",
@@ -268,7 +268,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "BG",
         "type": "Laboratorium",
         "color": "indigo",
-        "notes": "Lekcja 7: Warsztaty sprzętowe"
+        "notes": "Warsztaty sprzętowe"
     },
     {
         "id": "wed_8",
@@ -280,7 +280,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "WW",
         "type": "Wykład",
         "color": "purple",
-        "notes": "Lekcja 8"
+        "notes": ""
     },
     {
         "id": "wed_9",
@@ -292,7 +292,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "ZB",
         "type": "Wykład",
         "color": "rose",
-        "notes": "Lekcja 9"
+        "notes": ""
     },
     {
         "id": "thu_1",
@@ -304,31 +304,31 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "AN",
         "type": "Wykład",
         "color": "blue",
-        "notes": "Lekcja 1"
+        "notes": ""
     },
     {
         "id": "thu_2",
         "day": "thursday",
-        "subject": "Język angielski / Wychowanie fizyczne",
+        "subject": "Język angielski",
         "time_start": "08:50",
         "time_end": "09:35",
-        "room": "Sala Z2 / Hala",
-        "teacher": "ZJ / LK",
-        "type": "Ćwiczenia",
+        "room": "Sala Z2",
+        "teacher": "ZJ",
+        "type": "Lektorat",
         "color": "amber",
-        "notes": "Gr 1: J. angielski (ZJ, Z2) | Gr 2: WF (LK, Hala)"
+        "notes": "Grupa 1"
     },
     {
         "id": "thu_3",
         "day": "thursday",
-        "subject": "Język angielski zawodowy / Wychowanie fizyczne",
+        "subject": "Język angielski zawodowy",
         "time_start": "09:40",
         "time_end": "10:25",
-        "room": "Sala Z2 / Hala",
-        "teacher": "ZJ / LK",
-        "type": "Ćwiczenia",
+        "room": "Sala Z2",
+        "teacher": "ZJ",
+        "type": "Lektorat",
         "color": "amber",
-        "notes": "Gr 1: J. ang. zawodowy (ZJ, Z2) | Gr 2: WF (LK, Hala)"
+        "notes": "Grupa 1"
     },
     {
         "id": "thu_4",
@@ -340,7 +340,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "KŁ",
         "type": "Laboratorium",
         "color": "cyan",
-        "notes": "Lekcja 4: Konfiguracja LAN"
+        "notes": "Konfiguracja LAN"
     },
     {
         "id": "thu_5",
@@ -352,7 +352,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "KŁ",
         "type": "Laboratorium",
         "color": "cyan",
-        "notes": "Lekcja 5: Protokoły i routing"
+        "notes": "Protokoły i routing"
     },
     {
         "id": "thu_6",
@@ -364,7 +364,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "ZB",
         "type": "Wykład",
         "color": "rose",
-        "notes": "Lekcja 6"
+        "notes": ""
     },
     {
         "id": "thu_7",
@@ -376,19 +376,19 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "ZB",
         "type": "Wykład",
         "color": "rose",
-        "notes": "Lekcja 7"
+        "notes": ""
     },
     {
         "id": "thu_8",
         "day": "thursday",
-        "subject": "Język niemiecki (Grupy)",
+        "subject": "Język niemiecki",
         "time_start": "14:05",
         "time_end": "14:50",
-        "room": "Sala Z1 / Sala 01",
-        "teacher": "BC / GP",
+        "room": "Sala Z1",
+        "teacher": "BC",
         "type": "Lektorat",
         "color": "amber",
-        "notes": "Gr 1: BC (Z1) | Gr 2: GP (01)"
+        "notes": "Grupa 1"
     },
     {
         "id": "thu_9",
@@ -400,43 +400,43 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "JŁ",
         "type": "Wykład",
         "color": "emerald",
-        "notes": "Lekcja 9"
+        "notes": ""
     },
     {
         "id": "fri_1",
         "day": "friday",
-        "subject": "Język angielski / Informatyka",
+        "subject": "Język angielski",
         "time_start": "08:00",
         "time_end": "08:45",
-        "room": "Sala Z2 / Sala 1.15",
-        "teacher": "ZJ / AP",
+        "room": "Sala Z2",
+        "teacher": "ZJ",
         "type": "Lektorat",
         "color": "amber",
-        "notes": "Gr 1: J. angielski (ZJ, Z2) | Gr 2: Informatyka (AP, 1.15)"
+        "notes": "Grupa 1"
     },
     {
         "id": "fri_2",
         "day": "friday",
-        "subject": "Język niemiecki / Informatyka",
+        "subject": "Język niemiecki",
         "time_start": "08:50",
         "time_end": "09:35",
-        "room": "Sala Z1 / Sala 1.15",
-        "teacher": "BC / AP",
+        "room": "Sala Z1",
+        "teacher": "BC",
         "type": "Lektorat",
         "color": "amber",
-        "notes": "Gr 1: J. niemiecki (BC, Z1) | Gr 2: Informatyka (AP, 1.15)"
+        "notes": "Grupa 1"
     },
     {
         "id": "fri_3",
         "day": "friday",
-        "subject": "Wychowanie fizyczne / Język angielski",
+        "subject": "Wychowanie fizyczne",
         "time_start": "09:40",
         "time_end": "10:25",
-        "room": "Hala / Sala 14",
-        "teacher": "Gł / ZJ",
+        "room": "Hala",
+        "teacher": "Gł",
         "type": "Ćwiczenia",
         "color": "cyan",
-        "notes": "Gr 1: WF (Gł, Hala) | Gr 2: J. angielski (ZJ, s. 14)"
+        "notes": "Grupa 1"
     },
     {
         "id": "fri_4",
@@ -448,7 +448,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "PW",
         "type": "Laboratorium",
         "color": "cyan",
-        "notes": "Lekcja 4: Architektura sieciowa"
+        "notes": "Architektura sieciowa"
     },
     {
         "id": "fri_5",
@@ -460,7 +460,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "KP",
         "type": "Wykład",
         "color": "amber",
-        "notes": "Lekcja 5"
+        "notes": ""
     },
     {
         "id": "fri_6",
@@ -472,7 +472,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "AC",
         "type": "Wykład",
         "color": "purple",
-        "notes": "Lekcja 6"
+        "notes": ""
     },
     {
         "id": "fri_7",
@@ -484,7 +484,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "AN",
         "type": "Wykład",
         "color": "blue",
-        "notes": "Lekcja 7"
+        "notes": ""
     },
     {
         "id": "fri_8",
@@ -496,7 +496,7 @@ export const INITIAL_FIRESTORE_DATA = {
         "teacher": "AN",
         "type": "Wykład",
         "color": "blue",
-        "notes": "Lekcja 8"
+        "notes": ""
     }
 ]
 };
