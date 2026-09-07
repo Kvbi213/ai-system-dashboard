@@ -82,6 +82,20 @@ function getClientContextSummary() {
   try {
     const rawBrain = localStorage.getItem('cloud_cache_operator_brain');
     if (rawBrain) operatorBrain = JSON.parse(rawBrain);
+    const roomFactExists = operatorBrain.some(b => b && b.fact && b.fact.toLowerCase().includes('sale zaczynające się od'));
+    if (!roomFactExists) {
+      const roomFact = {
+        id: 'b5',
+        category: 'Wiedza',
+        fact: 'Sale lekcyjne zaczynające się od „Z” oraz „SZ” oraz sale z numerem po kropce (np. 1.2, 1.16) znajdują się w innym budynku niż sale bez takiego oznaczenia (np. sala 34, 17).',
+        created_at: new Date().toISOString()
+      };
+      operatorBrain.push(roomFact);
+      try {
+        localStorage.setItem('cloud_cache_operator_brain', JSON.stringify(operatorBrain));
+        saveCloudDocument('operator_brain', roomFact.id, roomFact);
+      } catch {}
+    }
   } catch {}
 
   let timetable = [];
@@ -195,20 +209,25 @@ export function parseAndExecuteAiActionsWithWidgets(text) {
 
   let cleanedText = text;
   const extraWidgets = [];
-  const actionRegex = /\[ACTION:([A-Z_]+)([^\]]*)\]/g;
+  // Odporny regex dopasowujący tagi akcji nawet jeśli model otoczy je pogrubieniem (**), grawisem (`) lub spacjami
+  const actionRegex = /(?:\*\*|\*|`|\s)*\[(?:\*\*|\*|`|\s)*ACTION\s*:\s*(?:\*\*|\*|`|\s)*([A-Za-z_]+)(?:\*\*|\*|`|\s)*([^\]]*)\](?:\*\*|\*|`|\s)*/gi;
   let match;
 
   while ((match = actionRegex.exec(text)) !== null) {
-    const actionType = match[1];
+    const actionType = (match[1] || '').trim().toUpperCase();
     const rawAttrs = match[2] || '';
     
     const attrs = {};
-    const attrRegex = /([a-zA-Z0-9_]+)=["']([^"']*)["']|([a-zA-Z0-9_]+)=([^\s]+)/g;
+    // Wsparcie dla cudzysłowów pojedynczych, podwójnych, polskich („ ”) oraz francuskich/typograficznych (« »)
+    const attrRegex = /([a-zA-Z0-9_]+)\s*=\s*["'„”«»]([^"'„”«»]*)["'„”«»]|([a-zA-Z0-9_]+)\s*=\s*([^\s\]]+)/g;
     let attrMatch;
     while ((attrMatch = attrRegex.exec(rawAttrs)) !== null) {
-      const key = attrMatch[1] || attrMatch[3];
+      const key = (attrMatch[1] || attrMatch[3] || '').trim();
       const val = attrMatch[2] !== undefined ? attrMatch[2] : attrMatch[4];
-      attrs[key] = val;
+      if (key) {
+        attrs[key] = val;
+        attrs[key.toLowerCase()] = val;
+      }
     }
 
     try {
@@ -433,8 +452,8 @@ export function parseAndExecuteAiActionsWithWidgets(text) {
     }
   }
 
-  // Oczyść znaczniki akcji z tekstu użytkownika
-  cleanedText = cleanedText.replace(/\[ACTION:[A-Z_]+[^\]]*\]/g, '').trim();
+  // Oczyść znaczniki akcji z tekstu użytkownika (w tym otoczone przez **, * lub `)
+  cleanedText = cleanedText.replace(/(?:\*\*|\*|`|\s)*\[(?:\*\*|\*|`|\s)*ACTION\s*:\s*[A-Za-z_]+(?:\*\*|\*|`|\s)*[^\]]*\](?:\*\*|\*|`|\s)*/gi, '').trim();
   return { cleanedText, extraWidgets };
 }
 
@@ -586,7 +605,7 @@ Kalendarz:
 ${calendarSummary}
 Zasady: Posiadasz bezpośredni dostęp do internetu oraz bazy Firestore. Odpowiadaj wyczerpująco, logicznie i wspierająco w języku ${language}.
 Gdy przedstawiasz tabele danych, pogodę, finanse czy harmonogramy, ZAWSZE używaj czytelnych tabel Markdown (| Kolumna | ... |).
-Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu: [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].`
+Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu w czystej postaci (BEZ pogrubień **): [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].`
         : `Jesteś F.R.I.D.A.Y — inżynieryjnym silnikiem wykonawczym w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
@@ -602,7 +621,7 @@ Kalendarz:
 ${calendarSummary}
 Zasady: Posiadasz bezpośredni dostęp do internetu oraz bazy Firestore. Odpowiadaj konkretnie, merytorycznie i technicznie w języku ${language}.
 Gdy przedstawiasz tabele danych, pogodę, finanse czy harmonogramy, ZAWSZE używaj czytelnych tabel Markdown (| Kolumna | ... |).
-Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu: [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].`;
+Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu w czystej postaci (BEZ pogrubień **): [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].`;
 
       const response = await fetch(GROQ_ENDPOINT, {
         method: 'POST',
@@ -1032,6 +1051,28 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
       mentor_thoughts: `Zaplanowano wydarzenie "${title}" na dzień ${eventDate}.`,
       widgets: ['calendar']
     };
+  }
+
+  // Obsługa usuwania wydarzenia z Kalendarza w języku naturalnym
+  if (lower.startsWith('usuń wydarzenie') || lower.startsWith('skasuj wydarzenie') || lower.startsWith('usuń spotkanie') || lower.startsWith('odwołaj spotkanie')) {
+    const query = text.replace(/^(usuń\s+(?:wydarzenie|spotkanie)|skasuj\s+wydarzenie|odwołaj\s+spotkanie)[:\s]*/i, '').trim().toLowerCase();
+    const calendar = Array.isArray(context.calendar) ? context.calendar : [];
+    const found = calendar.find(e => (e.title && e.title.toLowerCase().includes(query)) || e.id === query);
+    if (found) {
+      deleteCloudDocument('calendar', found.id);
+      window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'calendar' } }));
+      return {
+        content: `[-] **Pomyślnie usunięto wydarzenie z Kalendarza:**\n\n- 🗑️ **${found.title}** (${found.event_date || 'brak daty'})\n\nWpis został usunięty z bazy Firestore i zsynchronizowany na wszystkich urządzeniach.`,
+        mentor_thoughts: `Skasowano wydarzenie "${found.title}" z kalendarza.`,
+        widgets: ['calendar']
+      };
+    } else {
+      return {
+        content: `[!] Nie znaleziono wydarzenia pasującego do frazy: *"${query}"*. Poniżej wyświetlono aktualny kalendarz:`,
+        mentor_thoughts: `Nie odnaleziono wydarzenia "${query}".`,
+        widgets: ['calendar']
+      };
+    }
   }
 
   // Obsługa zapytań o Kalendarz

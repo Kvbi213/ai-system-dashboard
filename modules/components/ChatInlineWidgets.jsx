@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { 
   GraduationCap, Clock, MapPin, User, ArrowUpRight, 
   Wallet, TrendingUp, TrendingDown, PieChart, 
-  Dumbbell, Flame, Calendar as CalendarIcon, Tag, CheckCircle2 
+  Dumbbell, Flame, Calendar as CalendarIcon, Tag, CheckCircle2, Trash2 
 } from 'lucide-react';
-import { subscribeCollection } from '../services/cloudSync';
+import { subscribeCollection, deleteCloudDocument } from '../services/cloudSync';
 
 const DAY_MAP = {
   0: 'sunday',
@@ -444,13 +444,26 @@ export const CalendarChatWidget = () => {
                   {ev.event_date || ev.date} {ev.event_time ? `• ${ev.event_time}` : ''}
                 </span>
               </div>
-              <span className={`text-[10px] font-mono px-2 py-0.5 rounded border shrink-0 ${
-                ev.priority === 'HIGH' ? 'bg-rose-500/15 text-rose-400 border-rose-500/30' :
-                ev.priority === 'LOW' ? 'bg-slate-500/15 text-slate-400 border-slate-500/30' :
-                'bg-cyan-500/15 text-cyan-400 border-cyan-500/30'
-              }`}>
-                {ev.priority || 'MED'}
-              </span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                  ev.priority === 'HIGH' ? 'bg-rose-500/15 text-rose-400 border-rose-500/30' :
+                  ev.priority === 'LOW' ? 'bg-slate-500/15 text-slate-400 border-slate-500/30' :
+                  'bg-cyan-500/15 text-cyan-400 border-cyan-500/30'
+                }`}>
+                  {ev.priority || 'MED'}
+                </span>
+                <button
+                  onClick={() => {
+                    deleteCloudDocument('calendar', ev.id);
+                    setEvents(prev => prev.filter(x => x.id !== ev.id));
+                    window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'calendar' } }));
+                  }}
+                  className="p-1 rounded text-textMuted hover:text-rose-400 hover:bg-rose-500/15 transition-colors"
+                  title="Usuń to wydarzenie"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           ))}
         </div>

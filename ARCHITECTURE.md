@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.11.0 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.11.2 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Cloud-First Firestore Sync, Budgeting 50/30/20 & Funds Allocation, Calendar Management, Warsaw Timezone AI Engine, Vercel Serverless & Firebase Hosting)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Cloud-First Firestore Sync, Resilient Action Parser, Budgeting 50/30/20 & Funds Allocation, Calendar Management, Warsaw Timezone AI Engine, Vercel Serverless & Firebase Hosting)
 
 ---
 

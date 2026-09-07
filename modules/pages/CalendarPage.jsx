@@ -14,6 +14,7 @@ const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const [showAddModal, setShowAddModal] = useState(false);
+  const [viewingEvent, setViewingEvent] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     event_date: new Date().toISOString().split('T')[0],
@@ -185,7 +186,16 @@ const CalendarPage = () => {
 
         <div className="hidden sm:flex mt-1 w-full flex-col gap-0.5 overflow-hidden">
           {dayEvents.slice(0, 2).map((ev) => (
-            <div key={ev.id} className="text-[9px] uppercase font-mono tracking-wider truncate text-accentPrimary/90 bg-accentPrimary/10 px-1 rounded">
+            <div 
+              key={ev.id} 
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedDate(iterDate);
+                setViewingEvent(ev);
+              }}
+              className="text-[9px] uppercase font-mono tracking-wider truncate text-accentPrimary/90 bg-accentPrimary/10 hover:bg-accentPrimary/25 px-1 rounded cursor-pointer transition-colors"
+              title="Kliknij, aby wyświetlić szczegóły lub usunąć"
+            >
               {ev.title}
             </div>
           ))}
@@ -281,22 +291,57 @@ const CalendarPage = () => {
                  Brak zaplanowanych wydarzeń w przyszłości.
                </div>
              ) : (
-               <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
-                 {upcomingEvents.map(ev => (
-                   <button 
-                     key={`upc-${ev.id}`} 
-                     onClick={() => jumpToDate(ev.event_date)}
-                     className="shrink-0 w-64 p-4 glass-panel border border-border hover:border-accentPrimary/50 rounded-xl text-left transition-all group"
-                   >
-                     <div className="flex items-center gap-2 text-accentPrimary font-mono text-xs mb-2">
-                       <Clock className="w-3 h-3" />
-                       {ev.event_date}
-                     </div>
-                     <h4 className="font-bold text-textPrimary truncate group-hover:text-accentPrimary transition-colors">{ev.title}</h4>
-                   </button>
-                 ))}
-               </div>
-             )}
+                <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+                  {upcomingEvents.map(ev => (
+                    <div 
+                      key={`upc-${ev.id}`} 
+                      onClick={() => {
+                        jumpToDate(ev.event_date);
+                        setViewingEvent(ev);
+                      }}
+                      className="shrink-0 w-64 p-4 glass-panel border border-border hover:border-accentPrimary/50 rounded-xl text-left transition-all group cursor-pointer flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <div className="flex items-center gap-1.5 text-accentPrimary font-mono text-xs">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>{ev.event_date}</span>
+                            {ev.event_time && <span className="text-textMuted">• {ev.event_time}</span>}
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteEvent(ev.id);
+                            }}
+                            className="p-1 rounded text-textMuted hover:text-rose-400 hover:bg-rose-500/15 transition-colors"
+                            title="Usuń to wydarzenie"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <h4 className="font-bold text-textPrimary truncate group-hover:text-accentPrimary transition-colors text-sm">{ev.title}</h4>
+                        {ev.description && (
+                          <p className="text-xs text-textMuted line-clamp-1 mt-1">{ev.description}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-3 pt-2 border-t border-border/40">
+                        <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${
+                          ev.priority === 'HIGH' ? 'bg-rose-500/15 text-rose-400 border-rose-500/30' :
+                          ev.priority === 'LOW' ? 'bg-slate-500/15 text-slate-400 border-slate-500/30' :
+                          'bg-cyan-500/15 text-cyan-400 border-cyan-500/30'
+                        }`}>
+                          {ev.priority || 'MED'}
+                        </span>
+                        {ev.category && (
+                          <span className="text-[10px] font-mono text-textMuted truncate">
+                            {ev.category}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
           </div>
         </div>
 
@@ -335,17 +380,45 @@ const CalendarPage = () => {
             ) : (
               <div className="flex flex-col gap-3 sm:gap-4">
                 {selectedDayEvents.map(ev => (
-                  <div key={`det-${ev.id}`} className="p-3 sm:p-4 rounded-xl bg-surface/50 border border-border group relative">
-                    <button 
-                      onClick={() => deleteEvent(ev.id)} 
-                      className="absolute top-3 sm:top-4 right-3 sm:right-4 text-textMuted hover:text-red-500 transition-colors opacity-80 sm:opacity-0 sm:group-hover:opacity-100 p-1"
-                      title="Usuń wydarzenie"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                    <h4 className="font-bold text-textPrimary pr-6 mb-2">{ev.title}</h4>
+                  <div 
+                    key={`det-${ev.id}`} 
+                    onClick={() => setViewingEvent(ev)}
+                    className="p-3 sm:p-4 rounded-xl bg-surface/50 border border-border hover:border-accentPrimary/40 transition-all cursor-pointer group flex flex-col gap-2"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                          ev.priority === 'HIGH' ? 'bg-rose-500/15 text-rose-400 border-rose-500/30' :
+                          ev.priority === 'LOW' ? 'bg-slate-500/15 text-slate-400 border-slate-500/30' :
+                          'bg-cyan-500/15 text-cyan-400 border-cyan-500/30'
+                        }`}>
+                          {ev.priority || 'MED'}
+                        </span>
+                        {ev.category && (
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-textMuted border border-white/10">
+                            {ev.category}
+                          </span>
+                        )}
+                        {ev.event_time && (
+                          <span className="text-xs font-mono text-accentPrimary flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> {ev.event_time}
+                          </span>
+                        )}
+                      </div>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteEvent(ev.id);
+                        }} 
+                        className="p-1.5 rounded-lg text-textMuted hover:text-rose-400 hover:bg-rose-500/15 border border-transparent hover:border-rose-500/30 transition-all shrink-0"
+                        title="Usuń wydarzenie"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <h4 className="font-bold text-textPrimary text-sm sm:text-base group-hover:text-accentPrimary transition-colors">{ev.title}</h4>
                     {ev.description && (
-                      <p className="text-sm text-textMuted leading-relaxed">
+                      <p className="text-xs sm:text-sm text-textMuted leading-relaxed line-clamp-3">
                         {ev.description}
                       </p>
                     )}
@@ -461,6 +534,82 @@ const CalendarPage = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Szczegółów Wydarzenia & Usuwania */}
+      {viewingEvent && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-background border border-border rounded-xl w-full max-w-md overflow-hidden shadow-2xl animate-scale-in">
+            <div className="p-4 border-b border-border flex justify-between items-center bg-black/20">
+              <h2 className="font-mono text-accentPrimary font-bold text-base flex items-center gap-2">
+                <CalendarIcon className="w-4 h-4" /> Szczegóły Wydarzenia
+              </h2>
+              <button onClick={() => setViewingEvent(null)} className="text-textMuted hover:text-white transition-colors">✕</button>
+            </div>
+            
+            <div className="p-5 flex flex-col gap-4">
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-textMuted block mb-1">Tytuł</span>
+                <h3 className="text-lg font-bold text-textPrimary">{viewingEvent.title}</h3>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-black/20 border border-border/50 font-mono text-xs">
+                <div>
+                  <span className="text-textMuted block text-[10px] mb-0.5">Termin:</span>
+                  <span className="text-accentPrimary font-bold flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" /> {viewingEvent.event_date} {viewingEvent.event_time ? `• ${viewingEvent.event_time}` : ''}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-textMuted block text-[10px] mb-0.5">Priorytet:</span>
+                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded border ${
+                    viewingEvent.priority === 'HIGH' ? 'bg-rose-500/15 text-rose-400 border-rose-500/30' :
+                    viewingEvent.priority === 'LOW' ? 'bg-slate-500/15 text-slate-400 border-slate-500/30' :
+                    'bg-cyan-500/15 text-cyan-400 border-cyan-500/30'
+                  }`}>
+                    {viewingEvent.priority || 'MEDIUM'}
+                  </span>
+                </div>
+                {viewingEvent.category && (
+                  <div className="col-span-2 pt-1 border-t border-border/30">
+                    <span className="text-textMuted block text-[10px] mb-0.5">Kategoria:</span>
+                    <span className="text-textPrimary">{viewingEvent.category}</span>
+                  </div>
+                )}
+              </div>
+
+              {viewingEvent.description && (
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-textMuted block mb-1">Opis / Notatka</span>
+                  <p className="text-xs sm:text-sm text-textMuted bg-black/20 p-3 rounded-lg border border-border/40 whitespace-pre-wrap leading-relaxed">
+                    {viewingEvent.description}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center pt-2 mt-2 border-t border-border/40">
+                <button
+                  type="button"
+                  onClick={() => {
+                    deleteEvent(viewingEvent.id);
+                    setViewingEvent(null);
+                  }}
+                  className="px-4 py-2 font-mono text-xs bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 font-bold rounded-lg border border-rose-500/30 transition-all flex items-center gap-1.5"
+                  title="Trwale usuń to wydarzenie"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Usuń wydarzenie
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewingEvent(null)}
+                  className="px-4 py-2 font-mono text-xs bg-white/10 hover:bg-white/15 text-textPrimary rounded-lg transition-colors"
+                >
+                  Zamknij
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

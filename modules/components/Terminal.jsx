@@ -81,7 +81,7 @@ const ChatMessage = ({ msg, mode = 'worker' }) => {
     }
     window.speechSynthesis.cancel();
     const clean = (msg.content || '')
-      .replace(/\[ACTION:[A-Z_]+[^\]]*\]/g, '')
+      .replace(/(?:\*\*|\*|`|\s)*\[(?:\*\*|\*|`|\s)*ACTION\s*:\s*[A-Za-z_]+(?:\*\*|\*|`|\s)*[^\]]*\](?:\*\*|\*|`|\s)*/gi, '')
       .replace(new RegExp('\\|[\\s\\-|:]+\\|', 'g'), ' ')
       .replace(/\|/g, ', ')
       .replace(/[*_~`#>-]/g, ' ')

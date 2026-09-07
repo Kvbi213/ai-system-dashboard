@@ -54,7 +54,8 @@ const filesToSync = [
   'package.json',
   'HISTORY.md',
   'ARCHITECTURE.md',
-  'docs/versions/v2.11.0.md'
+  'docs/versions/v2.11.0.md',
+  'docs/versions/v2.11.1.md'
 ];
 
 filesToSync.forEach(relPath => {

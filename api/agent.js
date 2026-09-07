@@ -399,7 +399,8 @@ Gdy użytkownik prosi Cię o dodanie, modyfikację lub usunięcie danych w syste
   [ACTION:FORGET fact="Fakt do usunięcia"]
 - Widżety i Nawigacja:
   [ACTION:SHOW_WIDGET name="timetable|finances|workouts|calendar|weather|tasks|news|system"]
-  [ACTION:NAVIGATE path="/timetable|/finances|/workouts|/calendar|/chat|/"]`
+  [ACTION:NAVIGATE path="/timetable|/finances|/workouts|/calendar|/chat|/"]
+KRYTYCZNA REGUŁA SKŁADNI: Znaczniki akcji emituj ZAWSZE na samym końcu w czystej postaci [ACTION:NAZWA klucz="wartość"]. BEZWZGLĘDNY ZAKAZ pogrubiania (** ani `) wewnątrz ani wokół znaczników.`
       : `Jesteś F.R.I.D.A.Y — wysoko wyspecjalizowanym inżynieryjnym systemem wykonawczym (Core Worker Engine) w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy (Polska / Warszawa): ${dateStr}, godzina ${timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${dateStr}, godzina ${timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
@@ -457,7 +458,8 @@ Gdy użytkownik prosi Cię o dodanie, modyfikację lub usunięcie danych w syste
   [ACTION:FORGET fact="Fakt do usunięcia"]
 - Widżety i Nawigacja:
   [ACTION:SHOW_WIDGET name="timetable|finances|workouts|calendar|weather|tasks|news|system"]
-  [ACTION:NAVIGATE path="/timetable|/finances|/workouts|/calendar|/chat|/"]`;
+  [ACTION:NAVIGATE path="/timetable|/finances|/workouts|/calendar|/chat|/"]
+KRYTYCZNA REGUŁA SKŁADNI: Znaczniki akcji emituj ZAWSZE na samym końcu w czystej postaci [ACTION:NAZWA klucz="wartość"]. BEZWZGLĘDNY ZAKAZ pogrubiania (** ani `) wewnątrz ani wokół znaczników.`;
 
     const targetModel = model || 'openai/gpt-oss-120b';
     let chatCompletion;

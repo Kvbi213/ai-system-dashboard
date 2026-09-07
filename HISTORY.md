@@ -1,5 +1,40 @@
 ## Wersja Bieżąca
-**v2.11.0**
+**v2.11.2**
+
+## v 2.11.2 — 2026-09-07
+**Typ:** PATCH  
+**Zakres:** Odporny Parser Znaczników Akcji AI (obsługa pogrubień Markdown **, grawisów `, cudzysłowów typograficznych), Trwałe Utrwalenie Pamięci Sal Lekcyjnych w SQLite i Firestore (`operator_brain`), Wielopoziomowe Usuwanie Wydarzeń z Kalendarza & Pełny Audyt Metryk Kodu.
+
+### Zmiany
+- [+] Dodano: Elastyczny i odporny parser akcji agenta AI w `clientAiDispatcher.js` dopasowujący tagi akcji nawet wtedy, gdy model otoczy je pogrubieniem Markdown (`[**ACTION:REMEMBER** ...]`), grawisem lub spacjami.
+- [+] Dodano: Obsługę polskich cudzysłowów drukarskich (`„`, `”`) oraz ostrokątnych (`«`, `»`) przy parsowaniu atrybutów akcji (`attrRegex`).
+- [+] Dodano: Czyste usuwanie sformatowanych znaczników z treści odpowiedzi AI oraz syntezy mowy TTS (`Terminal.jsx`), eliminujące eksponowanie kodu akcji użytkownikowi.
+- [+] Dodano: Trwały zapis faktu o rozmieszczeniu sal lekcyjnych (budynek Z/SZ/kropka vs główny) w bazie SQLite `user_memory` oraz kolekcji Firestore `operator_brain` (dokument `b5`).
+- [+] Dodano: Wyraźną dyrektywę składniową w promptach mentora i workera (`api/agent.js` oraz `clientAiDispatcher.js`) zakazującą formatowania tagów akcji.
+- [*] Zmodyfikowano: Potwierdzono 100% parytetu synchronizacji z repozytorium bez Firebase oraz bezbłędną kompilację produkcyjną (0 błędów).
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
+
+## v 2.11.1 — 2026-09-07
+**Typ:** PATCH  
+**Zakres:** Zaawansowane Usuwanie Wydarzeń w Kalendarzu (UI, Siatka Dni, Nadchodzące, Modal Szczegółów, Chat Widget), Komenda NL w AI Dispatcherze & Audyt Metryk Projektu.
+
+### Zmiany
+- [+] Dodano: Pełną, wielopoziomową obsługę usuwania wydarzeń w `CalendarPage.jsx`:
+  - Bezpośredni przycisk usuwania (`Trash2`) na każdej karcie nadchodzących wydarzeń (`upcomingEvents`).
+  - Zawsze widoczny, estetyczny przycisk usuwania w liście wydarzeń wybranego dnia (`selectedDayEvents`).
+  - Dedykowany modal szczegółów wydarzenia (`viewingEvent`) otwierany po kliknięciu wydarzenia na siatce miesiąca, liście dnia lub w kartach nadchodzących — z pełnym podglądem metadanych (priorytet, kategoria, opis) i dużym przyciskiem „Usuń wydarzenie”.
+- [+] Dodano: Bezpośrednie usuwanie wydarzeń z poziomu widżetu czatu `CalendarChatWidget` w `ChatInlineWidgets.jsx`.
+- [+] Dodano: Obsługę komend języka naturalnego (`usuń wydarzenie`, `skasuj wydarzenie`, `odwołaj spotkanie`) w asystencie AI (`clientAiDispatcher.js`).
+- [*] Zmodyfikowano: Pomyślna weryfikacja kompilacji produkcyjnej obu repozytoriów (0 błędów) oraz wdrożenie na Firebase Hosting i Vercel.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 2.11.0 — 2026-09-07
 **Typ:** MINOR  
