@@ -210,7 +210,8 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
         operatorBrain: context.operatorBrain,
         timetable: context.timetable
       },
-      customApiKey: groqKey && groqKey.startsWith('gsk_') ? groqKey : undefined
+      customApiKey: groqKey && groqKey.startsWith('gsk_') ? groqKey : undefined,
+      model: localStorage.getItem('system_active_model') || 'openai/gpt-oss-120b'
     };
 
     const vercelRes = await axios.post(VERCEL_AGENT_ENDPOINT, payload, {

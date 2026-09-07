@@ -175,7 +175,8 @@ export default async function handler(req, res) {
       userName = 'Użytkownik', 
       language = 'pl',
       context = {},
-      customApiKey
+      customApiKey,
+      model
     } = req.body || {};
 
     const incomingText = text || message || prompt;
@@ -301,19 +302,37 @@ KRYTYCZNE REGUŁY OPERACYJNE (BRAVE SEARCH & LIVE INTERNET ACCESS):
 4. Udzielaj odpowiedzi wyczerpujących, merytorycznych, technicznych i szczegółowo rozpisanych z zachowaniem inżynieryjnej dyscypliny w języku ${language}.
 5. Posiadasz pełną wiedzę o wszystkich elementach w bazie — nigdy nie mów, że nie masz dostępu do systemu!`;
 
-    const chatCompletion = await groq.chat.completions.create({
-      model: 'openai/gpt-oss-120b',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: incomingText }
-      ],
-      temperature: mode === 'mentor' ? 0.7 : 0.4,
-      max_tokens: 3500,
-    });
+    const targetModel = model || 'openai/gpt-oss-120b';
+    let chatCompletion;
+    let effectiveModel = targetModel;
+
+    try {
+      chatCompletion = await groq.chat.completions.create({
+        model: targetModel,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: incomingText }
+        ],
+        temperature: mode === 'mentor' ? 0.7 : 0.4,
+        max_tokens: 3500,
+      });
+    } catch (primaryModelErr) {
+      console.warn(`[Vercel Agent] Model ${targetModel} niedostępny, automatyczny fallback:`, primaryModelErr.message);
+      effectiveModel = 'llama-3.3-70b-versatile';
+      chatCompletion = await groq.chat.completions.create({
+        model: effectiveModel,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: incomingText }
+        ],
+        temperature: mode === 'mentor' ? 0.7 : 0.4,
+        max_tokens: 3500,
+      });
+    }
 
     const agent_response = chatCompletion.choices?.[0]?.message?.content || 'Brak odpowiedzi od modelu.';
     const mentor_thoughts = mode === 'mentor' 
-      ? `Głęboka analiza kognitywna (GPT-OSS 120B): przetworzono kontekst operacyjny (${tasks.length} zadań, ${calendar.length} wydarzeń${liveWebIntel ? ', aktywne wyszukiwanie Brave Search' : ''}).` 
+      ? `Głęboka analiza kognitywna (${effectiveModel}): przetworzono kontekst operacyjny (${tasks.length} zadań, ${calendar.length} wydarzeń${liveWebIntel ? ', aktywne wyszukiwanie Brave Search' : ''}).` 
       : null;
 
     const widgets = determineWidgets(incomingText, agent_response);
@@ -322,7 +341,7 @@ KRYTYCZNE REGUŁY OPERACYJNE (BRAVE SEARCH & LIVE INTERNET ACCESS):
       agent_response,
       mentor_thoughts,
       widgets,
-      model: 'openai/gpt-oss-120b',
+      model: effectiveModel,
       live_search_used: Boolean(liveWebIntel),
       source: 'vercel_serverless',
       timestamp: new Date().toISOString()

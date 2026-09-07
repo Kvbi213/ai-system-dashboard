@@ -30,11 +30,20 @@ const FinancePage = () => {
   });
 
   const [setupData, setSetupData] = useState({
-    monthly_income: settings?.monthly_income || 5000,
-    needs_percent: settings?.needs_percent || 50,
-    wants_percent: settings?.wants_percent || 30,
-    savings_percent: settings?.savings_percent || 20
+    monthly_income: settings?.monthly_income ?? 5000,
+    needs_percent: settings?.needs_percent ?? 50,
+    wants_percent: settings?.wants_percent ?? 30,
+    savings_percent: settings?.savings_percent ?? 20
   });
+
+  useEffect(() => {
+    setSetupData({
+      monthly_income: settings?.monthly_income ?? 5000,
+      needs_percent: settings?.needs_percent ?? 50,
+      wants_percent: settings?.wants_percent ?? 30,
+      savings_percent: settings?.savings_percent ?? 20
+    });
+  }, [settings]);
 
   const targetNeeds = Number(settings?.needs_percent) || 50;
   const targetWants = Number(settings?.wants_percent) || 30;
@@ -118,6 +127,10 @@ const FinancePage = () => {
     const budgetWants = Math.round((baseBudget * targetWants) / 100);
     const budgetSavings = Math.round((baseBudget * targetSavings) / 100);
 
+    const needsLimitPct = budgetNeeds > 0 ? Math.round((buckets.needs / budgetNeeds) * 100) : 0;
+    const wantsLimitPct = budgetWants > 0 ? Math.round((buckets.wants / budgetWants) * 100) : 0;
+    const savingsLimitPct = budgetSavings > 0 ? Math.round((buckets.savings / budgetSavings) * 100) : 0;
+
     return {
       balance: net,
       totalIncome: income,
@@ -128,7 +141,10 @@ const FinancePage = () => {
       savingsPct,
       budgetNeeds,
       budgetWants,
-      budgetSavings
+      budgetSavings,
+      needsLimitPct,
+      wantsLimitPct,
+      savingsLimitPct
     };
   }, [finances, monthlyIncome, targetNeeds, targetWants, targetSavings]);
 
@@ -265,77 +281,128 @@ const FinancePage = () => {
       {/* Kubełki (Buckets) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
         {/* Needs */}
-        <div className="glass-panel p-4 rounded-xl flex flex-col justify-between relative overflow-hidden group border-cyan-500/20 hover:border-cyan-500/40 transition-colors">
+        <div 
+          onClick={() => {
+            setSetupData({
+              monthly_income: monthlyIncome,
+              needs_percent: targetNeeds,
+              wants_percent: targetWants,
+              savings_percent: targetSavings
+            });
+            setShowModal('settings');
+          }}
+          className="glass-panel p-4 rounded-xl flex flex-col justify-between relative overflow-hidden group border-cyan-500/20 hover:border-cyan-500/50 hover:scale-[1.01] transition-all cursor-pointer"
+          title="Kliknij, aby zmienić procent lub dochód bazowy"
+        >
           <div className="absolute -top-2 -right-2 p-4 opacity-5 group-hover:opacity-15 transition-opacity text-cyan-400"><Target className="w-16 h-16" /></div>
           <div>
             <div className="flex items-center justify-between mb-1">
               <p className="text-[11px] text-cyan-400 font-mono font-semibold tracking-wider">POTRZEBY ({targetNeeds}%)</p>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 font-mono">
-                {stats.totalExpenses > 0 ? `${stats.needsPct}%` : `${targetNeeds}% Cel`}
+                {stats.budgetNeeds > 0 ? `${stats.needsLimitPct}% limitu` : `${targetNeeds}% Cel`}
               </span>
             </div>
             <p className="text-2xl font-bold font-mono text-textPrimary">{(stats.buckets.needs || 0).toFixed(2)} <span className="text-xs text-textMuted">PLN</span></p>
-            {stats.budgetNeeds > 0 && (
+            {stats.budgetNeeds > 0 ? (
               <p className="text-[10px] font-mono text-textMuted mt-1 flex justify-between">
                 <span>Cel: {stats.budgetNeeds} PLN</span>
                 <span className={stats.buckets.needs > stats.budgetNeeds ? 'text-rose-400 font-bold' : 'text-cyan-400'}>
                   {stats.buckets.needs > stats.budgetNeeds ? `+${(stats.buckets.needs - stats.budgetNeeds).toFixed(0)} PLN` : `zostało: ${(stats.budgetNeeds - stats.buckets.needs).toFixed(0)} PLN`}
                 </span>
               </p>
+            ) : (
+              <p className="text-[10px] font-mono text-textMuted mt-1">Ustaw dochód bazowy w konfiguratorze ⚙️</p>
             )}
           </div>
           <div className="mt-3 w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-cyan-400 h-full rounded-full transition-all duration-500" style={{ width: `${stats.totalExpenses > 0 ? Math.min(stats.needsPct, 100) : 0}%` }} />
+            <div 
+              className="bg-cyan-400 h-full rounded-full transition-all duration-500" 
+              style={{ width: `${stats.budgetNeeds > 0 ? Math.min(stats.needsLimitPct, 100) : (stats.totalExpenses > 0 ? Math.min(stats.needsPct, 100) : 0)}%` }} 
+            />
           </div>
         </div>
 
         {/* Wants */}
-        <div className="glass-panel p-4 rounded-xl flex flex-col justify-between relative overflow-hidden group border-pink-500/20 hover:border-pink-500/40 transition-colors">
+        <div 
+          onClick={() => {
+            setSetupData({
+              monthly_income: monthlyIncome,
+              needs_percent: targetNeeds,
+              wants_percent: targetWants,
+              savings_percent: targetSavings
+            });
+            setShowModal('settings');
+          }}
+          className="glass-panel p-4 rounded-xl flex flex-col justify-between relative overflow-hidden group border-pink-500/20 hover:border-pink-500/50 hover:scale-[1.01] transition-all cursor-pointer"
+          title="Kliknij, aby zmienić procent lub dochód bazowy"
+        >
           <div className="absolute -top-2 -right-2 p-4 opacity-5 group-hover:opacity-15 transition-opacity text-pink-400"><Heart className="w-16 h-16" /></div>
           <div>
             <div className="flex items-center justify-between mb-1">
               <p className="text-[11px] text-pink-400 font-mono font-semibold tracking-wider">ZACHCIANKI ({targetWants}%)</p>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-300 font-mono">
-                {stats.totalExpenses > 0 ? `${stats.wantsPct}%` : `${targetWants}% Cel`}
+                {stats.budgetWants > 0 ? `${stats.wantsLimitPct}% limitu` : `${targetWants}% Cel`}
               </span>
             </div>
             <p className="text-2xl font-bold font-mono text-textPrimary">{(stats.buckets.wants || 0).toFixed(2)} <span className="text-xs text-textMuted">PLN</span></p>
-            {stats.budgetWants > 0 && (
+            {stats.budgetWants > 0 ? (
               <p className="text-[10px] font-mono text-textMuted mt-1 flex justify-between">
                 <span>Cel: {stats.budgetWants} PLN</span>
                 <span className={stats.buckets.wants > stats.budgetWants ? 'text-rose-400 font-bold' : 'text-pink-400'}>
                   {stats.buckets.wants > stats.budgetWants ? `+${(stats.buckets.wants - stats.budgetWants).toFixed(0)} PLN` : `zostało: ${(stats.budgetWants - stats.buckets.wants).toFixed(0)} PLN`}
                 </span>
               </p>
+            ) : (
+              <p className="text-[10px] font-mono text-textMuted mt-1">Ustaw dochód bazowy w konfiguratorze ⚙️</p>
             )}
           </div>
           <div className="mt-3 w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-pink-400 h-full rounded-full transition-all duration-500" style={{ width: `${stats.totalExpenses > 0 ? Math.min(stats.wantsPct, 100) : 0}%` }} />
+            <div 
+              className="bg-pink-400 h-full rounded-full transition-all duration-500" 
+              style={{ width: `${stats.budgetWants > 0 ? Math.min(stats.wantsLimitPct, 100) : (stats.totalExpenses > 0 ? Math.min(stats.wantsPct, 100) : 0)}%` }} 
+            />
           </div>
         </div>
 
         {/* Savings */}
-        <div className="glass-panel p-4 rounded-xl flex flex-col justify-between relative overflow-hidden group border-emerald-500/20 hover:border-emerald-500/40 transition-colors">
+        <div 
+          onClick={() => {
+            setSetupData({
+              monthly_income: monthlyIncome,
+              needs_percent: targetNeeds,
+              wants_percent: targetWants,
+              savings_percent: targetSavings
+            });
+            setShowModal('settings');
+          }}
+          className="glass-panel p-4 rounded-xl flex flex-col justify-between relative overflow-hidden group border-emerald-500/20 hover:border-emerald-500/50 hover:scale-[1.01] transition-all cursor-pointer"
+          title="Kliknij, aby zmienić procent lub dochód bazowy"
+        >
           <div className="absolute -top-2 -right-2 p-4 opacity-5 group-hover:opacity-15 transition-opacity text-emerald-400"><TrendingUp className="w-16 h-16" /></div>
           <div>
             <div className="flex items-center justify-between mb-1">
               <p className="text-[11px] text-emerald-400 font-mono font-semibold tracking-wider">OSZCZĘDNOŚCI ({targetSavings}%)</p>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 font-mono">
-                {stats.totalExpenses > 0 ? `${stats.savingsPct}%` : `${targetSavings}% Cel`}
+                {stats.budgetSavings > 0 ? `${stats.savingsLimitPct}% limitu` : `${targetSavings}% Cel`}
               </span>
             </div>
             <p className="text-2xl font-bold font-mono text-textPrimary">{(stats.buckets.savings || 0).toFixed(2)} <span className="text-xs text-textMuted">PLN</span></p>
-            {stats.budgetSavings > 0 && (
+            {stats.budgetSavings > 0 ? (
               <p className="text-[10px] font-mono text-textMuted mt-1 flex justify-between">
                 <span>Cel: {stats.budgetSavings} PLN</span>
                 <span className="text-emerald-400 font-bold">
                   odłożono: {(stats.buckets.savings || 0).toFixed(0)} PLN
                 </span>
               </p>
+            ) : (
+              <p className="text-[10px] font-mono text-textMuted mt-1">Ustaw cel oszczędności ⚙️</p>
             )}
           </div>
           <div className="mt-3 w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-emerald-400 h-full rounded-full transition-all duration-500" style={{ width: `${stats.totalExpenses > 0 ? Math.min(stats.savingsPct, 100) : 0}%` }} />
+            <div 
+              className="bg-emerald-400 h-full rounded-full transition-all duration-500" 
+              style={{ width: `${stats.budgetSavings > 0 ? Math.min(stats.savingsLimitPct, 100) : (stats.totalExpenses > 0 ? Math.min(stats.savingsPct, 100) : 0)}%` }} 
+            />
           </div>
         </div>
 
@@ -756,6 +823,27 @@ const FinancePage = () => {
                   onChange={e => setSetupData({...setupData, monthly_income: parseFloat(e.target.value) || 0})} 
                   className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono outline-none" 
                 />
+              </div>
+
+              <div>
+                <label className="text-xs font-mono text-textMuted block mb-1.5">Szybkie profile alokacji:</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { label: '50/30/20', n: 50, w: 30, s: 20 },
+                    { label: '60/20/20', n: 60, w: 20, s: 20 },
+                    { label: '70/20/10', n: 70, w: 20, s: 10 },
+                    { label: '40/30/30', n: 40, w: 30, s: 30 }
+                  ].map(p => (
+                    <button
+                      key={p.label}
+                      type="button"
+                      onClick={() => setSetupData(prev => ({ ...prev, needs_percent: p.n, wants_percent: p.w, savings_percent: p.s }))}
+                      className="px-2 py-1.5 text-[11px] font-mono bg-white/5 hover:bg-white/10 border border-border/50 rounded-lg text-textMuted hover:text-white transition-colors text-center"
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">

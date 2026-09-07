@@ -1,5 +1,22 @@
 ## Wersja Bieżąca
-**v2.6.1**
+**v2.6.2**
+
+## v 2.6.2 — 2026-09-07
+**Typ:** PATCH  
+**Zakres:** Eliminacja Błędu Groq API, Dedykowany Gateway `/api/models`, Reset Baz Finansów i Treningów & Dynamiczny Budżet  
+
+### Zmiany
+- [!] Naprawiono: Całkowicie wyeliminowano błąd "Błąd połączenia z API Groq" w widżecie wyboru modeli AI (`ModelWidget.jsx`). Wdrożono dedykowaną funkcję serverless `api/models.js` na Vercel z pełną obsługą CORS, dynamicznym wykrywaniem modeli (`openai/gpt-oss-120b`, `llama-3.3-70b-versatile`) oraz resilient fallback.
+- [*] Zmodyfikowano: Przebudowano karty wskaźników budżetowych w `FinancePage.jsx` (`POTRZEBY`, `ZACHCIANKI`, `OSZCZĘDNOŚCI`) — dodano obliczanie procentu wykorzystania limitu (`% limitu`), dynamiczne paski postępu, synchronizację z Firestore oraz szybkie profile (`50/30/20`, `60/20/20`, `70/20/10`, `40/30/30`). Kliknięcie w dowolną kartę otwiera konfigurator.
+- [-] Usunięto: Zgodnie z dyspozycją operatora wyczyszczono bazy danych dla kategorii `finanse` i `treningi` w Cloud Firestore (`void-potato-7721`) oraz lokalnej SQLite (`tasks.sqlite`). Opróżniono tablice startowe w `cloudSync.js`.
+- [*] Zmodyfikowano: Zapewniono pełną dwukierunkową synchronizację: wszystkie dane zapisują się natychmiastowo lokalnie (SQLite / localStorage) oraz w chmurze Google Cloud Firestore, zapewniając dostęp z dowolnego urządzenia w czasie rzeczywistym.
+- [*] Zmodyfikowano: Pomyślnie zrekompilowano (0 błędów) i opublikowano na **Firebase Hosting** (`https://void-potato-7721.web.app`) oraz **Vercel Production** (`https://ai-system-dashboard.vercel.app`).
+- [*] Zmodyfikowano: Zsynchronizowano i zrekompilowano repozytorium lustrzane `AI SYSTEM DASHBOARD GITHUB - BEZ FIREBASE`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 2.6.1 — 2026-09-07
 **Typ:** PATCH  

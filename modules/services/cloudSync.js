@@ -19,15 +19,8 @@ export const INITIAL_FIRESTORE_DATA = {
     { id: '4', title: 'Wielomodułowa synchronizacja kategorii Firestore', priority: 'MEDIUM', status: 'completed', category: 'system' },
     { id: '5', title: 'Personalizacja widżetów i analiza przepływów danych', priority: 'MEDIUM', status: 'pending', category: 'dashboard' }
   ],
-  finances: [
-    { id: 'f1', type: 'income', amount: 8500, category: 'Przychód główny', bucket: 'needs', description: 'Wynagrodzenie kontraktowe', transaction_date: new Date().toISOString().split('T')[0] },
-    { id: 'f2', type: 'expense', amount: 120, category: 'Infrastruktura', bucket: 'needs', description: 'Domena i zasoby chmurowe', transaction_date: new Date().toISOString().split('T')[0] },
-    { id: 'f3', type: 'expense', amount: 350, category: 'Edukacja & AI', bucket: 'savings', description: 'Subskrypcje badawcze i API', transaction_date: new Date().toISOString().split('T')[0] }
-  ],
-  workouts: [
-    { id: 'w1', title: 'FBW Power Circuit (Góra/Dół)', type: 'Siłowy', description: 'Przysiady 4x8, Wyciskanie sztangi 4x8, Podciąganie 4xMax, Martwy ciąg 3x5', date: new Date().toISOString().split('T')[0] },
-    { id: 'w2', title: 'Kondycja & Tlen (Strefa 2)', type: 'Cardio', description: 'Bieg ciągły 45 minut przy tętnie 135-145 bpm', date: new Date().toISOString().split('T')[0] }
-  ],
+  finances: [],
+  workouts: [],
   calendar: [
     { id: 'c1', title: 'Przegląd Architektury OmniDash & Firestore', event_date: new Date().toISOString().split('T')[0], event_time: '10:00', priority: 'HIGH' },
     { id: 'c2', title: 'Audyt Stabilności Modelu GPT-120B', event_date: new Date().toISOString().split('T')[0], event_time: '14:30', priority: 'MEDIUM' }
