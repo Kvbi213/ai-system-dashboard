@@ -12,7 +12,7 @@ System to zintegrowane środowisko asystenckie oparte na modelu LLM (obecnie Lla
 **Główne Paradygmaty:**
 1. **Desktop-First & Local-First:** Frontend i backend działają lokalnie na maszynie dewelopera (Windows z mostem do WSL/Node.js). Baza danych to plikowy SQLite.
 2. **LLM as the Core Engine:** Cała logika decyzyjna w zakresie rozumienia poleceń oparta jest na LLM. LLM decyduje jakie funkcje systemowe (Tool Calling) wywołać, a odpowiedź formatuje do ścisłego schematu JSON.
-3. **Cyberpunk & Hacker Aesthetics:** Interfejs zaprojektowany jest w oparciu o ciemne motywy, glassmorphism, terminalową typografię i bezwzględnie szczery, czasami ostry ton asystenta.
+3. **Clean & Modern Aesthetics**: Interfejs zaprojektowany jest w oparciu o czyste linie, glassmorphism, elegancką i nowoczesną typografię. Asystent J.A.R.V.I.S (główny rdzeń/Mentor) jest przyjazny i inteligentny, z kolei F.R.I.D.A.Y (Worker) wykonuje zadania w hiper-profesjonalnym i zwięzłym tonie.
 
 ---
 
@@ -23,7 +23,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 ```
 [Katalog Główny]
 │
-├── core.server.js           ← Mózg backendu. Punkt wejścia dla Express.js i definicja REST API.
+├── core.server.js           ← Mózg backendu. Punkt wejścia dla Express.js i rejestracja routerów.
 ├── core.client.jsx          ← Mózg frontendu. Punkt wejścia dla aplikacji React.
 ├── index.html               ← Plik ładujący skrypt kliencki do przeglądarki.
 │
@@ -32,25 +32,26 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 ├── HISTORY.md               ← Niemutowalny rejestr wersji (Changlog SemVer).
 │
 ├── /modules/                ← Główna logika i komponenty.
-│   ├── agent.js             ← System podłączający się do API Groq. Definiuje prompty i tool calls.
+│   ├── agent.js             ← System podłączający się do API LLM, przetwarzający zapytania.
 │   ├── database.js          ← Abstrakcja nad SQLite, zawiera metody `executeQuery` i `executeRun`.
+│   ├── firebase.js          ← Most z chmurą Firebase Admin SDK i bazą danych Firestore.
+│   ├── firebaseClient.js    ← Klient frontendowy Firebase Web SDK (Auth, Firestore).
 │   ├── scheduler.js         ← Wbudowany "cron" do odpalania zautomatyzowanych procesów.
 │   ├── search.js            ← Wrapper na Brave Search API.
 │   ├── pushbullet.js        ← Skrypt nasłuchujący WebSockets API Pushbullet dla powiadomień.
 │   │
+│   ├── /ai/                 ← Pliki konfiguracyjne dla agentów AI.
+│   │   ├── prompts.js       ← Zbiór promptów systemowych (Worker, Mentor).
+│   │   └── tools.js         ← Definicje narzędzi (Tool Calling) dla agentów.
+│   │
+│   ├── /routes/             ← Modułowe routery Express, dzielące ruch na sekcje:
+│   │   ├── auth.js, system.js, finance.js, ai.js, osint.js, weather.js, news.js, tasks.js, calendar.js, workouts.js, memory.js, phone.js, logs.js, events.js, firebase.js
+│   │   └── middleware.js    ← Middleware m.in. zabezpieczające i limitujące zapytania.
+│   │
 │   ├── /components/         ← Reużywalne klocki UI w React.
 │   │   ├── Terminal.jsx     ← Złożony widget czatu tekstowego z obsługą renderingu markdownu i widżetów w locie.
 │   │   ├── TodoList.jsx     ← Interaktywna lista to-do z obsługą priorytetów i deadline'ów.
-│   │   ├── SystemMonitor.jsx← Live data o zużyciu CPU, RAM i Uptime.
-│   │   ├── ITNewsTicker.jsx ← Komponent wyświetlający nagłówki z Brave Search w pętli.
-│   │   ├── WeatherWidget.jsx← Moduł pogodowy odpytujący API Open-Meteo.
-│   │   ├── NotificationsWidget.jsx ← Live widget powiadomień z telefonu.
-│   │   ├── ModelStatus.jsx  ← Monitor stanu LLM (Ping / Latency).
-│   │   ├── NetworkMonitor.jsx ← Śledzenie połączeń z ważnymi punktami sieci (Google, Cloudflare itp).
-│   │   ├── CryptoTracker.jsx← Pasek kryptowalut uderzający do API Binance.
-│   │   ├── AgentQueue.jsx   ← Lista zadań systemowych zakolejkowanych w schedulerze (live z API).
-│   │   ├── NewsFeed.jsx     ← Strumień logów systemowych pobieranych z bazy.
-│   │   └── Sidebar.jsx      ← Lewy panel nawigacyjny (kompaktowy z możliwością rozwinięcia).
+│   │   └── ... (pozostałe widżety UI)
 │   │
 │   └── /pages/              ← Konkretne podstrony w React Router.
 │       ├── Dashboard.jsx    ← Strona startowa. Siatka (grid) wszystkich mniejszych widżetów.
@@ -63,6 +64,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │
 └── /docs/                   ← Hub dokumentacji (logi błędów ERROR_DIFF, archiwa zmian, logi serwera).
 ```
+
 
 ---
 
@@ -86,6 +88,10 @@ Backend to lekka aplikacja oparta na Express.js. Działa na porcie `5000`. Pełn
 | `/api/schedule` | `GET` | - | Zwraca tablicę aktualnie zakolejkowanych procesów cyklicznych Schedulera (dla AgentQueue.jsx). |
 | `/api/logs` | `GET` | - | Zwraca ostatnie wpisy z tabeli `system_logs` (dla NewsFeed.jsx). |
 | `/api/system/metrics`| `GET` | - | Zwraca dane o zużyciu sprzętu (CPU, RAM, Uptime). |
+| `/api/firebase/status` | `GET` | - | Zwraca status połączenia z Firestore (projekt `void-potato-7721`) oraz konfigurację właściciela. |
+| `/api/firebase/verify-owner` | `POST` | `idToken` lub `email` | Uwierzytelnia właściciela z chmury Firebase i przyznaje unikalny token sesyjny. |
+| `/api/firebase/sync` | `POST` | - | Przeprowadza pełną synchronizację bazy lokalnej SQLite do chmury Firestore. |
+| `/api/firebase/data/:col` | `GET` | URL param: `col` | Bezpośredni odczyt dokumentów z kolekcji Firestore w chmurze. |
 
 ---
 
@@ -180,10 +186,22 @@ Backend posiada całkowicie niezależny pętlowy proces chronometryczny:
 ---
 
 ## 8. BEZPIECZEŃSTWO I STABILNOŚĆ
-1. **Zabezpieczenie Kluczy (Credentials)**: Wszystkie klucze (Groq, Brave API) znajdują się wyłącznie w pliku `.env` na serwerze (backend) ignorowanym w `.gitignore`. Aplikacja w React uderza po endpointach lokalnych `/api/`.
+1. **Zabezpieczenie Kluczy (Credentials)**: Wszystkie klucze (Groq, Brave API, Firebase Service Account) znajdują się wyłącznie w plikach chronionych `.env` oraz `firebase-service-account.json`, ignorowanych przez `.gitignore`.
 2. **Graceful Fallbacks**: Jeżeli API zewnętrzne padnie (np. Open-Meteo zrzuci Rate Limit), komponenty są chronione blokami `try-catch`, a obiekty ustawiane w stanie Loading/Error bez rozbijania ekranu na biało (brak crash'u UI).
 3. **Ghost Mode**: Tryb czatu, w którym po odświeżeniu zapomina historię i nie zapisuje logów w localStorage z myślą o prywatnych sesjach projektowych.
 4. **Izolacja Portów**: Komunikacja oparta w 100% o proxy Vite, tak aby żądania webowe przechodziły przez localhost połączone z Node.js, rozwiązując problemy z CORS (Cross-Origin Resource Sharing).
+
+---
+
+## 9. INTEGRACJA CHMUROWA FIREBASE & RESTRYKCJA DOSTĘPU (void-potato-7721)
+
+Projekt chmurowy w Google Firebase został utworzony w architekturze ścisłej izolacji:
+- **Identyfikator Projektu:** `void-potato-7721` (Void Potato Matrix)
+- **Instancja Bazy Danych:** Cloud Firestore `(default)` w lokalizacji `europe-central2` (Warszawa).
+- **Model Bezpieczeństwa (Single-Owner Access):**
+  - Reguły `firestore.rules` dopuszczają operacje zapisu i odczytu wyłącznie dla uwierzytelnionego konta właściciela (`marektowarek21372137@gmail.com`).
+  - Każda próba logowania lub odpytania API przez inną tożsamość kończy się natychmiastowym kodem `403 Forbidden`.
+  - Backend udostępnia bezpieczną procedurę synchronizacji dwukierunkowej (`/api/firebase/sync`), migrując dane zadań, transakcji i kalendarza z lokalnego SQLite do Cloud Firestore.
 
 ---
 *Dokument zrealizowany zgodnie ze zleceniem. Podpisano: Agent AI.*

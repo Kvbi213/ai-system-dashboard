@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import axios from 'axios';
-import './modules/i18n';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './modules/i18n';
 import './assets/styles/index.css';
 
 import Sidebar from './modules/components/Sidebar';
@@ -17,6 +18,8 @@ import WorkoutsPage from './modules/pages/WorkoutsPage';
 import MemoryPage from './modules/pages/MemoryPage';
 import OSINTPage from './modules/pages/OSINTPage';
 import LockScreen from './modules/pages/LockScreen';
+import ServerPage from './modules/pages/ServerPage';
+import BrowserPage from './modules/pages/BrowserPage';
 import { ChatProvider } from './modules/context/ChatContext';
 import ApiConfigScreen from './modules/components/ApiConfigScreen';
 import OnboardingTour from './modules/components/OnboardingTour';
@@ -175,6 +178,8 @@ const App = () => {
               <Route path="/widgets" element={<WidgetsPage />} />
               <Route path="/memory" element={<MemoryPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/server" element={<ServerPage />} />
+              <Route path="/browser" element={<BrowserPage />} />
             </Routes>
           </div>
 
@@ -185,4 +190,8 @@ const App = () => {
 };
 
 const root = createRoot(document.getElementById('root'));
-root.render(<App />);
+root.render(
+  <I18nextProvider i18n={i18n}>
+    <App />
+  </I18nextProvider>
+);

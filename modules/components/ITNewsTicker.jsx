@@ -123,9 +123,10 @@ const ITNewsTicker = ({ selectedCategories }) => {
       <div className="flex-1 overflow-y-auto space-y-2 min-h-0 pr-1">
         {loading ? (
           Array(4).fill(0).map((_, i) => (
-            <div key={i} className="space-y-1.5">
-              <div className="h-3 skeleton rounded w-3/4" style={{ animationDelay: `${i * 100}ms` }} />
-              <div className="h-2.5 skeleton rounded w-full" style={{ animationDelay: `${i * 100 + 50}ms` }} />
+            <div key={i} className="flex flex-col gap-2 p-2 mb-2">
+              <div className="animate-pulse h-4 bg-border rounded-md w-3/4" />
+              <div className="animate-pulse h-3 bg-border rounded-md w-full" />
+              <div className="animate-pulse h-3 bg-border rounded-md w-5/6" />
             </div>
           ))
         ) : error ? (

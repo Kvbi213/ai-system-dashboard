@@ -13,15 +13,16 @@ const Toggle = ({ value, onChange }) => (
   </button>
 );
 
-const TABS = [
-  { id: 'personalization', label: t('tabPersonalization', 'Personalizacja'), icon: Palette },
-  { id: 'privacy', label: t('tabPrivacy', 'Prywatność'), icon: Shield },
-  { id: 'system', label: t('tabSystem', 'System'), icon: Cpu },
-  { id: 'security', label: t('tabSecurity', 'Bezpieczeństwo'), icon: Lock }
-];
-
 const SettingsPage = () => {
   const { t, i18n } = useTranslation();
+
+  const TABS = [
+    { id: 'personalization', label: t('tabPersonalization', 'Personalizacja'), icon: Palette },
+    { id: 'privacy', label: t('tabPrivacy', 'Prywatność'), icon: Shield },
+    { id: 'system', label: t('tabSystem', 'System'), icon: Cpu },
+    { id: 'security', label: t('tabSecurity', 'Bezpieczeństwo'), icon: Lock }
+  ];
+
   const [activeTab, setActiveTab] = useState('personalization');
   const [notifications, setNotifications] = useState(true);
   const [ghostMode, setGhostMode] = useState(false);
@@ -33,6 +34,28 @@ const SettingsPage = () => {
   const [voicePref, setVoicePref] = useState('paulina');
   const [voiceRate, setVoiceRate] = useState(1.8);
   const [userName, setUserName] = useState('Użytkownik');
+  const [firebaseStatus, setFirebaseStatus] = useState(null);
+  const [syncingFirebase, setSyncingFirebase] = useState(false);
+  const [syncMessage, setSyncMessage] = useState('');
+
+  useEffect(() => {
+    axios.get('/api/firebase/status')
+      .then(res => setFirebaseStatus(res.data))
+      .catch(err => console.warn('Firebase status check failed:', err));
+  }, []);
+
+  const handleFirebaseSync = async () => {
+    setSyncingFirebase(true);
+    setSyncMessage('');
+    try {
+      const res = await axios.post('/api/firebase/sync');
+      setSyncMessage('Pomyślnie zsynchronizowano: ' + res.data.stats.tasksSynced + ' zadań, ' + res.data.stats.financesSynced + ' transakcji.');
+    } catch (err) {
+      setSyncMessage('Błąd synchronizacji: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setSyncingFirebase(false);
+    }
+  };
 
   const [sysMonitorPrefs, setSysMonitorPrefs] = useState({ cpu: true, ram: true, uptime: true });
   const [activeWidgets, setActiveWidgets] = useState({
@@ -179,13 +202,17 @@ const SettingsPage = () => {
 
   return (
     <div id="tour-settings" className="flex flex-col h-full gap-5 pb-20 md:pb-0">
-      <header className="glass-panel p-5 rounded-xl border border-border flex items-center gap-4 flex-shrink-0">
-        <div className="w-10 h-10 rounded-xl bg-accentPrimary/10 border border-accentPrimary/30 flex items-center justify-center flex-shrink-0">
-          <Settings className="w-5 h-5 text-accentPrimary" />
+      <header className="glass-panel p-5 rounded-xl border border-border flex items-center gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
+        <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
+          <Settings className="w-5 h-5 text-textPrimary" />
         </div>
-        <div>
-          <h1 className="font-mono text-xl text-accentPrimary font-bold tracking-tight">Ustawienia Systemowe</h1>
-          <p className="font-sans text-xs text-textMuted mt-0.5">Konfiguracja środowiska OmniDash</p>
+        <div className="flex flex-col">
+          <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-0.5">
+            <span className="flex items-center text-lg font-medium text-textMuted/70">OmniDash</span>
+            <span className="shrink-0 text-lg font-medium text-textMuted/70">/</span>
+            <span className="flex items-center text-lg font-medium text-textPrimary">Ustawienia</span>
+          </nav>
+          <p className="font-sans text-xs text-textMuted mt-0.5">Konfiguracja środowiska systemu</p>
         </div>
       </header>
 
@@ -214,7 +241,7 @@ const SettingsPage = () => {
       <main className="flex-1 overflow-y-auto space-y-4 min-h-0 pr-1">
         
         {activeTab === 'personalization' && (
-          <div className="space-y-4 animate-fade-in-up">
+          <div className="space-y-4 animate-soft-enter" style={{ animationDelay: '100ms' }}>
             {/* --- WYGLĄD --- */}
             <section className="glass-panel p-5 rounded-xl border border-border">
               <SectionHeader icon={Palette} title={t('appearanceTitle', 'Wygląd i Personalizacja')} />
@@ -376,7 +403,7 @@ const SettingsPage = () => {
         )}
 
         {activeTab === 'privacy' && (
-          <div className="space-y-4 animate-fade-in-up">
+          <div className="space-y-4 animate-soft-enter" style={{ animationDelay: '100ms' }}>
             {/* --- PRYWATNOŚĆ --- */}
             <section className="glass-panel p-5 rounded-xl border border-border">
               <SectionHeader icon={Shield} title={t("privacyTitle", "Prywatność i Bezpieczeństwo")} />
@@ -410,7 +437,7 @@ const SettingsPage = () => {
         )}
 
         {activeTab === 'system' && (
-          <div className="space-y-4 animate-fade-in-up">
+          <div className="space-y-4 animate-soft-enter" style={{ animationDelay: '100ms' }}>
             {/* --- SYSTEMOWE --- */}
             <section className="glass-panel p-5 rounded-xl border border-border">
               <SectionHeader icon={Bell} title={t("sysPrefsTitle", "Preferencje Systemowe")} />
@@ -462,7 +489,7 @@ const SettingsPage = () => {
 
       
         {activeTab === 'security' && (
-          <div className="space-y-4 animate-fade-in-up">
+          <div className="space-y-4 animate-soft-enter" style={{ animationDelay: '100ms' }}>
             <section className="glass-panel p-5 rounded-xl border border-border">
               <SectionHeader icon={Lock} title={t("securityTitle", "Zabezpieczenia i Autoryzacja")} />
               <div className="space-y-3">
@@ -490,6 +517,33 @@ const SettingsPage = () => {
                       Zapisz Nowy PIN
                     </button>
                   </form>
+                </div>
+
+                <div className="p-4 rounded-xl border border-accentPrimary/30 bg-black/20 mt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <HardDrive className="w-5 h-5 text-accentPrimary" />
+                      <p className="font-semibold text-textPrimary font-sans text-sm">Baza Chmurowa Firebase Firestore (void-potato-7721)</p>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/30">
+                      {firebaseStatus?.connected ? "POŁĄCZONO (WARSZAWA)" : "INICJALIZACJA..."}
+                    </span>
+                  </div>
+                  <p className="text-xs text-textMuted leading-relaxed mb-3">
+                    Projekt: <strong className="text-textPrimary font-mono">void-potato-7721</strong> (Void Potato Matrix) w regionie <strong className="text-textPrimary">europe-central2</strong>. Bezpieczeństwo oparte o restrykcyjne reguły Firestore: dostęp wyłącznie dla <span className="text-accentPrimary font-mono">marektowarek21372137@gmail.com</span>.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                    <button
+                      onClick={handleFirebaseSync}
+                      disabled={syncingFirebase}
+                      className="bg-accentPrimary/20 hover:bg-accentPrimary/30 border border-accentPrimary/50 text-accentPrimary font-bold py-2 px-4 rounded-lg transition-colors text-xs flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {syncingFirebase ? "Synchronizacja w toku..." : "Zsynchronizuj bazę SQLite do Firestore"}
+                    </button>
+                    {syncMessage && (
+                      <span className="text-xs text-textPrimary font-mono">{syncMessage}</span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="p-4 rounded-xl border border-red-500/20 bg-black/20 mt-4">

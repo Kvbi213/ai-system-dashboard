@@ -29,18 +29,24 @@ const OSINTPage = () => {
   };
 
   return (
-    <div className="h-full flex flex-col overflow-hidden text-textPrimary animate-fade-in-up p-2 md:p-4">
-      <div className="flex items-center gap-3 mb-6 shrink-0">
-        <Crosshair className="w-8 h-8 text-accentPrimary" />
-        <div>
-          <h1 className="text-2xl font-bold uppercase tracking-widest text-textPrimary drop-shadow-[0_0_10px_rgba(var(--color-accent-primary-hex),0.5)]">
-            OSINT Intel
-          </h1>
-          <p className="text-xs text-textMuted font-mono">{t("osintDesc", "Wywiad jawnoźródłowy & Analiza")}</p>
+    <div className="h-full flex flex-col overflow-hidden text-textPrimary animate-soft-enter p-2 md:p-4">
+      <header className="glass-panel p-5 rounded-xl border border-border flex items-center justify-between gap-4 mb-6 shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
+            <Crosshair className="w-5 h-5 text-textPrimary" />
+          </div>
+          <div className="flex flex-col">
+            <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-0.5">
+              <span className="flex items-center text-lg font-medium text-textMuted/70">OmniDash</span>
+              <span className="shrink-0 text-lg font-medium text-textMuted/70">/</span>
+              <span className="flex items-center text-lg font-medium text-textPrimary">Baza Wiedzy</span>
+            </nav>
+            <p className="font-sans text-xs text-textMuted mt-0.5">{t("osintDesc", "Wywiad jawnoźródłowy & Analiza")}</p>
+          </div>
         </div>
-      </div>
+      </header>
 
-      <form onSubmit={handleScan} className="flex gap-4 mb-6 shrink-0">
+      <form onSubmit={handleScan} className="flex gap-4 mb-6 shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '100ms' }}>
         <div className="relative flex-1 max-w-xl">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-textMuted" />
           <input

@@ -17,7 +17,7 @@ export default {
         textMuted: 'var(--color-text-muted)',
       },
       fontFamily: {
-        mono: ['"JetBrains Mono"', '"Fira Code"', 'monospace'],
+        mono: ['Inter', '"Geist Sans"', 'sans-serif'], // Overridden to remove cyberpunk look globally
         sans: ['Inter', '"Geist Sans"', 'sans-serif'],
       },
       animation: {

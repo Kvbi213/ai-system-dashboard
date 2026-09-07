@@ -23,8 +23,7 @@ const ChatMessage = ({ msg }) => {
   };
 
   return (
-    <div className={`flex group ${msg.role === 'user' ? 'text-textMuted' : (msg.isSystem ? 'text-yellow-500 font-bold' : 'text-accentPrimary neon-text')}`}>
-      <span className="opacity-50 mr-2 shrink-0">[{msg.role === 'user' ? 'USER' : (msg.isSystem ? 'SYS' : 'AI')}]:</span>
+    <div className={`flex group font-sans ${msg.role === 'user' ? 'text-textPrimary' : (msg.isSystem ? 'text-yellow-500 font-medium' : 'text-textPrimary')}`}>
       <div className="flex-1 break-words whitespace-pre-wrap relative">
         {msg.role === 'ai' && !msg.isSystem ? (
           <div className="glass-panel p-4 rounded-xl border border-border/50 bg-background/40 relative">
@@ -91,6 +90,7 @@ const ChatMessage = ({ msg }) => {
 };
 
 const Terminal = () => {
+  const { t } = useTranslation();
   const {
     mode, setMode,
     showThoughts, setShowThoughts,
@@ -428,14 +428,14 @@ const Terminal = () => {
 
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto space-y-3 font-mono text-sm mb-4 custom-scrollbar pr-2">
+        <div className="flex-1 overflow-y-auto space-y-4 font-sans text-sm mb-4 custom-scrollbar pr-2">
           {messages.map((msg, i) => (
             <ChatMessage key={i} msg={msg} />
           ))}
           {isProcessing && (
-            <div className="text-accentPrimary neon-text">
-              <span className="opacity-50 mr-2">[AI]:</span>
-              <span className="terminal-cursor"></span>
+            <div className="flex items-center gap-2 text-textMuted font-sans">
+              <Loader2 className="w-4 h-4 animate-spin text-accentPrimary" />
+              <span>Asystent pisze...</span>
             </div>
           )}
           <div ref={endOfMessagesRef} />
@@ -459,8 +459,7 @@ const Terminal = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="relative flex items-center border-t border-border pt-3 gap-2">
-        <span className="font-mono text-accentPrimary mr-2">$</span>
+      <form onSubmit={handleSubmit} className="relative flex items-center bg-surface border border-border rounded-full px-4 py-2 gap-2 shadow-sm focus-within:border-accentPrimary focus-within:ring-1 focus-within:ring-accentPrimary transition-all">
 
         <button 
           type="button" 
@@ -484,8 +483,8 @@ const Terminal = () => {
           type="text" 
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={mode === 'worker' ? t("termInputWorker", "Wprowadź komendę...") : t("termInputMentor", "Wygadaj się...")}
-          className="flex-1 bg-transparent border-none outline-none font-mono text-sm text-textPrimary placeholder:text-border"
+          placeholder="Napisz wiadomość..."
+          className="flex-1 bg-transparent border-none outline-none font-sans text-sm text-textPrimary placeholder:text-textMuted"
           autoComplete="off"
           autoFocus
         />

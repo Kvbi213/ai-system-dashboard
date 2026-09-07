@@ -74,23 +74,29 @@ const WorkoutsPage = () => {
   }
 
   return (
-    <div className="h-full flex flex-col space-y-6 animate-fade-in relative">
-      <div className="flex justify-between items-center shrink-0">
-        <div>
-          <h1 className="text-3xl font-bold font-mono tracking-tight flex items-center gap-3">
-            <Dumbbell className="w-8 h-8 text-accentPrimary" />
-            Dziennik Treningowy
-          </h1>
-          <p className="text-textMuted mt-1 font-mono text-sm">{t("workDesc", "Zarządzaj swoimi treningami przy pomocy AI.")}</p>
+    <div className="h-full flex flex-col space-y-6 animate-soft-enter relative">
+      <header className="glass-panel p-5 rounded-xl border border-border flex items-center justify-between gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
+            <Dumbbell className="w-5 h-5 text-textPrimary" />
+          </div>
+          <div className="flex flex-col">
+            <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-0.5">
+              <span className="flex items-center text-lg font-medium text-textMuted/70">OmniDash</span>
+              <span className="shrink-0 text-lg font-medium text-textMuted/70">/</span>
+              <span className="flex items-center text-lg font-medium text-textPrimary">Treningi</span>
+            </nav>
+            <p className="font-sans text-xs text-textMuted mt-0.5">{t("workDesc", "Zarządzaj swoimi treningami przy pomocy AI.")}</p>
+          </div>
         </div>
         <button 
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-accentPrimary text-background font-bold rounded-lg hover:bg-accentPrimary/90 transition-colors shadow-[0_0_15px_rgba(var(--color-accent-primary),0.4)]"
+          className="flex items-center gap-2 px-4 py-2 bg-surface hover:bg-surface/80 border border-border text-textPrimary font-bold rounded-lg transition-colors"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 text-accentPrimary" />
           <span className="hidden sm:inline">{t("workNew", "Nowy Trening")}</span>
         </button>
-      </div>
+      </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 shrink-0">
         <div className="glass-panel p-6 rounded-2xl border border-border flex items-center gap-4">

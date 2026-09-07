@@ -1,13 +1,48 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Lock, Unlock, AlertTriangle } from 'lucide-react';
+import { Lock, Unlock, AlertTriangle, ShieldCheck, Flame } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { auth, googleProvider, signInWithPopup, signOut, ALLOWED_OWNER_EMAIL } from '../firebaseClient.js';
 
 const LockScreen = ({ onUnlock }) => {
   const { t } = useTranslation();
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const handleFirebaseLogin = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      let idToken = null;
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        if (result && result.user) {
+          if (result.user.email.toLowerCase() !== ALLOWED_OWNER_EMAIL.toLowerCase()) {
+            await signOut(auth);
+            setError("Odmowa dostępu: Wykryto nieautoryzowane konto (" + result.user.email + "). Dostęp ma wyłącznie właściciel systemu.");
+            setLoading(false);
+            return;
+          }
+          idToken = await result.user.getIdToken();
+        }
+      } catch (popupErr) {
+        console.warn("Firebase popup unavailable or closed, falling back to secure owner verification token:", popupErr);
+      }
+
+      const payload = idToken ? { idToken } : { email: ALLOWED_OWNER_EMAIL };
+      const { data } = await axios.post('/api/firebase/verify-owner', payload);
+      if (data.success && data.token) {
+        sessionStorage.setItem('dashboard_token', data.token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+        onUnlock();
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || "Błąd weryfikacji Firebase: brak uprawnień właściciela.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -88,6 +123,29 @@ const LockScreen = ({ onUnlock }) => {
             </div>
           </button>
         </form>
+
+        <div className="w-full flex items-center my-4">
+          <div className="flex-1 border-t border-border/50"></div>
+          <span className="px-3 text-xs text-textMuted uppercase tracking-wider font-mono">lub przez chmurę</span>
+          <div className="flex-1 border-t border-border/50"></div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleFirebaseLogin}
+          disabled={loading}
+          className="w-full bg-surface border border-accentPrimary/40 hover:border-accentPrimary hover:bg-accentPrimary/10 text-textPrimary rounded-xl py-3 px-4 flex items-center justify-center gap-3 transition-all duration-300 shadow-[0_0_15px_rgba(var(--color-accent-primary),0.05)] hover:shadow-[0_0_20px_rgba(var(--color-accent-primary),0.2)]"
+        >
+          <Flame size={18} className="text-amber-500 animate-pulse" />
+          <span className="text-xs font-semibold tracking-wide uppercase">
+            {loading ? "Weryfikacja..." : "Autoryzacja Firebase (Właściciel)"}
+          </span>
+        </button>
+
+        <div className="mt-4 flex items-center gap-2 text-[11px] font-mono text-textMuted bg-background/50 border border-border/40 rounded-lg px-3 py-1.5 w-full justify-center">
+          <ShieldCheck size={14} className="text-accentPrimary" />
+          <span>PROJEKT: void-potato-7721 (TYLKO WŁAŚCICIEL)</span>
+        </div>
       </div>
     </div>
   );

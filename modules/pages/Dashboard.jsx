@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import WeatherWidget from '../components/WeatherWidget';
 import TodoList from '../components/TodoList';
@@ -34,43 +34,52 @@ const Dashboard = () => {
     <div className="flex flex-col h-full gap-4 pb-20 md:pb-0">
       {/* Header Bar */}
       <header
-        className="glass-panel flex-shrink-0 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-0 px-5 py-3 rounded-xl border border-border opacity-0 animate-fade-in-up"
-        style={{ animationDelay: '80ms' }}
+        className="glass-panel flex-shrink-0 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-0 px-5 py-3 opacity-0 animate-soft-enter"
+        style={{ animationDelay: '50ms' }}
       >
         <div className="flex flex-col">
-          <span className="font-mono text-3xl text-accentPrimary font-bold tracking-tighter tabular-nums neon-text" style={{ textShadow: 'none', animation: 'none', color: 'var(--color-accent-primary-hex)' }}>
-            {time.toLocaleTimeString(currentLocale, { hour12: false })}
-          </span>
-          <span className="font-mono text-xs text-textMuted uppercase tracking-widest mt-0.5">
-            {time.toLocaleDateString(currentLocale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-          </span>
+          <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-1">
+            <span className="flex items-center text-lg font-medium text-textMuted/70">OmniDash</span>
+            <span className="shrink-0 text-xl font-medium text-textMuted/70">/</span>
+            <span className="flex items-center text-xl font-medium text-textPrimary">Pulpit</span>
+          </nav>
+          <p className="text-sm font-medium text-textMuted mb-4">Przeglądaj wszystkie moduły i aktywności systemu.</p>
+          
+          <div className="flex items-baseline gap-4 mt-1">
+            <span className="font-sans text-3xl text-textPrimary font-bold tracking-tight tabular-nums">
+              {time.toLocaleTimeString(currentLocale, { hour12: false })}
+            </span>
+            <span className="font-sans text-sm text-textMuted">
+              {time.toLocaleDateString(currentLocale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 font-mono text-xs text-accentPrimary uppercase tracking-widest">
-            <span className="w-2 h-2 rounded-full bg-accentPrimary animate-pulse inline-block" />
-            {t('statusNominal')}
+          <div className="flex items-center gap-2 font-sans text-sm text-accentPrimary font-medium">
+            <span className="w-2.5 h-2.5 rounded-full bg-accentPrimary animate-pulse inline-block" />
+            Wszystko działa prawidłowo
           </div>
           <WeatherWidget />
         </div>
       </header>
 
       {/* Main Grid */}
-      <main className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-[1fr_auto] gap-4 flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
-        {/* Todo (col 1, row 1-2) */}
-        <div id="tour-todo" className="md:col-span-1 md:row-span-2 h-[380px] md:h-full min-h-0 opacity-0 animate-fade-in-up" style={{ animationDelay: '160ms' }}>
+      <main className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 overflow-y-auto p-1">
+        {/* Todo */}
+        <div id="tour-todo" className="lg:col-span-1 lg:row-span-2 min-h-[400px] opacity-0 animate-soft-enter" style={{ animationDelay: '100ms' }}>
           <TodoList />
         </div>
 
-        {/* IT News (col 2-3, row 1) */}
-        <div className="md:col-span-2 h-[420px] md:h-full min-h-0 opacity-0 animate-fade-in-up" style={{ animationDelay: '240ms' }}>
+        {/* IT News */}
+        <div className="lg:col-span-2 min-h-[300px] opacity-0 animate-soft-enter" style={{ animationDelay: '150ms' }}>
           <ITNewsTicker selectedCategories={newsCategories} />
         </div>
 
-        {/* Routines & System Logs (col 2 & 3, row 2) */}
-        <div className="md:col-span-1 h-52 flex-shrink-0 opacity-0 animate-fade-in-up" style={{ animationDelay: '320ms' }}>
+        {/* Routines & NewsFeed */}
+        <div className="lg:col-span-1 min-h-[250px] opacity-0 animate-soft-enter" style={{ animationDelay: '200ms' }}>
           <RoutinesWidget />
         </div>
-        <div className="md:col-span-1 h-52 flex-shrink-0 opacity-0 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+        <div className="lg:col-span-1 min-h-[250px] opacity-0 animate-soft-enter" style={{ animationDelay: '250ms' }}>
           <NewsFeed />
         </div>
       </main>
@@ -78,10 +87,10 @@ const Dashboard = () => {
       {/* Floating Widgets Button */}
       <button 
         onClick={() => navigate('/widgets')}
-        className="hidden md:flex fixed bottom-8 right-8 w-14 h-14 bg-black/60 backdrop-blur-md border border-accentPrimary/40 rounded-full items-center justify-center text-accentPrimary shadow-[0_0_20px_rgba(0,255,102,0.15)] hover:scale-110 hover:border-accentPrimary hover:shadow-[0_0_30px_rgba(0,255,102,0.3)] transition-all z-50 group"
-        title={t('openWidgetCatalog')}
+        className="hidden md:flex fixed bottom-8 right-8 w-14 h-14 bg-surface backdrop-blur-md border border-border rounded-full items-center justify-center text-textPrimary hover:scale-110 hover:border-accentPrimary hover:text-accentPrimary transition-all z-50 shadow-xl"
+        title="Otwórz bibliotekę widżetów"
       >
-        <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+        <Plus className="w-6 h-6 transition-transform" />
       </button>
     </div>
   );

@@ -4,3 +4,10 @@ dist/
 /data/logs/
 /data/tasks.sqlite
 .DS_Store
+
+*.log
+npm-debug.log*
+.env.local
+.vscode/
+.idea/
+firebase-service-account*.json

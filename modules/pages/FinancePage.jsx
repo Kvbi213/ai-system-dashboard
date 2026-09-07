@@ -114,11 +114,11 @@ const FinancePage = () => {
 
   if (!settings) {
     return (
-      <div className="w-full h-full flex items-center justify-center p-4 animate-fade-in">
-        <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-8 max-w-lg w-full shadow-2xl">
+      <div className="w-full h-full flex items-center justify-center p-4 animate-soft-enter">
+        <div className="glass-panel rounded-2xl p-8 max-w-lg w-full shadow-2xl border border-border">
           <div className="flex flex-col items-center mb-6 text-center">
-            <div className="p-4 bg-accentPrimary/20 text-accentPrimary rounded-full mb-4">
-              <Wallet className="w-10 h-10" />
+            <div className="p-4 bg-surface rounded-full mb-4 border border-border">
+              <Wallet className="w-10 h-10 text-textPrimary" />
             </div>
             <h1 className="text-2xl font-bold font-mono text-accentPrimary">{t("finSetupTitle", "Konfiguracja Budżetu")}</h1>
             <p className="text-sm text-textMuted mt-2 font-sans">{t("finSetupDesc", "Złota zasada 50/30/20 pozwala AI inteligentnie zarządzać Twoimi wydatkami.")}</p>
@@ -166,14 +166,18 @@ const FinancePage = () => {
   // Brak sztywnego wyliczania budżetu z procentów, bazujemy na fizycznym saldzie w bucketSpending
 
   return (
-    <div className="w-full h-full flex flex-col gap-6 animate-fade-in pb-20">
-      <header className="flex justify-between items-center bg-black/40 backdrop-blur-md p-5 rounded-xl border border-white/5 shadow-2xl">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-accentPrimary/20 text-accentPrimary rounded-xl shadow-[0_0_15px_rgba(var(--accent-primary-rgb),0.3)]">
-            <Wallet className="w-6 h-6" />
+    <div className="w-full h-full flex flex-col gap-6 animate-soft-enter pb-20 overflow-hidden">
+      <header className="glass-panel p-5 rounded-xl border border-border flex items-center justify-between gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
+            <Wallet className="w-5 h-5 text-textPrimary" />
           </div>
-          <div>
-            <h1 className="font-mono text-xl text-accentPrimary font-bold tracking-tight">{t("finTitle", "Finanse Inteligentne")}</h1>
+          <div className="flex flex-col">
+            <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-0.5">
+              <span className="flex items-center text-lg font-medium text-textMuted/70">OmniDash</span>
+              <span className="shrink-0 text-lg font-medium text-textMuted/70">/</span>
+              <span className="flex items-center text-lg font-medium text-textPrimary">Finanse</span>
+            </nav>
             <p className="font-sans text-xs text-textMuted mt-0.5">{t("finTotal", "Stan ogólny: ")}<span className={balance >= 0 ? 'text-green-400' : 'text-red-400'}>{balance.toFixed(2)} PLN</span></p>
           </div>
         </div>

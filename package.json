@@ -17,6 +17,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-rate-limit": "^8.5.2",
+    "firebase": "^12.18.0",
+    "firebase-admin": "^14.3.0",
     "groq-sdk": "^0.3.3",
     "i18next": "^26.3.6",
     "lucide-react": "^0.394.0",

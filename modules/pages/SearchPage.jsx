@@ -83,14 +83,22 @@ const SearchPage = () => {
 
   return (
     <div className="flex flex-col h-full gap-6 pb-20 md:pb-0">
-      <header className="glass-panel p-6 rounded-xl border border-border opacity-0 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-        <h1 className="font-mono text-2xl text-accentSecondary font-bold flex items-center gap-3">
-          <Globe className="w-8 h-8 text-accentPrimary" />
-          Global Net Search
-        </h1>
-        <p className="font-sans text-textMuted mt-2">Dostęp do sieci za pośrednictwem Brave Search API.</p>
-        
-        <form onSubmit={handleSearch} className="mt-6 flex flex-col md:flex-row gap-4 relative">
+      <header className="glass-panel p-5 rounded-xl border border-border flex items-center gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
+        <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
+          <Globe className="w-5 h-5 text-textPrimary" />
+        </div>
+        <div className="flex flex-col">
+          <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-0.5">
+            <span className="flex items-center text-lg font-medium text-textMuted/70">OmniDash</span>
+            <span className="shrink-0 text-lg font-medium text-textMuted/70">/</span>
+            <span className="flex items-center text-lg font-medium text-textPrimary">Wyszukiwanie</span>
+          </nav>
+          <p className="font-sans text-xs text-textMuted mt-0.5">Globalne wyszukiwanie informacji w sieci</p>
+        </div>
+      </header>
+
+      <div className="opacity-0 animate-soft-enter" style={{ animationDelay: '100ms' }}>
+        <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 relative">
           <div className="flex-1 relative">
             <input 
               type="text" 
@@ -112,18 +120,18 @@ const SearchPage = () => {
           <button 
             type="submit"
             disabled={isSearching}
-            className="bg-accentPrimary/10 border border-accentPrimary text-accentPrimary px-6 py-3 rounded-lg hover:bg-accentPrimary/20 transition-all flex justify-center items-center gap-2 font-mono font-bold w-full md:w-auto"
+            className="bg-surface border border-border text-textPrimary hover:bg-surface/80 px-6 py-3 rounded-lg transition-all flex justify-center items-center gap-2 font-sans font-medium w-full md:w-auto"
           >
             {isSearching ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
-            SZUKAJ
+            Szukaj
           </button>
         </form>
-      </header>
+      </div>
 
       <main id="tour-search" className="flex-1 min-h-0 overflow-y-auto space-y-4">
         {results.length === 0 && !isSearching && (
-          <div className="h-full flex items-center justify-center text-textMuted font-mono">
-            System oczekuje na parametry wejściowe...
+          <div className="h-full flex items-center justify-center text-textMuted font-sans text-sm">
+            Wpisz zapytanie, aby rozpocząć wyszukiwanie...
           </div>
         )}
         

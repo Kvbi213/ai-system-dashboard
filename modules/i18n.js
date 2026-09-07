@@ -1130,6 +1130,9 @@ i18n
     fallbackLng: 'pl',
     interpolation: {
       escapeValue: false
+    },
+    react: {
+      useSuspense: false
     }
   });
 

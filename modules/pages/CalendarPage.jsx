@@ -134,16 +134,20 @@ const CalendarPage = () => {
   const upcomingEvents = events.filter(e => e.event_date >= todayString).sort((a, b) => new Date(a.event_date) - new Date(b.event_date));
 
   return (
-    <div className="w-full h-full flex flex-col relative z-10 animate-fade-in overflow-hidden">
-      <div className="flex items-center gap-4 mb-6 shrink-0">
-        <div className="w-12 h-12 rounded-xl bg-accentPrimary/20 flex items-center justify-center border border-accentPrimary shadow-[0_0_15px_rgba(var(--color-accent-primary),0.3)]">
-          <CalendarIcon className="w-6 h-6 text-accentPrimary" />
+    <div className="w-full h-full flex flex-col gap-6 relative z-10 animate-soft-enter overflow-hidden">
+      <header className="glass-panel p-5 rounded-xl border border-border flex items-center gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
+        <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
+          <CalendarIcon className="w-5 h-5 text-textPrimary" />
         </div>
-        <div>
-          <h1 className="text-3xl font-mono font-bold tracking-tight text-textPrimary">Terminarz</h1>
-          <p className="text-textMuted text-sm tracking-widest uppercase">System zarządzania czasem</p>
+        <div className="flex flex-col">
+          <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-0.5">
+            <span className="flex items-center text-lg font-medium text-textMuted/70">OmniDash</span>
+            <span className="shrink-0 text-lg font-medium text-textMuted/70">/</span>
+            <span className="flex items-center text-lg font-medium text-textPrimary">Kalendarz</span>
+          </nav>
+          <p className="font-sans text-xs text-textMuted mt-0.5">System zarządzania czasem</p>
         </div>
-      </div>
+      </header>
 
       <div className="flex-1 flex flex-col xl:flex-row gap-6 min-h-0">
         

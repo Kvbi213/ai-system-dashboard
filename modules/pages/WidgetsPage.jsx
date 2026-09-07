@@ -37,13 +37,17 @@ const WidgetsPage = () => {
 
   return (
     <div className="flex flex-col h-full gap-5 pb-20 md:pb-0">
-      <header className="glass-panel p-5 rounded-xl border border-border flex items-center gap-4 flex-shrink-0">
-        <div className="w-10 h-10 rounded-xl bg-accentPrimary/10 border border-accentPrimary/30 flex items-center justify-center flex-shrink-0">
-          <LayoutGrid className="w-5 h-5 text-accentPrimary" />
+      <header className="glass-panel p-5 rounded-xl border-border flex items-center gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
+        <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
+          <LayoutGrid className="w-5 h-5 text-textPrimary" />
         </div>
-        <div>
-          <h1 className="font-mono text-xl text-accentPrimary font-bold tracking-tight">Katalog Widżetów</h1>
-          <p className="font-sans text-xs text-textMuted mt-0.5">Rozszerzone moduły systemu System</p>
+        <div className="flex flex-col">
+          <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-0.5">
+            <span className="flex items-center text-lg font-medium text-textMuted/70">OmniDash</span>
+            <span className="shrink-0 text-lg font-medium text-textMuted/70">/</span>
+            <span className="flex items-center text-lg font-medium text-textPrimary">Widżety</span>
+          </nav>
+          <p className="font-sans text-xs text-textMuted mt-0.5">Rozszerzone moduły systemu</p>
         </div>
       </header>
 
@@ -51,56 +55,56 @@ const WidgetsPage = () => {
         
         {/* System Monitor Widget */}
         {activeWidgets.systemMonitor && (
-          <div className="opacity-0 animate-fade-in-up flex flex-col gap-5" style={{ animationDelay: '100ms' }}>
+          <div className="opacity-0 animate-soft-enter flex flex-col gap-5" style={{ animationDelay: '100ms' }}>
             <SystemMonitor />
           </div>
         )}
 
         {/* Network Monitor */}
         {activeWidgets.networkMonitor && (
-          <div className="opacity-0 animate-fade-in-up h-[250px] md:h-[350px]" style={{ animationDelay: '200ms' }}>
+          <div className="opacity-0 animate-soft-enter h-[250px] md:h-[350px]" style={{ animationDelay: '200ms' }}>
             <NetworkMonitor />
           </div>
         )}
 
         {/* Crypto Tracker */}
         {activeWidgets.cryptoTracker && (
-          <div className="opacity-0 animate-fade-in-up h-[250px] md:h-[350px]" style={{ animationDelay: '300ms' }}>
+          <div className="opacity-0 animate-soft-enter h-[250px] md:h-[350px]" style={{ animationDelay: '300ms' }}>
             <CryptoTracker />
           </div>
         )}
 
         {/* Quick Notes */}
         {activeWidgets.quickNotes && (
-          <div className="opacity-0 animate-fade-in-up h-[250px] md:h-[350px]" style={{ animationDelay: '400ms' }}>
+          <div className="opacity-0 animate-soft-enter h-[250px] md:h-[350px]" style={{ animationDelay: '400ms' }}>
             <QuickNotes />
           </div>
         )}
 
         {/* Token Tracker */}
         {activeWidgets.tokenTracker && (
-          <div className="opacity-0 animate-fade-in-up h-[250px] md:h-[350px]" style={{ animationDelay: '600ms' }}>
+          <div className="opacity-0 animate-soft-enter h-[250px] md:h-[350px]" style={{ animationDelay: '600ms' }}>
             <TokenTracker />
           </div>
         )}
 
         {/* Model Status */}
         {activeWidgets.modelStatus && (
-          <div className="opacity-0 animate-fade-in-up h-[250px] md:h-[350px]" style={{ animationDelay: '700ms' }}>
+          <div className="opacity-0 animate-soft-enter h-[250px] md:h-[350px]" style={{ animationDelay: '700ms' }}>
             <ModelStatus />
           </div>
         )}
 
         {/* Prompt Vault */}
         {activeWidgets.promptVault && (
-          <div className="opacity-0 animate-fade-in-up h-[250px] md:h-[350px]" style={{ animationDelay: '800ms' }}>
+          <div className="opacity-0 animate-soft-enter h-[250px] md:h-[350px]" style={{ animationDelay: '800ms' }}>
             <PromptVault />
           </div>
         )}
 
         {/* Agent Queue */}
         {activeWidgets.agentQueue && (
-          <div className="opacity-0 animate-fade-in-up h-[250px] md:h-[350px]" style={{ animationDelay: '900ms' }}>
+          <div className="opacity-0 animate-soft-enter h-[250px] md:h-[350px]" style={{ animationDelay: '900ms' }}>
             <AgentQueue />
           </div>
         )}

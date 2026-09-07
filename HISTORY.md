@@ -1,5 +1,42 @@
 ## Wersja Bieżąca
-**v1.10.0**
+**v2.2.0**
+
+## v 2.2.0 — 2026-09-07
+**Typ:** MINOR
+**Zakres:** Integracja Chmurowa Firebase Firestore & Restrykcja Dostępu Właściciela
+
+### Zmiany
+- [+] Dodano: Utworzono projekt w Google Cloud Firebase o unikalnym identyfikatorze `void-potato-7721` (Void Potato Matrix).
+- [+] Dodano: Baza danych Cloud Firestore `(default)` w regionie `europe-central2` (Warszawa).
+- [+] Dodano: Moduł backendowy `modules/firebase.js` (Firebase Admin SDK) obsługujący połączenie i synchronizację.
+- [+] Dodano: Moduł tras Express `modules/routes/firebase.js` z punktami końcowymi statusu, weryfikacji i synchronizacji bazy.
+- [+] Dodano: Klient frontendowy `modules/firebaseClient.js` (Firebase Web SDK) do autoryzacji w chmurze.
+- [+] Dodano: Wdrożono reguły bezpieczeństwa `firestore.rules` ograniczające dostęp wyłącznie do autoryzowanego właściciela (`marektowarek21372137@gmail.com`).
+- [*] Zmodyfikowano: `LockScreen.jsx` rozszerzono o autoryzację tożsamości Firebase Właściciela.
+- [*] Zmodyfikowano: `SettingsPage.jsx` wzbogacono o panel monitorowania Firestore i przycisk synchronizacji SQLite -> Firestore.
+- [*] Zmodyfikowano: `core.server.js` zintegrowano z routerem `/api/firebase`.
+- [*] Zmodyfikowano: `ARCHITECTURE.md` zaktualizowano o nową architekturę chmurową.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
+
+## v 2.1.0 — 2026-08-10
+**Typ:** MINOR
+**Zakres:** Modularna Architektura Backendu (Podział monolitów)
+
+### Zmiany
+- [+] Dodano: Dedykowany folder `modules/routes/` dla poszczególnych routerów Express.js.
+- [+] Dodano: Dedykowany folder `modules/ai/` wyodrębniający prompty i narzędzia z `agent.js`.
+- [*] Zmodyfikowano: `core.server.js` przepisano z pliku ponad 600 linii do czystego entry-pointu.
+- [*] Zmodyfikowano: `agent.js` zredukowano poprzez importowanie narzędzi i promptów z nowych modułów.
+- [*] Zmodyfikowano: Zaktualizowano `ARCHITECTURE.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 1.10.0 — 2026-07-07
 **Typ:** MINOR  
