@@ -12,10 +12,10 @@ const ModelStatus = () => {
         if (data && typeof data === 'object' && typeof data.latency === 'number') {
           setStatusData(data);
         } else {
-          setStatusData({ status: 'online', latency: 84, model: 'llama-3.3-70b-versatile' });
+          setStatusData({ status: 'online', latency: 84, model: 'openai/gpt-oss-120b' });
         }
       } catch {
-        setStatusData({ status: 'online', latency: 84, model: 'llama-3.3-70b-versatile' });
+        setStatusData({ status: 'online', latency: 84, model: 'openai/gpt-oss-120b' });
       }
     };
 

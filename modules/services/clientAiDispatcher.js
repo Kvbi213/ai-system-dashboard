@@ -55,7 +55,7 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
           'Authorization': `Bearer ${groqKey}`
         },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
+          model: 'openai/gpt-oss-120b',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: text }
@@ -72,7 +72,7 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
 
       const resData = await response.json();
       const content = resData.choices?.[0]?.message?.content || 'Brak odpowiedzi od modelu.';
-      const thoughts = mode === 'mentor' ? `Analiza kognitywna wykonana bezpośrednio przez chmurę Groq Llama-3.3-70b dla zapytania: "${text.slice(0, 40)}..."` : null;
+      const thoughts = mode === 'mentor' ? `Analiza kognitywna wykonana bezpośrednio przez chmurę Groq GPT-OSS 120b dla zapytania: "${text.slice(0, 40)}..."` : null;
 
       return {
         content,
@@ -109,7 +109,7 @@ function handleAutonomousFallback(text, mode, userName) {
   }
 
   return {
-    content: `[+] **Tryb Autonomiczny OmniDash (${mode.toUpperCase()})**\n\nOtrzymano polecenie: *"${text}"*.\n\nAby odblokować pełną moc generatywną modelu **Llama-3.3-70b** bezpośrednio w chmurze bez limitów i bez potrzeby włączania komputera domowego, wprowadź swój bezpłatny klucz API w:\n👉 **Ustawienia (Settings) -> Klucze API -> Groq API Key**.\n\nWszystkie moduły zadań, finansów, kalendarza i notatek działają synchronicznie w chmurze.`,
+    content: `[+] **Tryb Autonomiczny OmniDash (${mode.toUpperCase()})**\n\nOtrzymano polecenie: *"${text}"*.\n\nAby odblokować pełną moc generatywną modelu **openai/gpt-oss-120b (GPT 120B)** bezpośrednio w chmurze bez limitów i bez potrzeby włączania komputera domowego, wprowadź swój bezpłatny klucz API w:\n👉 **Ustawienia (Settings) -> Klucze API -> Groq API Key**.\n\nWszystkie moduły zadań, finansów, kalendarza i notatek działają synchronicznie w chmurze.`,
     mentor_thoughts: mode === 'mentor' ? 'Wykryto zapytanie w trybie chmurowym bez dedykowanego klucza LLM.' : null,
     widgets: []
   };

@@ -529,7 +529,7 @@ export async function generateHourlySummary(weatherData, options = {}) {
         { role: 'system', content: 'Jesteś asystentem System. Mów profesjonalnie i naturalnie.' },
         { role: 'user', content: prompt },
       ],
-      model: 'llama-3.3-70b-versatile',
+      model: 'openai/gpt-oss-120b',
       temperature: 0.5,
     });
     return completion.choices[0]?.message?.content || 'System nominalny. Przestrzeń zabezpieczona.';

@@ -1,13 +1,13 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.3.0 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.3.1 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA  
 **Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop & Firebase Cloud)
 
 ---
 
 ## 1. WSTĘP I PARADYGMATY
-System to zintegrowane środowisko asystenckie oparte na modelu LLM (obecnie Llama-3.3-70b-versatile od Groq). Projekt łączy w sobie cechy inteligentnego terminala poleceń, zarządzania zadaniami (To-Do), kalendarza, czytnika newsów IT oraz monitoringu systemu. 
+System to zintegrowane środowisko asystenckie oparte na modelu LLM (obecnie openai/gpt-oss-120b od Groq). Projekt łączy w sobie cechy inteligentnego terminala poleceń, zarządzania zadaniami (To-Do), kalendarza, czytnika newsów IT oraz monitoringu systemu. 
 
 **Główne Paradygmaty:**
 1. **Desktop-First & Local-First:** Frontend i backend działają lokalnie na maszynie dewelopera (Windows z mostem do WSL/Node.js). Baza danych to plikowy SQLite z mostem synchronizacyjnym do Cloud Firestore.
@@ -130,7 +130,7 @@ System bazuje na plikowej bazie SQLite (`/data/tasks.sqlite`), która tworzy si�
 
 ## 5. SILNIK AI I NARZĘDZIA (agent.js)
 
-`agent.js` to serce systemu decyzyjnego. Komunikuje się z modelem **llama-3.3-70b-versatile** poprzez `groq-sdk`.
+`agent.js` to serce systemu decyzyjnego. Komunikuje się z modelem **openai/gpt-oss-120b** poprzez `groq-sdk` (z fallbackiem do modeli pomocniczych).
 
 ### Tryby Pracy (Modes)
 Agent posiada dwa tryby, sterowane zmienną `mode` przekazywaną z frontendu (Terminal.jsx):
