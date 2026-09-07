@@ -36,12 +36,29 @@ const FinancePage = () => {
     savings_percent: settings?.savings_percent || 20
   });
 
+  const targetNeeds = Number(settings?.needs_percent) || 50;
+  const targetWants = Number(settings?.wants_percent) || 30;
+  const targetSavings = Number(settings?.savings_percent) || 20;
+  const monthlyIncome = Number(settings?.monthly_income) || 5000;
+
   // 1. Subskrypcja Firestore CloudSync + lokalny cache
   useEffect(() => {
     const unsub = subscribeCollection('finances', (data) => {
       if (Array.isArray(data)) {
-        // Sortuj malejąco po dacie
-        const sorted = [...data].sort((a, b) => new Date(b.transaction_date || 0) - new Date(a.transaction_date || 0));
+        // Sprawdź czy jest wpis konfiguracyjny
+        const settingsDoc = data.find(d => d && (d.id === 'finance_settings' || d.is_settings));
+        if (settingsDoc) {
+          setSettings(prev => ({
+            monthly_income: Number(settingsDoc.monthly_income) || prev.monthly_income,
+            needs_percent: Number(settingsDoc.needs_percent) || prev.needs_percent,
+            wants_percent: Number(settingsDoc.wants_percent) || prev.wants_percent,
+            savings_percent: Number(settingsDoc.savings_percent) || prev.savings_percent
+          }));
+        }
+
+        // Filtruj rzeczywiste transakcje i sortuj malejąco po dacie
+        const txs = data.filter(d => d && d.id !== 'finance_settings' && !d.is_settings && d.amount !== undefined);
+        const sorted = [...txs].sort((a, b) => new Date(b.transaction_date || 0) - new Date(a.transaction_date || 0));
         setFinances(sorted);
       }
     });
@@ -50,8 +67,9 @@ const FinancePage = () => {
     axios.get('/api/finances')
       .then(res => {
         if (Array.isArray(res.data) && res.data.length > 0) {
+          const txs = res.data.filter(d => d && d.id !== 'finance_settings' && !d.is_settings);
           setFinances(prev => {
-            const combined = [...res.data];
+            const combined = [...txs];
             prev.forEach(p => {
               if (!combined.some(c => String(c.id) === String(p.id))) {
                 combined.push(p);
@@ -66,13 +84,14 @@ const FinancePage = () => {
     return () => unsub();
   }, []);
 
-  // Obliczenia statystyk finansowych (50/30/20 oraz Cashflow)
+  // Obliczenia statystyk finansowych (dynamiczne % według ustawień oraz Cashflow)
   const stats = useMemo(() => {
     let income = 0;
     let expenses = 0;
     let buckets = { needs: 0, wants: 0, savings: 0, unassigned: 0 };
 
     finances.forEach(item => {
+      if (!item || item.is_settings || item.id === 'finance_settings') return;
       const amt = Number(item.amount) || 0;
       if (item.type === 'income') {
         income += amt;
@@ -88,10 +107,16 @@ const FinancePage = () => {
     });
 
     const net = income - expenses;
-    const totalExp = expenses > 0 ? expenses : 1;
-    const needsPct = Math.round((buckets.needs / totalExp) * 100);
-    const wantsPct = Math.round((buckets.wants / totalExp) * 100);
-    const savingsPct = Math.round((buckets.savings / totalExp) * 100);
+    const totalExp = expenses > 0 ? expenses : 0;
+    const needsPct = totalExp > 0 ? Math.round((buckets.needs / totalExp) * 100) : 0;
+    const wantsPct = totalExp > 0 ? Math.round((buckets.wants / totalExp) * 100) : 0;
+    const savingsPct = totalExp > 0 ? Math.round((buckets.savings / totalExp) * 100) : 0;
+
+    // Budżety celowe na podstawie ustawionych procentów
+    const baseBudget = monthlyIncome > 0 ? monthlyIncome : (income > 0 ? income : 0);
+    const budgetNeeds = Math.round((baseBudget * targetNeeds) / 100);
+    const budgetWants = Math.round((baseBudget * targetWants) / 100);
+    const budgetSavings = Math.round((baseBudget * targetSavings) / 100);
 
     return {
       balance: net,
@@ -100,15 +125,26 @@ const FinancePage = () => {
       buckets,
       needsPct,
       wantsPct,
-      savingsPct
+      savingsPct,
+      budgetNeeds,
+      budgetWants,
+      budgetSavings
     };
-  }, [finances]);
+  }, [finances, monthlyIncome, targetNeeds, targetWants, targetSavings]);
 
   const handleSetupSubmit = async (e, skip = false) => {
     if (e) e.preventDefault();
-    const dataToSubmit = skip ? { monthly_income: 0, needs_percent: 50, wants_percent: 30, savings_percent: 20 } : setupData;
+    const dataToSubmit = skip 
+      ? { monthly_income: 0, needs_percent: 50, wants_percent: 30, savings_percent: 20 } 
+      : {
+          monthly_income: parseFloat(setupData.monthly_income) || 0,
+          needs_percent: parseFloat(setupData.needs_percent) || 50,
+          wants_percent: parseFloat(setupData.wants_percent) || 30,
+          savings_percent: parseFloat(setupData.savings_percent) || 20
+        };
     setSettings(dataToSubmit);
     localStorage.setItem('system_finance_settings', JSON.stringify(dataToSubmit));
+    await saveCloudDocument('finances', 'finance_settings', { ...dataToSubmit, is_settings: true });
     try {
       await axios.post('/api/finance/settings', dataToSubmit);
     } catch {}
@@ -204,7 +240,12 @@ const FinancePage = () => {
         <div className="flex items-center gap-3">
           <button 
             onClick={() => {
-              setSetupData(settings || { monthly_income: 5000, needs_percent: 50, wants_percent: 30, savings_percent: 20 });
+              setSetupData({
+                monthly_income: settings?.monthly_income ?? 5000,
+                needs_percent: targetNeeds,
+                wants_percent: targetWants,
+                savings_percent: targetSavings
+              });
               setShowModal('settings');
             }} 
             className="p-2.5 bg-white/5 hover:bg-white/10 rounded-lg text-textMuted transition-colors border border-border/40"
@@ -228,13 +269,23 @@ const FinancePage = () => {
           <div className="absolute -top-2 -right-2 p-4 opacity-5 group-hover:opacity-15 transition-opacity text-cyan-400"><Target className="w-16 h-16" /></div>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <p className="text-[11px] text-cyan-400 font-mono font-semibold tracking-wider">POTRZEBY (50%)</p>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 font-mono">{stats.needsPct}%</span>
+              <p className="text-[11px] text-cyan-400 font-mono font-semibold tracking-wider">POTRZEBY ({targetNeeds}%)</p>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 font-mono">
+                {stats.totalExpenses > 0 ? `${stats.needsPct}%` : `${targetNeeds}% Cel`}
+              </span>
             </div>
             <p className="text-2xl font-bold font-mono text-textPrimary">{(stats.buckets.needs || 0).toFixed(2)} <span className="text-xs text-textMuted">PLN</span></p>
+            {stats.budgetNeeds > 0 && (
+              <p className="text-[10px] font-mono text-textMuted mt-1 flex justify-between">
+                <span>Cel: {stats.budgetNeeds} PLN</span>
+                <span className={stats.buckets.needs > stats.budgetNeeds ? 'text-rose-400 font-bold' : 'text-cyan-400'}>
+                  {stats.buckets.needs > stats.budgetNeeds ? `+${(stats.buckets.needs - stats.budgetNeeds).toFixed(0)} PLN` : `zostało: ${(stats.budgetNeeds - stats.buckets.needs).toFixed(0)} PLN`}
+                </span>
+              </p>
+            )}
           </div>
           <div className="mt-3 w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-cyan-400 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(stats.needsPct, 100)}%` }} />
+            <div className="bg-cyan-400 h-full rounded-full transition-all duration-500" style={{ width: `${stats.totalExpenses > 0 ? Math.min(stats.needsPct, 100) : 0}%` }} />
           </div>
         </div>
 
@@ -243,13 +294,23 @@ const FinancePage = () => {
           <div className="absolute -top-2 -right-2 p-4 opacity-5 group-hover:opacity-15 transition-opacity text-pink-400"><Heart className="w-16 h-16" /></div>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <p className="text-[11px] text-pink-400 font-mono font-semibold tracking-wider">ZACHCIANKI (30%)</p>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-300 font-mono">{stats.wantsPct}%</span>
+              <p className="text-[11px] text-pink-400 font-mono font-semibold tracking-wider">ZACHCIANKI ({targetWants}%)</p>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-300 font-mono">
+                {stats.totalExpenses > 0 ? `${stats.wantsPct}%` : `${targetWants}% Cel`}
+              </span>
             </div>
             <p className="text-2xl font-bold font-mono text-textPrimary">{(stats.buckets.wants || 0).toFixed(2)} <span className="text-xs text-textMuted">PLN</span></p>
+            {stats.budgetWants > 0 && (
+              <p className="text-[10px] font-mono text-textMuted mt-1 flex justify-between">
+                <span>Cel: {stats.budgetWants} PLN</span>
+                <span className={stats.buckets.wants > stats.budgetWants ? 'text-rose-400 font-bold' : 'text-pink-400'}>
+                  {stats.buckets.wants > stats.budgetWants ? `+${(stats.buckets.wants - stats.budgetWants).toFixed(0)} PLN` : `zostało: ${(stats.budgetWants - stats.buckets.wants).toFixed(0)} PLN`}
+                </span>
+              </p>
+            )}
           </div>
           <div className="mt-3 w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-pink-400 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(stats.wantsPct, 100)}%` }} />
+            <div className="bg-pink-400 h-full rounded-full transition-all duration-500" style={{ width: `${stats.totalExpenses > 0 ? Math.min(stats.wantsPct, 100) : 0}%` }} />
           </div>
         </div>
 
@@ -258,13 +319,23 @@ const FinancePage = () => {
           <div className="absolute -top-2 -right-2 p-4 opacity-5 group-hover:opacity-15 transition-opacity text-emerald-400"><TrendingUp className="w-16 h-16" /></div>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <p className="text-[11px] text-emerald-400 font-mono font-semibold tracking-wider">OSZCZĘDNOŚCI (20%)</p>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 font-mono">{stats.savingsPct}%</span>
+              <p className="text-[11px] text-emerald-400 font-mono font-semibold tracking-wider">OSZCZĘDNOŚCI ({targetSavings}%)</p>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 font-mono">
+                {stats.totalExpenses > 0 ? `${stats.savingsPct}%` : `${targetSavings}% Cel`}
+              </span>
             </div>
             <p className="text-2xl font-bold font-mono text-textPrimary">{(stats.buckets.savings || 0).toFixed(2)} <span className="text-xs text-textMuted">PLN</span></p>
+            {stats.budgetSavings > 0 && (
+              <p className="text-[10px] font-mono text-textMuted mt-1 flex justify-between">
+                <span>Cel: {stats.budgetSavings} PLN</span>
+                <span className="text-emerald-400 font-bold">
+                  odłożono: {(stats.buckets.savings || 0).toFixed(0)} PLN
+                </span>
+              </p>
+            )}
           </div>
           <div className="mt-3 w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-emerald-400 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(stats.savingsPct, 100)}%` }} />
+            <div className="bg-emerald-400 h-full rounded-full transition-all duration-500" style={{ width: `${stats.totalExpenses > 0 ? Math.min(stats.savingsPct, 100) : 0}%` }} />
           </div>
         </div>
 
@@ -286,13 +357,13 @@ const FinancePage = () => {
         </div>
       </div>
 
-      {/* Visual Analytics Hub: 50/30/20 Donut Chart & Cashflow Tracker */}
+      {/* Visual Analytics Hub: Donut Chart & Cashflow Tracker */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 shrink-0">
         {/* SVG Donut Visualizer */}
         <div className="lg:col-span-5 glass-panel p-5 rounded-xl border border-border flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-mono text-sm font-bold text-accentPrimary flex items-center gap-2">
-              <PieChart className="w-4 h-4" /> Alokacja Budżetowa (50/30/20)
+              <PieChart className="w-4 h-4" /> Alokacja Budżetowa ({targetNeeds}/{targetWants}/{targetSavings})
             </h3>
             <span className="text-[11px] font-mono text-textMuted">Wydatki: {stats.totalExpenses.toFixed(2)} PLN</span>
           </div>
@@ -372,7 +443,7 @@ const FinancePage = () => {
                 </div>
                 <div className="text-right">
                   <span className="font-bold text-textPrimary">{stats.needsPct}%</span>
-                  <span className="text-[10px] text-textMuted ml-1">/ 50%</span>
+                  <span className="text-[10px] text-textMuted ml-1">/ {targetNeeds}%</span>
                 </div>
               </div>
 
@@ -383,7 +454,7 @@ const FinancePage = () => {
                 </div>
                 <div className="text-right">
                   <span className="font-bold text-textPrimary">{stats.wantsPct}%</span>
-                  <span className="text-[10px] text-textMuted ml-1">/ 30%</span>
+                  <span className="text-[10px] text-textMuted ml-1">/ {targetWants}%</span>
                 </div>
               </div>
 
@@ -394,7 +465,7 @@ const FinancePage = () => {
                 </div>
                 <div className="text-right">
                   <span className="font-bold text-textPrimary">{stats.savingsPct}%</span>
-                  <span className="text-[10px] text-textMuted ml-1">/ 20%</span>
+                  <span className="text-[10px] text-textMuted ml-1">/ {targetSavings}%</span>
                 </div>
               </div>
             </div>
@@ -607,15 +678,15 @@ const FinancePage = () => {
 
               {formData.type === 'expense' && (
                 <div>
-                  <label className="text-xs font-mono text-textMuted mb-1 block">{t("finBucketLabel", "Kubełek (Kategoria 50/30/20)")}</label>
+                  <label className="text-xs font-mono text-textMuted mb-1 block">Kubełek ({targetNeeds}/{targetWants}/{targetSavings})</label>
                   <select 
                     value={formData.bucket} 
                     onChange={e => setFormData({...formData, bucket: e.target.value})} 
                     className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-accentPrimary outline-none transition-colors"
                   >
-                    <option value="needs">Potrzeby / Rachunki (50%)</option>
-                    <option value="wants">Zachcianki / Rozrywka (30%)</option>
-                    <option value="savings">Oszczędności / Inwestycje (20%)</option>
+                    <option value="needs">Potrzeby / Rachunki ({targetNeeds}%)</option>
+                    <option value="wants">Zachcianki / Rozrywka ({targetWants}%)</option>
+                    <option value="savings">Oszczędności / Inwestycje ({targetSavings}%)</option>
                   </select>
                 </div>
               )}
@@ -667,12 +738,12 @@ const FinancePage = () => {
         </div>
       )}
 
-      {/* Modal Ustawień Budżetu 50/30/20 */}
+      {/* Modal Ustawień Budżetu (Dynamiczne %) */}
       {showModal === 'settings' && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-background border border-border rounded-xl w-full max-w-md overflow-hidden shadow-2xl animate-scale-in">
             <div className="p-4 border-b border-border flex justify-between items-center bg-black/20">
-              <h2 className="font-mono text-accentPrimary font-bold text-base">Konfiguracja Budżetu 50/30/20</h2>
+              <h2 className="font-mono text-accentPrimary font-bold text-base">Konfiguracja Budżetu ({targetNeeds}/{targetWants}/{targetSavings})</h2>
               <button onClick={() => setShowModal(false)} className="text-textMuted hover:text-white transition-colors">✕</button>
             </div>
             <form onSubmit={(e) => { handleSetupSubmit(e); setShowModal(false); }} className="p-5 flex flex-col gap-4">
@@ -715,6 +786,13 @@ const FinancePage = () => {
                     className="w-full bg-black/30 border border-border rounded-lg p-2 text-textPrimary font-mono text-center" 
                   />
                 </div>
+              </div>
+
+              <div className="text-xs font-mono flex items-center justify-between px-1 py-1 rounded bg-black/20 border border-white/5">
+                <span className="text-textMuted">Suma alokacji:</span>
+                <span className={`font-bold ${((Number(setupData.needs_percent) || 0) + (Number(setupData.wants_percent) || 0) + (Number(setupData.savings_percent) || 0)) === 100 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  {((Number(setupData.needs_percent) || 0) + (Number(setupData.wants_percent) || 0) + (Number(setupData.savings_percent) || 0))}% {((Number(setupData.needs_percent) || 0) + (Number(setupData.wants_percent) || 0) + (Number(setupData.savings_percent) || 0)) === 100 ? '✓ (Zrównoważona)' : '(Zalecane 100%)'}
+                </span>
               </div>
 
               <div className="flex justify-end gap-3 mt-4">

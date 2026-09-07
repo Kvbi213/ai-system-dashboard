@@ -257,14 +257,14 @@ Zadania w To-Do:
 ${tasksSummary}
 Kalendarz:
 ${calendarSummary}
-Zasady: Odpowiadaj wyczerpująco, logicznie i wspierająco w języku ${language} z użyciem bogatego Markdown.`
+Zasady: Posiadasz bezpośredni dostęp do internetu oraz silnika Brave Search. NIGDY nie mów, że nie masz dostępu do wiadomości ze świata ani internetu! Odpowiadaj wyczerpująco, logicznie i wspierająco w języku ${language} z użyciem bogatego Markdown.`
         : `Jesteś F.R.I.D.A.Y — inżynieryjnym silnikiem wykonawczym w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas: ${context.dateStr}, ${context.timeStr}.
 Zadania w To-Do:
 ${tasksSummary}
 Kalendarz:
 ${calendarSummary}
-Zasady: Odpowiadaj konkretnie, merytorycznie i technicznie w języku ${language} z użyciem bogatego Markdown.`;
+Zasady: Posiadasz bezpośredni dostęp do internetu oraz silnika Brave Search. NIGDY nie mów, że nie masz dostępu do wiadomości ze świata ani internetu! Odpowiadaj konkretnie, merytorycznie i technicznie w języku ${language} z użyciem bogatego Markdown.`;
 
       const response = await fetch(GROQ_ENDPOINT, {
         method: 'POST',
@@ -386,6 +386,15 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
       content,
       mentor_thoughts: `Przeanalizowano listę To-Do: ${pendingTasks.length} oczekujących, ${completedTasks.length} wykonanych.`,
       widgets: ['tasks']
+    };
+  }
+
+  // Obsługa wiadomości / news / wydarzeń
+  if (lower.includes('news') || lower.includes('wiadomoś') || lower.includes('wydarzen') || lower.includes('aktualnoś') || lower.includes('świat')) {
+    return {
+      content: `### 📰 Aktualne Wydarzenia & Wiadomości IT (Brave Search Live Intel)\n\nPoniżej znajduje się najnowszy kanał depesz informacyjnych IT Intel Feed powiązany z silnikiem Brave Search:\n\n- Możesz przeglądać najświeższe artykuły bezpośrednio w widżecie poniżej.\n- Jeśli chcesz wyszukać konkretny temat ze świata, wpisz polecenie np. *"znajdź [temat]"*.`,
+      mentor_thoughts: 'Odpytano moduł wiadomości i wyszukiwania Brave Search.',
+      widgets: ['news']
     };
   }
 

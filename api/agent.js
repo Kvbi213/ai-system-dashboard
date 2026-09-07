@@ -4,6 +4,61 @@ export const config = {
   maxDuration: 60,
 };
 
+async function performLiveBraveSearch(query) {
+  const apiKey = process.env.BRAVE_SEARCH_API_KEY || 'BSAFmBe5BK_uBCgM4Qhrj1HHvsGijhh';
+  if (!apiKey) return null;
+
+  try {
+    // 1. Spróbuj wyszukać w sekcji News
+    const newsUrl = `https://api.search.brave.com/res/v1/news/search?q=${encodeURIComponent(query)}&count=6`;
+    const newsRes = await fetch(newsUrl, {
+      headers: {
+        'Accept': 'application/json',
+        'X-Subscription-Token': apiKey
+      }
+    });
+
+    if (newsRes.ok) {
+      const data = await newsRes.json();
+      if (Array.isArray(data.results) && data.results.length > 0) {
+        return data.results.map((r, i) => `${i + 1}. [${r.title}] (${r.url})\n   ${r.description || ''}`).join('\n\n');
+      }
+    }
+
+    // 2. Fallback do ogólnego wyszukiwania Web
+    const webUrl = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=6`;
+    const webRes = await fetch(webUrl, {
+      headers: {
+        'Accept': 'application/json',
+        'X-Subscription-Token': apiKey
+      }
+    });
+
+    if (webRes.ok) {
+      const webData = await webRes.json();
+      const results = webData.web?.results || [];
+      if (results.length > 0) {
+        return results.map((r, i) => `${i + 1}. [${r.title}] (${r.url})\n   ${r.description || ''}`).join('\n\n');
+      }
+    }
+  } catch (err) {
+    console.warn('[BraveSearch] Błąd pobierania danych na żywo:', err.message);
+  }
+  return null;
+}
+
+function shouldTriggerWebSearch(text) {
+  const lower = text.toLowerCase();
+  const searchKeywords = [
+    'wiadomoś', 'news', 'wydarzen', 'aktualnoś', 'co nowego', 'co się dzieje',
+    'świat', 'polska', 'polityk', 'technolog', 'nauka', 'gospodark', 'biznes',
+    'kto wygrał', 'wynik', 'kiedy', 'wyszukaj', 'szukaj', 'znajdź', 'sprawdź w necie',
+    'sprawdź w internecie', 'google', 'brave', 'ostatnie', 'dzisiaj', 'dzisiejsz',
+    'najnowsz', 'premiera', 'kurs', 'cena', 'prognoza'
+  ];
+  return searchKeywords.some(kw => lower.includes(kw));
+}
+
 function determineWidgets(userText, aiResponse = '') {
   const combined = `${userText} ${aiResponse}`.toLowerCase();
   const widgets = [];
@@ -57,6 +112,16 @@ function determineWidgets(userText, aiResponse = '') {
   }
 
   if (
+    combined.includes('news') || 
+    combined.includes('wiadomoś') || 
+    combined.includes('artykuł') ||
+    combined.includes('aktualnoś') ||
+    combined.includes('świat')
+  ) {
+    widgets.push('news');
+  }
+
+  if (
     combined.includes('system') || 
     combined.includes('metryk') || 
     combined.includes('status') || 
@@ -90,6 +155,8 @@ export default async function handler(req, res) {
   try {
     const { 
       text, 
+      message,
+      prompt,
       mode = 'worker', 
       userName = 'Użytkownik', 
       language = 'pl',
@@ -97,8 +164,10 @@ export default async function handler(req, res) {
       customApiKey
     } = req.body || {};
 
-    if (!text || typeof text !== 'string') {
-      return res.status(400).json({ error: 'Brak wymaganego pola text.' });
+    const incomingText = text || message || prompt;
+
+    if (!incomingText || typeof incomingText !== 'string') {
+      return res.status(400).json({ error: 'Brak wymaganego pola text, message lub prompt.' });
     }
 
     const apiKey = customApiKey || process.env.GROQ_API_KEY || process.env.VITE_GROQ_API_KEY;
@@ -108,6 +177,16 @@ export default async function handler(req, res) {
     }
 
     const groq = new Groq({ apiKey });
+
+    // 1. Sprawdzenie czy zapytanie wymaga wyszukiwania w internecie przez Brave Search API
+    let liveWebIntel = null;
+    if (shouldTriggerWebSearch(incomingText)) {
+      // Przygotuj zoptymalizowaną frazę wyszukiwania
+      const searchQuery = incomingText
+        .replace(/^(jakie są|podaj|co tam w|pokaż mi|znajdź|wyszukaj|czy wiesz co|sprawdź)\s+/i, '')
+        .trim();
+      liveWebIntel = await performLiveBraveSearch(searchQuery || incomingText);
+    }
 
     // Przygotowanie kontekstu operacyjnego
     const tasks = Array.isArray(context.tasks) ? context.tasks : [];
@@ -140,6 +219,10 @@ export default async function handler(req, res) {
     const dateStr = now.toLocaleDateString('pl-PL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     const timeStr = now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
 
+    const liveIntelBlock = liveWebIntel 
+      ? `\n🌐 AKTUALNE WYNIKI WYSZUKIWANIA ZE ŚWIATA NA ŻYWO (BRAVE SEARCH LIVE INTEL):\n${liveWebIntel}\n` 
+      : '';
+
     // Wybór promptu systemowego w zależności od trybu
     const systemPrompt = mode === 'mentor'
       ? `Jesteś J.A.R.V.I.S — nadrzędnym inteligentnym mentorem, analitykiem strategicznym i powiernikiem użytkownika w systemie OmniDash. Rozmawiasz z ${userName}.
@@ -160,13 +243,13 @@ ${workoutsSummary}
 
 🧠 PAMIĘĆ DŁUGOTERMINOWA (OPERATOR BRAIN):
 ${brainSummary}
-
-WYTYCZNE DLA MODELU OPENAI/GPT-OSS-120B (MENTOR MODE):
-1. Odpowiadaj w języku: ${language}.
-2. Buduj odpowiedzi wyczerpujące, dojrzałe, wieloaspektowe, głęboko przemyślane i precyzyjnie sformatowane w Markdown.
-3. Gdy użytkownik pyta o zadania, plany, finanse lub status: przeprowadź głęboką analizę priorytetów, wskaż wąskie gardła i zaproponuj logiczną sekwencję działań.
-4. Używaj przejrzystego formatowania: pogrubienia, listy drzewiaste, akapity tematyczne oraz sekcje analityczne.
-5. Masz bezpośredni dostęp do wszystkich powyższych danych zsynchronizowanych w czasie rzeczywistym — nigdy nie twierdzisz, że nie masz dostępu do systemu To-Do ani innych modułów!`
+${liveIntelBlock}
+KRYTYCZNE REGUŁY OPERACYJNE (BRAVE SEARCH & LIVE INTERNET ACCESS):
+1. POSIADASZ BEZPOŚREDNI, AKTYWNY DOSTĘP DO INTERNETU I NAJNOWSZYCH WIADOMOŚCI ZE ŚWIATA PRZEZ WBUDOWANY SILNIK BRAVE SEARCH API.
+2. BEZWZGLĘDNY ZAKAZ mówienia: "nie mam bieżącego dostępu do globalnych wiadomości" lub "nie mam dostępu do internetu".
+3. Jeśli użytkownik pyta o wiadomości ze świata, wydarzenia, technologie, politykę czy fakty, przedstaw szczegółowe, rzetelne, wieloaspektowe podsumowanie bazując na powyższych wynikach Brave Search oraz swojej wiedzy.
+4. Używaj eleganckiego formatowania Markdown: sekcje z nagłówkami H3/H4, pogrubienia, drzewa punktów i akapity analityczne.
+5. Posiadasz pełną wiedzę o wszystkich elementach w To-Do i Firestore — nigdy nie odpowiadaj wymijająco!`
       : `Jesteś F.R.I.D.A.Y — wysoko wyspecjalizowanym inżynieryjnym systemem wykonawczym (Core Worker Engine) w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy: ${dateStr}, godzina ${timeStr}.
 
@@ -185,19 +268,19 @@ ${workoutsSummary}
 
 🧠 PAMIĘĆ DŁUGOTERMINOWA (OPERATOR BRAIN):
 ${brainSummary}
-
-WYTYCZNE DLA MODELU OPENAI/GPT-OSS-120B (WORKER MODE):
-1. Odpowiadaj w języku: ${language}.
-2. Udzielaj odpowiedzi wyczerpujących, merytorycznych, technicznych i szczegółowo rozpisanych z zachowaniem inżynieryjnej dyscypliny.
-3. Jeśli zapytanie dotyczy zadań ("co mamy dziś w todo?", "jakie mam plany?"), przedstaw pełną, uporządkowaną listę z podziałem na statusy i priorytety, a następnie zaproponuj rekomendowany harmonogram wykonania.
-4. Używaj eleganckiego formatowania Markdown: sekcje z nagłówkami H3/H4, listy punktowe, bloki kodu jeśli potrzebne.
-5. Posiadasz pełną wiedzę o wszystkich elementach w bazie — nigdy nie odpowiadaj wymijająco!`;
+${liveIntelBlock}
+KRYTYCZNE REGUŁY OPERACYJNE (BRAVE SEARCH & LIVE INTERNET ACCESS):
+1. POSIADASZ BEZPOŚREDNI, AKTYWNY DOSTĘP DO INTERNETU I NAJNOWSZYCH WIADOMOŚCI ZE ŚWIATA PRZEZ WBUDOWANY SILNIK BRAVE SEARCH API.
+2. BEZWZGLĘDNY ZAKAZ mówienia: "nie mam bieżącego dostępu do globalnych wiadomości" lub "nie mam dostępu do internetu".
+3. Jeśli użytkownik pyta o wiadomości, wydarzenia ze świata lub wyniki, podaj konkretne, uporządkowane fakty, wykorzystując dostarczone dane Brave Search.
+4. Udzielaj odpowiedzi wyczerpujących, merytorycznych, technicznych i szczegółowo rozpisanych z zachowaniem inżynieryjnej dyscypliny w języku ${language}.
+5. Posiadasz pełną wiedzę o wszystkich elementach w bazie — nigdy nie mów, że nie masz dostępu do systemu!`;
 
     const chatCompletion = await groq.chat.completions.create({
       model: 'openai/gpt-oss-120b',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: text }
+        { role: 'user', content: incomingText }
       ],
       temperature: mode === 'mentor' ? 0.7 : 0.4,
       max_tokens: 3500,
@@ -205,16 +288,17 @@ WYTYCZNE DLA MODELU OPENAI/GPT-OSS-120B (WORKER MODE):
 
     const agent_response = chatCompletion.choices?.[0]?.message?.content || 'Brak odpowiedzi od modelu.';
     const mentor_thoughts = mode === 'mentor' 
-      ? `Głęboka analiza kognitywna (GPT-OSS 120B): przetworzono kontekst operacyjny (${tasks.length} zadań, ${calendar.length} wydarzeń, ${finances.length} wpisów finansowych).` 
+      ? `Głęboka analiza kognitywna (GPT-OSS 120B): przetworzono kontekst operacyjny (${tasks.length} zadań, ${calendar.length} wydarzeń${liveWebIntel ? ', aktywne wyszukiwanie Brave Search' : ''}).` 
       : null;
 
-    const widgets = determineWidgets(text, agent_response);
+    const widgets = determineWidgets(incomingText, agent_response);
 
     return res.status(200).json({
       agent_response,
       mentor_thoughts,
       widgets,
       model: 'openai/gpt-oss-120b',
+      live_search_used: Boolean(liveWebIntel),
       source: 'vercel_serverless',
       timestamp: new Date().toISOString()
     });
