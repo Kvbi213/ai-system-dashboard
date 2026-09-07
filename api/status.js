@@ -11,11 +11,15 @@ export default function handler(req, res) {
     return res.status(200).end();
   }
 
+  const now = new Date();
   res.status(200).json({
     status: 'online',
     engine: 'OmniDash Vercel Serverless Gateway',
     model: 'openai/gpt-oss-120b',
     cors: 'enabled',
-    timestamp: new Date().toISOString()
+    timestamp: now.toISOString(),
+    server_time: now.toLocaleTimeString('pl-PL', { timeZone: 'Europe/Warsaw', hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+    server_date: now.toLocaleDateString('pl-PL', { timeZone: 'Europe/Warsaw' }),
+    timezone: 'Europe/Warsaw'
   });
 }

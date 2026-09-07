@@ -91,8 +91,9 @@ function getClientContextSummary() {
   } catch {}
 
   const now = new Date();
-  const dateStr = now.toLocaleDateString('pl-PL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const timeStr = now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+  const timeZone = 'Europe/Warsaw';
+  const dateStr = now.toLocaleDateString('pl-PL', { timeZone, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = now.toLocaleTimeString('pl-PL', { timeZone, hour: '2-digit', minute: '2-digit' });
 
   return {
     tasks,
@@ -104,7 +105,8 @@ function getClientContextSummary() {
     operatorBrain: Array.isArray(operatorBrain) ? operatorBrain : [],
     timetable: Array.isArray(timetable) ? timetable : [],
     dateStr,
-    timeStr
+    timeStr,
+    timeZone
   };
 }
 
@@ -463,6 +465,10 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
         operatorBrain: context.operatorBrain,
         timetable: context.timetable
       },
+      clientTimestamp: Date.now(),
+      clientTimeStr: context.timeStr,
+      clientDateStr: context.dateStr,
+      timeZone: 'Europe/Warsaw',
       customApiKey: groqKey && groqKey.startsWith('gsk_') ? groqKey : undefined,
       model: localStorage.getItem('system_active_model') || 'openai/gpt-oss-120b'
     };
@@ -566,7 +572,8 @@ Ostatnie transakcje: ` + actualTxs.slice(0, 10).map(f => `${f.type === 'income' 
 
       const systemPrompt = mode === 'mentor'
         ? `Jesteś J.A.R.V.I.S — inteligentnym mentorem i analitykiem w systemie OmniDash. Rozmawiasz z ${userName}.
-Aktualny czas: ${context.dateStr}, ${context.timeStr}.
+Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
+PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
 Zadania w To-Do:
 ${tasksSummary}
 Plan Lekcji:
@@ -581,7 +588,8 @@ Zasady: Posiadasz bezpośredni dostęp do internetu oraz bazy Firestore. Odpowia
 Gdy przedstawiasz tabele danych, pogodę, finanse czy harmonogramy, ZAWSZE używaj czytelnych tabel Markdown (| Kolumna | ... |).
 Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu: [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].`
         : `Jesteś F.R.I.D.A.Y — inżynieryjnym silnikiem wykonawczym w OmniDash. Rozmawiasz z ${userName}.
-Aktualny czas: ${context.dateStr}, ${context.timeStr}.
+Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
+PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
 Zadania w To-Do:
 ${tasksSummary}
 Plan Lekcji:

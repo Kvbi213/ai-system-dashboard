@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { Plus, Trash2, TrendingUp, TrendingDown, Wallet, DollarSign, Settings2, Target, Heart, PieChart, Search, Filter, Sparkles } from 'lucide-react';
-import { subscribeCollection, saveCloudDocument, deleteCloudDocument } from '../services/cloudSync';
+import { Plus, Trash2, TrendingUp, TrendingDown, Wallet, DollarSign, Settings2, Target, Heart, PieChart, Search, Filter, Sparkles, ArrowRightLeft, ArrowRight } from 'lucide-react';
+import { subscribeCollection, saveCloudDocument, deleteCloudDocument, updateCloudDocumentField } from '../services/cloudSync';
 
 const FinancePage = () => {
   const { t } = useTranslation();
@@ -19,12 +19,25 @@ const FinancePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all'); // all | income | expense | needs | wants | savings
   
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(false); // false | 'transaction' | 'transfer' | 'settings'
   const [formData, setFormData] = useState({
     type: 'expense',
     amount: '',
     category: 'Inne',
     bucket: 'needs',
+    incomeMode: 'split', // 'split' | 'single' | 'custom'
+    incomeBucket: 'needs',
+    customNeeds: '',
+    customWants: '',
+    customSavings: '',
+    description: '',
+    transaction_date: new Date().toISOString().split('T')[0]
+  });
+
+  const [transferData, setTransferData] = useState({
+    fromBucket: 'wants',
+    toBucket: 'savings',
+    amount: '',
     description: '',
     transaction_date: new Date().toISOString().split('T')[0]
   });
@@ -93,33 +106,57 @@ const FinancePage = () => {
     return () => unsub();
   }, []);
 
-  // Obliczenia statystyk finansowych (dynamiczne % według ustawień oraz Cashflow)
+  // Obliczenia statystyk finansowych (dynamiczne % według ustawień oraz Envelope Balances)
   const stats = useMemo(() => {
     let income = 0;
     let expenses = 0;
-    let buckets = { needs: 0, wants: 0, savings: 0, unassigned: 0 };
+    let allocated = { needs: 0, wants: 0, savings: 0, unassigned: 0 };
+    let spent = { needs: 0, wants: 0, savings: 0, unassigned: 0 };
 
     finances.forEach(item => {
       if (!item || item.is_settings || item.id === 'finance_settings') return;
       const amt = Number(item.amount) || 0;
+
       if (item.type === 'income') {
         income += amt;
+        if (item.splitMode === 'single' && item.bucket && allocated[item.bucket] !== undefined) {
+          allocated[item.bucket] += amt;
+        } else if (item.distribution) {
+          allocated.needs += Number(item.distribution.needs) || 0;
+          allocated.wants += Number(item.distribution.wants) || 0;
+          allocated.savings += Number(item.distribution.savings) || 0;
+        } else {
+          // Domyślny automatyczny podział według reguły (50/30/20)
+          allocated.needs += (amt * targetNeeds) / 100;
+          allocated.wants += (amt * targetWants) / 100;
+          allocated.savings += (amt * targetSavings) / 100;
+        }
+      } else if (item.type === 'transfer') {
+        const from = item.fromBucket || 'needs';
+        const to = item.toBucket || 'savings';
+        if (allocated[from] !== undefined) allocated[from] -= amt;
+        if (allocated[to] !== undefined) allocated[to] += amt;
       } else {
         expenses += amt;
-        const b = item.bucket || 'unassigned';
-        if (buckets[b] !== undefined) {
-          buckets[b] += amt;
+        const b = item.bucket || 'needs';
+        if (spent[b] !== undefined) {
+          spent[b] += amt;
         } else {
-          buckets.unassigned += amt;
+          spent.unassigned += amt;
         }
       }
     });
 
     const net = income - expenses;
     const totalExp = expenses > 0 ? expenses : 0;
-    const needsPct = totalExp > 0 ? Math.round((buckets.needs / totalExp) * 100) : 0;
-    const wantsPct = totalExp > 0 ? Math.round((buckets.wants / totalExp) * 100) : 0;
-    const savingsPct = totalExp > 0 ? Math.round((buckets.savings / totalExp) * 100) : 0;
+    const needsPct = totalExp > 0 ? Math.round((spent.needs / totalExp) * 100) : 0;
+    const wantsPct = totalExp > 0 ? Math.round((spent.wants / totalExp) * 100) : 0;
+    const savingsPct = totalExp > 0 ? Math.round((spent.savings / totalExp) * 100) : 0;
+
+    // Dostępne środki w danej puli (Pozostało z alokacji po odliczeniu wydatków)
+    const availableNeeds = allocated.needs - spent.needs;
+    const availableWants = allocated.wants - spent.wants;
+    const availableSavings = allocated.savings - spent.savings;
 
     // Budżety celowe na podstawie ustawionych procentów
     const baseBudget = monthlyIncome > 0 ? monthlyIncome : (income > 0 ? income : 0);
@@ -127,15 +164,26 @@ const FinancePage = () => {
     const budgetWants = Math.round((baseBudget * targetWants) / 100);
     const budgetSavings = Math.round((baseBudget * targetSavings) / 100);
 
-    const needsLimitPct = budgetNeeds > 0 ? Math.round((buckets.needs / budgetNeeds) * 100) : 0;
-    const wantsLimitPct = budgetWants > 0 ? Math.round((buckets.wants / budgetWants) * 100) : 0;
-    const savingsLimitPct = budgetSavings > 0 ? Math.round((buckets.savings / budgetSavings) * 100) : 0;
+    const needsLimitPct = allocated.needs > 0 
+      ? Math.round((spent.needs / allocated.needs) * 100) 
+      : (budgetNeeds > 0 ? Math.round((spent.needs / budgetNeeds) * 100) : 0);
+    const wantsLimitPct = allocated.wants > 0 
+      ? Math.round((spent.wants / allocated.wants) * 100) 
+      : (budgetWants > 0 ? Math.round((spent.wants / budgetWants) * 100) : 0);
+    const savingsLimitPct = budgetSavings > 0 
+      ? Math.round((allocated.savings / budgetSavings) * 100) 
+      : 0;
 
     return {
       balance: net,
       totalIncome: income,
       totalExpenses: expenses,
-      buckets,
+      buckets: spent,
+      allocated,
+      spent,
+      availableNeeds,
+      availableWants,
+      availableSavings,
       needsPct,
       wantsPct,
       savingsPct,
@@ -180,12 +228,43 @@ const FinancePage = () => {
     const amt = parseFloat(formData.amount);
     if (isNaN(amt) || amt <= 0) return;
 
-    const newEntry = {
-      ...formData,
+    let newEntry = {
       id: Date.now().toString(),
+      type: formData.type,
       amount: amt,
+      category: formData.category || (formData.type === 'income' ? 'Zarobek' : 'Inne'),
+      description: formData.description || '',
+      transaction_date: formData.transaction_date,
       currency: 'PLN'
     };
+
+    if (formData.type === 'expense') {
+      newEntry.bucket = formData.bucket || 'needs';
+    } else {
+      // Przychód (Income) - inteligentne dysponowanie środkami
+      if (formData.incomeMode === 'single') {
+        newEntry.splitMode = 'single';
+        newEntry.bucket = formData.incomeBucket || 'needs';
+      } else if (formData.incomeMode === 'custom') {
+        newEntry.splitMode = 'custom';
+        newEntry.distribution = {
+          needs: parseFloat(formData.customNeeds) || 0,
+          wants: parseFloat(formData.customWants) || 0,
+          savings: parseFloat(formData.customSavings) || 0
+        };
+      } else {
+        // Domyślny automatyczny podział według reguły (50/30/20)
+        const nAmt = Number(((amt * targetNeeds) / 100).toFixed(2));
+        const wAmt = Number(((amt * targetWants) / 100).toFixed(2));
+        const sAmt = Number((amt - nAmt - wAmt).toFixed(2));
+        newEntry.splitMode = 'split';
+        newEntry.distribution = {
+          needs: nAmt,
+          wants: wAmt,
+          savings: sAmt
+        };
+      }
+    }
 
     setFinances(prev => [newEntry, ...prev]);
     setShowModal(false);
@@ -194,14 +273,57 @@ const FinancePage = () => {
       amount: '',
       category: 'Inne',
       bucket: 'needs',
+      incomeMode: 'split',
+      incomeBucket: 'needs',
+      customNeeds: '',
+      customWants: '',
+      customSavings: '',
       description: '',
       transaction_date: new Date().toISOString().split('T')[0]
     });
 
     await saveCloudDocument('finances', newEntry.id, newEntry);
-    try {
-      await axios.post('/api/finances', newEntry);
-    } catch {}
+  };
+
+  const handleTransferSubmit = async (e) => {
+    e.preventDefault();
+    const amt = parseFloat(transferData.amount);
+    if (isNaN(amt) || amt <= 0) return;
+    if (transferData.fromBucket === transferData.toBucket) {
+      alert("Wybierz dwie różne pule!");
+      return;
+    }
+
+    const bucketNames = { needs: 'Potrzeby', wants: 'Zachcianki', savings: 'Oszczędności' };
+    const newTransfer = {
+      id: Date.now().toString(),
+      type: 'transfer',
+      amount: amt,
+      fromBucket: transferData.fromBucket,
+      toBucket: transferData.toBucket,
+      category: 'Dysponowanie środkami',
+      description: transferData.description || `Przesunięcie: ${bucketNames[transferData.fromBucket] || transferData.fromBucket} ➔ ${bucketNames[transferData.toBucket] || transferData.toBucket}`,
+      transaction_date: transferData.transaction_date,
+      currency: 'PLN'
+    };
+
+    setFinances(prev => [newTransfer, ...prev]);
+    setShowModal(false);
+    setTransferData({
+      fromBucket: 'wants',
+      toBucket: 'savings',
+      amount: '',
+      description: '',
+      transaction_date: new Date().toISOString().split('T')[0]
+    });
+
+    await saveCloudDocument('finances', newTransfer.id, newTransfer);
+  };
+
+  const handleQuickChangeBucket = async (item, newBucket) => {
+    const updated = { ...item, bucket: newBucket, splitMode: 'single' };
+    setFinances(prev => prev.map(f => f.id === item.id ? updated : f));
+    await saveCloudDocument('finances', item.id, updated);
   };
 
   // Filtrowanie transakcji
@@ -270,6 +392,15 @@ const FinancePage = () => {
           >
             <Settings2 className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
+
+          <button 
+            onClick={() => setShowModal('transfer')}
+            className="flex items-center gap-1.5 px-3 py-2 sm:py-2.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-400 rounded-lg transition-all border border-purple-500/30 font-mono text-xs sm:text-sm font-semibold shrink-0 shadow-sm"
+            title="Przesuń środki między pulami"
+          >
+            <ArrowRightLeft className="w-4 h-4" /> Przesuń środki
+          </button>
+
           <button 
             onClick={() => setShowModal('transaction')}
             className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-accentPrimary/20 hover:bg-accentPrimary/30 text-accentPrimary rounded-lg transition-all border border-accentPrimary/40 shadow-[0_0_15px_rgba(0,229,255,0.15)] font-mono text-xs sm:text-sm font-semibold shrink-0"
@@ -279,130 +410,94 @@ const FinancePage = () => {
         </div>
       </header>
 
-      {/* Kubełki (Buckets) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 shrink-0">
+      {/* Kubełki (Buckets) — Dostępne Środki & Dysponowanie */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 shrink-0">
         {/* Needs */}
         <div 
-          onClick={() => {
-            setSetupData({
-              monthly_income: monthlyIncome,
-              needs_percent: targetNeeds,
-              wants_percent: targetWants,
-              savings_percent: targetSavings
-            });
-            setShowModal('settings');
-          }}
+          onClick={() => setShowModal('transfer')}
           className="glass-panel p-4 rounded-xl flex flex-col justify-between relative overflow-hidden group border-cyan-500/20 hover:border-cyan-500/50 hover:scale-[1.01] transition-all cursor-pointer"
-          title="Kliknij, aby zmienić procent lub dochód bazowy"
+          title="Kliknij, aby przesunąć środki z lub do Potrzeb"
         >
           <div className="absolute -top-2 -right-2 p-4 opacity-5 group-hover:opacity-15 transition-opacity text-cyan-400"><Target className="w-16 h-16" /></div>
           <div>
             <div className="flex items-center justify-between mb-1">
               <p className="text-[11px] text-cyan-400 font-mono font-semibold tracking-wider">POTRZEBY ({targetNeeds}%)</p>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 font-mono">
-                {stats.budgetNeeds > 0 ? `${stats.needsLimitPct}% limitu` : `${targetNeeds}% Cel`}
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${stats.availableNeeds >= 0 ? 'bg-cyan-500/15 text-cyan-300' : 'bg-rose-500/15 text-rose-300'}`}>
+                {stats.availableNeeds >= 0 ? 'Dostępne' : 'Deficyt'}
               </span>
             </div>
-            <p className="text-2xl font-bold font-mono text-textPrimary">{(stats.buckets.needs || 0).toFixed(2)} <span className="text-xs text-textMuted">PLN</span></p>
-            {stats.budgetNeeds > 0 ? (
-              <p className="text-[10px] font-mono text-textMuted mt-1 flex justify-between">
-                <span>Cel: {stats.budgetNeeds} PLN</span>
-                <span className={stats.buckets.needs > stats.budgetNeeds ? 'text-rose-400 font-bold' : 'text-cyan-400'}>
-                  {stats.buckets.needs > stats.budgetNeeds ? `+${(stats.buckets.needs - stats.budgetNeeds).toFixed(0)} PLN` : `zostało: ${(stats.budgetNeeds - stats.buckets.needs).toFixed(0)} PLN`}
-                </span>
-              </p>
-            ) : (
-              <p className="text-[10px] font-mono text-textMuted mt-1">Ustaw dochód bazowy w konfiguratorze ⚙️</p>
-            )}
+            <p className={`text-2xl font-bold font-mono ${stats.availableNeeds >= 0 ? 'text-textPrimary' : 'text-rose-400'}`}>
+              {(stats.availableNeeds || 0).toFixed(2)} <span className="text-xs text-textMuted">PLN</span>
+            </p>
+            <p className="text-[10px] font-mono text-textMuted mt-1 flex justify-between">
+              <span>Wydano: {(stats.spent.needs || 0).toFixed(0)} PLN</span>
+              <span className="text-cyan-400">Pula: +{(stats.allocated.needs || 0).toFixed(0)} PLN</span>
+            </p>
           </div>
           <div className="mt-3 w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
             <div 
               className="bg-cyan-400 h-full rounded-full transition-all duration-500" 
-              style={{ width: `${stats.budgetNeeds > 0 ? Math.min(stats.needsLimitPct, 100) : (stats.totalExpenses > 0 ? Math.min(stats.needsPct, 100) : 0)}%` }} 
+              style={{ width: `${Math.min(stats.needsLimitPct, 100)}%` }} 
             />
           </div>
         </div>
 
         {/* Wants */}
         <div 
-          onClick={() => {
-            setSetupData({
-              monthly_income: monthlyIncome,
-              needs_percent: targetNeeds,
-              wants_percent: targetWants,
-              savings_percent: targetSavings
-            });
-            setShowModal('settings');
-          }}
+          onClick={() => setShowModal('transfer')}
           className="glass-panel p-4 rounded-xl flex flex-col justify-between relative overflow-hidden group border-pink-500/20 hover:border-pink-500/50 hover:scale-[1.01] transition-all cursor-pointer"
-          title="Kliknij, aby zmienić procent lub dochód bazowy"
+          title="Kliknij, aby przesunąć środki z lub do Zachcianek"
         >
           <div className="absolute -top-2 -right-2 p-4 opacity-5 group-hover:opacity-15 transition-opacity text-pink-400"><Heart className="w-16 h-16" /></div>
           <div>
             <div className="flex items-center justify-between mb-1">
               <p className="text-[11px] text-pink-400 font-mono font-semibold tracking-wider">ZACHCIANKI ({targetWants}%)</p>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-300 font-mono">
-                {stats.budgetWants > 0 ? `${stats.wantsLimitPct}% limitu` : `${targetWants}% Cel`}
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${stats.availableWants >= 0 ? 'bg-pink-500/15 text-pink-300' : 'bg-rose-500/15 text-rose-300'}`}>
+                {stats.availableWants >= 0 ? 'Dostępne' : 'Deficyt'}
               </span>
             </div>
-            <p className="text-2xl font-bold font-mono text-textPrimary">{(stats.buckets.wants || 0).toFixed(2)} <span className="text-xs text-textMuted">PLN</span></p>
-            {stats.budgetWants > 0 ? (
-              <p className="text-[10px] font-mono text-textMuted mt-1 flex justify-between">
-                <span>Cel: {stats.budgetWants} PLN</span>
-                <span className={stats.buckets.wants > stats.budgetWants ? 'text-rose-400 font-bold' : 'text-pink-400'}>
-                  {stats.buckets.wants > stats.budgetWants ? `+${(stats.buckets.wants - stats.budgetWants).toFixed(0)} PLN` : `zostało: ${(stats.budgetWants - stats.buckets.wants).toFixed(0)} PLN`}
-                </span>
-              </p>
-            ) : (
-              <p className="text-[10px] font-mono text-textMuted mt-1">Ustaw dochód bazowy w konfiguratorze ⚙️</p>
-            )}
+            <p className={`text-2xl font-bold font-mono ${stats.availableWants >= 0 ? 'text-textPrimary' : 'text-rose-400'}`}>
+              {(stats.availableWants || 0).toFixed(2)} <span className="text-xs text-textMuted">PLN</span>
+            </p>
+            <p className="text-[10px] font-mono text-textMuted mt-1 flex justify-between">
+              <span>Wydano: {(stats.spent.wants || 0).toFixed(0)} PLN</span>
+              <span className="text-pink-400">Pula: +{(stats.allocated.wants || 0).toFixed(0)} PLN</span>
+            </p>
           </div>
           <div className="mt-3 w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
             <div 
               className="bg-pink-400 h-full rounded-full transition-all duration-500" 
-              style={{ width: `${stats.budgetWants > 0 ? Math.min(stats.wantsLimitPct, 100) : (stats.totalExpenses > 0 ? Math.min(stats.wantsPct, 100) : 0)}%` }} 
+              style={{ width: `${Math.min(stats.wantsLimitPct, 100)}%` }} 
             />
           </div>
         </div>
 
         {/* Savings */}
         <div 
-          onClick={() => {
-            setSetupData({
-              monthly_income: monthlyIncome,
-              needs_percent: targetNeeds,
-              wants_percent: targetWants,
-              savings_percent: targetSavings
-            });
-            setShowModal('settings');
-          }}
+          onClick={() => setShowModal('transfer')}
           className="glass-panel p-4 rounded-xl flex flex-col justify-between relative overflow-hidden group border-emerald-500/20 hover:border-emerald-500/50 hover:scale-[1.01] transition-all cursor-pointer"
-          title="Kliknij, aby zmienić procent lub dochód bazowy"
+          title="Kliknij, aby zarządzać oszczędnościami"
         >
           <div className="absolute -top-2 -right-2 p-4 opacity-5 group-hover:opacity-15 transition-opacity text-emerald-400"><TrendingUp className="w-16 h-16" /></div>
           <div>
             <div className="flex items-center justify-between mb-1">
               <p className="text-[11px] text-emerald-400 font-mono font-semibold tracking-wider">OSZCZĘDNOŚCI ({targetSavings}%)</p>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 font-mono">
-                {stats.budgetSavings > 0 ? `${stats.savingsLimitPct}% limitu` : `${targetSavings}% Cel`}
+                {stats.availableSavings >= 0 ? 'Zgromadzone' : 'Stan'}
               </span>
             </div>
-            <p className="text-2xl font-bold font-mono text-textPrimary">{(stats.buckets.savings || 0).toFixed(2)} <span className="text-xs text-textMuted">PLN</span></p>
-            {stats.budgetSavings > 0 ? (
-              <p className="text-[10px] font-mono text-textMuted mt-1 flex justify-between">
-                <span>Cel: {stats.budgetSavings} PLN</span>
-                <span className="text-emerald-400 font-bold">
-                  odłożono: {(stats.buckets.savings || 0).toFixed(0)} PLN
-                </span>
-              </p>
-            ) : (
-              <p className="text-[10px] font-mono text-textMuted mt-1">Ustaw cel oszczędności ⚙️</p>
-            )}
+            <p className="text-2xl font-bold font-mono text-emerald-400">
+              {(stats.availableSavings || 0).toFixed(2)} <span className="text-xs text-textMuted">PLN</span>
+            </p>
+            <p className="text-[10px] font-mono text-textMuted mt-1 flex justify-between">
+              <span>Wydano: {(stats.spent.savings || 0).toFixed(0)} PLN</span>
+              <span className="text-emerald-400">Pula: +{(stats.allocated.savings || 0).toFixed(0)} PLN</span>
+            </p>
           </div>
           <div className="mt-3 w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
             <div 
               className="bg-emerald-400 h-full rounded-full transition-all duration-500" 
-              style={{ width: `${stats.budgetSavings > 0 ? Math.min(stats.savingsLimitPct, 100) : (stats.totalExpenses > 0 ? Math.min(stats.savingsPct, 100) : 0)}%` }} 
+              style={{ width: `${Math.min(stats.savingsLimitPct, 100)}%` }} 
             />
           </div>
         </div>
@@ -663,20 +758,70 @@ const FinancePage = () => {
                 className="flex justify-between items-center p-3.5 bg-black/20 hover:bg-black/40 border border-border/50 hover:border-border rounded-lg transition-all group"
               >
                 <div className="flex items-center gap-3.5">
-                  <div className={`p-2.5 rounded-xl border ${item.type === 'income' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-rose-500/10 border-rose-500/30 text-rose-400'}`}>
-                    {item.type === 'income' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                  <div className={`p-2.5 rounded-xl border ${
+                    item.type === 'transfer' 
+                      ? 'bg-purple-500/10 border-purple-500/30 text-purple-400'
+                      : item.type === 'income' 
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                        : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                  }`}>
+                    {item.type === 'transfer' ? (
+                      <ArrowRightLeft className="w-4 h-4" />
+                    ) : item.type === 'income' ? (
+                      <TrendingUp className="w-4 h-4" />
+                    ) : (
+                      <TrendingDown className="w-4 h-4" />
+                    )}
                   </div>
                   <div>
                     <p className="font-sans font-medium text-textPrimary text-sm flex items-center gap-2">
                       {item.category} 
-                      {item.bucket && item.type === 'expense' && (
-                        <span className={`text-[10px] px-2 py-0.5 rounded font-mono font-semibold uppercase ${
-                          item.bucket === 'needs' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' :
-                          item.bucket === 'wants' ? 'bg-pink-500/10 text-pink-400 border border-pink-500/20' :
-                          'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                        }`}>
-                          {item.bucket}
+                      {item.type === 'transfer' && (
+                        <span className="text-[10px] px-2 py-0.5 rounded font-mono font-semibold uppercase bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                          {item.fromBucket || 'wants'} ➔ {item.toBucket || 'savings'}
                         </span>
+                      )}
+                      {item.type === 'expense' && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const cycle = { needs: 'wants', wants: 'savings', savings: 'needs' };
+                            const next = cycle[item.bucket || 'needs'] || 'needs';
+                            handleQuickChangeBucket(item, next);
+                          }}
+                          className={`text-[10px] px-2 py-0.5 rounded font-mono font-semibold uppercase transition-all hover:scale-105 active:scale-95 cursor-pointer ${
+                            item.bucket === 'needs' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20' :
+                            item.bucket === 'wants' ? 'bg-pink-500/10 text-pink-400 border border-pink-500/30 hover:bg-pink-500/20' :
+                            'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20'
+                          }`}
+                          title="Kliknij, aby zmienić kubełek"
+                        >
+                          {item.bucket || 'needs'} ⟳
+                        </button>
+                      )}
+                      {item.type === 'income' && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const cycle = { split: 'needs', needs: 'wants', wants: 'savings', savings: 'split' };
+                            const current = item.splitMode === 'single' ? (item.bucket || 'needs') : 'split';
+                            const next = cycle[current] || 'split';
+                            if (next === 'split') {
+                              const nAmt = Number(((Number(item.amount) * targetNeeds) / 100).toFixed(2));
+                              const wAmt = Number(((Number(item.amount) * targetWants) / 100).toFixed(2));
+                              const sAmt = Number((Number(item.amount) - nAmt - wAmt).toFixed(2));
+                              const updated = { ...item, splitMode: 'split', bucket: 'split', distribution: { needs: nAmt, wants: wAmt, savings: sAmt } };
+                              setFinances(prev => prev.map(f => f.id === item.id ? updated : f));
+                              saveCloudDocument('finances', item.id, updated);
+                            } else {
+                              handleQuickChangeBucket(item, next);
+                            }
+                          }}
+                          className="text-[10px] px-2 py-0.5 rounded font-mono font-semibold uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition-all cursor-pointer"
+                          title="Kliknij, aby zmienić sposób dysponowania"
+                        >
+                          {item.splitMode === 'single' ? `Całość: ${item.bucket}` : `Reguła ${targetNeeds}/${targetWants}/${targetSavings}`} ⟳
+                        </button>
                       )}
                     </p>
                     <p className="text-xs text-textMuted font-mono mt-0.5">
@@ -686,8 +831,14 @@ const FinancePage = () => {
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <span className={`font-mono font-bold text-sm ${item.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                    {item.type === 'income' ? '+' : '-'}{Number(item.amount).toFixed(2)} PLN
+                  <span className={`font-mono font-bold text-sm ${
+                    item.type === 'transfer' 
+                      ? 'text-purple-400' 
+                      : item.type === 'income' 
+                        ? 'text-emerald-400' 
+                        : 'text-rose-400'
+                  }`}>
+                    {item.type === 'transfer' ? '⇄ ' : item.type === 'income' ? '+' : '-'}{Number(item.amount).toFixed(2)} PLN
                   </span>
                   <button 
                     onClick={() => handleDelete(item.id)} 
@@ -758,6 +909,105 @@ const FinancePage = () => {
                   </select>
                 </div>
               )}
+
+              {formData.type === 'income' && (
+                <div className="flex flex-col gap-2.5 p-3 rounded-lg bg-black/25 border border-emerald-500/25">
+                  <label className="text-xs font-mono text-emerald-400 font-semibold block">Dysponowanie zarobkiem:</label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, incomeMode: 'split' })}
+                      className={`py-1.5 px-2 text-[11px] font-mono rounded border transition-colors ${formData.incomeMode === 'split' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold' : 'bg-white/5 border-border/40 text-textMuted hover:text-white'}`}
+                    >
+                      Reguła {targetNeeds}/{targetWants}/{targetSavings}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, incomeMode: 'single' })}
+                      className={`py-1.5 px-2 text-[11px] font-mono rounded border transition-colors ${formData.incomeMode === 'single' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-bold' : 'bg-white/5 border-border/40 text-textMuted hover:text-white'}`}
+                    >
+                      Jedna pula
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, incomeMode: 'custom' })}
+                      className={`py-1.5 px-2 text-[11px] font-mono rounded border transition-colors ${formData.incomeMode === 'custom' ? 'bg-purple-500/20 text-purple-300 border-purple-500/40 font-bold' : 'bg-white/5 border-border/40 text-textMuted hover:text-white'}`}
+                    >
+                      Własny podział
+                    </button>
+                  </div>
+
+                  {formData.incomeMode === 'split' && (
+                    <div className="text-[11px] font-mono p-2 bg-emerald-500/5 rounded border border-emerald-500/20 flex flex-col gap-1 text-textMuted">
+                      <div className="flex justify-between">
+                        <span className="text-cyan-400">Potrzeby ({targetNeeds}%):</span>
+                        <span className="font-bold text-textPrimary">{((Number(formData.amount || 0) * targetNeeds) / 100).toFixed(2)} PLN</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-pink-400">Zachcianki ({targetWants}%):</span>
+                        <span className="font-bold text-textPrimary">{((Number(formData.amount || 0) * targetWants) / 100).toFixed(2)} PLN</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-emerald-400">Oszczędności ({targetSavings}%):</span>
+                        <span className="font-bold text-textPrimary">{(Number(formData.amount || 0) - ((Number(formData.amount || 0) * targetNeeds) / 100) - ((Number(formData.amount || 0) * targetWants) / 100)).toFixed(2)} PLN</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.incomeMode === 'single' && (
+                    <div>
+                      <label className="text-[11px] font-mono text-textMuted mb-1 block">Przypisz całość do wybranej puli:</label>
+                      <select
+                        value={formData.incomeBucket}
+                        onChange={e => setFormData({ ...formData, incomeBucket: e.target.value })}
+                        className="w-full bg-black/30 border border-border rounded-lg p-2 text-textPrimary font-mono text-xs outline-none"
+                      >
+                        <option value="needs">Potrzeby / Rachunki ({targetNeeds}%)</option>
+                        <option value="wants">Zachcianki / Rozrywka ({targetWants}%)</option>
+                        <option value="savings">Oszczędności / Inwestycje ({targetSavings}%)</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {formData.incomeMode === 'custom' && (
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="text-[10px] font-mono text-cyan-400 block mb-1">Potrzeby (PLN)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={formData.customNeeds}
+                          onChange={e => setFormData({ ...formData, customNeeds: e.target.value })}
+                          className="w-full bg-black/30 border border-border rounded p-1.5 text-textPrimary font-mono text-xs text-center outline-none"
+                          placeholder="0.00"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-mono text-pink-400 block mb-1">Zachcianki (PLN)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={formData.customWants}
+                          onChange={e => setFormData({ ...formData, customWants: e.target.value })}
+                          className="w-full bg-black/30 border border-border rounded p-1.5 text-textPrimary font-mono text-xs text-center outline-none"
+                          placeholder="0.00"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-mono text-emerald-400 block mb-1">Oszczędności (PLN)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={formData.customSavings}
+                          onChange={e => setFormData({ ...formData, customSavings: e.target.value })}
+                          className="w-full bg-black/30 border border-border rounded p-1.5 text-textPrimary font-mono text-xs text-center outline-none"
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               
               <div>
                 <label className="text-xs font-mono text-textMuted mb-1 block">{t("finCategory", "Kategoria")}</label>
@@ -799,6 +1049,97 @@ const FinancePage = () => {
                 </button>
                 <button type="submit" className="px-5 py-2 font-mono text-xs bg-accentPrimary text-black font-bold rounded-lg shadow-[0_0_15px_rgba(0,229,255,0.3)] hover:scale-105 transition-all">
                   Zapisz wpis
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Dysponowania Środkami (Transfer między pulami) */}
+      {showModal === 'transfer' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-background border border-border rounded-xl w-full max-w-md overflow-hidden shadow-2xl animate-scale-in">
+            <div className="p-4 border-b border-border flex justify-between items-center bg-black/20">
+              <h2 className="font-mono text-purple-400 font-bold text-base flex items-center gap-2">
+                <ArrowRightLeft className="w-4 h-4" /> Dysponowanie Środkami
+              </h2>
+              <button onClick={() => setShowModal(false)} className="text-textMuted hover:text-white transition-colors">✕</button>
+            </div>
+            <form onSubmit={handleTransferSubmit} className="p-5 flex flex-col gap-4">
+              <p className="text-xs text-textMuted font-mono">
+                Przesuń środki pomiędzy kubełkami budżetowymi bez zmiany łącznego stanu konta.
+              </p>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-mono text-textMuted mb-1 block">Z puli (Źródło):</label>
+                  <select
+                    value={transferData.fromBucket}
+                    onChange={e => setTransferData({ ...transferData, fromBucket: e.target.value })}
+                    className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono text-xs focus:border-purple-400 outline-none"
+                  >
+                    <option value="needs">Potrzeby (Dostępne: {(stats.availableNeeds || 0).toFixed(0)} zł)</option>
+                    <option value="wants">Zachcianki (Dostępne: {(stats.availableWants || 0).toFixed(0)} zł)</option>
+                    <option value="savings">Oszczędności (Dostępne: {(stats.availableSavings || 0).toFixed(0)} zł)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-mono text-textMuted mb-1 block">Do puli (Cel):</label>
+                  <select
+                    value={transferData.toBucket}
+                    onChange={e => setTransferData({ ...transferData, toBucket: e.target.value })}
+                    className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono text-xs focus:border-purple-400 outline-none"
+                  >
+                    <option value="needs">Potrzeby</option>
+                    <option value="wants">Zachcianki</option>
+                    <option value="savings">Oszczędności</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-mono text-textMuted mb-1 block">Kwota do przesunięcia (PLN):</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  value={transferData.amount}
+                  onChange={e => setTransferData({ ...transferData, amount: e.target.value })}
+                  className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-purple-400 outline-none transition-colors"
+                  placeholder="0.00"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-mono text-textMuted mb-1 block">Notatka / Powód (opcjonalnie):</label>
+                <input
+                  type="text"
+                  value={transferData.description}
+                  onChange={e => setTransferData({ ...transferData, description: e.target.value })}
+                  className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-purple-400 outline-none transition-colors"
+                  placeholder="np. Nadwyżka z wypłaty na oszczędności"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-mono text-textMuted mb-1 block">Data przesunięcia:</label>
+                <input
+                  type="date"
+                  required
+                  value={transferData.transaction_date}
+                  onChange={e => setTransferData({ ...transferData, transaction_date: e.target.value })}
+                  className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-purple-400 outline-none transition-colors [color-scheme:dark]"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 mt-4">
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 font-mono text-xs text-textMuted hover:text-textPrimary transition-colors">
+                  Anuluj
+                </button>
+                <button type="submit" className="px-5 py-2 font-mono text-xs bg-purple-500 text-white font-bold rounded-lg shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:scale-105 transition-all">
+                  Wykonaj transfer
                 </button>
               </div>
             </form>

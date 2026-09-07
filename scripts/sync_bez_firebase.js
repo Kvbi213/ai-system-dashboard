@@ -48,10 +48,13 @@ const filesToSync = [
   'modules/services/clientAiDispatcher.js',
   'api/news.js',
   'api/agent.js',
+  'api/status.js',
   'core.client.jsx',
   'assets/styles/index.css',
   'package.json',
-  'HISTORY.md'
+  'HISTORY.md',
+  'ARCHITECTURE.md',
+  'docs/versions/v2.11.0.md'
 ];
 
 filesToSync.forEach(relPath => {

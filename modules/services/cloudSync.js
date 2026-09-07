@@ -8,7 +8,17 @@ export const CLOUD_COLLECTIONS = {
   CALENDAR: 'calendar',
   OPERATOR_BRAIN: 'operator_brain',
   CHAT_HISTORY: 'chat_history',
-  TIMETABLE: 'timetable'
+  TIMETABLE: 'timetable',
+  NOTES: 'notes'
+};
+
+export const isCloudEnvironment = () => {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname;
+  return host.includes('web.app') || 
+         host.includes('firebaseapp.com') || 
+         host.includes('vercel.app') || 
+         (host !== 'localhost' && host !== '127.0.0.1');
 };
 
 export const INITIAL_FIRESTORE_DATA = {
@@ -501,12 +511,12 @@ export const subscribeCollection = (collectionName, onData, fallbackData = []) =
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       const parsed = JSON.parse(cached);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         onData(parsed);
       }
     } else if (fallbackData.length > 0) {
       onData(fallbackData);
-    } else if (INITIAL_FIRESTORE_DATA[collectionName]) {
+    } else if (INITIAL_FIRESTORE_DATA[collectionName] && INITIAL_FIRESTORE_DATA[collectionName].length > 0) {
       onData(INITIAL_FIRESTORE_DATA[collectionName]);
     }
   } catch (e) {
@@ -528,20 +538,23 @@ export const subscribeCollection = (collectionName, onData, fallbackData = []) =
           items.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        // Jeśli w Firestore są dane, aktualizuj widok i cache
+        // W ARCHITEKTURZE CLOUD-FIRST: Chmura Firestore jest bezwzględnym źródłem prawdy!
         if (items.length > 0) {
           localStorage.setItem(cacheKey, JSON.stringify(items));
           onData(items);
+          window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: collectionName, count: items.length } }));
         } else {
-          // Jeśli kolekcja w chmurze jest pusta, użyj starter data lub cache do auto-inicjalizacji
-          const defaultItems = INITIAL_FIRESTORE_DATA[collectionName] || fallbackData;
-          const cached = localStorage.getItem(cacheKey);
-          const toSeed = (cached && JSON.parse(cached)?.length > 0) ? JSON.parse(cached) : defaultItems;
+          // Kolekcja w chmurze jest pusta (np. po czyszczeniu przez użytkownika lub świeża instalacja)
+          const isFreshEmptyCol = !localStorage.getItem(`cloud_initialized_${collectionName}`);
+          const defaultItems = INITIAL_FIRESTORE_DATA[collectionName];
 
-          if (Array.isArray(toSeed) && toSeed.length > 0) {
-            onData(toSeed);
-            localStorage.setItem(cacheKey, JSON.stringify(toSeed));
-            toSeed.forEach(async (item) => {
+          // Auto-inicjalizujemy starterami TYLKO jeśli kolekcja ma domyślne dane starterowe (np. tasks, timetable)
+          // i nigdy wcześniej nie była inicjalizowana. Dla finances i workouts, które celowo są puste, nic nie seedujemy!
+          if (isFreshEmptyCol && Array.isArray(defaultItems) && defaultItems.length > 0) {
+            localStorage.setItem(`cloud_initialized_${collectionName}`, 'true');
+            localStorage.setItem(cacheKey, JSON.stringify(defaultItems));
+            onData(defaultItems);
+            defaultItems.forEach(async (item) => {
               try {
                 const itemId = String(item.id || Date.now() + Math.random());
                 await setDoc(doc(firestore, collectionName, itemId), item, { merge: true });
@@ -549,6 +562,13 @@ export const subscribeCollection = (collectionName, onData, fallbackData = []) =
                 console.warn(`[CloudSync] Inicjalizacja ${collectionName}/${item.id}:`, syncErr.message);
               }
             });
+            window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: collectionName, count: defaultItems.length } }));
+          } else {
+            // Jeśli baza w chmurze jest pusta (np. po celowym wyczyszczeniu), zapisujemy pustą tablicę do cache i UI!
+            localStorage.setItem(`cloud_initialized_${collectionName}`, 'true');
+            localStorage.setItem(cacheKey, JSON.stringify([]));
+            onData([]);
+            window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: collectionName, count: 0 } }));
           }
         }
       },
@@ -585,11 +605,12 @@ export const saveCloudDocument = async (collectionName, docId, data) => {
       items.unshift(itemToSave);
     }
     localStorage.setItem(cacheKey, JSON.stringify(items));
+    window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: collectionName, action: 'save', item: itemToSave } }));
   } catch (e) {
     console.warn(`[CloudSync] Błąd optymistycznego zapisu:`, e);
   }
 
-  // 2. Propagacja do Cloud Firestore
+  // 2. Propagacja do Cloud Firestore (Cloud-First)
   if (firestore) {
     try {
       await setDoc(doc(firestore, collectionName, idStr), itemToSave, { merge: true });
@@ -612,6 +633,7 @@ export const deleteCloudDocument = async (collectionName, docId) => {
     if (Array.isArray(items)) {
       items = items.filter((i) => String(i.id) !== idStr);
       localStorage.setItem(cacheKey, JSON.stringify(items));
+      window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: collectionName, action: 'delete', id: idStr } }));
     }
   } catch (e) {
     console.warn(`[CloudSync] Błąd optymistycznego usunięcia:`, e);
@@ -638,6 +660,7 @@ export const updateCloudDocumentField = async (collectionName, docId, fields) =>
     if (Array.isArray(items)) {
       items = items.map((i) => (String(i.id) === idStr ? { ...i, ...fields, updated_at: new Date().toISOString() } : i));
       localStorage.setItem(cacheKey, JSON.stringify(items));
+      window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: collectionName, action: 'update', id: idStr } }));
     }
   } catch (e) {
     console.warn(`[CloudSync] Błąd optymistycznej aktualizacji:`, e);

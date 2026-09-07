@@ -176,7 +176,10 @@ export default async function handler(req, res) {
       language = 'pl',
       context = {},
       customApiKey,
-      model
+      model,
+      clientTimestamp,
+      clientTimeStr,
+      clientDateStr
     } = req.body || {};
 
     const incomingText = text || message || prompt;
@@ -211,9 +214,22 @@ export default async function handler(req, res) {
     const brain = Array.isArray(context.operatorBrain) ? context.operatorBrain : [];
     const timetable = Array.isArray(context.timetable) ? context.timetable : [];
 
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('pl-PL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    const timeStr = now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+    // Precyzyjna obsługa czasu i strefy czasowej (Polska / Europe/Warsaw)
+    const clientTs = clientTimestamp ? Number(clientTimestamp) : null;
+    const now = clientTs && !isNaN(clientTs) ? new Date(clientTs) : new Date();
+    const timeZone = 'Europe/Warsaw';
+    const dateStr = clientDateStr || now.toLocaleDateString('pl-PL', { 
+      timeZone, 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    const timeStr = clientTimeStr || now.toLocaleTimeString('pl-PL', { 
+      timeZone, 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
 
     // 1. Szczegółowe podsumowanie Finansów i Budżetu 50/30/20
     let totalIncome = 0;
@@ -260,7 +276,9 @@ ${txsList}`
     // 2. Szczegółowe podsumowanie Planu Lekcji (z podziałem na dziś, jutro i tydzień)
     const dayNamesPl = { 1: 'poniedziałek', 2: 'wtorek', 3: 'środa', 4: 'czwartek', 5: 'piątek', 6: 'sobota', 0: 'niedziela' };
     const dayIdMap = { 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday', 0: 'sunday' };
-    const todayDayIndex = now.getDay();
+    const plDaysOrder = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota'];
+    const warsawDayNameLong = new Intl.DateTimeFormat('pl-PL', { timeZone, weekday: 'long' }).format(now).toLowerCase();
+    const todayDayIndex = plDaysOrder.indexOf(warsawDayNameLong) !== -1 ? plDaysOrder.indexOf(warsawDayNameLong) : now.getDay();
     const todayDayId = dayIdMap[todayDayIndex];
     const todayDayName = dayNamesPl[todayDayIndex];
     const tomorrowDayIndex = (todayDayIndex + 1) % 7;
@@ -325,7 +343,8 @@ ${allLessonsStr}`.trim();
     // Wybór promptu systemowego w zależności od trybu
     const systemPrompt = mode === 'mentor'
       ? `Jesteś J.A.R.V.I.S — nadrzędnym inteligentnym mentorem, analitykiem strategicznym i powiernikiem użytkownika w systemie OmniDash. Rozmawiasz z ${userName}.
-Aktualny czas systemowy: ${dateStr}, godzina ${timeStr}.
+Aktualny czas systemowy (Polska / Warszawa): ${dateStr}, godzina ${timeStr}.
+PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${dateStr}, godzina ${timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
 
 BIEŻĄCY STAN PAMIĘCI I BAZY DANYCH UŻYTKOWNIKA (Live Firestore Sync):
 📋 ZADANIA TO-DO:
@@ -382,7 +401,8 @@ Gdy użytkownik prosi Cię o dodanie, modyfikację lub usunięcie danych w syste
   [ACTION:SHOW_WIDGET name="timetable|finances|workouts|calendar|weather|tasks|news|system"]
   [ACTION:NAVIGATE path="/timetable|/finances|/workouts|/calendar|/chat|/"]`
       : `Jesteś F.R.I.D.A.Y — wysoko wyspecjalizowanym inżynieryjnym systemem wykonawczym (Core Worker Engine) w OmniDash. Rozmawiasz z ${userName}.
-Aktualny czas systemowy: ${dateStr}, godzina ${timeStr}.
+Aktualny czas systemowy (Polska / Warszawa): ${dateStr}, godzina ${timeStr}.
+PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${dateStr}, godzina ${timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
 
 BIEŻĄCY STAN PAMIĘCI I BAZY DANYCH UŻYTKOWNIKA (Live Firestore Sync):
 📋 ZADANIA TO-DO:
@@ -481,7 +501,10 @@ Gdy użytkownik prosi Cię o dodanie, modyfikację lub usunięcie danych w syste
       model: effectiveModel,
       live_search_used: Boolean(liveWebIntel),
       source: 'vercel_serverless',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      server_time: timeStr,
+      server_date: dateStr,
+      timezone: timeZone
     });
 
   } catch (error) {

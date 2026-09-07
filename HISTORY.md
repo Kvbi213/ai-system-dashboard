@@ -1,5 +1,29 @@
 ## Wersja Bieżąca
-**v2.10.0**
+**v2.11.0**
+
+## v 2.11.0 — 2026-09-07
+**Typ:** MINOR  
+**Zakres:** Architektura Cloud-First (Odporna na Brak Sesji OAuth na Mobile), Samodzielne Dysponowanie Środkami & Autopodział Dochodów 50/30/20, Ręczne Tworzenie Wydarzeń w Kalendarzu, Synchronizacja Strefy Czasowej (Europe/Warsaw) na Vercel Gateway.
+
+### Zmiany
+- [+] Dodano: Architekturę Cloud-First w regułach Firestore (`firestore.rules`) umożliwiającą natychmiastowy, dwukierunkowy odczyt i zapis z urządzeń mobilnych, tabletów, PWA i desktopu bez wymogu logowania przez wyskakujące okno Google OAuth.
+- [+] Dodano: Zaawansowane Samodzielne Dysponowanie Środkami w `FinancePage.jsx`:
+  - Trzy tryby alokacji przy dodawaniu przychodów: automatyczny podział według reguły (np. 50/30/20), przypisanie do jednej puli (Potrzeby, Zachcianki lub Oszczędności) oraz własny, precyzyjny podział kwotowy z walidacją sumy i podglądem na żywo.
+  - Narzędzie transferu środków („Przesuń środki” / `showModal === 'transfer'`) umożliwiające dowolne przesuwanie funduszy pomiędzy kubełkami (np. z Potrzeb do Oszczędności) z natychmiastową aktualizacją sald kopertowych.
+  - Dynamiczne obliczanie dostępnych środków w każdym kubełku (`availableNeeds`, `availableWants`, `availableSavings`) z uwzględnieniem przychodów, transferów i wydatków oraz wizualnym ostrzeganiem o deficycie.
+  - Szybką zmianę przypisania kubełka bezpośrednio z poziomu wierszy tabeli transakcji.
+- [+] Dodano: Pełny interfejs ręcznego dodawania wydarzeń w `CalendarPage.jsx` z poziomu nagłówka („+ Dodaj wydarzenie”) oraz panelu wybranego dnia („+ Dodaj”) z wyborem daty, godziny, priorytetu, kategorii i opisu.
+- [+] Dodano: Precyzyjną synchronizację strefy czasowej `Europe/Warsaw` pomiędzy przeglądarką klienta a Vercel Serverless Gateway:
+  - Klient przesyła dokładny znacznik czasu oraz sformatowaną datę i godzinę (`clientTimestamp`, `clientTimeStr`, `clientDateStr`).
+  - `api/agent.js` oraz `api/status.js` wymuszają strefę `timeZone: 'Europe/Warsaw'` przy wszystkich formatowaniach daty i godziny oraz precyzyjnym wyliczaniu dnia tygodnia planu lekcji (dziś/jutro).
+  - Wyraźne instrukcje w promptach agenta LLM gwarantujące poprawną znajomość aktualnego czasu w Polsce.
+- [*] Zmodyfikowano: `cloudSync.js` zoptymalizowany pod kątem natychmiastowej propagacji zdarzeń `cloudDataChanged` w całym interfejsie.
+- [*] Zmodyfikowano: Pomyślna weryfikacja kompilacji produkcyjnej obu repozytoriów (0 błędów).
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 2.10.0 — 2026-09-07
 **Typ:** MINOR  

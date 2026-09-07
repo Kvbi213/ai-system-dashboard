@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Calendar as CalendarIcon, Trash2, Clock, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, Trash2, Clock, ChevronLeft, ChevronRight, AlertCircle, Plus, Tag } from 'lucide-react';
 import { subscribeCollection, saveCloudDocument, deleteCloudDocument } from '../services/cloudSync.js';
 
 const CalendarPage = () => {
@@ -13,7 +13,21 @@ const CalendarPage = () => {
   // State for the right panel (selected day)
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const isCloudMode = typeof window !== 'undefined' && (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com'));
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    event_date: new Date().toISOString().split('T')[0],
+    event_time: '12:00',
+    priority: 'MEDIUM',
+    category: 'Spotkanie',
+    description: ''
+  });
+
+  const isCloudMode = typeof window !== 'undefined' && (
+    window.location.hostname.includes('web.app') || 
+    window.location.hostname.includes('firebaseapp.com') ||
+    window.location.hostname.includes('vercel.app')
+  );
 
   const getFallbackEvents = () => {
     const today = new Date().toISOString().split('T')[0];
@@ -68,6 +82,41 @@ const CalendarPage = () => {
     if (day.length < 2) day = '0' + day;
 
     return [year, month, day].join('-');
+  };
+
+  const handleAddEvent = async (e) => {
+    e.preventDefault();
+    if (!formData.title.trim()) return;
+
+    const newId = 'cal_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+    const newEvent = {
+      id: newId,
+      title: formData.title.trim(),
+      event_date: formData.event_date || formatDateString(selectedDate),
+      event_time: formData.event_time || '12:00',
+      priority: formData.priority || 'MEDIUM',
+      category: formData.category || 'Spotkanie',
+      description: formData.description || '',
+      created_at: new Date().toISOString()
+    };
+
+    setEvents(prev => [newEvent, ...(Array.isArray(prev) ? prev : [])]);
+    setShowAddModal(false);
+    setFormData({
+      title: '',
+      event_date: formatDateString(selectedDate),
+      event_time: '12:00',
+      priority: 'MEDIUM',
+      category: 'Spotkanie',
+      description: ''
+    });
+
+    await saveCloudDocument('calendar', newId, newEvent);
+    if (!isCloudMode) {
+      try {
+        await axios.post('/api/calendar', newEvent);
+      } catch {}
+    }
   };
 
   const currentYear = currentDate.getFullYear();
@@ -158,18 +207,30 @@ const CalendarPage = () => {
 
   return (
     <div className="w-full h-full flex flex-col gap-4 sm:gap-6 relative z-10 animate-soft-enter overflow-y-auto custom-scrollbar pb-24 md:pb-8">
-      <header className="glass-panel p-4 sm:p-5 rounded-xl border border-border flex items-center gap-3 sm:gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
-        <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
-          <CalendarIcon className="w-5 h-5 text-textPrimary" />
+      <header className="glass-panel p-4 sm:p-5 rounded-xl border border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
+            <CalendarIcon className="w-5 h-5 text-textPrimary" />
+          </div>
+          <div className="flex flex-col">
+            <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-0.5">
+              <span className="flex items-center text-base sm:text-lg font-medium text-textMuted/70">OmniDash</span>
+              <span className="shrink-0 text-base sm:text-lg font-medium text-textMuted/70">/</span>
+              <span className="flex items-center text-base sm:text-lg font-medium text-textPrimary">Kalendarz</span>
+            </nav>
+            <p className="font-sans text-xs text-textMuted mt-0.5">System zarządzania czasem i wydarzeniami</p>
+          </div>
         </div>
-        <div className="flex flex-col">
-          <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-0.5">
-            <span className="flex items-center text-base sm:text-lg font-medium text-textMuted/70">OmniDash</span>
-            <span className="shrink-0 text-base sm:text-lg font-medium text-textMuted/70">/</span>
-            <span className="flex items-center text-base sm:text-lg font-medium text-textPrimary">Kalendarz</span>
-          </nav>
-          <p className="font-sans text-xs text-textMuted mt-0.5">System zarządzania czasem</p>
-        </div>
+
+        <button 
+          onClick={() => {
+            setFormData(prev => ({ ...prev, event_date: formatDateString(selectedDate) }));
+            setShowAddModal(true);
+          }}
+          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-accentPrimary/20 hover:bg-accentPrimary/30 text-accentPrimary rounded-lg transition-all border border-accentPrimary/40 shadow-[0_0_15px_rgba(0,229,255,0.15)] font-mono text-xs sm:text-sm font-semibold shrink-0"
+        >
+          <Plus className="w-4 h-4" /> Dodaj wydarzenie
+        </button>
       </header>
 
       <div className="flex-1 flex flex-col xl:flex-row gap-4 sm:gap-6 min-h-0">
@@ -241,16 +302,28 @@ const CalendarPage = () => {
 
         {/* RIGHT: SELECTED DAY DETAILS */}
         <div className="w-full xl:w-96 glass-panel rounded-2xl border border-border flex flex-col shrink-0 min-h-[260px] xl:h-auto overflow-hidden">
-          <div className="p-4 sm:p-6 border-b border-border bg-surface/30">
-            <h3 className="font-mono text-xs sm:text-sm tracking-widest text-textMuted uppercase mb-1">Wybrana Data</h3>
-            <div className="text-xl sm:text-2xl font-bold text-accentPrimary">
-              {selectedDate.getDate()} {monthNames[selectedDate.getMonth()]} {selectedDate.getFullYear()}
-            </div>
-            {formatDateString(selectedDate) === formatDateString(new Date()) && (
-              <div className="inline-block mt-2 px-2 py-0.5 sm:py-1 bg-accentPrimary/20 text-accentPrimary text-xs font-mono rounded uppercase tracking-wider border border-accentPrimary/30">
-                Dzisiaj
+          <div className="p-4 sm:p-6 border-b border-border bg-surface/30 flex items-center justify-between">
+            <div>
+              <h3 className="font-mono text-xs sm:text-sm tracking-widest text-textMuted uppercase mb-1">Wybrana Data</h3>
+              <div className="text-xl sm:text-2xl font-bold text-accentPrimary">
+                {selectedDate.getDate()} {monthNames[selectedDate.getMonth()]} {selectedDate.getFullYear()}
               </div>
-            )}
+              {formatDateString(selectedDate) === formatDateString(new Date()) && (
+                <div className="inline-block mt-2 px-2 py-0.5 sm:py-1 bg-accentPrimary/20 text-accentPrimary text-xs font-mono rounded uppercase tracking-wider border border-accentPrimary/30">
+                  Dzisiaj
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => {
+                setFormData(prev => ({ ...prev, event_date: formatDateString(selectedDate) }));
+                setShowAddModal(true);
+              }}
+              className="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-accentPrimary/15 hover:bg-accentPrimary/25 text-accentPrimary border border-accentPrimary/30 font-mono text-xs flex items-center gap-1.5 transition-all active:scale-95"
+              title="Dodaj wydarzenie w wybranym dniu"
+            >
+              <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Dodaj</span>
+            </button>
           </div>
           
           <div className="flex-1 p-4 sm:p-6 overflow-y-auto custom-scrollbar">
@@ -284,6 +357,113 @@ const CalendarPage = () => {
         </div>
 
       </div>
+
+      {/* Modal Dodawania Wydarzenia */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-background border border-border rounded-xl w-full max-w-md overflow-hidden shadow-2xl animate-scale-in">
+            <div className="p-4 border-b border-border flex justify-between items-center bg-black/20">
+              <h2 className="font-mono text-accentPrimary font-bold text-base flex items-center gap-2">
+                <CalendarIcon className="w-4 h-4" /> Nowe Wydarzenie
+              </h2>
+              <button onClick={() => setShowAddModal(false)} className="text-textMuted hover:text-white transition-colors">✕</button>
+            </div>
+            <form onSubmit={handleAddEvent} className="p-5 flex flex-col gap-4">
+              <div>
+                <label className="text-xs font-mono text-textMuted mb-1 block">Tytuł wydarzenia *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.title}
+                  onChange={e => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-accentPrimary outline-none transition-colors text-sm"
+                  placeholder="np. Egzamin z fizyki, Spotkanie projektowe"
+                  autoFocus
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-mono text-textMuted mb-1 block">Data wydarzenia</label>
+                  <input
+                    type="date"
+                    required
+                    value={formData.event_date}
+                    onChange={e => setFormData({ ...formData, event_date: e.target.value })}
+                    className="w-full bg-black/30 border border-border rounded-lg p-2 text-textPrimary font-mono text-xs focus:border-accentPrimary outline-none [color-scheme:dark]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-mono text-textMuted mb-1 block">Godzina</label>
+                  <input
+                    type="time"
+                    value={formData.event_time}
+                    onChange={e => setFormData({ ...formData, event_time: e.target.value })}
+                    className="w-full bg-black/30 border border-border rounded-lg p-2 text-textPrimary font-mono text-xs focus:border-accentPrimary outline-none [color-scheme:dark]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-mono text-textMuted mb-1 block">Priorytet</label>
+                  <select
+                    value={formData.priority}
+                    onChange={e => setFormData({ ...formData, priority: e.target.value })}
+                    className="w-full bg-black/30 border border-border rounded-lg p-2 text-textPrimary font-mono text-xs focus:border-accentPrimary outline-none"
+                  >
+                    <option value="HIGH">Wysoki (HIGH)</option>
+                    <option value="MEDIUM">Średni (MEDIUM)</option>
+                    <option value="LOW">Niski (LOW)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-mono text-textMuted mb-1 block">Kategoria</label>
+                  <select
+                    value={formData.category}
+                    onChange={e => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full bg-black/30 border border-border rounded-lg p-2 text-textPrimary font-mono text-xs focus:border-accentPrimary outline-none"
+                  >
+                    <option value="Spotkanie">Spotkanie</option>
+                    <option value="Egzamin">Egzamin / Szkoła</option>
+                    <option value="Praca">Praca / Projekt</option>
+                    <option value="Trening">Trening</option>
+                    <option value="Osobiste">Osobiste</option>
+                    <option value="Ważne">Ważne</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-mono text-textMuted mb-1 block">Opis / Notatka (opcjonalnie)</label>
+                <textarea
+                  rows={3}
+                  value={formData.description}
+                  onChange={e => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono text-xs focus:border-accentPrimary outline-none transition-colors resize-none"
+                  placeholder="Dodatkowe szczegóły, miejsce, link lub założenia..."
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 font-mono text-xs text-textMuted hover:text-textPrimary transition-colors"
+                >
+                  Anuluj
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 font-mono text-xs bg-accentPrimary text-black font-bold rounded-lg shadow-[0_0_15px_rgba(0,229,255,0.3)] hover:scale-105 transition-all"
+                >
+                  Zapisz wydarzenie
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

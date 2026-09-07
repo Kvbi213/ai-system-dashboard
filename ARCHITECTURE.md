@@ -1,20 +1,21 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.10.0 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.11.0 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Multi-Tool AI, Vercel Serverless & Firebase Cloud)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Cloud-First Firestore Sync, Budgeting 50/30/20 & Funds Allocation, Calendar Management, Warsaw Timezone AI Engine, Vercel Serverless & Firebase Hosting)
 
 ---
 
 ## 1. WSTĘP I PARADYGMATY
-System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-oss-120b` (Groq SDK). Projekt łączy w sobie cechy inteligentnego terminala poleceń, zarządzania zadaniami (To-Do), planu lekcji i harmonogramu zajęć (Timetable), kalendarza, elastycznego budżetu (konfigurowalne proporcje potrzeb, zachcianek i oszczędności), planera treningów, długoterminowej pamięci (Operator Brain), monitoringu systemu oraz wyszukiwania w sieci na żywo (Brave Search API).
+System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-oss-120b` (Groq SDK). Projekt łączy w sobie cechy inteligentnego terminala poleceń, zarządzania zadaniami (To-Do), planu lekcji i harmonogramu zajęć (Timetable), kalendarza z możliwością ręcznego planowania, elastycznego budżetu z dynamicznym dysponowaniem środkami (autopodział dochodów 50/30/20, jedna pula, podział własny oraz transfery między koszykami), planera treningów, długoterminowej pamięci (Operator Brain), monitoringu systemu oraz wyszukiwania w sieci na żywo (Brave Search API).
 
 **Główne Paradygmaty:**
-1. **Multi-Cloud Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (`https://void-potato-7721.web.app`), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`https://ai-system-dashboard.vercel.app/api/agent`, `api/news`, `api/models`, `api/status`).
+1. **Multi-Cloud & Cloud-First Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (`https://void-potato-7721.web.app`), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`) z otwartymi regułami dostępu (`firestore.rules`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`https://ai-system-dashboard.vercel.app/api/agent`, `api/news`, `api/models`, `api/status`). Wszystkie operacje na telefonach, tabletach i desktopie natychmiast synchronizują się z chmurą bez wymogu logowania Google OAuth.
 2. **Mobile-First Touch Architecture:** Pełna natywna obsługa urządzeń mobilnych (iOS/Android) z trójwarstwową architekturą nawigacyjną: Mobile Top App Bar (`h-14`), Mobile Bottom Quick Bar (`h-16` z `safe-area-inset-bottom`) oraz wysuwaną szufladą (Bottom Sheet Drawer).
-3. **LLM with Live Web & Multi-Tool Action Engine:** Cała logika kognitywna oparta jest na modelu `openai/gpt-oss-120b`. Prompt systemowy otrzymuje wstrzyknięty w czasie rzeczywistym pełen stan 7 kategorii danych użytkownika (Zadania, Plan Lekcji z podziałem na dziś/jutro/tydzień, Kalendarz, Finanse z saldem i analityką 50/30/20, Treningi, Operator Brain, Historia Chatu) oraz natychmiastowe dane z sieci za pośrednictwem Brave Search API (`api.search.brave.com`).
-4. **Rich Markdown & Inline Chat Widgets:** Terminal czatu posiada wbudowany silnik `remark-gfm` renderujący czytelne, responsywne tabele Markdown oraz dedykowane mini-widżety (`TimetableChatWidget`, `FinanceChatWidget`, `WorkoutsChatWidget`, `CalendarChatWidget`), montowane automatycznie pod dymkiem odpowiedzi asystenta.
-5. **Clean & Modern Aesthetics**: Interfejs zaprojektowany jest w oparciu o czyste linie, glassmorphism, elegancką i nowoczesną typografię oraz bogatą paletę motywów (Dark Cyber, Retro Amber CRT, Monochrome Slate, Matrix Terminal, Synthwave 80s, Nordic Frost, Paper Light). Asystent J.A.R.V.I.S (główny rdzeń/Mentor) jest przyjazny i analityczny, z kolei F.R.I.D.A.Y (Worker) wykonuje zadania w hiper-profesjonalnym i inżynieryjnym tonie.
+3. **Advanced Budgeting & Envelope Allocation:** Autonomiczny i elastyczny system podziału finansów. Użytkownik decyduje, czy każdy przychód jest automatycznie rozdzielany wg proporcji (np. 50/30/20), przypisywany w całości do jednej puli (np. Oszczędności), czy dzielony kwotowo. Wbudowane narzędzie transferu środków pozwala na swobodne przesuwanie kapitału między kubełkami z bieżącym śledzeniem dostępnych środków (`availableNeeds`, `availableWants`, `availableSavings`).
+4. **LLM with Precise Warsaw Timezone & Multi-Tool Engine:** Cała logika kognitywna oparta jest na modelu `openai/gpt-oss-120b`. Klient każdorazowo przesyła precyzyjny timestamp oraz zlokalizowaną godzinę, a Vercel Gateway wymusza strefę `Europe/Warsaw`, gwarantując natychmiastową i niezmiennie poprawną wiedzę o aktualnej godzinie w Polsce.
+5. **Rich Markdown & Inline Chat Widgets:** Terminal czatu posiada wbudowany silnik `remark-gfm` renderujący czytelne, responsywne tabele Markdown oraz dedykowane mini-widżety (`TimetableChatWidget`, `FinanceChatWidget`, `WorkoutsChatWidget`, `CalendarChatWidget`), montowane automatycznie pod dymkiem odpowiedzi asystenta.
+6. **Clean & Modern Aesthetics**: Interfejs zaprojektowany jest w oparciu o czyste linie, glassmorphism, elegancką i nowoczesną typografię oraz bogatą paletę motywów (Dark Cyber, Retro Amber CRT, Monochrome Slate, Matrix Terminal, Synthwave 80s, Nordic Frost, Paper Light). Asystent J.A.R.V.I.S (główny rdzeń/Mentor) jest przyjazny i analityczny, z kolei F.R.I.D.A.Y (Worker) wykonuje zadania w hiper-profesjonalnym i inżynieryjnym tonie.
 
 ---
 
