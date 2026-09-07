@@ -22,6 +22,61 @@
     --color-text-muted: #71717A;
   }
 
+  .theme-retro {
+    --color-bg: #140E05;
+    --color-surface: #211608;
+    --color-border: rgba(255, 176, 0, 0.22);
+    --color-accent-primary: 255 176 0;
+    --color-accent-primary-hex: #FFB000;
+    --color-accent-secondary: #FF7700;
+    --color-text-primary: #FFE4A0;
+    --color-text-muted: #B8924B;
+  }
+
+  .theme-monochrome {
+    --color-bg: #0A0A0C;
+    --color-surface: #141418;
+    --color-border: rgba(255, 255, 255, 0.14);
+    --color-accent-primary: 245 245 245;
+    --color-accent-primary-hex: #F5F5F5;
+    --color-accent-secondary: #A1A1AA;
+    --color-text-primary: #FAFAFA;
+    --color-text-muted: #94A3B8;
+  }
+
+  .theme-matrix {
+    --color-bg: #020B04;
+    --color-surface: #061A0A;
+    --color-border: rgba(0, 255, 65, 0.22);
+    --color-accent-primary: 0 255 65;
+    --color-accent-primary-hex: #00FF41;
+    --color-accent-secondary: #008F11;
+    --color-text-primary: #D4FFDA;
+    --color-text-muted: #559E60;
+  }
+
+  .theme-synthwave {
+    --color-bg: #120824;
+    --color-surface: #200E3D;
+    --color-border: rgba(255, 0, 128, 0.24);
+    --color-accent-primary: 255 0 128;
+    --color-accent-primary-hex: #FF0080;
+    --color-accent-secondary: #7928CA;
+    --color-text-primary: #FDE2F3;
+    --color-text-muted: #A882B5;
+  }
+
+  .theme-nordic {
+    --color-bg: #0A131F;
+    --color-surface: #121F30;
+    --color-border: rgba(56, 189, 248, 0.2);
+    --color-accent-primary: 56 189 248;
+    --color-accent-primary-hex: #38BDF8;
+    --color-accent-secondary: #818CF8;
+    --color-text-primary: #E0F2FE;
+    --color-text-muted: #7DD3FC;
+  }
+
   body {
     @apply font-sans overflow-hidden;
     background-color: var(--color-bg);
@@ -100,4 +155,23 @@
   background-size: 1000px 100%;
   animation: shimmer 2s infinite linear;
 }
+
+/* UI Customization Modifiers */
+.no-animations *,
+.no-animations *::before,
+.no-animations *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
+.no-glass .glass-panel {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-color: var(--color-surface) !important;
+}
+
+.compact-mode .glass-panel {
+  padding: 0.75rem !important;
+}
+
 

@@ -56,60 +56,60 @@ const WidgetsPage = () => {
         </div>
       </header>
 
-      <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 flex-1 min-h-0 overflow-y-auto pr-1">
+      <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 auto-rows-[360px] flex-1 min-h-0 overflow-y-auto pr-1 pb-6">
         
         {/* System Monitor Widget */}
         {activeWidgets.systemMonitor && (
-          <div className="opacity-0 animate-soft-enter flex flex-col gap-5" style={{ animationDelay: '100ms' }}>
+          <div className="opacity-0 animate-soft-enter h-[360px] flex flex-col" style={{ animationDelay: '100ms' }}>
             <SystemMonitor />
           </div>
         )}
 
         {/* Network Monitor */}
         {activeWidgets.networkMonitor && (
-          <div className="opacity-0 animate-soft-enter h-[250px] md:h-[350px]" style={{ animationDelay: '200ms' }}>
+          <div className="opacity-0 animate-soft-enter h-[360px] flex flex-col" style={{ animationDelay: '200ms' }}>
             <NetworkMonitor />
           </div>
         )}
 
         {/* Crypto Tracker */}
         {activeWidgets.cryptoTracker && (
-          <div className="opacity-0 animate-soft-enter h-[250px] md:h-[350px]" style={{ animationDelay: '300ms' }}>
+          <div className="opacity-0 animate-soft-enter h-[360px] flex flex-col" style={{ animationDelay: '300ms' }}>
             <CryptoTracker />
           </div>
         )}
 
         {/* Quick Notes */}
         {activeWidgets.quickNotes && (
-          <div className="opacity-0 animate-soft-enter h-[250px] md:h-[350px]" style={{ animationDelay: '400ms' }}>
+          <div className="opacity-0 animate-soft-enter h-[360px] flex flex-col" style={{ animationDelay: '400ms' }}>
             <QuickNotes />
           </div>
         )}
 
         {/* Token Tracker */}
         {activeWidgets.tokenTracker && (
-          <div className="opacity-0 animate-soft-enter h-[250px] md:h-[350px]" style={{ animationDelay: '600ms' }}>
+          <div className="opacity-0 animate-soft-enter h-[360px] flex flex-col" style={{ animationDelay: '500ms' }}>
             <TokenTracker />
           </div>
         )}
 
         {/* Model Status */}
         {activeWidgets.modelStatus && (
-          <div className="opacity-0 animate-soft-enter h-[250px] md:h-[350px]" style={{ animationDelay: '700ms' }}>
+          <div className="opacity-0 animate-soft-enter h-[360px] flex flex-col" style={{ animationDelay: '600ms' }}>
             <ModelStatus />
           </div>
         )}
 
         {/* Prompt Vault */}
         {activeWidgets.promptVault && (
-          <div className="opacity-0 animate-soft-enter h-[250px] md:h-[350px]" style={{ animationDelay: '800ms' }}>
+          <div className="opacity-0 animate-soft-enter h-[360px] flex flex-col" style={{ animationDelay: '700ms' }}>
             <PromptVault />
           </div>
         )}
 
         {/* Agent Queue */}
         {activeWidgets.agentQueue && (
-          <div className="opacity-0 animate-soft-enter h-[250px] md:h-[350px]" style={{ animationDelay: '900ms' }}>
+          <div className="opacity-0 animate-soft-enter h-[360px] flex flex-col" style={{ animationDelay: '800ms' }}>
             <AgentQueue />
           </div>
         )}

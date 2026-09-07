@@ -75,20 +75,38 @@ const App = () => {
     const isSetupCompleted = localStorage.getItem('system_setup_completed') === 'true';
     setSetupCompleted(isSetupCompleted);
 
+    const applyThemeClasses = (themeName) => {
+      const root = document.documentElement;
+      ['theme-light', 'theme-retro', 'theme-monochrome', 'theme-matrix', 'theme-synthwave', 'theme-nordic'].forEach(cls => {
+        root.classList.remove(cls);
+      });
+      if (themeName && themeName !== 'dark') {
+        root.classList.add(`theme-${themeName}`);
+      }
+    };
+
     const savedTheme = localStorage.getItem('system_theme') || 'dark';
+    applyThemeClasses(savedTheme);
+
+    const handleThemeChange = (e) => applyThemeClasses(e.detail);
+    window.addEventListener('themeChanged', handleThemeChange);
+
     const savedAccent = localStorage.getItem('system_accent');
     const savedAccentHex = localStorage.getItem('system_accent_hex');
-
-    if (savedTheme === 'light') {
-      document.documentElement.classList.add('theme-light');
-    } else {
-      document.documentElement.classList.remove('theme-light');
-    }
-
     if (savedAccent && savedAccentHex) {
       document.documentElement.style.setProperty('--color-accent-primary', savedAccent);
       document.documentElement.style.setProperty('--color-accent-primary-hex', savedAccentHex);
       document.documentElement.style.setProperty('--color-accent-secondary', savedAccentHex);
+    }
+
+    if (localStorage.getItem('system_glassmorphism') === 'false') {
+      document.documentElement.classList.add('no-glass');
+    }
+    if (localStorage.getItem('system_animations') === 'false') {
+      document.documentElement.classList.add('no-animations');
+    }
+    if (localStorage.getItem('system_compact_ui') === 'true') {
+      document.documentElement.classList.add('compact-mode');
     }
 
     const isCloudMode = window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com');
@@ -139,6 +157,7 @@ const App = () => {
     };
 
     checkKeysStatus();
+    return () => window.removeEventListener('themeChanged', handleThemeChange);
   }, []);
 
   useEffect(() => {

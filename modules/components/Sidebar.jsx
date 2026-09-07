@@ -28,6 +28,39 @@ const Sidebar = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [location.pathname, navigate]);
 
+  const DEFAULT_VISIBLE_NAV = {
+    '/': true,
+    '/chat': true,
+    '/timetable': true,
+    '/memory': true,
+    '/osint': true,
+    '/calendar': true,
+    '/finances': true,
+    '/workouts': true,
+    '/widgets': true,
+    '/server': true,
+  };
+
+  const [visibleNav, setVisibleNav] = useState(() => {
+    try {
+      const saved = localStorage.getItem('system_visible_nav');
+      if (saved) return { ...DEFAULT_VISIBLE_NAV, ...JSON.parse(saved) };
+    } catch (e) {
+      console.warn(e);
+    }
+    return DEFAULT_VISIBLE_NAV;
+  });
+
+  useEffect(() => {
+    const handleVisibleNavChanged = (e) => {
+      if (e.detail && typeof e.detail === 'object') {
+        setVisibleNav(e.detail);
+      }
+    };
+    window.addEventListener('visibleNavChanged', handleVisibleNavChanged);
+    return () => window.removeEventListener('visibleNavChanged', handleVisibleNavChanged);
+  }, []);
+
   const navItems = [
     { name: 'Pulpit', path: '/', icon: <LayoutDashboard className="w-6 h-6" /> },
     { name: 'Asystent AI', path: '/chat', icon: <MessageSquare className="w-6 h-6" /> },
@@ -40,6 +73,8 @@ const Sidebar = () => {
     { name: 'Widżety', path: '/widgets', icon: <LayoutGrid className="w-6 h-6" /> },
     { name: 'Serwer', path: '/server', icon: <Server className="w-6 h-6" /> },
   ];
+
+  const displayedNavItems = navItems.filter(item => visibleNav[item.path] !== false);
 
   return (
     <nav id="tour-sidebar" className={`w-full ${isCollapsed ? 'md:w-20' : 'md:w-64'} h-16 md:h-full glass-panel border-t md:border-t-0 md:border-r border-border flex flex-row md:flex-col items-center md:items-start md:py-8 flex-shrink-0 z-50 transition-all duration-300 relative group`}>
@@ -78,7 +113,7 @@ const Sidebar = () => {
       </div>
       
       <div className={`w-full flex flex-row md:flex-col justify-start md:justify-start ${isCollapsed ? 'md:items-center md:px-2' : 'md:items-stretch md:px-6'} gap-2 md:gap-4 px-2 flex-1 items-center overflow-x-auto md:overflow-visible transition-all no-scrollbar`}>
-        {navItems.map((item) => {
+        {displayedNavItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
             <Link

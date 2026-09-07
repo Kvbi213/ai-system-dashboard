@@ -1,9 +1,32 @@
 ## Wersja Bieżąca
-**v2.6.2**
+**v2.7.0**
 
-## v 2.6.2 — 2026-09-07
-**Typ:** PATCH  
-**Zakres:** Eliminacja Błędu Groq API, Dedykowany Gateway `/api/models`, Reset Baz Finansów i Treningów & Dynamiczny Budżet  
+## v 2.7.0 — 2026-09-07
+**Typ:** MINOR  
+**Zakres:** Konfiguracja Widoczności Zakładek Nawigacji, Równe Wymiary Wszystkich Widżetów & Rozszerzone Presety Motywów Wizualnych (Retro CRT, Monochrome, Matrix, Synthwave, Nordic)
+
+### Zmiany
+- [+] Dodano: Pełną personalizację widoczności zakładek bocznego paska nawigacji (`system_visible_nav`). W `SettingsPage.jsx` wdrożono dedykowaną zakładkę „Nawigacja & Zakładki” z przełącznikami dla wszystkich 10 modułów (`/`, `/chat`, `/timetable`, `/memory`, `/osint`, `/calendar`, `/finances`, `/workouts`, `/widgets`, `/server`) oraz szybkimi profilami (Pokaż wszystkie, Profil minimalistyczny, Przywróć domyślne).
+- [*] Zmodyfikowano: `Sidebar.jsx` dynamicznie filtruje pozycje menu w oparciu o stan `visibleNav` i nasłuchuje w czasie rzeczywistym zdarzenia `visibleNavChanged`. Zakładka `Ustawienia` jest trwale przypięta jako zabezpieczenie przed utratą dostępu.
+- [*] Zmodyfikowano: Ujednolicono i wyrównano wszystkie widżety w `WidgetsPage.jsx` — siatka została skonfigurowana ze sztywnym `auto-rows-[360px]` oraz jednakową wysokością kontenerów `h-[360px] flex flex-col`. Poprawiono `SystemMonitor.jsx` z `h-fit` na `h-full flex flex-col`. Wszystkie 8 widżetów ma teraz dokładnie tę samą wysokość i idealne wyrównanie w siatce.
+- [+] Dodano: Rozbudowaną paletę gotowych motywów wizualnych w `SettingsPage.jsx` z interaktywnymi kartami podglądu i 1-klikiem aktywacji:
+  - 🌌 **Dark Cyber (Domyślny)**: Głęboki grafit, neonowa zieleń.
+  - 📟 **Retro Amber CRT**: Kineskopowy bursztyn lat 80. (`#140E05` / `#FFB000`).
+  - 🏁 **Monochrome Slate**: Czysta czerń, grafit i biel (`#0A0A0C` / `#F5F5F5`).
+  - 🟢 **Matrix Terminal**: Hakerska zielona konsola (`#020B04` / `#00FF41`).
+  - 🌆 **Synthwave 80s**: Neonowa magenta i fiolet cyberpunku (`#120824` / `#FF0080`).
+  - ❄️ **Nordic Frost**: Krystaliczny chłodny błękit i arktyczny granat (`#0A131F` / `#38BDF8`).
+  - 📄 **Paper Light**: Jasny tryb produktywny (`#F4F4F5` / `#FFFFFF`).
+- [+] Dodano: Dodatkowe opcje sterowania interfejsem w Ustawieniach: przełącznik efektu Glassmorphism (rozmycie tła), przełącznik animacji interfejsu (tryb natychmiastowy / terminalowy), tryb kompaktowy UI o wysokiej gęstości danych oraz selektor domyślnego modelu AI (`openai/gpt-oss-120b`).
+- [+] Dodano: Narzędzie kopii zapasowej konfiguracji — eksport wszystkich ustawień do pliku `omnidash-config.json` oraz natychmiastowy import JSON.
+- [*] Zmodyfikowano: Poprawiono ładowanie akcentów i modyfikatorów UI (`compact-mode`, `no-glass`, `no-animations`) przy starcie w `core.client.jsx`.
+- [*] Zmodyfikowano: Pomyślnie zrekompilowano (0 błędów) i opublikowano na **Firebase Hosting** (`https://void-potato-7721.web.app`) oraz **Vercel Production** (`https://ai-system-dashboard.vercel.app`).
+- [*] Zmodyfikowano: Zsynchronizowano i zrekompilowano (0 błędów) repozytorium lustrzane `AI SYSTEM DASHBOARD GITHUB - BEZ FIREBASE`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ### Zmiany
 - [!] Naprawiono: Całkowicie wyeliminowano błąd "Błąd połączenia z API Groq" w widżecie wyboru modeli AI (`ModelWidget.jsx`). Wdrożono dedykowaną funkcję serverless `api/models.js` na Vercel z pełną obsługą CORS, dynamicznym wykrywaniem modeli (`openai/gpt-oss-120b`, `llama-3.3-70b-versatile`) oraz resilient fallback.

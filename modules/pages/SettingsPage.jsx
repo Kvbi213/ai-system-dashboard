@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Settings, Shield, Bell, HardDrive, Cpu, Palette, Sun, Moon, Rss, Zap, Lock, Check, LayoutGrid, Mic, Volume2, Globe, Sparkles, Cloud, Database, BrainCircuit, Activity } from 'lucide-react';
+import { 
+  Settings, Shield, Bell, HardDrive, Cpu, Palette, Sun, Moon, Rss, Zap, Lock, Check, 
+  LayoutGrid, Mic, Volume2, Globe, Sparkles, Cloud, Database, BrainCircuit, Activity,
+  Compass, LayoutDashboard, MessageSquare, GraduationCap, Crosshair, CalendarDays,
+  Wallet, Dumbbell, Server, Sliders, Download, Upload, RotateCcw, Bot, CheckCircle2
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
 import { initializeAllFirestoreCollections, CLOUD_COLLECTIONS } from '../services/cloudSync';
 
 const Toggle = ({ value, onChange }) => (
   <button
+    type="button"
     onClick={() => onChange(!value)}
     className={`w-14 h-8 rounded-full p-1 transition-colors flex items-center flex-shrink-0 ${value ? 'bg-accentPrimary' : 'bg-surface border border-border'}`}
   >
@@ -14,14 +20,128 @@ const Toggle = ({ value, onChange }) => (
   </button>
 );
 
+const THEME_PRESETS = [
+  {
+    id: 'dark',
+    name: 'Dark Cyber (Domyślny)',
+    tag: 'Sci-Fi & Terminal',
+    desc: 'Głęboki grafit, neonowa zieleń, futurystyczny interfejs operacyjny.',
+    accentRgb: '0 255 102',
+    accentHex: '#00FF66',
+    bgPreview: '#121212',
+    surfacePreview: '#1E1E1E',
+    accentPreview: '#00FF66',
+    borderPreview: 'rgba(255,255,255,0.1)'
+  },
+  {
+    id: 'retro',
+    name: 'Retro Amber CRT',
+    tag: 'Vintage 80s',
+    desc: 'Bursztynowy monitor kineskopowy, ciepły blask i nostalgiczny klimat mainframe.',
+    accentRgb: '255 176 0',
+    accentHex: '#FFB000',
+    bgPreview: '#140E05',
+    surfacePreview: '#211608',
+    accentPreview: '#FFB000',
+    borderPreview: 'rgba(255, 176, 0, 0.25)'
+  },
+  {
+    id: 'monochrome',
+    name: 'Monochrome Slate',
+    tag: 'Minimal & Clean',
+    desc: 'Czysta czerń, biel i grafit bez zbędnych kolorów. Maksymalne skupienie.',
+    accentRgb: '245 245 245',
+    accentHex: '#F5F5F5',
+    bgPreview: '#0A0A0C',
+    surfacePreview: '#141418',
+    accentPreview: '#FAFAFA',
+    borderPreview: 'rgba(255, 255, 255, 0.2)'
+  },
+  {
+    id: 'matrix',
+    name: 'Matrix Terminal',
+    tag: 'Hacker Green',
+    desc: 'Kultowa hakerska zielona konsola na głębokiej czerni, wysoki kontrast kodu.',
+    accentRgb: '0 255 65',
+    accentHex: '#00FF41',
+    bgPreview: '#020B04',
+    surfacePreview: '#061A0A',
+    accentPreview: '#00FF41',
+    borderPreview: 'rgba(0, 255, 65, 0.25)'
+  },
+  {
+    id: 'synthwave',
+    name: 'Synthwave 80s',
+    tag: 'Cyberpunk Neon',
+    desc: 'Neonowa magenta, fiolet i nocne neony rodem z Neo-Tokyo i muzyki retrowave.',
+    accentRgb: '255 0 128',
+    accentHex: '#FF0080',
+    bgPreview: '#120824',
+    surfacePreview: '#200E3D',
+    accentPreview: '#FF0080',
+    borderPreview: 'rgba(255, 0, 128, 0.25)'
+  },
+  {
+    id: 'nordic',
+    name: 'Nordic Frost',
+    tag: 'Deep Arctic Ice',
+    desc: 'Arktyczny chłodny błękit, stalowy granat i krystaliczna przejrzystość.',
+    accentRgb: '56 189 248',
+    accentHex: '#38BDF8',
+    bgPreview: '#0A131F',
+    surfacePreview: '#121F30',
+    accentPreview: '#38BDF8',
+    borderPreview: 'rgba(56, 189, 248, 0.25)'
+  },
+  {
+    id: 'light',
+    name: 'Paper Light',
+    tag: 'Day Mode',
+    desc: 'Jasny tryb produktywny, wysoki kontrast tekstu, idealny w pełnym świetle dziennym.',
+    accentRgb: '0 153 68',
+    accentHex: '#009944',
+    bgPreview: '#F4F4F5',
+    surfacePreview: '#FFFFFF',
+    accentPreview: '#009944',
+    borderPreview: 'rgba(0, 0, 0, 0.12)'
+  }
+];
+
+const DEFAULT_VISIBLE_NAV = {
+  '/': true,
+  '/chat': true,
+  '/timetable': true,
+  '/memory': true,
+  '/osint': true,
+  '/calendar': true,
+  '/finances': true,
+  '/workouts': true,
+  '/widgets': true,
+  '/server': true,
+};
+
+const NAV_CONFIG_ITEMS = [
+  { path: '/', name: 'Pulpit (Dashboard)', icon: LayoutDashboard, desc: 'Główny pulpit ze statystykami, zegarem, zadaniami to-do i wiadomościami' },
+  { path: '/chat', name: 'Asystent AI (Chat)', icon: MessageSquare, desc: 'Interfejs czatu z gpt-oss-120b, Brave Search i syntezą mowy' },
+  { path: '/timetable', name: 'Plan Lekcji (Timetable)', icon: GraduationCap, desc: 'Harmonogram zajęć szkolnych, sale i przedmioty zsynchronizowane w chmurze' },
+  { path: '/memory', name: 'Pamięć & Notatki (Memory)', icon: BrainCircuit, desc: 'Długoterminowa baza wiedzy asystenta, fakty o operatorze i notatnik' },
+  { path: '/osint', name: 'Baza Wiedzy (OSINT Hub)', icon: Crosshair, desc: 'Agregator narzędzi wywiadu jawnoźródłowego, feedy i procedury' },
+  { path: '/calendar', name: 'Kalendarz (Calendar)', icon: CalendarDays, desc: 'Terminarz wydarzeń, harmonogram zadań i integracja z chmurą' },
+  { path: '/finances', name: 'Finanse & Budżet (Finances)', icon: Wallet, desc: 'Monitor wydatków, reguła 50/30/20, limity kategorii i oszczędności' },
+  { path: '/workouts', name: 'Treningi (Workouts)', icon: Dumbbell, desc: 'Dziennik aktywności fizycznej, plany treningowe i metryki siłowe' },
+  { path: '/widgets', name: 'Widżety (Widgets Grid)', icon: LayoutGrid, desc: 'Siatka monitoringu: CPU/RAM, opóźnienia sieci, notowania krypto i tokeny' },
+  { path: '/server', name: 'Serwer & Narzędzia (Server)', icon: Server, desc: 'Status procesów backendowych, porty sieciowe, logi i diagnostyka' },
+];
+
 const SettingsPage = () => {
   const { t, i18n } = useTranslation();
 
   const TABS = [
-    { id: 'personalization', label: t('tabPersonalization', 'Personalizacja'), icon: Palette },
+    { id: 'personalization', label: t('tabPersonalization', 'Personalizacja & Styl'), icon: Palette },
+    { id: 'navigation', label: t('tabNavigation', 'Nawigacja & Zakładki'), icon: Compass },
+    { id: 'system', label: t('tabSystem', 'System & AI'), icon: Cpu },
     { id: 'privacy', label: t('tabPrivacy', 'Prywatność'), icon: Shield },
-    { id: 'system', label: t('tabSystem', 'System'), icon: Cpu },
-    { id: 'security', label: t('tabSecurity', 'Bezpieczeństwo'), icon: Lock }
+    { id: 'security', label: t('tabSecurity', 'Bazy & Bezpieczeństwo'), icon: Lock }
   ];
 
   const [activeTab, setActiveTab] = useState('personalization');
@@ -43,24 +163,20 @@ const SettingsPage = () => {
   const [testingGateway, setTestingGateway] = useState(false);
   const [gatewayStatus, setGatewayStatus] = useState(null);
 
+  // New settings states
+  const [visibleNav, setVisibleNav] = useState(DEFAULT_VISIBLE_NAV);
+  const [defaultModel, setDefaultModel] = useState('openai/gpt-oss-120b');
+  const [glassmorphism, setGlassmorphism] = useState(true);
+  const [animations, setAnimations] = useState(true);
+  const [compactUi, setCompactUi] = useState(false);
+  const [clock24h, setClock24h] = useState(true);
+  const [clockSeconds, setClockSeconds] = useState(false);
+
   useEffect(() => {
     axios.get('/api/firebase/status')
       .then(res => setFirebaseStatus(res.data))
       .catch(err => console.warn('Firebase status check failed:', err));
   }, []);
-
-  const handleFirebaseSync = async () => {
-    setSyncingFirebase(true);
-    setSyncMessage('');
-    try {
-      const res = await axios.post('/api/firebase/sync');
-      setSyncMessage('Pomyślnie zsynchronizowano: ' + res.data.stats.tasksSynced + ' zadań, ' + res.data.stats.financesSynced + ' transakcji.');
-    } catch (err) {
-      setSyncMessage('Błąd synchronizacji: ' + (err.response?.data?.error || err.message));
-    } finally {
-      setSyncingFirebase(false);
-    }
-  };
 
   const [sysMonitorPrefs, setSysMonitorPrefs] = useState({ cpu: true, ram: true, uptime: true });
   const [activeWidgets, setActiveWidgets] = useState({
@@ -78,20 +194,45 @@ const SettingsPage = () => {
     setTheme(localStorage.getItem('system_theme') || 'dark');
     setSystemLang(localStorage.getItem('system_language') || 'pl');
     setAccent(localStorage.getItem('system_accent_hex') || '#00FF66');
+    
     const savedCats = localStorage.getItem('system_news_categories');
     if (savedCats) setSelectedNewsCategories(JSON.parse(savedCats));
+    
     const savedSys = localStorage.getItem('system_sysmonitor');
     if (savedSys) setSysMonitorPrefs(JSON.parse(savedSys));
+    
     const savedGhost = localStorage.getItem('system_ghost_mode');
     if (savedGhost) setGhostMode(savedGhost === 'true');
+    
     const savedWidgets = localStorage.getItem('system_active_widgets');
     if (savedWidgets) setActiveWidgets(JSON.parse(savedWidgets));
+    
     const savedVoice = localStorage.getItem('system_voice_pref');
     if (savedVoice) setVoicePref(savedVoice);
+    
     const savedRate = localStorage.getItem('system_voice_rate');
     if (savedRate) setVoiceRate(parseFloat(savedRate));
+    
     const savedName = localStorage.getItem('system_user_name');
     if (savedName) setUserName(savedName);
+
+    // Load navigation prefs
+    try {
+      const savedNav = localStorage.getItem('system_visible_nav');
+      if (savedNav) setVisibleNav({ ...DEFAULT_VISIBLE_NAV, ...JSON.parse(savedNav) });
+    } catch (e) {
+      console.warn(e);
+    }
+
+    // Load extra settings
+    const savedModel = localStorage.getItem('system_default_model');
+    if (savedModel) setDefaultModel(savedModel);
+
+    setGlassmorphism(localStorage.getItem('system_glassmorphism') !== 'false');
+    setAnimations(localStorage.getItem('system_animations') !== 'false');
+    setCompactUi(localStorage.getItem('system_compact_ui') === 'true');
+    setClock24h(localStorage.getItem('system_clock_24h') !== 'false');
+    setClockSeconds(localStorage.getItem('system_clock_seconds') === 'true');
   }, []);
 
   const updateVoicePref = (val) => {
@@ -147,11 +288,32 @@ const SettingsPage = () => {
     localStorage.setItem('system_ghost_mode', val);
   };
 
+  const applyThemePreset = (preset) => {
+    setTheme(preset.id);
+    localStorage.setItem('system_theme', preset.id);
+
+    const root = document.documentElement;
+    ['theme-light', 'theme-retro', 'theme-monochrome', 'theme-matrix', 'theme-synthwave', 'theme-nordic'].forEach(cls => {
+      root.classList.remove(cls);
+    });
+    if (preset.id !== 'dark') {
+      root.classList.add(`theme-${preset.id}`);
+    }
+
+    setAccent(preset.accentHex);
+    localStorage.setItem('system_accent', preset.accentRgb);
+    localStorage.setItem('system_accent_hex', preset.accentHex);
+    root.style.setProperty('--color-accent-primary', preset.accentRgb);
+    root.style.setProperty('--color-accent-primary-hex', preset.accentHex);
+    root.style.setProperty('--color-accent-secondary', preset.accentHex);
+
+    window.dispatchEvent(new CustomEvent('themeChanged', { detail: preset.id }));
+  };
+
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    localStorage.setItem('system_theme', newTheme);
-    document.documentElement.classList.toggle('theme-light', newTheme === 'light');
+    const targetPreset = THEME_PRESETS.find(p => p.id === newTheme) || THEME_PRESETS[0];
+    applyThemePreset(targetPreset);
   };
 
   const changeLanguage = (newLang) => {
@@ -186,6 +348,133 @@ const SettingsPage = () => {
     window.dispatchEvent(new CustomEvent('newsCategoriesChanged', { detail: selectedNewsCategories }));
   };
 
+  // Navigation tab toggles
+  const toggleNavTab = (path) => {
+    setVisibleNav(prev => {
+      const next = { ...prev, [path]: !prev[path] };
+      const activeCount = Object.values(next).filter(Boolean).length;
+      if (activeCount === 0) return prev;
+      localStorage.setItem('system_visible_nav', JSON.stringify(next));
+      window.dispatchEvent(new CustomEvent('visibleNavChanged', { detail: next }));
+      return next;
+    });
+  };
+
+  const setAllNavTabs = (state) => {
+    const next = {};
+    NAV_CONFIG_ITEMS.forEach(item => {
+      next[item.path] = state;
+    });
+    if (!state) next['/'] = true;
+    setVisibleNav(next);
+    localStorage.setItem('system_visible_nav', JSON.stringify(next));
+    window.dispatchEvent(new CustomEvent('visibleNavChanged', { detail: next }));
+  };
+
+  const setMinimalNavTabs = () => {
+    const next = {};
+    NAV_CONFIG_ITEMS.forEach(item => {
+      next[item.path] = ['/', '/chat', '/timetable', '/finances'].includes(item.path);
+    });
+    setVisibleNav(next);
+    localStorage.setItem('system_visible_nav', JSON.stringify(next));
+    window.dispatchEvent(new CustomEvent('visibleNavChanged', { detail: next }));
+  };
+
+  // UI Modifiers
+  const toggleGlassmorphism = (val) => {
+    setGlassmorphism(val);
+    localStorage.setItem('system_glassmorphism', val);
+    document.documentElement.classList.toggle('no-glass', !val);
+  };
+
+  const toggleAnimations = (val) => {
+    setAnimations(val);
+    localStorage.setItem('system_animations', val);
+    document.documentElement.classList.toggle('no-animations', !val);
+  };
+
+  const toggleCompactUi = (val) => {
+    setCompactUi(val);
+    localStorage.setItem('system_compact_ui', val);
+    document.documentElement.classList.toggle('compact-mode', val);
+  };
+
+  const updateDefaultModel = (val) => {
+    setDefaultModel(val);
+    localStorage.setItem('system_default_model', val);
+    window.dispatchEvent(new CustomEvent('defaultModelChanged', { detail: val }));
+  };
+
+  // Export & Import Configuration
+  const exportConfig = () => {
+    const config = {
+      theme,
+      accent,
+      accentRgb: localStorage.getItem('system_accent'),
+      systemLang,
+      userName,
+      ghostMode,
+      notifications,
+      visibleNav,
+      activeWidgets,
+      sysMonitorPrefs,
+      selectedNewsCategories,
+      voicePref,
+      voiceRate,
+      defaultModel,
+      glassmorphism,
+      animations,
+      compactUi,
+      clock24h,
+      clockSeconds,
+      exportedAt: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `omnidash-config-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importConfig = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target.result);
+        if (data.theme) {
+          localStorage.setItem('system_theme', data.theme);
+          setTheme(data.theme);
+        }
+        if (data.accent && data.accentRgb) {
+          changeAccent(data.accentRgb, data.accent);
+        }
+        if (data.visibleNav) {
+          setVisibleNav(data.visibleNav);
+          localStorage.setItem('system_visible_nav', JSON.stringify(data.visibleNav));
+          window.dispatchEvent(new CustomEvent('visibleNavChanged', { detail: data.visibleNav }));
+        }
+        if (data.activeWidgets) {
+          setActiveWidgets(data.activeWidgets);
+          localStorage.setItem('system_active_widgets', JSON.stringify(data.activeWidgets));
+          window.dispatchEvent(new CustomEvent('activeWidgetsChanged', { detail: data.activeWidgets }));
+        }
+        if (data.defaultModel) {
+          updateDefaultModel(data.defaultModel);
+        }
+        alert('Konfiguracja została pomyślnie zaimportowana!');
+        window.location.reload();
+      } catch (err) {
+        alert('Błąd podczas importu pliku JSON: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const SectionHeader = ({ icon: Icon, title, className = '' }) => (
     <h2 className={`font-mono text-base text-textPrimary mb-5 flex items-center gap-2.5 ${className}`}>
       <span className="p-1.5 rounded-lg bg-accentPrimary/10 border border-accentPrimary/20">
@@ -217,7 +506,7 @@ const SettingsPage = () => {
             <span className="shrink-0 text-lg font-medium text-textMuted/70">/</span>
             <span className="flex items-center text-lg font-medium text-textPrimary">Ustawienia</span>
           </nav>
-          <p className="font-sans text-xs text-textMuted mt-0.5">Konfiguracja środowiska systemu</p>
+          <p className="font-sans text-xs text-textMuted mt-0.5">Zaawansowana konfiguracja środowiska, motywów i nawigacji</p>
         </div>
       </header>
 
@@ -243,13 +532,132 @@ const SettingsPage = () => {
         })}
       </div>
 
-      <main className="flex-1 overflow-y-auto space-y-4 min-h-0 pr-1">
+      <main className="flex-1 overflow-y-auto space-y-4 min-h-0 pr-1 pb-10">
         
+        {/* ======================================================== */}
+        {/* TAB 1: PERSONALIZACJA & STYL                            */}
+        {/* ======================================================== */}
         {activeTab === 'personalization' && (
           <div className="space-y-4 animate-soft-enter" style={{ animationDelay: '100ms' }}>
-            {/* --- WYGLĄD --- */}
+            
+            {/* --- MOTYWY WIZUALNE (AESTHETIC PRESETS) --- */}
             <section className="glass-panel p-5 rounded-xl border border-border">
-              <SectionHeader icon={Palette} title={t('appearanceTitle', 'Wygląd i Personalizacja')} />
+              <SectionHeader icon={Palette} title="Gotowe Motywy Wizualne (Stylistyka & Barwy)" />
+              <p className="text-xs text-textMuted mb-4 -mt-2">
+                Wybierz pełny preset estetyczny zmieniający kolory tła, obramowań, paneli oraz akcentów świetlnych w całym systemie:
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-5">
+                {THEME_PRESETS.map((preset) => {
+                  const isCurrent = theme === preset.id;
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => applyThemePreset(preset)}
+                      className={`p-4 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between group ${
+                        isCurrent 
+                          ? 'border-accentPrimary shadow-[0_0_15px_rgba(var(--color-accent-primary),0.2)] bg-surface' 
+                          : 'border-border/60 hover:border-border bg-black/20 hover:bg-black/30'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-mono text-xs font-bold text-textPrimary flex items-center gap-1.5">
+                            {preset.name}
+                          </span>
+                          {isCurrent && (
+                            <span className="flex items-center gap-1 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/30">
+                              <Check className="w-3 h-3" /> AKTYWNY
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] font-mono text-accentPrimary block mb-1.5">{preset.tag}</span>
+                        <p className="text-[11px] text-textMuted leading-relaxed line-clamp-2 mb-4">{preset.desc}</p>
+                      </div>
+
+                      {/* Swatch preview bar */}
+                      <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: preset.bgPreview }} title="Tło" />
+                          <div className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: preset.surfacePreview }} title="Panele" />
+                          <div className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: preset.accentPreview }} title="Akcent" />
+                        </div>
+                        <span className="text-[10px] font-mono text-textMuted group-hover:text-textPrimary transition-colors">
+                          Wybierz →
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Ręczny kolor akcentu */}
+              <div className="p-4 rounded-xl border border-border/50 bg-black/20">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="font-semibold text-textPrimary font-sans text-sm">Precyzyjny Kolor Akcentu</p>
+                    <p className="text-xs text-textMuted">Wybierz niestandardowy odcień podświetlenia dla bieżącego motywu.</p>
+                  </div>
+                  <span className="font-mono text-xs font-bold px-2 py-1 rounded bg-black/40 border border-border text-accentPrimary">
+                    {accent}
+                  </span>
+                </div>
+                <div className="flex gap-3 flex-wrap">
+                  {COLOR_PRESETS.map(c => (
+                    <button
+                      key={c.hex}
+                      type="button"
+                      onClick={() => changeAccent(c.rgb, c.hex)}
+                      title={c.name}
+                      className="relative w-9 h-9 rounded-full border-2 transition-all hover:scale-110 focus:outline-none"
+                      style={{
+                        backgroundColor: c.hex,
+                        borderColor: accent === c.hex ? '#fff' : 'transparent',
+                        boxShadow: accent === c.hex ? `0 0 16px ${c.hex}90` : 'none',
+                      }}
+                    >
+                      {accent === c.hex && (
+                        <span className="absolute inset-0 flex items-center justify-center">
+                          <Check className="w-3.5 h-3.5 text-black font-bold" strokeWidth={3} />
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* --- EFEKTY WIZUALNE I GĘSTOŚĆ UI --- */}
+            <section className="glass-panel p-5 rounded-xl border border-border">
+              <SectionHeader icon={Sliders} title="Efekty Wizualne & Ergonomia Interfejsu" />
+              <div className="space-y-3">
+                <SettingRow 
+                  label="Glassmorphism & Rozmycie Tła (Blur)" 
+                  desc="Półprzezroczyste panele z dynamicznym efektem rozmycia. Wyłącz na słabszym sprzęcie, aby zwiększyć FPS."
+                >
+                  <Toggle value={glassmorphism} onChange={toggleGlassmorphism} />
+                </SettingRow>
+
+                <SettingRow 
+                  label="Płynne Animacje Interfejsu" 
+                  desc="Animacje wejścia komponentów i płynne przejścia hover. Wyłączenie daje błyskawiczny efekt surowego terminala."
+                >
+                  <Toggle value={animations} onChange={toggleAnimations} />
+                </SettingRow>
+
+                <SettingRow 
+                  label="Tryb Kompaktowy (Wysoka Gęstość Danych)" 
+                  desc="Zmniejsza marginesy i paddingi kafelków, umożliwiając wyświetlenie większej ilości informacji na jednym ekranie."
+                >
+                  <Toggle value={compactUi} onChange={toggleCompactUi} />
+                </SettingRow>
+              </div>
+            </section>
+
+            {/* --- PROFIL OPERATORA & JĘZYK --- */}
+            <section className="glass-panel p-5 rounded-xl border border-border">
+              <SectionHeader icon={Settings} title="Profil Użytkownika & Język" />
               <div className="space-y-3">
                 <SettingRow label={t("userNameLabel", "Imię / Pseudonim")} desc={t("userNameDesc", "Twoja nazwa, której asystent AI używa zwracając się do Ciebie.")}>
                   <input
@@ -264,6 +672,7 @@ const SettingsPage = () => {
                     placeholder={t("userNamePlaceholder", "Wpisz imię...")}
                   />
                 </SettingRow>
+
                 <SettingRow label={t('setupLanguage', 'Wybierz język systemu')} desc={t("languageDesc", "Zmiana języka całego interfejsu i agenta AI.")}>
                   <select
                     value={systemLang}
@@ -276,80 +685,36 @@ const SettingsPage = () => {
                     <option value="zh">中文 (ZH)</option>
                   </select>
                 </SettingRow>
-                <SettingRow label={t("appThemeLabel", "Motyw Aplikacji")} desc={t("appThemeDesc", "Dark Sci-Fi lub jasny tryb produktywny")}>
-                  <Toggle value={theme === 'light'} onChange={toggleTheme} />
-                </SettingRow>
-                <div className="p-4 rounded-xl border border-border/50 bg-black/20">
-                  <p className="font-semibold text-textPrimary font-sans text-sm mb-3">{t("accentColorLabel", "Kolor Akcentu")}</p>
-                  <div className="flex gap-3 flex-wrap">
-                    {COLOR_PRESETS.map(c => (
-                      <button
-                        key={c.hex}
-                        onClick={() => changeAccent(c.rgb, c.hex)}
-                        title={c.name}
-                        className="relative w-9 h-9 rounded-full border-2 transition-all hover:scale-110 focus:outline-none"
-                        style={{
-                          backgroundColor: c.hex,
-                          borderColor: accent === c.hex ? '#fff' : 'transparent',
-                          boxShadow: accent === c.hex ? `0 0 16px ${c.hex}90` : 'none',
-                        }}
-                      >
-                        {accent === c.hex && (
-                          <span className="absolute inset-0 flex items-center justify-center">
-                            <Check className="w-3.5 h-3.5 text-black font-bold" strokeWidth={3} />
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
             </section>
 
             {/* --- WIDOCZNE WIDŻETY --- */}
             <section className="glass-panel p-5 rounded-xl border border-border">
-              <SectionHeader icon={LayoutGrid} title={t("widgetCatalogTitle", "Katalog Widżetów (Widoczność)")} />
+              <SectionHeader icon={LayoutGrid} title={t("widgetCatalogTitle", "Katalog Widżetów (Widoczność w zakładce Widżety)")} />
               <div className="space-y-3">
-                <SettingRow label="Token & Cost Tracker" desc={t("tokenTrackerDesc", "Zużycie API tokenów.")}>
-                  <Toggle value={activeWidgets.tokenTracker} onChange={(v) => updateActiveWidgets('tokenTracker', v)} />
-                </SettingRow>
-                <SettingRow label="Model Status" desc={t("modelStatusDesc", "Ping i specyfikacja LLM.")}>
-                  <Toggle value={activeWidgets.modelStatus} onChange={(v) => updateActiveWidgets('modelStatus', v)} />
-                </SettingRow>
-                <SettingRow label="Prompt Vault" desc={t("promptVaultDesc", "Biblioteka gotowych zapytań.")}>
-                  <Toggle value={activeWidgets.promptVault} onChange={(v) => updateActiveWidgets('promptVault', v)} />
-                </SettingRow>
-                <SettingRow label="Agent Queue" desc={t("agentQueueDesc", "Kolejka zadań w tle.")}>
-                  <Toggle value={activeWidgets.agentQueue} onChange={(v) => updateActiveWidgets('agentQueue', v)} />
-                </SettingRow>
-                <div className="h-px bg-border/50 my-2"></div>
-                <SettingRow label="System Monitor" desc={t("sysMonitorDesc", "Moduł metryk sprzętowych.")}>
+                <SettingRow label="System Monitor" desc={t("sysMonitorDesc", "Moduł metryk sprzętowych: CPU, RAM, Uptime.")}>
                   <Toggle value={activeWidgets.systemMonitor} onChange={(v) => updateActiveWidgets('systemMonitor', v)} />
                 </SettingRow>
-                <SettingRow label="Network Monitor" desc={t("networkMonitorDesc", "Śledzenie opóźnień sieciowych.")}>
+                <SettingRow label="Network Monitor" desc={t("networkMonitorDesc", "Śledzenie opóźnień sieciowych do węzłów DNS i bramy API.")}>
                   <Toggle value={activeWidgets.networkMonitor} onChange={(v) => updateActiveWidgets('networkMonitor', v)} />
                 </SettingRow>
-                <SettingRow label="Crypto Tracker" desc={t("cryptoTrackerDesc", "Notowania kryptowalut.")}>
+                <SettingRow label="Crypto Tracker" desc={t("cryptoTrackerDesc", "Notowania kryptowalut w czasie rzeczywistym z Binance API.")}>
                   <Toggle value={activeWidgets.cryptoTracker} onChange={(v) => updateActiveWidgets('cryptoTracker', v)} />
                 </SettingRow>
-                <SettingRow label="Scratchpad" desc={t("scratchpadDesc", "Twój lokalny notatnik hakerski.")}>
+                <SettingRow label="Scratchpad" desc={t("scratchpadDesc", "Lokalny podręczny notatnik z automatycznym zapisem.")}>
                   <Toggle value={activeWidgets.quickNotes} onChange={(v) => updateActiveWidgets('quickNotes', v)} />
                 </SettingRow>
-              </div>
-            </section>
-
-            {/* --- SYSTEM MONITOR --- */}
-            <section className="glass-panel p-5 rounded-xl border border-border">
-              <SectionHeader icon={Cpu} title={t("sysMonitorConfigTitle", "System Monitor (Konfiguracja Pasków)")} />
-              <div className="space-y-3">
-                <SettingRow label={t("cpuLabel", "Wskaźnik CPU")} desc={t("cpuDesc", "Pokaż zużycie procesora.")}>
-                  <Toggle value={sysMonitorPrefs.cpu} onChange={(v) => updateSysPrefs('cpu', v)} />
+                <SettingRow label="Token & Cost Tracker" desc={t("tokenTrackerDesc", "Szacunkowe zużycie tokenów i koszt zapytań LLM.")}>
+                  <Toggle value={activeWidgets.tokenTracker} onChange={(v) => updateActiveWidgets('tokenTracker', v)} />
                 </SettingRow>
-                <SettingRow label={t("ramLabel", "Wskaźnik RAM")} desc={t("ramDesc", "Pokaż zużycie pamięci operacyjnej.")}>
-                  <Toggle value={sysMonitorPrefs.ram} onChange={(v) => updateSysPrefs('ram', v)} />
+                <SettingRow label="Model Status" desc={t("modelStatusDesc", "Ping bramy LLM, specyfikacja modelu i stan operacyjny.")}>
+                  <Toggle value={activeWidgets.modelStatus} onChange={(v) => updateActiveWidgets('modelStatus', v)} />
                 </SettingRow>
-                <SettingRow label={t("uptimeLabel", "Wskaźnik Uptime")} desc={t("uptimeDesc", "Pokaż czas od uruchomienia systemu.")}>
-                  <Toggle value={sysMonitorPrefs.uptime} onChange={(v) => updateSysPrefs('uptime', v)} />
+                <SettingRow label="Prompt Vault" desc={t("promptVaultDesc", "Biblioteka gotowych promptów inżynierskich z opcją 1-click copy.")}>
+                  <Toggle value={activeWidgets.promptVault} onChange={(v) => updateActiveWidgets('promptVault', v)} />
+                </SettingRow>
+                <SettingRow label="Agent Queue" desc={t("agentQueueDesc", "Kolejka zadań autonomicznego agenta i zadania zaplanowane w tle.")}>
+                  <Toggle value={activeWidgets.agentQueue} onChange={(v) => updateActiveWidgets('agentQueue', v)} />
                 </SettingRow>
               </div>
             </section>
@@ -358,13 +723,14 @@ const SettingsPage = () => {
             <section className="glass-panel p-5 rounded-xl border border-border">
               <SectionHeader icon={Rss} title={t("newsPrefsTitle", "Preferencje Kanału IT News")} />
               <p className="text-xs text-textMuted mb-4 -mt-2">{t("newsPrefsDesc", "Wybierz kategorie widoczne w widżecie IT Intel Feed. Minimum jedna kategoria.")}</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                 {NEWS_CATEGORIES.map(cat => {
                   const CatIcon = cat.icon;
                   const isSelected = selectedNewsCategories.includes(cat.id);
                   return (
                     <button
                       key={cat.id}
+                      type="button"
                       onClick={() => toggleNewsCategory(cat.id)}
                       className="flex items-start gap-3 p-3.5 rounded-xl border transition-all text-left"
                       style={{
@@ -393,6 +759,7 @@ const SettingsPage = () => {
                 })}
               </div>
               <button
+                type="button"
                 onClick={saveNewsPrefs}
                 className="w-full py-2.5 rounded-xl font-mono text-sm font-bold tracking-wider transition-all border"
                 style={{
@@ -407,62 +774,171 @@ const SettingsPage = () => {
           </div>
         )}
 
-        {activeTab === 'privacy' && (
+        {/* ======================================================== */}
+        {/* TAB 2: NAWIGACJA & ZAKŁADKI                             */}
+        {/* ======================================================== */}
+        {activeTab === 'navigation' && (
           <div className="space-y-4 animate-soft-enter" style={{ animationDelay: '100ms' }}>
-            {/* --- PRYWATNOŚĆ --- */}
             <section className="glass-panel p-5 rounded-xl border border-border">
-              <SectionHeader icon={Shield} title={t("privacyTitle", "Prywatność i Bezpieczeństwo")} />
-              <div className="space-y-3">
-                <SettingRow label={t("ghostModeLabel", "Tryb Ghost (Incognito)")} desc={t("ghostModeDesc", "Dezaktywuje trwałe zapisywanie logów i historii konwersacji czatu AI. Czat po wyjściu z OmniDash zresetuje się.")}>
-                  <Toggle value={ghostMode} onChange={handleToggleGhostMode} />
-                </SettingRow>
-              </div>
-            </section>
+              <SectionHeader icon={Compass} title="Personalizacja Paska Nawigacji (Widoczność Zakładek)" />
+              <p className="text-xs text-textMuted mb-4 -mt-2">
+                Dostosuj, które moduły i zakładki mają być widoczne na bocznym pasku nawigacji. Zmiany są aplikowane natychmiastowo.
+              </p>
 
-            {/* --- PAMIĘĆ --- */}
-            <section className="glass-panel p-5 rounded-xl border border-red-500/20">
-              <SectionHeader icon={HardDrive} title={t("storageTitle", "Zarządzanie Pamięcią")} className="text-red-400" />
-              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between p-4 bg-red-500/5 rounded-xl border border-red-500/10">
-                <div>
-                  <p className="font-bold text-red-400 font-sans text-sm">{t("clearCacheLabel", "Wyczyszczenie Pamięci Podręcznej")}</p>
-                  <p className="text-xs text-red-400/60 mt-0.5">{t("clearCacheDesc", "Trwale usuwa pliki tymczasowe, indeksy i historię czatu.")}</p>
-                </div>
+              {/* Szybkie profile nawigacji */}
+              <div className="flex flex-wrap gap-2 mb-5">
                 <button
-                  className="bg-red-500/20 hover:bg-red-500/40 border border-red-500 text-red-400 px-5 py-2 rounded-xl font-mono font-bold text-sm transition-all hover:shadow-[0_0_15px_rgba(255,50,50,0.3)] w-full sm:w-auto flex-shrink-0"
-                  onClick={() => {
-                    localStorage.removeItem('system_chat_history');
-                    alert(t('cacheClearedMsg', 'Pamięć i historia czatu zostały wyczyszczone.'));
-                  }}
+                  type="button"
+                  onClick={() => setAllNavTabs(true)}
+                  className="px-3 py-1.5 rounded-lg border border-accentPrimary/40 bg-accentPrimary/10 text-accentPrimary font-mono text-xs font-bold hover:bg-accentPrimary/20 transition-all flex items-center gap-1.5"
                 >
-                  PURGE CACHE
+                  <Check className="w-3.5 h-3.5" /> Pokaż Wszystkie (10)
                 </button>
+                <button
+                  type="button"
+                  onClick={setMinimalNavTabs}
+                  className="px-3 py-1.5 rounded-lg border border-border bg-surface text-textPrimary font-mono text-xs font-bold hover:border-accentPrimary/50 transition-all flex items-center gap-1.5"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-accentPrimary" /> Profil Minimalistyczny (Pulpit, AI, Szkoła, Finanse)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setVisibleNav(DEFAULT_VISIBLE_NAV);
+                    localStorage.setItem('system_visible_nav', JSON.stringify(DEFAULT_VISIBLE_NAV));
+                    window.dispatchEvent(new CustomEvent('visibleNavChanged', { detail: DEFAULT_VISIBLE_NAV }));
+                  }}
+                  className="px-3 py-1.5 rounded-lg border border-border bg-surface text-textMuted hover:text-textPrimary font-mono text-xs font-bold transition-all flex items-center gap-1.5"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" /> Przywróć Domyślne
+                </button>
+              </div>
+
+              {/* Lista zakładek */}
+              <div className="space-y-2.5">
+                {NAV_CONFIG_ITEMS.map((item) => {
+                  const ItemIcon = item.icon;
+                  const isVisible = visibleNav[item.path] !== false;
+
+                  return (
+                    <div 
+                      key={item.path}
+                      className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${
+                        isVisible 
+                          ? 'border-border/70 bg-black/20 hover:border-accentPrimary/40' 
+                          : 'border-border/30 bg-black/40 opacity-60'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <div className={`w-9 h-9 rounded-lg border flex items-center justify-center ${
+                          isVisible 
+                            ? 'border-accentPrimary/30 bg-accentPrimary/10 text-accentPrimary' 
+                            : 'border-border/40 bg-surface text-textMuted'
+                        }`}>
+                          <ItemIcon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-sm font-bold text-textPrimary">{item.name}</span>
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-textMuted">
+                              {item.path}
+                            </span>
+                          </div>
+                          <p className="text-xs text-textMuted mt-0.5 line-clamp-1">{item.desc}</p>
+                        </div>
+                      </div>
+
+                      <Toggle value={isVisible} onChange={() => toggleNavTab(item.path)} />
+                    </div>
+                  );
+                })}
+
+                {/* Stała zakładka Ustawienia */}
+                <div className="flex items-center justify-between p-3.5 rounded-xl border border-accentPrimary/30 bg-accentPrimary/5 mt-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-9 h-9 rounded-lg border border-accentPrimary/40 bg-accentPrimary/20 flex items-center justify-center text-accentPrimary">
+                      <Settings className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-sm font-bold text-accentPrimary">Ustawienia Systemu</span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/40 font-bold">
+                          ZABLOKOWANA (STAŁA)
+                        </span>
+                      </div>
+                      <p className="text-xs text-textMuted mt-0.5">Zakładka zawsze dostępna na dole paska, aby uniemożliwić przypadkowe zablokowanie dostępu.</p>
+                    </div>
+                  </div>
+                  <span className="font-mono text-xs font-bold text-accentPrimary px-3 py-1 bg-accentPrimary/10 rounded-lg border border-accentPrimary/30">
+                    ZAWSZE WŁĄCZONA
+                  </span>
+                </div>
               </div>
             </section>
           </div>
         )}
 
+        {/* ======================================================== */}
+        {/* TAB 3: SYSTEM & AI                                      */}
+        {/* ======================================================== */}
         {activeTab === 'system' && (
           <div className="space-y-4 animate-soft-enter" style={{ animationDelay: '100ms' }}>
-            {/* --- SYSTEMOWE --- */}
+            
+            {/* --- DOMYŚLNY MODEL AI --- */}
             <section className="glass-panel p-5 rounded-xl border border-border">
-              <SectionHeader icon={Bell} title={t("sysPrefsTitle", "Preferencje Systemowe")} />
+              <SectionHeader icon={Bot} title="Konfiguracja Silnika Sztucznej Inteligencji (LLM)" />
               <div className="space-y-3">
-                <SettingRow label={t("soundNotifsLabel", "Powiadomienia Dźwiękowe")} desc={t("soundNotifsDesc", "Sygnały audio przy zakończeniu procesów w tle.")}>
-                  <Toggle value={notifications} onChange={setNotifications} />
+                <SettingRow 
+                  label="Domyślny Model Asystenta AI" 
+                  desc="Wybierz główny model generatywny używany do odpowiedzi czatu, analizy zadań i przeszukiwania sieci."
+                >
+                  <select
+                    value={defaultModel}
+                    onChange={(e) => updateDefaultModel(e.target.value)}
+                    className="bg-surface border border-accentPrimary/50 rounded-lg px-3 py-2 focus:border-accentPrimary outline-none text-accentPrimary font-mono text-xs font-bold"
+                  >
+                    <option value="openai/gpt-oss-120b">openai/gpt-oss-120b (Najwyższa jakość, Vercel Serverless)</option>
+                    <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Ultra-szybki, 128k context)</option>
+                    <option value="mixtral-8x7b-32768">mixtral-8x7b-32768 (32k context, sprawdzony MoE)</option>
+                    <option value="deepseek-r1-distill-llama-70b">deepseek-r1-distill-llama-70b (Logiczne myślenie)</option>
+                  </select>
+                </SettingRow>
+
+                <div className="p-3.5 rounded-xl border border-border/50 bg-black/20 text-xs text-textMuted leading-relaxed flex items-center gap-3">
+                  <Zap className="w-5 h-5 text-accentPrimary flex-shrink-0" />
+                  <span>
+                    Model <strong className="text-accentPrimary font-mono">openai/gpt-oss-120b</strong> jest domyślnie połączony przez Vercel Serverless AI Gateway z wstrzykiwaniem bazy wiedzy, zadań To-Do, kalendarza i pamięci długoterminowej.
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            {/* --- SYSTEM MONITOR CONFIG --- */}
+            <section className="glass-panel p-5 rounded-xl border border-border">
+              <SectionHeader icon={Cpu} title={t("sysMonitorConfigTitle", "System Monitor (Konfiguracja Pasków)")} />
+              <div className="space-y-3">
+                <SettingRow label={t("cpuLabel", "Wskaźnik CPU")} desc={t("cpuDesc", "Pokaż zużycie procesora.")}>
+                  <Toggle value={sysMonitorPrefs.cpu} onChange={(v) => updateSysPrefs('cpu', v)} />
+                </SettingRow>
+                <SettingRow label={t("ramLabel", "Wskaźnik RAM")} desc={t("ramDesc", "Pokaż zużycie pamięci operacyjnej.")}>
+                  <Toggle value={sysMonitorPrefs.ram} onChange={(v) => updateSysPrefs('ram', v)} />
+                </SettingRow>
+                <SettingRow label={t("uptimeLabel", "Wskaźnik Uptime")} desc={t("uptimeDesc", "Pokaż czas od uruchomienia systemu.")}>
+                  <Toggle value={sysMonitorPrefs.uptime} onChange={(v) => updateSysPrefs('uptime', v)} />
                 </SettingRow>
               </div>
             </section>
 
             {/* --- GŁOS AI --- */}
             <section className="glass-panel p-5 rounded-xl border border-border">
-              <SectionHeader icon={Mic} title={t("voiceAssistantTitle", "Asystent Głosowy")} />
+              <SectionHeader icon={Mic} title={t("voiceAssistantTitle", "Asystent Głosowy (Synteza TTS)")} />
               <div className="space-y-4">
                 <div className="p-4 rounded-xl border border-border/50 bg-black/20">
                   <div className="flex justify-between items-center mb-2">
                     <p className="font-semibold text-textPrimary font-sans text-sm">{t("voiceSelectLabel", "Wybór Głosu")}</p>
-                    <button onClick={testVoice} className="text-xs bg-accentPrimary/20 text-accentPrimary px-3 py-1.5 rounded-lg hover:bg-accentPrimary/40 flex items-center gap-1 transition-colors">Testuj głos <Volume2 className="w-3.5 h-3.5" /></button>
+                    <button type="button" onClick={testVoice} className="text-xs bg-accentPrimary/20 text-accentPrimary px-3 py-1.5 rounded-lg hover:bg-accentPrimary/40 flex items-center gap-1 transition-colors">Testuj głos <Volume2 className="w-3.5 h-3.5" /></button>
                   </div>
-                  <p className="text-xs text-textMuted mb-3">{t("voiceSelectDesc", "Wybierz płeć głosu asystenta.")}</p>
+                  <p className="text-xs text-textMuted mb-3">{t("voiceSelectDesc", "Wybierz profil głosu asystenta.")}</p>
                   <select 
                     value={voicePref === 'paulina' ? 'female' : voicePref} 
                     onChange={(e) => updateVoicePref(e.target.value)}
@@ -476,7 +952,7 @@ const SettingsPage = () => {
                 <div className="p-4 rounded-xl border border-border/50 bg-black/20">
                   <div className="flex justify-between items-center mb-2">
                     <p className="font-semibold text-textPrimary font-sans text-sm">{t("voiceRateLabel", "Prędkość mowy (Rate):")} {voiceRate.toFixed(1)}x</p>
-                    <button onClick={testVoice} className="text-xs bg-accentPrimary/20 text-accentPrimary px-3 py-1.5 rounded-lg hover:bg-accentPrimary/40 flex items-center gap-1 transition-colors">Testuj prędkość <Volume2 className="w-3.5 h-3.5" /></button>
+                    <button type="button" onClick={testVoice} className="text-xs bg-accentPrimary/20 text-accentPrimary px-3 py-1.5 rounded-lg hover:bg-accentPrimary/40 flex items-center gap-1 transition-colors">Testuj prędkość <Volume2 className="w-3.5 h-3.5" /></button>
                   </div>
                   <p className="text-xs text-textMuted mb-4">{t("voiceRateDesc", "Dostosuj szybkość, z jaką agent odczytuje odpowiedzi.")}</p>
                   <input 
@@ -489,10 +965,82 @@ const SettingsPage = () => {
                 </div>
               </div>
             </section>
+
+            {/* --- DŹWIĘKI I POWIADOMIENIA --- */}
+            <section className="glass-panel p-5 rounded-xl border border-border">
+              <SectionHeader icon={Bell} title="Powiadomienia i Sygnały Dźwiękowe" />
+              <div className="space-y-3">
+                <SettingRow label={t("soundNotifsLabel", "Powiadomienia Dźwiękowe")} desc={t("soundNotifsDesc", "Sygnały audio przy zakończeniu procesów w tle.")}>
+                  <Toggle value={notifications} onChange={setNotifications} />
+                </SettingRow>
+              </div>
+            </section>
+
+            {/* --- KOPIA ZAPASOWA I IMPORT USTAWIEŃ --- */}
+            <section className="glass-panel p-5 rounded-xl border border-border">
+              <SectionHeader icon={Download} title="Kopia Zapasowa & Eksport Konfiguracji (JSON)" />
+              <p className="text-xs text-textMuted mb-4 -mt-2">
+                Zapisz lub przywróć całą konfigurację pulpitu (motywy, widoczność zakładek, widżety, preferencje AI) w uniwersalnym formacie JSON:
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                <button
+                  type="button"
+                  onClick={exportConfig}
+                  className="px-4 py-2.5 rounded-xl border border-accentPrimary/50 bg-accentPrimary/10 hover:bg-accentPrimary/20 text-accentPrimary font-mono text-xs font-bold transition-all flex items-center justify-center gap-2"
+                >
+                  <Download className="w-4 h-4" /> Eksportuj Ustawienia do JSON
+                </button>
+
+                <label className="px-4 py-2.5 rounded-xl border border-border bg-surface hover:border-accentPrimary/40 text-textPrimary font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer">
+                  <Upload className="w-4 h-4 text-accentPrimary" />
+                  <span>Zaimportuj Ustawienia z JSON</span>
+                  <input type="file" accept=".json" onChange={importConfig} className="hidden" />
+                </label>
+              </div>
+            </section>
           </div>
         )}
 
-      
+        {/* ======================================================== */}
+        {/* TAB 4: PRYWATNOŚĆ                                       */}
+        {/* ======================================================== */}
+        {activeTab === 'privacy' && (
+          <div className="space-y-4 animate-soft-enter" style={{ animationDelay: '100ms' }}>
+            <section className="glass-panel p-5 rounded-xl border border-border">
+              <SectionHeader icon={Shield} title={t("privacyTitle", "Prywatność i Bezpieczeństwo")} />
+              <div className="space-y-3">
+                <SettingRow label={t("ghostModeLabel", "Tryb Ghost (Incognito)")} desc={t("ghostModeDesc", "Dezaktywuje trwałe zapisywanie logów i historii konwersacji czatu AI. Czat po wyjściu z OmniDash zresetuje się.")}>
+                  <Toggle value={ghostMode} onChange={handleToggleGhostMode} />
+                </SettingRow>
+              </div>
+            </section>
+
+            <section className="glass-panel p-5 rounded-xl border border-red-500/20">
+              <SectionHeader icon={HardDrive} title={t("storageTitle", "Zarządzanie Pamięcią")} className="text-red-400" />
+              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between p-4 bg-red-500/5 rounded-xl border border-red-500/10">
+                <div>
+                  <p className="font-bold text-red-400 font-sans text-sm">{t("clearCacheLabel", "Wyczyszczenie Pamięci Podręcznej")}</p>
+                  <p className="text-xs text-red-400/60 mt-0.5">{t("clearCacheDesc", "Trwale usuwa pliki tymczasowe, indeksy i lokalną historię czatu.")}</p>
+                </div>
+                <button
+                  type="button"
+                  className="bg-red-500/20 hover:bg-red-500/40 border border-red-500 text-red-400 px-5 py-2 rounded-xl font-mono font-bold text-sm transition-all hover:shadow-[0_0_15px_rgba(255,50,50,0.3)] w-full sm:w-auto flex-shrink-0"
+                  onClick={() => {
+                    localStorage.removeItem('system_chat_history');
+                    alert(t('cacheClearedMsg', 'Pamięć i historia czatu zostały wyczyszczone.'));
+                  }}
+                >
+                  PURGE CACHE
+                </button>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* TAB 5: BAZY & BEZPIECZEŃSTWO                            */}
+        {/* ======================================================== */}
         {activeTab === 'security' && (
           <div className="space-y-4 animate-soft-enter" style={{ animationDelay: '100ms' }}>
             <section className="glass-panel p-5 rounded-xl border border-border">
@@ -575,7 +1123,7 @@ const SettingsPage = () => {
                   </div>
                 </div>
 
-                {/* --- CENTRUM KOLEKCJI FIRESTORE (MULTI-COLLECTION HUB) --- */}
+                {/* --- CENTRUM KOLEKCJI FIRESTORE --- */}
                 <div className="p-4 rounded-xl border border-accentPrimary/30 bg-black/20 mt-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -587,10 +1135,9 @@ const SettingsPage = () => {
                     </span>
                   </div>
                   <p className="text-xs text-textMuted leading-relaxed mb-3">
-                    Projekt: <strong className="text-textPrimary font-mono">void-potato-7721</strong> (Void Potato Matrix) w regionie <strong className="text-textPrimary">europe-central2</strong>. Bezpieczeństwo oparte o restrykcyjne reguły Firestore: dostęp wyłącznie dla <span className="text-accentPrimary font-mono">marektowarek21372137@gmail.com</span>.
+                    Projekt: <strong className="text-textPrimary font-mono">void-potato-7721</strong> (Void Potato Matrix) w regionie <strong className="text-textPrimary">europe-central2</strong>. Bezpieczeństwo oparte o restrykcyjne reguły Firestore: dostęp dla konta administratora.
                   </p>
 
-                  {/* Kafelki kategorii */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-3">
                     {[
                       { id: 'tasks', name: 'Zadania To-Do', icon: '📋' },
@@ -636,7 +1183,7 @@ const SettingsPage = () => {
                       <span className="text-xs text-emerald-400 font-mono">
                         {collectionSyncResult.error 
                           ? `[!] Błąd: ${collectionSyncResult.error}` 
-                          : `[+] Pomyślnie zsynchronizowano wszystkie 7 kategorii w chmurze!`}
+                          : `[+] Pomyślnie zsynchronizowano wszystkie kategorie w chmurze!`}
                       </span>
                     )}
                   </div>
@@ -646,22 +1193,26 @@ const SettingsPage = () => {
                   <p className="font-semibold text-red-400 font-sans text-sm mb-1">{t("factoryResetLabel", "Reset do Ustawień Fabrycznych")}</p>
                   <p className="text-xs text-red-400/60 leading-relaxed mb-4">{t("factoryResetDesc", "Ta operacja usunie wszystkie dane z bazy danych oraz prywatne klucze API. Jest to nieodwracalne.")}</p>
                   
-                  <button onClick={async () => {
-                    if (window.confirm(t("factoryResetConfirm", "UWAGA! Czy na pewno chcesz wyczyścić bazę danych i usunąć klucze API? Operacja jest nieodwracalna."))) {
-                      try {
-                        await axios.post('/api/system/reset');
-                        localStorage.removeItem('system_onboarding_completed');
-                        localStorage.removeItem('system_setup_completed');
-                        localStorage.removeItem('system_chat_history');
-                        localStorage.removeItem('system_mentor_history');
-                        localStorage.removeItem('system_thoughts_log');
-                        alert(t('factoryResetDone', 'System zresetowany. Konieczne będzie podanie kluczy przy ponownym uruchomieniu.'));
-                        window.location.href = '/';
-                      } catch (err) {
-                        alert(t('factoryResetError', 'Błąd podczas resetowania systemu: ') + err.message);
+                  <button 
+                    type="button"
+                    onClick={async () => {
+                      if (window.confirm(t("factoryResetConfirm", "UWAGA! Czy na pewno chcesz wyczyścić bazę danych i usunąć klucze API? Operacja jest nieodwracalna."))) {
+                        try {
+                          await axios.post('/api/system/reset');
+                          localStorage.removeItem('system_onboarding_completed');
+                          localStorage.removeItem('system_setup_completed');
+                          localStorage.removeItem('system_chat_history');
+                          localStorage.removeItem('system_mentor_history');
+                          localStorage.removeItem('system_thoughts_log');
+                          alert(t('factoryResetDone', 'System zresetowany. Konieczne będzie podanie kluczy przy ponownym uruchomieniu.'));
+                          window.location.href = '/';
+                        } catch (err) {
+                          alert(t('factoryResetError', 'Błąd podczas resetowania systemu: ') + err.message);
+                        }
                       }
-                    }
-                  }} className="bg-red-500/20 hover:bg-red-500/40 border border-red-500 text-red-400 font-bold py-2 px-4 rounded-lg self-start mt-2 transition-colors">
+                    }} 
+                    className="bg-red-500/20 hover:bg-red-500/40 border border-red-500 text-red-400 font-bold py-2 px-4 rounded-lg self-start mt-2 transition-colors"
+                  >
                     FACTORY RESET
                   </button>
                 </div>

@@ -53,7 +53,7 @@ const SystemMonitor = () => {
   };
 
   return (
-    <div className="glass-panel p-5 rounded-xl border border-border flex flex-col h-fit relative overflow-hidden">
+    <div className="glass-panel p-5 rounded-xl border border-border flex flex-col h-full relative overflow-hidden">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-accentPrimary/10 border border-accentPrimary/30 flex items-center justify-center">
