@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Palette, LayoutGrid, Rss, Check, ChevronRight, ChevronLeft, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
+import { THEME_PRESETS, COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
 
 const SetupWizard = ({ onComplete }) => {
   const { t, i18n } = useTranslation();
@@ -84,6 +84,19 @@ const SetupWizard = ({ onComplete }) => {
     localStorage.setItem('system_theme', newTheme);
   };
 
+  const applyThemePresetLive = (preset) => {
+    setTheme(preset.id);
+    const colorObj = { name: preset.name, rgb: preset.accentRgb, hex: preset.accentHex };
+    setAccent(colorObj);
+    localStorage.setItem('system_theme', preset.id);
+    localStorage.setItem('system_accent', preset.accentRgb);
+    localStorage.setItem('system_accent_hex', preset.accentHex);
+    document.documentElement.classList.toggle('theme-light', preset.id === 'light');
+    document.documentElement.style.setProperty('--color-accent-primary', preset.accentRgb);
+    document.documentElement.style.setProperty('--color-accent-primary-hex', preset.accentHex);
+    document.documentElement.style.setProperty('--color-accent-secondary', preset.accentHex);
+  };
+
   const changeLanguageLive = (newLang) => {
     setSystemLang(newLang);
     i18n.changeLanguage(newLang);
@@ -100,13 +113,13 @@ const SetupWizard = ({ onComplete }) => {
   };
 
   const renderStep1 = () => (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-5 animate-fade-in-up max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar">
       <div>
-        <h3 className="text-sm font-semibold text-textPrimary mb-3 flex items-center gap-2"><Globe className="w-4 h-4 text-accentPrimary" /> {t('setupLanguage', 'Wybierz język systemu')}</h3>
+        <h3 className="text-sm font-semibold text-textPrimary mb-2 flex items-center gap-2"><Globe className="w-4 h-4 text-accentPrimary" /> {t('setupLanguage', 'Wybierz język systemu')}</h3>
         <select 
           value={systemLang}
           onChange={(e) => changeLanguageLive(e.target.value)}
-          className="w-full bg-surface border border-border rounded-xl px-4 py-3 focus:outline-none focus:border-accentPrimary text-textPrimary font-mono"
+          className="w-full bg-surface border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accentPrimary text-textPrimary font-mono text-sm"
         >
           <option value="pl">{t('language_pl', 'Polski (PL)')}</option>
           <option value="en">{t('language_en', 'Angielski (EN)')}</option>
@@ -116,12 +129,12 @@ const SetupWizard = ({ onComplete }) => {
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-textPrimary mb-3 flex items-center gap-2"><LayoutGrid className="w-4 h-4 text-accentPrimary" /> {t("userNameSetupTitle", "Twoje Imię / Pseudonim")}</h3>
+        <h3 className="text-sm font-semibold text-textPrimary mb-2 flex items-center gap-2"><LayoutGrid className="w-4 h-4 text-accentPrimary" /> {t("userNameSetupTitle", "Twoje Imię / Pseudonim")}</h3>
         <input 
           type="text" 
           value={userName} 
           onChange={(e) => setUserName(e.target.value)} 
-          className="w-full bg-surface border border-border rounded-xl px-4 py-3 focus:outline-none focus:border-accentPrimary text-textPrimary mb-4"
+          className="w-full bg-surface border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-accentPrimary text-textPrimary text-sm mb-3"
           placeholder={t("userNameSetupPlaceholder", "np. Twój pseudonim")}
         />
         
@@ -129,12 +142,11 @@ const SetupWizard = ({ onComplete }) => {
           type="button"
           onClick={() => {
             alert('Symulacja logowania Google. Pobieranie darmowych API...');
-            // In a real app this would call OAuth, we bypass keys manually
             setUserName('Google User');
           }}
-          className="w-full flex items-center justify-center gap-3 bg-white text-black font-bold py-3 rounded-xl hover:bg-gray-200 transition-colors shadow-lg"
+          className="w-full flex items-center justify-center gap-3 bg-white text-black font-bold py-2.5 rounded-xl hover:bg-gray-200 transition-colors shadow-sm text-sm"
         >
-          <svg viewBox="0 0 24 24" className="w-5 h-5">
+          <svg viewBox="0 0 24 24" className="w-4 h-4">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
@@ -144,36 +156,63 @@ const SetupWizard = ({ onComplete }) => {
         </button>
       </div>
 
+      {/* Wybór gotowego motywu wizualnego */}
       <div>
-        <h3 className="text-sm font-semibold text-textPrimary mb-3 flex items-center gap-2"><Palette className="w-4 h-4 text-accentPrimary" /> {t("appThemeSetupTitle", "Motyw Aplikacji")}</h3>
-        <div className="flex gap-4">
-          <button onClick={() => changeThemeLive('dark')} className={`flex-1 p-4 rounded-xl border-2 transition-all ${theme === 'dark' ? 'border-accentPrimary bg-accentPrimary/10' : 'border-border/50 hover:border-border bg-surface/50'}`}>
-            <span className="font-mono text-sm font-bold text-textPrimary">Dark Sci-Fi</span>
-          </button>
-          <button onClick={() => changeThemeLive('light')} className={`flex-1 p-4 rounded-xl border-2 transition-all ${theme === 'light' ? 'border-accentPrimary bg-accentPrimary/10' : 'border-border/50 hover:border-border bg-surface/50'}`}>
-            <span className="font-mono text-sm font-bold text-textPrimary">Light Mode</span>
-          </button>
+        <h3 className="text-sm font-semibold text-textPrimary mb-2 flex items-center justify-between">
+          <span className="flex items-center gap-2"><Palette className="w-4 h-4 text-accentPrimary" /> Wybierz Gotowy Motyw</span>
+          <span className="text-[11px] font-mono text-accentPrimary">7 stylów</span>
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {THEME_PRESETS.map((preset) => {
+            const isCurrent = theme === preset.id;
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => applyThemePresetLive(preset)}
+                className={`p-2.5 rounded-xl border text-left transition-all relative flex flex-col justify-between ${
+                  isCurrent 
+                    ? 'border-accentPrimary bg-accentPrimary/10 shadow-[0_0_12px_rgba(var(--color-accent-primary),0.2)]' 
+                    : 'border-border/60 hover:border-border bg-surface/50'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-mono text-xs font-bold text-textPrimary truncate">{preset.name.split(' (')[0]}</span>
+                  {isCurrent && <Check className="w-3.5 h-3.5 text-accentPrimary shrink-0" />}
+                </div>
+                <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-border/30">
+                  <span className="text-[9px] font-mono text-textMuted">{preset.tag}</span>
+                  <div className="flex items-center gap-1">
+                    <span className="w-2.5 h-2.5 rounded-full border border-white/20" style={{ backgroundColor: preset.bgPreview }} />
+                    <span className="w-2.5 h-2.5 rounded-full border border-white/20" style={{ backgroundColor: preset.accentPreview }} />
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
+      {/* Precyzyjny akcent kolorystyczny */}
       <div>
-        <h3 className="text-sm font-semibold text-textPrimary mb-3 flex items-center gap-2"><Palette className="w-4 h-4 text-accentPrimary" /> {t("mainColorSetupTitle", "Kolor Główny")}</h3>
-        <div className="grid grid-cols-5 md:grid-cols-7 gap-4">
+        <h3 className="text-sm font-semibold text-textPrimary mb-2 flex items-center gap-2"><Palette className="w-4 h-4 text-accentPrimary" /> {t("mainColorSetupTitle", "Kolor Główny")}</h3>
+        <div className="grid grid-cols-5 md:grid-cols-7 gap-2.5">
           {COLOR_PRESETS.map(c => (
             <button
               key={c.hex}
+              type="button"
               onClick={() => changeAccentLive(c)}
               title={c.name}
               className="relative aspect-square rounded-full border-2 transition-all hover:scale-110 focus:outline-none"
               style={{
                 backgroundColor: c.hex,
                 borderColor: accent.hex === c.hex ? '#fff' : 'transparent',
-                boxShadow: accent.hex === c.hex ? `0 0 20px ${c.hex}90` : 'none',
+                boxShadow: accent.hex === c.hex ? `0 0 16px ${c.hex}90` : 'none',
               }}
             >
               {accent.hex === c.hex && (
                 <span className="absolute inset-0 flex items-center justify-center">
-                  <Check className="w-4 h-4 text-black font-bold" strokeWidth={3} />
+                  <Check className="w-3.5 h-3.5 text-black font-bold" strokeWidth={3} />
                 </span>
               )}
             </button>

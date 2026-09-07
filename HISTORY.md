@@ -1,5 +1,26 @@
 ## Wersja Bieżąca
-**v2.8.0**
+**v2.9.0**
+
+## v 2.9.0 — 2026-09-07
+**Typ:** MINOR  
+**Zakres:** Integracja Wyboru Motywu i Akcentu przy Nazwie Użytkownika, Wielomodułowe Narzędzia AI (Timetable, Workouts, Finances, Calendar, Theme), Pełne Przewijanie i Ergonomia Widoków Finansów, Planu Lekcji, Treningów i Kalendarza, Serverless News API z Integracją Brave Search.
+
+### Zmiany
+- [+] Dodano: Szybki wybór gotowego motywu wizualnego (`THEME_PRESETS`: Dark Cyber, Retro Amber CRT, Monochrome Slate, Matrix Terminal, Synthwave 80s, Nordic Frost, Paper Light) oraz paletę akcentów kolorystycznych bezpośrednio w kreatorze początkowym `SetupWizard.jsx` (Krok 1) tuż obok wprowadzania imienia / pseudonimu.
+- [+] Dodano: Szybki selektor motywów i akcentów w sekcji „Profil Użytkownika & Język” w `SettingsPage.jsx`, umożliwiając natychmiastową zmianę estetyki systemu bez konieczności przewijania do odrębnych sekcji.
+- [+] Dodano: Rozszerzone narzędzia i dyspozytor akcji dla agenta AI (`api/agent.js` oraz `clientAiDispatcher.js`) — obsługa znaczników akcji (`[ACTION:ADD_TASK]`, `[ACTION:ADD_LESSON]`, `[ACTION:ADD_EXPENSE]`, `[ACTION:ADD_WORKOUT]`, `[ACTION:ADD_EVENT]`, `[ACTION:SET_THEME]`, `[ACTION:REMEMBER]`). Agent potrafi teraz bezpośrednio modyfikować plan lekcji, rejestrować wydatki i treningi, planować wydarzenia w kalendarzu oraz przełączać motywy na polecenie słowne.
+- [+] Dodano: Nowy endpoint serverless `api/news.js` na Vercel z integracją Brave Search News API (`api.search.brave.com`), nagłówkami CORS oraz zoptymalizowanymi kategoriami fallbacku (AI, CyberSec, Startups, Cloud, Dev).
+- [*] Zmodyfikowano: `ITNewsTicker.jsx` — usunięto blokadę trybu chmurowego, podłączono pobieranie najnowszych wiadomości z `api/news`, dodano dynamiczne kategorie i podgląd snippetów.
+- [!] Naprawiono: Brak możliwości przewijania widoku finansów w `FinancePage.jsx` — usunięto restrykcyjne `overflow-hidden`, dodano `overflow-y-auto custom-scrollbar pb-24 md:pb-8 min-h-0` oraz wyeliminowano ściskanie kontenera historii transakcji (`shrink-0 min-h-[380px]`). Cała strona przewija się płynnie od wykresów po pełną historię wpisów.
+- [!] Naprawiono: Zbyt małą przestrzeń na podgląd lekcji w `TimetablePage.jsx` — kontener główny otrzymał pełne przewijanie `overflow-y-auto custom-scrollbar`, dodano przycisk zwijania/rozwijania statystyk górnych (`Zwiń Statystyki ▴`), a w karcie Live Tracker zintegrowano „Dzisiejszą oś czasu” z podglądem wszystkich kolejnych lekcji danego dnia.
+- [!] Naprawiono: Ograniczenia przewijania w `WorkoutsPage.jsx` — kontener otrzymał `overflow-y-auto custom-scrollbar pb-24 md:pb-8`, umożliwiając swobodny wgląd w całą historię treningów i opisy ćwiczeń.
+- [!] Naprawiono: Obcinanie dolnej sekcji w `CalendarPage.jsx` — dostosowano proporcje komórek dni (`min-h-[44px] sm:min-h-[56px] md:min-h-[62px]`) oraz wprowadzono `overflow-y-auto custom-scrollbar pb-24 md:pb-8`, dzięki czemu cały kalendarz miesięczny oraz panel „Najbliższe Wydarzenia” mieszczą się na ekranie i są w 100% czytelne.
+- [*] Zmodyfikowano: Pomyślnie zrekompilowano (0 błędów) obie wersje repozytorium (z Firebase oraz BEZ FIREBASE).
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 2.8.0 — 2026-09-07
 **Typ:** MINOR  

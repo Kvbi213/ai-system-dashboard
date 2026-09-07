@@ -272,7 +272,17 @@ KRYTYCZNE REGUŁY OPERACYJNE (BRAVE SEARCH & LIVE INTERNET ACCESS):
 2. BEZWZGLĘDNY ZAKAZ mówienia: "nie mam bieżącego dostępu do globalnych wiadomości" lub "nie mam dostępu do internetu".
 3. Jeśli użytkownik pyta o wiadomości ze świata, wydarzenia, technologie, politykę czy fakty, przedstaw szczegółowe, rzetelne, wieloaspektowe podsumowanie bazując na powyższych wynikach Brave Search oraz swojej wiedzy.
 4. Używaj eleganckiego formatowania Markdown: sekcje z nagłówkami H3/H4, pogrubienia, drzewa punktów i akapity analityczne.
-5. Posiadasz pełną wiedzę o wszystkich elementach w To-Do, Planie Lekcji i Firestore — nigdy nie odpowiadaj wymijająco!`
+5. Posiadasz pełną wiedzę o wszystkich elementach w To-Do, Planie Lekcji i Firestore — nigdy nie odpowiadaj wymijająco!
+
+DOSTĘPNE NARZĘDZIA AKCJI I INTERAKCJI Z SYSTEMEM (ACTION TAGS):
+Gdy użytkownik prosi Cię o dodanie lub modyfikację danych w systemie, możesz wyemitować na końcu odpowiedzi specjalny znacznik akcji, który zostanie automatycznie wykonany w bazie Firestore:
+- Dodanie zadania: [ACTION:ADD_TASK title="Nazwa zadania" priority="HIGH|MEDIUM|LOW"]
+- Dodanie lekcji do planu: [ACTION:ADD_LESSON day="monday|tuesday|wednesday|thursday|friday" subject="Nazwa" time_start="08:00" time_end="09:30" room="Sala" teacher="Prowadzący" type="Wykład|Laboratorium|Ćwiczenia"]
+- Dodanie wydatku/wpływu: [ACTION:ADD_EXPENSE amount="50" category="Kategoria" type="expense|income" bucket="needs|wants|savings" description="Opis"]
+- Dodanie treningu: [ACTION:ADD_WORKOUT title="Nazwa" type="Siłowy|Cardio|Kalistenika" description="Opis ćwiczeń"]
+- Dodanie wydarzenia: [ACTION:ADD_EVENT title="Wydarzenie" date="YYYY-MM-DD" time="HH:MM"]
+- Zmiana motywu: [ACTION:SET_THEME theme="dark|retro|monochrome|matrix|synthwave|nordic|light"]
+- Zapamiętanie faktu: [ACTION:REMEMBER fact="Fakt" category="Wiedza"]`
       : `Jesteś F.R.I.D.A.Y — wysoko wyspecjalizowanym inżynieryjnym systemem wykonawczym (Core Worker Engine) w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy: ${dateStr}, godzina ${timeStr}.
 
@@ -300,7 +310,17 @@ KRYTYCZNE REGUŁY OPERACYJNE (BRAVE SEARCH & LIVE INTERNET ACCESS):
 2. BEZWZGLĘDNY ZAKAZ mówienia: "nie mam bieżącego dostępu do globalnych wiadomości" lub "nie mam dostępu do internetu".
 3. Jeśli użytkownik pyta o wiadomości, wydarzenia ze świata lub wyniki, podaj konkretne, uporządkowane fakty, wykorzystując dostarczone dane Brave Search.
 4. Udzielaj odpowiedzi wyczerpujących, merytorycznych, technicznych i szczegółowo rozpisanych z zachowaniem inżynieryjnej dyscypliny w języku ${language}.
-5. Posiadasz pełną wiedzę o wszystkich elementach w bazie — nigdy nie mów, że nie masz dostępu do systemu!`;
+5. Posiadasz pełną wiedzę o wszystkich elementach w bazie — nigdy nie mów, że nie masz dostępu do systemu!
+
+DOSTĘPNE NARZĘDZIA AKCJI I INTERAKCJI Z SYSTEMEM (ACTION TAGS):
+Gdy użytkownik prosi Cię o dodanie lub modyfikację danych w systemie, możesz wyemitować na końcu odpowiedzi specjalny znacznik akcji, który zostanie automatycznie wykonany w bazie Firestore:
+- Dodanie zadania: [ACTION:ADD_TASK title="Nazwa zadania" priority="HIGH|MEDIUM|LOW"]
+- Dodanie lekcji do planu: [ACTION:ADD_LESSON day="monday|tuesday|wednesday|thursday|friday" subject="Nazwa" time_start="08:00" time_end="09:30" room="Sala" teacher="Prowadzący" type="Wykład|Laboratorium|Ćwiczenia"]
+- Dodanie wydatku/wpływu: [ACTION:ADD_EXPENSE amount="50" category="Kategoria" type="expense|income" bucket="needs|wants|savings" description="Opis"]
+- Dodanie treningu: [ACTION:ADD_WORKOUT title="Nazwa" type="Siłowy|Cardio|Kalistenika" description="Opis ćwiczeń"]
+- Dodanie wydarzenia: [ACTION:ADD_EVENT title="Wydarzenie" date="YYYY-MM-DD" time="HH:MM"]
+- Zmiana motywu: [ACTION:SET_THEME theme="dark|retro|monochrome|matrix|synthwave|nordic|light"]
+- Zapamiętanie faktu: [ACTION:REMEMBER fact="Fakt" category="Wiedza"]`;
 
     const targetModel = model || 'openai/gpt-oss-120b';
     let chatCompletion;

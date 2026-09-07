@@ -675,6 +675,47 @@ const SettingsPage = () => {
                   />
                 </SettingRow>
 
+                <SettingRow label="Szybki Wybór Motywu" desc="Przełącz styl kolorystyczny całego dashboardu jednym kliknięciem.">
+                  <div className="flex items-center gap-1.5 flex-wrap justify-end max-w-md">
+                    {THEME_PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => applyThemePreset(preset)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all flex items-center gap-1.5 border ${
+                          theme === preset.id
+                            ? 'border-accentPrimary bg-accentPrimary/20 text-accentPrimary shadow-sm'
+                            : 'border-border/50 bg-surface/50 text-textMuted hover:text-textPrimary'
+                        }`}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: preset.accentPreview }} />
+                        <span>{preset.name.split(' (')[0]}</span>
+                      </button>
+                    ))}
+                  </div>
+                </SettingRow>
+
+                <SettingRow label="Szybki Akcent Barwny" desc="Wybierz barwę świetlną dopasowaną do Twojego profilu.">
+                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                    {COLOR_PRESETS.map(c => (
+                      <button
+                        key={c.hex}
+                        type="button"
+                        onClick={() => changeAccent(c.rgb, c.hex)}
+                        title={c.name}
+                        className="w-6 h-6 rounded-full border transition-all hover:scale-110 flex items-center justify-center"
+                        style={{
+                          backgroundColor: c.hex,
+                          borderColor: accent === c.hex ? '#fff' : 'transparent',
+                          boxShadow: accent === c.hex ? `0 0 10px ${c.hex}90` : 'none',
+                        }}
+                      >
+                        {accent === c.hex && <Check className="w-3 h-3 text-black font-bold" strokeWidth={3} />}
+                      </button>
+                    ))}
+                  </div>
+                </SettingRow>
+
                 <SettingRow label={t('setupLanguage', 'Wybierz język systemu')} desc={t("languageDesc", "Zmiana języka całego interfejsu i agenta AI.")}>
                   <select
                     value={systemLang}

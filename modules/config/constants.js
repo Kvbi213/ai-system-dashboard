@@ -5,6 +5,93 @@ import {
   Film, Plane, Book, Wrench, Sprout, Landmark
 } from 'lucide-react';
 
+export const THEME_PRESETS = [
+  {
+    id: 'dark',
+    name: 'Dark Cyber (Domyślny)',
+    tag: 'Sci-Fi & Terminal',
+    desc: 'Głęboki grafit, neonowa zieleń, futurystyczny interfejs operacyjny.',
+    accentRgb: '0 255 102',
+    accentHex: '#00FF66',
+    bgPreview: '#121212',
+    surfacePreview: '#1E1E1E',
+    accentPreview: '#00FF66',
+    borderPreview: 'rgba(255,255,255,0.1)'
+  },
+  {
+    id: 'retro',
+    name: 'Retro Amber CRT',
+    tag: 'Vintage 80s',
+    desc: 'Bursztynowy monitor kineskopowy, ciepły blask i nostalgiczny klimat mainframe.',
+    accentRgb: '255 176 0',
+    accentHex: '#FFB000',
+    bgPreview: '#140E05',
+    surfacePreview: '#211608',
+    accentPreview: '#FFB000',
+    borderPreview: 'rgba(255, 176, 0, 0.25)'
+  },
+  {
+    id: 'monochrome',
+    name: 'Monochrome Slate',
+    tag: 'Minimal & Clean',
+    desc: 'Czysta czerń, biel i grafit bez zbędnych kolorów. Maksymalne skupienie.',
+    accentRgb: '245 245 245',
+    accentHex: '#F5F5F5',
+    bgPreview: '#0A0A0C',
+    surfacePreview: '#141418',
+    accentPreview: '#FAFAFA',
+    borderPreview: 'rgba(255, 255, 255, 0.2)'
+  },
+  {
+    id: 'matrix',
+    name: 'Matrix Terminal',
+    tag: 'Hacker Green',
+    desc: 'Kultowa hakerska zielona konsola na głębokiej czerni, wysoki kontrast kodu.',
+    accentRgb: '0 255 65',
+    accentHex: '#00FF41',
+    bgPreview: '#020B04',
+    surfacePreview: '#061A0A',
+    accentPreview: '#00FF41',
+    borderPreview: 'rgba(0, 255, 65, 0.25)'
+  },
+  {
+    id: 'synthwave',
+    name: 'Synthwave 80s',
+    tag: 'Cyberpunk Neon',
+    desc: 'Neonowa magenta, fiolet i nocne neony rodem z Neo-Tokyo i muzyki retrowave.',
+    accentRgb: '255 0 128',
+    accentHex: '#FF0080',
+    bgPreview: '#120824',
+    surfacePreview: '#200E3D',
+    accentPreview: '#FF0080',
+    borderPreview: 'rgba(255, 0, 128, 0.25)'
+  },
+  {
+    id: 'nordic',
+    name: 'Nordic Frost',
+    tag: 'Deep Arctic Ice',
+    desc: 'Arktyczny chłodny błękit, stalowy granat i krystaliczna przejrzystość.',
+    accentRgb: '56 189 248',
+    accentHex: '#38BDF8',
+    bgPreview: '#0A131F',
+    surfacePreview: '#121F30',
+    accentPreview: '#38BDF8',
+    borderPreview: 'rgba(56, 189, 248, 0.25)'
+  },
+  {
+    id: 'light',
+    name: 'Paper Light',
+    tag: 'Day Mode',
+    desc: 'Jasny tryb produktywny, wysoki kontrast tekstu, idealny w pełnym świetle dziennym.',
+    accentRgb: '0 153 68',
+    accentHex: '#009944',
+    bgPreview: '#F4F4F5',
+    surfacePreview: '#FFFFFF',
+    accentPreview: '#009944',
+    borderPreview: 'rgba(0, 0, 0, 0.12)'
+  }
+];
+
 export const COLOR_PRESETS = [
   { name: 'Neon Green', rgb: '0 255 102', hex: '#00FF66' },
   { name: 'Cyber Blue', rgb: '0 229 255', hex: '#00E5FF' },

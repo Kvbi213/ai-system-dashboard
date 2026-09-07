@@ -118,7 +118,7 @@ const CalendarPage = () => {
       <button 
         key={`day-${i}`}
         onClick={() => setSelectedDate(iterDate)}
-        className={`relative min-h-[50px] sm:min-h-[80px] p-1 sm:p-2 flex flex-col items-start justify-start border transition-all duration-200 active:scale-95 
+        className={`relative min-h-[44px] sm:min-h-[56px] md:min-h-[62px] p-1 sm:p-1.5 flex flex-col items-start justify-start border transition-all duration-200 active:scale-95 
           ${isSelected ? 'border-accentPrimary bg-accentPrimary/10 shadow-[inset_0_0_10px_rgba(var(--color-accent-primary),0.2)]' : 'border-border/50 glass-panel hover:bg-surface'}
         `}
       >
@@ -127,21 +127,21 @@ const CalendarPage = () => {
         </span>
         
         {hasEvents && (
-          <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex gap-0.5 sm:gap-1">
+          <div className="absolute top-1 sm:top-1.5 right-1 sm:right-1.5 flex gap-0.5 sm:gap-1">
             {dayEvents.map((_, idx) => (
               <div key={idx} className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-accentPrimary shadow-[0_0_5px_rgba(var(--color-accent-primary),0.8)]"></div>
             ))}
           </div>
         )}
 
-        <div className="hidden sm:flex mt-2 w-full flex-col gap-1 overflow-hidden">
+        <div className="hidden sm:flex mt-1 w-full flex-col gap-0.5 overflow-hidden">
           {dayEvents.slice(0, 2).map((ev) => (
-            <div key={ev.id} className="text-[10px] uppercase font-mono tracking-wider truncate text-accentPrimary/80 bg-accentPrimary/10 px-1 rounded">
+            <div key={ev.id} className="text-[9px] uppercase font-mono tracking-wider truncate text-accentPrimary/90 bg-accentPrimary/10 px-1 rounded">
               {ev.title}
             </div>
           ))}
           {dayEvents.length > 2 && (
-            <div className="text-[10px] text-textMuted font-mono">+{dayEvents.length - 2} więcej</div>
+            <div className="text-[9px] text-textMuted font-mono">+{dayEvents.length - 2} więcej</div>
           )}
         </div>
       </button>
@@ -157,7 +157,7 @@ const CalendarPage = () => {
   const upcomingEvents = safeEvents.filter(e => e.event_date >= todayString).sort((a, b) => new Date(a.event_date) - new Date(b.event_date));
 
   return (
-    <div className="w-full h-full flex flex-col gap-4 sm:gap-6 relative z-10 animate-soft-enter overflow-y-auto md:overflow-hidden pb-20 md:pb-0">
+    <div className="w-full h-full flex flex-col gap-4 sm:gap-6 relative z-10 animate-soft-enter overflow-y-auto custom-scrollbar pb-24 md:pb-8">
       <header className="glass-panel p-4 sm:p-5 rounded-xl border border-border flex items-center gap-3 sm:gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
         <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
           <CalendarIcon className="w-5 h-5 text-textPrimary" />

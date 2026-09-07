@@ -88,6 +88,7 @@ const TimetablePage = () => {
   const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'grid'
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [showStats, setShowStats] = useState(true);
   
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
@@ -152,11 +153,15 @@ const TimetablePage = () => {
     return (h || 0) * 60 + (m || 0);
   };
 
-  // Obliczenie aktualnie trwającej lekcji i następnej dzisiaj
-  const { activeLesson, nextLesson } = useMemo(() => {
-    const todayLessons = lessons
+  const todayUpcomingLessons = useMemo(() => {
+    return lessons
       .filter(l => l.day === todayDayId)
       .sort((a, b) => parseTimeToMinutes(a.time_start) - parseTimeToMinutes(b.time_start));
+  }, [lessons, todayDayId]);
+
+  // Obliczenie aktualnie trwającej lekcji i następnej dzisiaj
+  const { activeLesson, nextLesson } = useMemo(() => {
+    const todayLessons = todayUpcomingLessons;
 
     let active = null;
     let next = null;
@@ -312,7 +317,7 @@ const TimetablePage = () => {
   };
 
   return (
-    <div className="flex flex-col h-full gap-3 sm:gap-5 overflow-hidden font-sans">
+    <div className="flex flex-col h-full gap-3 sm:gap-5 overflow-y-auto custom-scrollbar font-sans pb-24 md:pb-8 min-h-0">
       {/* 1. Header Bar */}
       <header className="glass-panel p-3.5 sm:p-5 rounded-2xl border border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 flex-shrink-0 shadow-lg">
         <div className="flex items-center gap-3 sm:gap-4">
@@ -338,6 +343,14 @@ const TimetablePage = () => {
         </div>
 
         <div className="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end pt-1 sm:pt-0 border-t sm:border-t-0 border-border/40">
+          <button
+            onClick={() => setShowStats(prev => !prev)}
+            className="px-2.5 py-1.5 rounded-xl border border-white/10 bg-surface text-textMuted hover:text-textPrimary text-xs font-mono transition-colors flex items-center gap-1.5 shadow-sm"
+            title="Przełącz widoczność kafelków analitycznych"
+          >
+            <span>{showStats ? 'Zwiń Statystyki ▴' : 'Rozwiń Statystyki ▾'}</span>
+          </button>
+
           <div className="flex items-center bg-surface border border-white/10 rounded-xl p-1">
             <button
               onClick={() => setViewMode('cards')}
@@ -367,117 +380,153 @@ const TimetablePage = () => {
         </div>
       </header>
 
-      {/* 2. Statystyki & Trwające Zajęcia (Live Tracker) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 flex-shrink-0">
-        {/* Live Class Tracker */}
-        <div className="col-span-2 md:col-span-2 glass-panel p-3.5 sm:p-4 rounded-xl border border-white/10 flex flex-col justify-between relative overflow-hidden bg-gradient-to-br from-surface/80 to-surface/30">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <span className={`w-2.5 h-2.5 rounded-full ${activeLesson ? 'bg-emerald-400 animate-ping' : 'bg-accentPrimary'}`}></span>
-              <span className="text-xs font-mono font-bold tracking-wider text-textMuted uppercase">
-                {activeLesson ? '🟢 TRWAJĄCE ZAJĘCIA' : (nextLesson ? '⏱️ NAJBLIŻSZE ZAJĘCIA DZISIAJ' : '🏖️ BRAK ZAJĘĆ W TEJ CHWILI')}
+      {/* 2. Statystyki & Trwające Zajęcia (Live Tracker) - Zwijalne */}
+      {showStats && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 flex-shrink-0 animate-fade-in">
+          {/* Live Class Tracker */}
+          <div className="col-span-2 md:col-span-2 glass-panel p-3.5 sm:p-4 rounded-xl border border-white/10 flex flex-col justify-between relative overflow-hidden bg-gradient-to-br from-surface/80 to-surface/30">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className={`w-2.5 h-2.5 rounded-full ${activeLesson ? 'bg-emerald-400 animate-ping' : 'bg-accentPrimary'}`}></span>
+                <span className="text-xs font-mono font-bold tracking-wider text-textMuted uppercase">
+                  {activeLesson ? '🟢 TRWAJĄCE ZAJĘCIA' : (nextLesson ? '⏱️ NAJBLIŻSZE ZAJĘCIA DZISIAJ' : '🏖️ BRAK ZAJĘĆ W TEJ CHWILI')}
+                </span>
+              </div>
+              <span className="text-[11px] font-mono text-textMuted">
+                {currentTime.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })} • {DAYS.find(d => d.id === todayDayId)?.label}
               </span>
             </div>
-            <span className="text-[11px] font-mono text-textMuted">
-              {currentTime.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })} • {DAYS.find(d => d.id === todayDayId)?.label}
-            </span>
-          </div>
 
-          {activeLesson ? (
-            <div className="my-1">
-              <div className="flex items-baseline justify-between">
-                <h3 className="text-lg font-bold text-textPrimary tracking-tight">{activeLesson.subject}</h3>
-                <span className="text-xs font-mono font-bold text-emerald-400">
-                  {activeLesson.time_start} - {activeLesson.time_end}
-                </span>
-              </div>
-              <div className="flex items-center gap-3 text-xs text-textMuted mt-1">
-                {activeLesson.room && (
-                  <span className="flex items-center gap-1 text-accentPrimary">
-                    <MapPin className="w-3.5 h-3.5" /> {activeLesson.room}
+            {activeLesson ? (
+              <div className="my-1">
+                <div className="flex items-baseline justify-between">
+                  <h3 className="text-lg font-bold text-textPrimary tracking-tight">{activeLesson.subject}</h3>
+                  <span className="text-xs font-mono font-bold text-emerald-400">
+                    {activeLesson.time_start} - {activeLesson.time_end}
                   </span>
-                )}
-                {activeLesson.teacher && (
-                  <span className="flex items-center gap-1">
-                    <User className="w-3.5 h-3.5" /> {activeLesson.teacher}
+                </div>
+                <div className="flex items-center gap-3 text-xs text-textMuted mt-1">
+                  {activeLesson.room && (
+                    <span className="flex items-center gap-1 text-accentPrimary">
+                      <MapPin className="w-3.5 h-3.5" /> {activeLesson.room}
+                    </span>
+                  )}
+                  {activeLesson.teacher && (
+                    <span className="flex items-center gap-1">
+                      <User className="w-3.5 h-3.5" /> {activeLesson.teacher}
+                    </span>
+                  )}
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono">
+                    {activeLesson.type}
                   </span>
-                )}
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono">
-                  {activeLesson.type}
-                </span>
+                </div>
               </div>
+            ) : nextLesson ? (
+              <div className="my-1">
+                <div className="flex items-baseline justify-between">
+                  <h3 className="text-base font-bold text-textPrimary tracking-tight">{nextLesson.subject}</h3>
+                  <span className="text-xs font-mono font-semibold text-accentPrimary">
+                    Rozpoczęcie o {nextLesson.time_start}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-textMuted mt-1">
+                  {nextLesson.room && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5" /> {nextLesson.room}
+                    </span>
+                  )}
+                  {nextLesson.teacher && (
+                    <span className="flex items-center gap-1">
+                      <User className="w-3.5 h-3.5" /> {nextLesson.teacher}
+                    </span>
+                  )}
+                  <span className="px-2 py-0.5 rounded bg-surface border border-white/10 text-[10px] font-mono">
+                    {nextLesson.type}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-textMuted my-1">
+                Wszystkie dzisiejsze zajęcia zostały zakończone lub brak zaplanowanych bloków na dziś.
+              </p>
+            )}
+
+            {/* Dzisiejsza oś czasu - szybki podgląd kolejnych lekcji */}
+            {todayUpcomingLessons.length > 0 && (
+              <div className="mt-2.5 pt-2 border-t border-white/10">
+                <span className="text-[10px] font-mono text-textMuted uppercase tracking-wider block mb-1.5">
+                  Dzisiejszy rozkład ({todayUpcomingLessons.length} lekcji):
+                </span>
+                <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
+                  {todayUpcomingLessons.map((l) => {
+                    const isNow = activeLesson && String(activeLesson.id) === String(l.id);
+                    return (
+                      <div
+                        key={l.id}
+                        className={`px-2.5 py-1 rounded-lg border text-left shrink-0 transition-all ${
+                          isNow
+                            ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-300 shadow-sm'
+                            : 'border-white/10 bg-black/20 text-textMuted hover:text-textPrimary'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-mono font-bold text-accentPrimary">{l.time_start}</span>
+                          <span className="text-[11px] font-medium text-textPrimary truncate max-w-[110px]">{l.subject}</span>
+                        </div>
+                        <div className="text-[9px] font-mono text-textMuted flex items-center gap-2">
+                          <span>{l.room || 'sala -'}</span>
+                          <span>•</span>
+                          <span>{l.type}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-textMuted">
+              <span>Dzisiejszy dzień: <strong className="text-textPrimary">{stats.todayCount} zajęć</strong></span>
+              <button 
+                onClick={() => setSelectedDay(todayDayId)} 
+                className="text-accentPrimary hover:underline flex items-center gap-1 font-mono text-[10px]"
+              >
+                Pokaż dzisiejszy plan <ChevronRight className="w-3 h-3" />
+              </button>
             </div>
-          ) : nextLesson ? (
-            <div className="my-1">
-              <div className="flex items-baseline justify-between">
-                <h3 className="text-base font-bold text-textPrimary tracking-tight">{nextLesson.subject}</h3>
-                <span className="text-xs font-mono font-semibold text-accentPrimary">
-                  Rozpoczęcie o {nextLesson.time_start}
-                </span>
-              </div>
-              <div className="flex items-center gap-3 text-xs text-textMuted mt-1">
-                {nextLesson.room && (
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5" /> {nextLesson.room}
-                  </span>
-                )}
-                {nextLesson.teacher && (
-                  <span className="flex items-center gap-1">
-                    <User className="w-3.5 h-3.5" /> {nextLesson.teacher}
-                  </span>
-                )}
-                <span className="px-2 py-0.5 rounded bg-surface border border-white/10 text-[10px] font-mono">
-                  {nextLesson.type}
-                </span>
-              </div>
+          </div>
+
+          {/* Mini stat 1 */}
+          <div className="glass-panel p-4 rounded-xl border border-white/10 flex flex-col justify-between">
+            <div className="flex items-center justify-between text-textMuted text-xs">
+              <span>Godziny w tygodniu</span>
+              <Clock className="w-4 h-4 text-accentPrimary" />
             </div>
-          ) : (
-            <p className="text-xs text-textMuted my-1">
-              Wszystkie dzisiejsze zajęcia zostały zakończone lub brak zaplanowanych bloków na dziś.
-            </p>
-          )}
+            <div className="my-2">
+              <span className="text-2xl font-bold font-mono text-textPrimary">{stats.totalHours}</span>
+              <span className="text-xs text-textMuted ml-1.5">godzin zegarowych</span>
+            </div>
+            <div className="text-[10px] text-textMuted font-mono">
+              {stats.totalLessons} bloków dydaktycznych
+            </div>
+          </div>
 
-          <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-textMuted">
-            <span>Dzisiejszy dzień: <strong className="text-textPrimary">{stats.todayCount} zajęć</strong></span>
-            <button 
-              onClick={() => setSelectedDay(todayDayId)} 
-              className="text-accentPrimary hover:underline flex items-center gap-1 font-mono text-[10px]"
-            >
-              Pokaż dzisiejszy plan <ChevronRight className="w-3 h-3" />
-            </button>
+          {/* Mini stat 2 */}
+          <div className="glass-panel p-4 rounded-xl border border-white/10 flex flex-col justify-between">
+            <div className="flex items-center justify-between text-textMuted text-xs">
+              <span>Przedmioty Dydaktyczne</span>
+              <BookOpen className="w-4 h-4 text-accentPrimary" />
+            </div>
+            <div className="my-2">
+              <span className="text-2xl font-bold font-mono text-textPrimary">{stats.uniqueSubjects}</span>
+              <span className="text-xs text-textMuted ml-1.5">unikalnych kursów</span>
+            </div>
+            <div className="text-[10px] text-textMuted font-mono">
+              Synchronizacja z Cloud Firestore
+            </div>
           </div>
         </div>
-
-        {/* Mini stat 1 */}
-        <div className="glass-panel p-4 rounded-xl border border-white/10 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-textMuted text-xs">
-            <span>Godziny w tygodniu</span>
-            <Clock className="w-4 h-4 text-accentPrimary" />
-          </div>
-          <div className="my-2">
-            <span className="text-2xl font-bold font-mono text-textPrimary">{stats.totalHours}</span>
-            <span className="text-xs text-textMuted ml-1.5">godzin zegarowych</span>
-          </div>
-          <div className="text-[10px] text-textMuted font-mono">
-            {stats.totalLessons} bloków dydaktycznych
-          </div>
-        </div>
-
-        {/* Mini stat 2 */}
-        <div className="glass-panel p-4 rounded-xl border border-white/10 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-textMuted text-xs">
-            <span>Przedmioty Dydaktyczne</span>
-            <BookOpen className="w-4 h-4 text-accentPrimary" />
-          </div>
-          <div className="my-2">
-            <span className="text-2xl font-bold font-mono text-textPrimary">{stats.uniqueSubjects}</span>
-            <span className="text-xs text-textMuted ml-1.5">unikalnych kursów</span>
-          </div>
-          <div className="text-[10px] text-textMuted font-mono">
-            Synchronizacja z Cloud Firestore
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* 3. Pasek Nawigacji Dni i Filtrów */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between flex-shrink-0">

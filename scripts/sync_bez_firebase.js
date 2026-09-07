@@ -41,11 +41,15 @@ const filesToSync = [
   'modules/components/Terminal.jsx',
   'modules/components/SystemMonitor.jsx',
   'modules/components/ModelWidget.jsx',
+  'modules/components/SetupWizard.jsx',
+  'modules/components/ITNewsTicker.jsx',
+  'modules/config/constants.js',
   'modules/services/clientAiDispatcher.js',
+  'api/news.js',
+  'api/agent.js',
   'core.client.jsx',
   'assets/styles/index.css',
-  'HISTORY.md',
-  'docs/versions/v2.8.0.md'
+  'HISTORY.md'
 ];
 
 filesToSync.forEach(relPath => {

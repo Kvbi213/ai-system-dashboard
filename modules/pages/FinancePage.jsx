@@ -231,7 +231,7 @@ const FinancePage = () => {
   const savingsLen = (stats.buckets.savings / totalSpend) * circumference;
 
   return (
-    <div className="w-full h-full flex flex-col gap-3 sm:gap-6 animate-soft-enter overflow-hidden">
+    <div className="w-full h-full flex flex-col gap-3 sm:gap-6 animate-soft-enter overflow-y-auto custom-scrollbar pb-24 md:pb-8 min-h-0">
       {/* Header */}
       <header className="glass-panel p-3.5 sm:p-5 rounded-xl border border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
         <div className="flex items-center gap-3 sm:gap-4">
@@ -599,7 +599,7 @@ const FinancePage = () => {
       </div>
 
       {/* Transaction History & Search / Filter */}
-      <div className="glass-panel rounded-xl overflow-hidden flex-1 flex flex-col min-h-[300px]">
+      <div className="glass-panel rounded-xl overflow-hidden flex flex-col min-h-[380px] shrink-0 mb-6">
         {/* Controls */}
         <div className="p-4 border-b border-border bg-black/20 flex flex-col sm:flex-row gap-3 items-center justify-between">
           <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -649,7 +649,7 @@ const FinancePage = () => {
         </div>
 
         {/* List Content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-2.5 custom-scrollbar">
+        <div className="overflow-y-auto max-h-[600px] p-4 space-y-2.5 custom-scrollbar">
           {filteredFinances.length === 0 ? (
             <div className="text-center py-12 flex flex-col items-center justify-center text-textMuted">
               <Wallet className="w-10 h-10 opacity-20 mb-2" />

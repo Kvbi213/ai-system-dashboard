@@ -116,7 +116,7 @@ const WorkoutsPage = () => {
   }, [workouts]);
 
   return (
-    <div className="h-full flex flex-col space-y-4 sm:space-y-6 animate-soft-enter relative pb-20 md:pb-0 overflow-hidden">
+    <div className="h-full flex flex-col space-y-4 sm:space-y-6 animate-soft-enter relative pb-24 md:pb-8 overflow-y-auto custom-scrollbar min-h-0">
       {/* Header */}
       <header className="glass-panel p-4 sm:p-5 rounded-xl border border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
         <div className="flex items-center gap-3 sm:gap-4">
@@ -187,7 +187,7 @@ const WorkoutsPage = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 glass-panel rounded-xl border border-border overflow-hidden flex flex-col min-h-[350px]">
+      <div className="glass-panel rounded-xl border border-border overflow-hidden flex flex-col min-h-[400px] shrink-0 mb-6">
         {/* Bar Controls */}
         <div className="p-3 sm:p-4 border-b border-border bg-black/20 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -233,7 +233,7 @@ const WorkoutsPage = () => {
         </div>
 
         {/* Workouts Feed */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+        <div className="overflow-y-auto max-h-[700px] p-4 space-y-3 custom-scrollbar">
           {filteredWorkouts.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-textMuted py-12">
               <Dumbbell className="w-12 h-12 opacity-20 mb-2" />

@@ -34,22 +34,26 @@ const ITNewsTicker = ({ selectedCategories }) => {
     const config = CATEGORY_CONFIG[cat];
     if (!config) { setLoading(false); return; }
 
-    if (isCloudMode) {
-      setArticles(getFallbackArticles());
-      setLastFetch(new Date());
-      setLoading(false);
-      return;
-    }
-
     try {
-      const res = await fetch(`/api/news?q=${encodeURIComponent(config.query)}`);
-      const ct = res.headers.get('content-type') || '';
-      if (!res.ok || !ct.includes('application/json')) {
-        throw new Error('API error');
+      // 1. Spróbuj lokalnego lub bieżącego endpointu /api/news
+      let res = await fetch(`/api/news?q=${encodeURIComponent(config.query)}&category=${encodeURIComponent(cat)}`);
+      let ct = res.headers.get('content-type') || '';
+      
+      // 2. Jeśli jesteśmy w chmurze (Firebase Hosting) i /api/news nie zwraca JSON, odpytaj gateway Vercel
+      if ((!res.ok || !ct.includes('application/json')) && isCloudMode) {
+        res = await fetch(`https://ai-system-dashboard.vercel.app/api/news?q=${encodeURIComponent(config.query)}&category=${encodeURIComponent(cat)}`);
+        ct = res.headers.get('content-type') || '';
       }
-      const data = await res.json();
-      setArticles(Array.isArray(data.results) ? data.results : getFallbackArticles());
-      setLastFetch(new Date());
+
+      if (res.ok && ct.includes('application/json')) {
+        const data = await res.json();
+        if (Array.isArray(data.results) && data.results.length > 0) {
+          setArticles(data.results);
+          setLastFetch(new Date());
+          return;
+        }
+      }
+      throw new Error('Fallback needed');
     } catch {
       setArticles(getFallbackArticles());
       setLastFetch(new Date());

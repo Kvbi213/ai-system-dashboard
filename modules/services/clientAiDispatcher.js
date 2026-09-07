@@ -188,6 +188,121 @@ function determineWidgets(userText, aiResponse = '') {
   return Array.from(new Set(widgets));
 }
 
+export function parseAndExecuteAiActions(text) {
+  if (!text || typeof text !== 'string') return text;
+
+  let cleanedText = text;
+  const actionRegex = /\[ACTION:([A-Z_]+)([^\]]*)\]/g;
+  let match;
+
+  while ((match = actionRegex.exec(text)) !== null) {
+    const actionType = match[1];
+    const rawAttrs = match[2] || '';
+    
+    const attrs = {};
+    const attrRegex = /([a-zA-Z0-9_]+)=["']([^"']*)["']|([a-zA-Z0-9_]+)=([^\s]+)/g;
+    let attrMatch;
+    while ((attrMatch = attrRegex.exec(rawAttrs)) !== null) {
+      const key = attrMatch[1] || attrMatch[3];
+      const val = attrMatch[2] !== undefined ? attrMatch[2] : attrMatch[4];
+      attrs[key] = val;
+    }
+
+    try {
+      if (actionType === 'ADD_TASK') {
+        const id = 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+        const newTask = {
+          id,
+          title: attrs.title || 'Nowe zadanie',
+          priority: attrs.priority || 'MEDIUM',
+          status: 'pending',
+          category: attrs.category || 'ogólne',
+          created_at: new Date().toISOString()
+        };
+        saveCloudDocument('tasks', id, newTask);
+        window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'tasks' } }));
+      } else if (actionType === 'ADD_LESSON') {
+        const id = 't_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+        const newLesson = {
+          id,
+          day: attrs.day || 'monday',
+          subject: attrs.subject || 'Zajęcia',
+          time_start: attrs.time_start || '08:00',
+          time_end: attrs.time_end || '09:30',
+          room: attrs.room || '',
+          teacher: attrs.teacher || '',
+          type: attrs.type || 'Wykład',
+          color: attrs.color || 'indigo',
+          created_at: new Date().toISOString()
+        };
+        saveCloudDocument('timetable', id, newLesson);
+        window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'timetable' } }));
+      } else if (actionType === 'ADD_EXPENSE') {
+        const id = 'fin_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+        const newExpense = {
+          id,
+          amount: parseFloat(attrs.amount) || 0,
+          category: attrs.category || 'Inne',
+          type: attrs.type || 'expense',
+          bucket: attrs.bucket || 'needs',
+          description: attrs.description || '',
+          transaction_date: attrs.date || new Date().toISOString().split('T')[0],
+          created_at: new Date().toISOString()
+        };
+        saveCloudDocument('finances', id, newExpense);
+        window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'finances' } }));
+      } else if (actionType === 'ADD_WORKOUT') {
+        const id = 'work_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+        const newWorkout = {
+          id,
+          title: attrs.title || 'Trening',
+          type: attrs.type || 'Siłowy',
+          description: attrs.description || '',
+          date: attrs.date || new Date().toISOString().split('T')[0],
+          created_at: new Date().toISOString()
+        };
+        saveCloudDocument('workouts', id, newWorkout);
+        window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'workouts' } }));
+      } else if (actionType === 'ADD_EVENT') {
+        const id = 'cal_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+        const newEvent = {
+          id,
+          title: attrs.title || 'Wydarzenie',
+          event_date: attrs.date || new Date().toISOString().split('T')[0],
+          event_time: attrs.time || '10:00',
+          priority: attrs.priority || 'MEDIUM',
+          created_at: new Date().toISOString()
+        };
+        saveCloudDocument('calendar', id, newEvent);
+        window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'calendar' } }));
+      } else if (actionType === 'SET_THEME') {
+        const themeId = attrs.theme;
+        if (themeId) {
+          localStorage.setItem('system_theme', themeId);
+          document.documentElement.classList.toggle('theme-light', themeId === 'light');
+          window.dispatchEvent(new CustomEvent('themeChanged', { detail: themeId }));
+        }
+      } else if (actionType === 'REMEMBER') {
+        const id = 'brain_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+        const newBrain = {
+          id,
+          fact: attrs.fact || attrs.content || '',
+          category: attrs.category || 'Wiedza',
+          created_at: new Date().toISOString()
+        };
+        saveCloudDocument('operator_brain', id, newBrain);
+        window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'operator_brain' } }));
+      }
+    } catch (actErr) {
+      console.warn('[AiDispatcher] Błąd wykonania akcji:', actionType, actErr);
+    }
+  }
+
+  // Oczyść znaczniki akcji z tekstu użytkownika
+  cleanedText = cleanedText.replace(/\[ACTION:[A-Z_]+[^\]]*\]/g, '').trim();
+  return cleanedText;
+}
+
 export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użytkownik', language = 'pl' }) => {
   const groqKey = localStorage.getItem('system_groq_api_key') || 
                   localStorage.getItem('system_api_key') || 
@@ -220,9 +335,10 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
     });
 
     if (vercelRes.data && vercelRes.data.agent_response) {
-      const content = vercelRes.data.agent_response;
+      const rawContent = vercelRes.data.agent_response;
+      const content = parseAndExecuteAiActions(rawContent);
       const backendWidgets = vercelRes.data.widgets || [];
-      const mergedWidgets = Array.from(new Set([...backendWidgets, ...determineWidgets(text, content)]));
+      const mergedWidgets = Array.from(new Set([...backendWidgets, ...determineWidgets(text, rawContent)]));
 
       return {
         content,
@@ -246,9 +362,10 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
       }, { timeout: 15000 });
 
       if (data && (data.agent_response || data.payload)) {
-        const content = data.agent_response || (data.payload?.agent_response || data.payload?.title || JSON.stringify(data.payload));
+        const rawContent = data.agent_response || (data.payload?.agent_response || data.payload?.title || JSON.stringify(data.payload));
+        const content = parseAndExecuteAiActions(rawContent);
         const backendWidgets = data.widgets || (data.widget ? [data.widget] : []);
-        const mergedWidgets = Array.from(new Set([...backendWidgets, ...determineWidgets(text, content)]));
+        const mergedWidgets = Array.from(new Set([...backendWidgets, ...determineWidgets(text, rawContent)]));
 
         return {
           content,
@@ -280,14 +397,16 @@ Zadania w To-Do:
 ${tasksSummary}
 Kalendarz:
 ${calendarSummary}
-Zasady: Posiadasz bezpośredni dostęp do internetu oraz silnika Brave Search. NIGDY nie mów, że nie masz dostępu do wiadomości ze świata ani internetu! Odpowiadaj wyczerpująco, logicznie i wspierająco w języku ${language} z użyciem bogatego Markdown.`
+Zasady: Posiadasz bezpośredni dostęp do internetu oraz silnika Brave Search. NIGDY nie mów, że nie masz dostępu do wiadomości ze świata ani internetu! Odpowiadaj wyczerpująco, logicznie i wspierająco w języku ${language} z użyciem bogatego Markdown.
+Jeśli użytkownik prosi o akcję, możesz użyć [ACTION:ADD_TASK title="..." priority="HIGH|MED|LOW"] lub [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_WORKOUT ...], [ACTION:SET_THEME theme="..."] na końcu.`
         : `Jesteś F.R.I.D.A.Y — inżynieryjnym silnikiem wykonawczym w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas: ${context.dateStr}, ${context.timeStr}.
 Zadania w To-Do:
 ${tasksSummary}
 Kalendarz:
 ${calendarSummary}
-Zasady: Posiadasz bezpośredni dostęp do internetu oraz silnika Brave Search. NIGDY nie mów, że nie masz dostępu do wiadomości ze świata ani internetu! Odpowiadaj konkretnie, merytorycznie i technicznie w języku ${language} z użyciem bogatego Markdown.`;
+Zasady: Posiadasz bezpośredni dostęp do internetu oraz silnika Brave Search. NIGDY nie mów, że nie masz dostępu do wiadomości ze świata ani internetu! Odpowiadaj konkretnie, merytorycznie i technicznie w języku ${language} z użyciem bogatego Markdown.
+Jeśli użytkownik prosi o akcję, możesz użyć [ACTION:ADD_TASK title="..." priority="HIGH|MED|LOW"] lub [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_WORKOUT ...], [ACTION:SET_THEME theme="..."] na końcu.`;
 
       const response = await fetch(GROQ_ENDPOINT, {
         method: 'POST',
@@ -308,9 +427,10 @@ Zasady: Posiadasz bezpośredni dostęp do internetu oraz silnika Brave Search. N
 
       if (response.ok) {
         const resData = await response.json();
-        const content = resData.choices?.[0]?.message?.content || 'Brak odpowiedzi od modelu.';
+        const rawContent = resData.choices?.[0]?.message?.content || 'Brak odpowiedzi od modelu.';
+        const content = parseAndExecuteAiActions(rawContent);
         const thoughts = mode === 'mentor' ? `Analiza kognitywna (GPT-OSS 120B): przetworzono zadania i kontekst operacyjny.` : null;
-        const widgets = determineWidgets(text, content);
+        const widgets = determineWidgets(text, rawContent);
 
         return {
           content,
@@ -439,9 +559,275 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
     };
   }
 
+  // Obsługa zmiany motywu w języku naturalnym
+  if (lower.includes('zmień motyw na') || lower.includes('ustaw motyw') || lower.includes('motyw retro') || lower.includes('motyw matrix') || lower.includes('motyw synthwave') || lower.includes('motyw nordic') || lower.includes('motyw monochrom') || lower.includes('motyw ciemny') || lower.includes('motyw jasny')) {
+    let targetTheme = 'dark';
+    if (lower.includes('retro') || lower.includes('bursztyn')) targetTheme = 'retro';
+    else if (lower.includes('matrix') || lower.includes('hacker')) targetTheme = 'matrix';
+    else if (lower.includes('monochrom') || lower.includes('slate') || lower.includes('czarno')) targetTheme = 'monochrome';
+    else if (lower.includes('synthwave') || lower.includes('cyberpunk') || lower.includes('neon')) targetTheme = 'synthwave';
+    else if (lower.includes('nordic') || lower.includes('frost') || lower.includes('błękit')) targetTheme = 'nordic';
+    else if (lower.includes('jasny') || lower.includes('light') || lower.includes('dzień')) targetTheme = 'light';
+    else if (lower.includes('ciemny') || lower.includes('dark')) targetTheme = 'dark';
+
+    localStorage.setItem('system_theme', targetTheme);
+    document.documentElement.classList.toggle('theme-light', targetTheme === 'light');
+    window.dispatchEvent(new CustomEvent('themeChanged', { detail: targetTheme }));
+
+    return {
+      content: `[+] **Motyw systemowy został zmieniony:**\n\n- Aktywowano styl: **${targetTheme.toUpperCase()}**\n- Nowy profil kolorystyczny został natychmiast zaaplikowany do wszystkich modułów interfejsu.`,
+      mentor_thoughts: `Przełączono motyw graficzny na: ${targetTheme}.`,
+      widgets: []
+    };
+  }
+
+  // Obsługa dodawania do Planu Lekcji (Timetable)
+  if (lower.startsWith('dodaj lekcję') || lower.startsWith('nowa lekcja') || lower.startsWith('dodaj do planu') || lower.startsWith('dodaj zajęcia')) {
+    let raw = text.replace(/^(dodaj\s+(?:lekcję|do\s+planu|zajęcia)|nowa\s+lekcja)[:\s]*/i, '').trim();
+    let day = 'monday';
+    const dayMap = { poniedziałek: 'monday', wtorek: 'tuesday', środa: 'wednesday', czwartek: 'thursday', piątek: 'friday', sobota: 'saturday', niedziela: 'sunday' };
+    for (const [plName, engId] of Object.entries(dayMap)) {
+      if (raw.toLowerCase().includes(plName)) {
+        day = engId;
+        raw = raw.replace(new RegExp(plName, 'gi'), ' ').trim();
+        break;
+      }
+    }
+
+    const timeMatch = raw.match(/(\d{1,2}:\d{2})\s*(?:-|do|\s)\s*(\d{1,2}:\d{2})/);
+    const startTime = timeMatch ? timeMatch[1] : '08:00';
+    const endTime = timeMatch ? timeMatch[2] : '09:30';
+
+    let subject = raw.replace(/(\d{1,2}:\d{2})\s*(?:-|do|\s)\s*(\d{1,2}:\d{2})/, ' ').trim();
+    if (!subject) subject = 'Zajęcia';
+
+    const newLesson = {
+      id: 't_' + Date.now(),
+      day,
+      subject,
+      time_start: startTime,
+      time_end: endTime,
+      room: 'Sala dydaktyczna',
+      teacher: 'Prowadzący',
+      type: 'Wykład',
+      color: 'indigo',
+      created_at: new Date().toISOString()
+    };
+
+    saveCloudDocument('timetable', newLesson.id, newLesson);
+    window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'timetable' } }));
+
+    return {
+      content: `[+] **Pomyślnie dodano zajęcia do Planu Lekcji:**\n\n- 🎓 **${subject}**\n- 🗓️ Dzień: **${day}** (${startTime} - ${endTime})\n\nWpis został zsynchronizowany w bazie Cloud Firestore i jest widoczny w zakładce Plan Lekcji:`,
+      mentor_thoughts: `Zapisano lekcję "${subject}" w dniu ${day} (${startTime}-${endTime}).`,
+      widgets: ['timetable']
+    };
+  }
+
+  // Obsługa zapytań o Plan Lekcji
+  if (lower.includes('plan lekcji') || lower.includes('co mam dzisiaj w szkole') || lower.includes('jakie mam lekcje') || lower.includes('jaka lekcja') || lower.includes('zajęcia dzisiaj') || lower.includes('timetable')) {
+    const timetable = Array.isArray(context.timetable) ? context.timetable : [];
+    if (timetable.length === 0) {
+      return {
+        content: `### 🎓 Plan Lekcji & Zajęć\n\nW Twojej bazie Firestore nie ma jeszcze żadnych zaplanowanych lekcji. Możesz dodać pierwszą lekcję wpisując polecenie np. *"dodaj lekcję Matematyka w poniedziałek 08:00-09:30"* lub przejść do zakładki **Plan Lekcji**:`,
+        mentor_thoughts: 'Brak danych o planie lekcji w lokalnym cache.',
+        widgets: ['timetable']
+      };
+    }
+
+    const todayLessons = timetable.filter(l => l.day === 'monday' || l.day === 'tuesday');
+    let content = `### 🎓 Twój Harmonogram Zajęć (Baza Timetable):\n\nZarejestrowano łącznie **${timetable.length}** bloków zajęć dydaktycznych:\n\n`;
+    timetable.slice(0, 8).forEach(l => {
+      content += `- 🗓️ **${l.day.toUpperCase()}** [${l.time_start || '08:00'} - ${l.time_end || '09:30'}]: **${l.subject}** (${l.room || 'sala nieokreślona'}, ${l.type || 'Wykład'})\n`;
+    });
+    content += `\n*Możesz przeglądać pełną siatkę tygodniową lub edytować godziny w widżecie poniżej:*`;
+
+    return {
+      content,
+      mentor_thoughts: `Przeanalizowano plan lekcji: ${timetable.length} kursów w bazie.`,
+      widgets: ['timetable']
+    };
+  }
+
+  // Obsługa dodawania treningu (Workouts)
+  if (lower.startsWith('dodaj trening') || lower.startsWith('nowy trening') || lower.startsWith('zapisz trening')) {
+    let workoutTitle = text.replace(/^(dodaj\s+trening|nowy\s+trening|zapisz\s+trening)[:\s]*/i, '').trim() || 'Sesja treningowa';
+    let type = 'Siłowy';
+    if (lower.includes('cardio') || lower.includes('bieganie')) type = 'Cardio';
+    else if (lower.includes('kalistenika') || lower.includes('drążek')) type = 'Kalistenika';
+    else if (lower.includes('rozciąganie') || lower.includes('mobility')) type = 'Rozciąganie';
+
+    const newWorkout = {
+      id: 'work_' + Date.now(),
+      title: workoutTitle,
+      type,
+      description: 'Zarejestrowano przez asystenta AI OmniDash.',
+      date: new Date().toISOString().split('T')[0],
+      created_at: new Date().toISOString()
+    };
+
+    saveCloudDocument('workouts', newWorkout.id, newWorkout);
+    window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'workouts' } }));
+
+    return {
+      content: `[+] **Pomyślnie zarejestrowano trening:**\n\n- 🏋️ **${workoutTitle}** (Typ: **${type}**)\n- 📅 Data: **${newWorkout.date}**\n\nTrening został natychmiast zapisany w chmurze Firestore i widnieje w Twojej historii aktywności:`,
+      mentor_thoughts: `Zapisano trening "${workoutTitle}" w kategorii ${type}.`,
+      widgets: ['workouts']
+    };
+  }
+
+  // Obsługa zapytań o treningi
+  if (lower.includes('trening') || lower.includes('siłowni') || lower.includes('ćwiczen') || lower.includes('workout')) {
+    const workouts = Array.isArray(context.workouts) ? context.workouts : [];
+    let content = `### 🏋️ Moduł Aktywności Fizycznej (Workouts)\n\n`;
+    if (workouts.length === 0) {
+      content += `Nie masz jeszcze zapisanych treningów w bieżącym rejestrze. Możesz dodać nowy trening pisząc *"dodaj trening: Klatka + Triceps (Siłowy)"* lub skorzystać z widżetu:`;
+    } else {
+      content += `W bazie zarejestrowano **${workouts.length}** sesji treningowych:\n\n` +
+        workouts.slice(0, 5).map(w => `- 📅 **[${w.date || 'ostatnio'}]** ${w.title} *(${w.type})*`).join('\n') +
+        `\n\n*Poniżej masz bezpośredni dostęp do widżetu treningów:*`;
+    }
+    return {
+      content,
+      mentor_thoughts: `Przeanalizowano dziennik treningowy (${workouts.length} wpisów).`,
+      widgets: ['workouts']
+    };
+  }
+
+  // Obsługa dodawania wydatku / wpływu (Finances)
+  if (lower.startsWith('dodaj wydatek') || lower.startsWith('nowy wydatek') || lower.startsWith('dodaj przychód') || lower.startsWith('zapisz wydatek')) {
+    const isIncome = lower.includes('przychód') || lower.includes('wpływ');
+    const amountMatch = text.match(/(\d+(?:[.,]\d+)?)/);
+    const amount = amountMatch ? parseFloat(amountMatch[1].replace(',', '.')) : 50;
+
+    let category = 'Jedzenie';
+    let bucket = 'needs';
+    if (lower.includes('paliwo') || lower.includes('samochód') || lower.includes('czynsz') || lower.includes('rachunk')) {
+      category = 'Rachunki/Transport';
+      bucket = 'needs';
+    } else if (lower.includes('gra') || lower.includes('kino') || lower.includes('rozrywka') || lower.includes('ubran')) {
+      category = 'Rozrywka';
+      bucket = 'wants';
+    } else if (lower.includes('oszczędno') || lower.includes('inwestycj') || lower.includes('lokata')) {
+      category = 'Oszczędności';
+      bucket = 'savings';
+    } else if (isIncome) {
+      category = 'Wynagrodzenie';
+      bucket = 'savings';
+    }
+
+    const newFinance = {
+      id: 'fin_' + Date.now(),
+      amount,
+      category,
+      type: isIncome ? 'income' : 'expense',
+      bucket,
+      description: text.replace(/^(dodaj\s+(?:wydatek|przychód)|nowy\s+wydatek)[:\s]*/i, '').trim(),
+      transaction_date: new Date().toISOString().split('T')[0],
+      created_at: new Date().toISOString()
+    };
+
+    saveCloudDocument('finances', newFinance.id, newFinance);
+    window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'finances' } }));
+
+    return {
+      content: `[+] **Zarejestrowano transakcję w budżecie:**\n\n- 💰 **${isIncome ? '+' : '-'}${amount.toFixed(2)} PLN** (${category})\n- 📊 Alokacja 50/30/20: **${bucket.toUpperCase()}**\n\nWpis został zapisany w Firestore i zaktualizował wykres wydatków:`,
+      mentor_thoughts: `Zarejestrowano transakcję ${newFinance.amount} PLN (${category}).`,
+      widgets: ['finances']
+    };
+  }
+
+  // Obsługa zapytań o Finanse
+  if (lower.includes('finans') || lower.includes('budżet') || lower.includes('stan konta') || lower.includes('ile wydałem') || lower.includes('pieniądze')) {
+    const finances = Array.isArray(context.finances) ? context.finances : [];
+    let totalExp = 0;
+    let totalInc = 0;
+    finances.forEach(f => {
+      if (f.type === 'income') totalInc += Number(f.amount || 0);
+      else totalExp += Number(f.amount || 0);
+    });
+    const balance = totalInc - totalExp;
+
+    let content = `### 💰 Raport Finansowy & Budżet (Zasada 50/30/20)\n\n` +
+      `- **Wpływy zarejestrowane:** +${totalInc.toFixed(2)} PLN\n` +
+      `- **Wydatki skumulowane:** -${totalExp.toFixed(2)} PLN\n` +
+      `- **Bilans netto:** **${balance >= 0 ? '+' : ''}${balance.toFixed(2)} PLN**\n\n` +
+      `Liczba transakcji w bazie Firestore: **${finances.length}**.\n\n*Możesz zarządzać swoimi celami oszczędnościowymi w widżecie poniżej:*`;
+
+    return {
+      content,
+      mentor_thoughts: `Przeanalizowano stan finansów: bilans ${balance.toFixed(2)} PLN.`,
+      widgets: ['finances']
+    };
+  }
+
+  // Obsługa dodawania wydarzenia do Kalendarza
+  if (lower.startsWith('dodaj wydarzenie') || lower.startsWith('nowe wydarzenie') || lower.startsWith('dodaj spotkanie') || lower.startsWith('zaplanuj')) {
+    let title = text.replace(/^(dodaj\s+(?:wydarzenie|spotkanie)|nowe\s+wydarzenie|zaplanuj)[:\s]*/i, '').trim() || 'Ważne spotkanie';
+    const dateMatch = text.match(/(\d{4}-\d{2}-\d{2})/);
+    const eventDate = dateMatch ? dateMatch[1] : new Date().toISOString().split('T')[0];
+
+    const newEvent = {
+      id: 'cal_' + Date.now(),
+      title,
+      event_date: eventDate,
+      event_time: '10:00',
+      priority: 'MEDIUM',
+      created_at: new Date().toISOString()
+    };
+
+    saveCloudDocument('calendar', newEvent.id, newEvent);
+    window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'calendar' } }));
+
+    return {
+      content: `[+] **Dodano wydarzenie do Kalendarza:**\n\n- 📅 **${title}**\n- 🗓️ Data: **${eventDate}** (10:00)\n\nWydarzenie jest widoczne w terminarzu i na siatce miesiąca:`,
+      mentor_thoughts: `Zaplanowano wydarzenie "${title}" na dzień ${eventDate}.`,
+      widgets: ['calendar']
+    };
+  }
+
+  // Obsługa zapytań o Kalendarz
+  if (lower.includes('kalendarz') || lower.includes('wydarzen') || lower.includes('spotkan') || lower.includes('terminarz')) {
+    const calendar = Array.isArray(context.calendar) ? context.calendar : [];
+    let content = `### 📅 Harmonogram & Terminarz Kalendarza\n\n`;
+    if (calendar.length === 0) {
+      content += `Brak zaplanowanych wydarzeń w Twoim terminarzu. Możesz dodać spotkanie wpisując *"dodaj spotkanie z zespołem"* lub korzystając z widżetu:`;
+    } else {
+      content += `Zaplanowane wydarzenia w bazie Firestore (${calendar.length}):\n\n` +
+        calendar.slice(0, 6).map(e => `- 🗓️ **[${e.event_date || 'brak daty'}]** ${e.title} ${e.event_time ? `(${e.event_time})` : ''}`).join('\n') +
+        `\n\n*Poniżej znajduje się pełny kalendarz miesięczny z podglądem nadchodzących terminów:*`;
+    }
+    return {
+      content,
+      mentor_thoughts: `Przeanalizowano kalendarz: ${calendar.length} wydarzeń.`,
+      widgets: ['calendar']
+    };
+  }
+
+  // Obsługa pamięci długoterminowej (Operator Brain)
+  if (lower.startsWith('zapamiętaj że') || lower.startsWith('zapamiętaj:') || lower.startsWith('zapamiętaj')) {
+    const fact = text.replace(/^zapamiętaj(?:\s+że|:)*/i, '').trim();
+    if (fact) {
+      const newBrain = {
+        id: 'brain_' + Date.now(),
+        fact,
+        category: 'Preferencje',
+        created_at: new Date().toISOString()
+      };
+      saveCloudDocument('operator_brain', newBrain.id, newBrain);
+      window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'operator_brain' } }));
+
+      return {
+        content: `[+] **Zapisano fakt w Pamięci Długoterminowej (Operator Brain):**\n\n- 🧠 *" ${fact} "*\n\nTa informacja została utrwalona w Twoim profilu i asystent będzie brał ją pod uwagę podczas wszystkich kolejnych rozmów.`,
+        mentor_thoughts: `Utrwalono fakt w Operator Brain: "${fact}".`,
+        widgets: []
+      };
+    }
+  }
+
   // Domyślna odpowiedź konwersacyjna
   return {
-    content: `[+] **OmniDash Core Assistant (${mode.toUpperCase()})**\n\nOtrzymano polecenie: *"${text}"*.\n\nSystem działa w trybie chmurowym z modelem **openai/gpt-oss-120b** przez **Vercel Serverless Gateway**. Wszystkie Twoje kategorie w Firestore (Zadania, Kalendarz, Finanse, Treningi, Operator Brain i Historia Chatu) są aktywne i zsynchronizowane w czasie rzeczywistym.`,
+    content: `[+] **OmniDash Core Assistant (${mode.toUpperCase()})**\n\nOtrzymano polecenie: *"${text}"*.\n\nSystem działa w trybie chmurowym z modelem **openai/gpt-oss-120b** przez **Vercel Serverless Gateway**. Wszystkie Twoje kategorie w Firestore (Zadania, Kalendarz, Finanse, Treningi, Plan Lekcji, Operator Brain i Historia Chatu) są aktywne i zsynchronizowane w czasie rzeczywistym.`,
     mentor_thoughts: mode === 'mentor' ? 'Wykryto zapytanie ogólne w trybie asystenta.' : null,
     widgets: determineWidgets(text, '')
   };

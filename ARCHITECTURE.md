@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.8.0 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.9.0 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Vercel Serverless & Firebase Cloud)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Multi-Tool AI, Vercel Serverless & Firebase Cloud)
 
 ---
 
@@ -10,9 +10,9 @@
 System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-oss-120b` (Groq SDK). Projekt łączy w sobie cechy inteligentnego terminala poleceń, zarządzania zadaniami (To-Do), planu lekcji i harmonogramu zajęć (Timetable), kalendarza, elastycznego budżetu (konfigurowalne proporcje potrzeb, zachcianek i oszczędności), planera treningów, długoterminowej pamięci (Operator Brain), monitoringu systemu oraz wyszukiwania w sieci na żywo (Brave Search API).
 
 **Główne Paradygmaty:**
-1. **Multi-Cloud Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (`https://void-potato-7721.web.app`), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`https://ai-system-dashboard.vercel.app/api/agent`).
+1. **Multi-Cloud Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (`https://void-potato-7721.web.app`), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`https://ai-system-dashboard.vercel.app/api/agent`, `api/news`, `api/models`, `api/status`).
 2. **Mobile-First Touch Architecture:** Pełna natywna obsługa urządzeń mobilnych (iOS/Android) z trójwarstwową architekturą nawigacyjną: Mobile Top App Bar (`h-14`), Mobile Bottom Quick Bar (`h-16` z `safe-area-inset-bottom`) oraz wysuwaną szufladą (Bottom Sheet Drawer). Siatki komponentów i metryk automatycznie dostosowują się do formatu 2-kolumnowego (`grid-cols-2`), a wszystkie modale i formularze zabezpieczone są przed ucięciem przez klawiatury dotykowe.
-3. **LLM with Live Web & Timetable Intelligence:** Cała logika kognitywna oparta jest na modelu `openai/gpt-oss-120b`. Prompt systemowy otrzymuje wstrzyknięty w czasie rzeczywistym pełen stan 7 kategorii danych użytkownika (Zadania, Plan Lekcji, Kalendarz, Finanse, Treningi, Operator Brain, Historia Chatu) oraz natychmiastowe dane z sieci za pośrednictwem Brave Search API (`api.search.brave.com`).
+3. **LLM with Live Web & Multi-Tool Action Engine:** Cała logika kognitywna oparta jest na modelu `openai/gpt-oss-120b`. Prompt systemowy otrzymuje wstrzyknięty w czasie rzeczywistym pełen stan 7 kategorii danych użytkownika (Zadania, Plan Lekcji, Kalendarz, Finanse, Treningi, Operator Brain, Historia Chatu) oraz natychmiastowe dane z sieci za pośrednictwem Brave Search API (`api.search.brave.com`). Model posiada bezpośrednie narzędzia akcji (`[ACTION:ADD_TASK]`, `[ACTION:ADD_LESSON]`, `[ACTION:ADD_EXPENSE]`, `[ACTION:ADD_WORKOUT]`, `[ACTION:ADD_EVENT]`, `[ACTION:SET_THEME]`, `[ACTION:REMEMBER]`).
 4. **Clean & Modern Aesthetics**: Interfejs zaprojektowany jest w oparciu o czyste linie, glassmorphism, elegancką i nowoczesną typografię oraz bogatą paletę motywów (Dark Cyber, Retro Amber CRT, Monochrome Slate, Matrix Terminal, Synthwave 80s, Nordic Frost, Paper Light). Asystent J.A.R.V.I.S (główny rdzeń/Mentor) jest przyjazny i analityczny, z kolei F.R.I.D.A.Y (Worker) wykonuje zadania w hiper-profesjonalnym i inżynieryjnym tonie.
 
 ---
@@ -25,7 +25,9 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 [Katalog Główny]
 │
 ├── /api/                      ← Funkcje Vercel Serverless (Node.js Gateway)
-│   ├── agent.js               ← CORS-enabled proxy do openai/gpt-oss-120b z wstrzykiwaniem kontekstu & Live Brave Search
+│   ├── agent.js               ← CORS-enabled proxy do openai/gpt-oss-120b z wstrzykiwaniem kontekstu, narzędzi akcji & Live Brave Search
+│   ├── news.js                ← Serverless endpoint newsowy z integracją Brave Search News API i kategoryzacją
+│   ├── models.js              ← Dynamiczny wykaz dostępnych modeli LLM z fallbackiem
 │   └── status.js              ← Healthcheck i pomiar opóźnień (ping)
 │
 ├── core.server.js             ← Mózg backendu lokalnego (Express.js).
