@@ -1,5 +1,26 @@
 ## Wersja Bieżąca
-**v2.9.0**
+**v2.10.0**
+
+## v 2.10.0 — 2026-09-07
+**Typ:** MINOR  
+**Zakres:** Natywne Renderowanie Tabel Markdown (remark-gfm), Dedykowane Inline Widżety Czatu (Plan Lekcji, Finanse, Treningi, Kalendarz), Pełna Analityka Danych w Promptach AI, Multi-Tool Action Tags & Płynna Synteza TTS.
+
+### Zmiany
+- [+] Dodano: Integrację `remark-gfm@4.0.1` w `Terminal.jsx` wraz z komponentem `ReactMarkdown`. Tabele w wiadomościach asystenta AI (np. prognozy pogody, raporty finansowe, harmonogramy) są od teraz renderowane jako pełnoprawne, responsywne tabele HTML z horyzontalnym przewijaniem, czytelnymi nagłówkami i naprzemiennym cieniowaniem wierszy.
+- [+] Dodano: Dedykowany komponent [ChatInlineWidgets.jsx](file:///c:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/modules/components/ChatInlineWidgets.jsx) z 4 interaktywnymi widżetami montowanymi pod odpowiedziami AI w Terminalu:
+  - `TimetableChatWidget`: dzisiejszy plan lekcji z godzinami, salami i statusem.
+  - `FinanceChatWidget`: bieżące saldo, wydatki, paski alokacji budżetu 50/30/20 (Potrzeby, Zachcianki, Oszczędności).
+  - `WorkoutsChatWidget`: ostatnie sesje treningowe z datami i kategoriami.
+  - `CalendarChatWidget`: nadchodzące wydarzenia i priorytety.
+- [+] Dodano: Zaawansowane strukturyzowane obliczanie kontekstu finansowego i planu lekcji w `api/agent.js` oraz `clientAiDispatcher.js` — agent otrzymuje precyzyjne wyliczenia salda, kwot w koszykach 50/30/20, rozbicie lekcji na dziś/jutro/tydzień oraz wytyczną używania tabel Markdown.
+- [+] Dodano: Rozszerzoną paletę narzędzi wykonawczych (Action Tags): `[ACTION:COMPLETE_TASK]`, `[ACTION:DELETE_TASK]`, `[ACTION:ADD_INCOME]`, `[ACTION:CLEAR_FINANCES]`, `[ACTION:DELETE_LESSON]`, `[ACTION:DELETE_WORKOUT]`, `[ACTION:DELETE_EVENT]`, `[ACTION:SET_ACCENT]`, `[ACTION:FORGET]`, `[ACTION:SHOW_WIDGET]`, `[ACTION:NAVIGATE]`.
+- [*] Zmodyfikowano: Usprawniono syntezę mowy (TTS) w `Terminal.jsx` — funkcja `toggleSpeech` automatycznie usuwa formatowanie tabel Markdown i tagi akcji, zapobiegając literowaniu kresek `|` i znaków specjalnych.
+- [*] Zmodyfikowano: Pomyślna weryfikacja kompilacji produkcyjnej obu repozytoriów (0 błędów).
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 2.9.0 — 2026-09-07
 **Typ:** MINOR  

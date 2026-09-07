@@ -1,6 +1,6 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.9.0 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.10.0 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA  
 **Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Multi-Tool AI, Vercel Serverless & Firebase Cloud)
 
@@ -11,9 +11,10 @@ System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-
 
 **Główne Paradygmaty:**
 1. **Multi-Cloud Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (`https://void-potato-7721.web.app`), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`https://ai-system-dashboard.vercel.app/api/agent`, `api/news`, `api/models`, `api/status`).
-2. **Mobile-First Touch Architecture:** Pełna natywna obsługa urządzeń mobilnych (iOS/Android) z trójwarstwową architekturą nawigacyjną: Mobile Top App Bar (`h-14`), Mobile Bottom Quick Bar (`h-16` z `safe-area-inset-bottom`) oraz wysuwaną szufladą (Bottom Sheet Drawer). Siatki komponentów i metryk automatycznie dostosowują się do formatu 2-kolumnowego (`grid-cols-2`), a wszystkie modale i formularze zabezpieczone są przed ucięciem przez klawiatury dotykowe.
-3. **LLM with Live Web & Multi-Tool Action Engine:** Cała logika kognitywna oparta jest na modelu `openai/gpt-oss-120b`. Prompt systemowy otrzymuje wstrzyknięty w czasie rzeczywistym pełen stan 7 kategorii danych użytkownika (Zadania, Plan Lekcji, Kalendarz, Finanse, Treningi, Operator Brain, Historia Chatu) oraz natychmiastowe dane z sieci za pośrednictwem Brave Search API (`api.search.brave.com`). Model posiada bezpośrednie narzędzia akcji (`[ACTION:ADD_TASK]`, `[ACTION:ADD_LESSON]`, `[ACTION:ADD_EXPENSE]`, `[ACTION:ADD_WORKOUT]`, `[ACTION:ADD_EVENT]`, `[ACTION:SET_THEME]`, `[ACTION:REMEMBER]`).
-4. **Clean & Modern Aesthetics**: Interfejs zaprojektowany jest w oparciu o czyste linie, glassmorphism, elegancką i nowoczesną typografię oraz bogatą paletę motywów (Dark Cyber, Retro Amber CRT, Monochrome Slate, Matrix Terminal, Synthwave 80s, Nordic Frost, Paper Light). Asystent J.A.R.V.I.S (główny rdzeń/Mentor) jest przyjazny i analityczny, z kolei F.R.I.D.A.Y (Worker) wykonuje zadania w hiper-profesjonalnym i inżynieryjnym tonie.
+2. **Mobile-First Touch Architecture:** Pełna natywna obsługa urządzeń mobilnych (iOS/Android) z trójwarstwową architekturą nawigacyjną: Mobile Top App Bar (`h-14`), Mobile Bottom Quick Bar (`h-16` z `safe-area-inset-bottom`) oraz wysuwaną szufladą (Bottom Sheet Drawer).
+3. **LLM with Live Web & Multi-Tool Action Engine:** Cała logika kognitywna oparta jest na modelu `openai/gpt-oss-120b`. Prompt systemowy otrzymuje wstrzyknięty w czasie rzeczywistym pełen stan 7 kategorii danych użytkownika (Zadania, Plan Lekcji z podziałem na dziś/jutro/tydzień, Kalendarz, Finanse z saldem i analityką 50/30/20, Treningi, Operator Brain, Historia Chatu) oraz natychmiastowe dane z sieci za pośrednictwem Brave Search API (`api.search.brave.com`).
+4. **Rich Markdown & Inline Chat Widgets:** Terminal czatu posiada wbudowany silnik `remark-gfm` renderujący czytelne, responsywne tabele Markdown oraz dedykowane mini-widżety (`TimetableChatWidget`, `FinanceChatWidget`, `WorkoutsChatWidget`, `CalendarChatWidget`), montowane automatycznie pod dymkiem odpowiedzi asystenta.
+5. **Clean & Modern Aesthetics**: Interfejs zaprojektowany jest w oparciu o czyste linie, glassmorphism, elegancką i nowoczesną typografię oraz bogatą paletę motywów (Dark Cyber, Retro Amber CRT, Monochrome Slate, Matrix Terminal, Synthwave 80s, Nordic Frost, Paper Light). Asystent J.A.R.V.I.S (główny rdzeń/Mentor) jest przyjazny i analityczny, z kolei F.R.I.D.A.Y (Worker) wykonuje zadania w hiper-profesjonalnym i inżynieryjnym tonie.
 
 ---
 
@@ -177,7 +178,8 @@ Agent w trybie `worker` potrafi sam zidentyfikować potrzebę użycia narzędzia
 Aplikacja React (zbudowana za pomocą Vite) implementuje architekturę komponentów zamkniętych. 
 
 ### Ekosystem Komponentów:
-- **`Terminal.jsx`**: Punkt komunikacyjny. Zawiera mechanizm historii wiadomości (zapis do `localStorage`). Gdy serwer odsyła pole `widgets: ["tasks"]`, Terminal dynamicznie ładuje komponent `TodoList` pod aktualną dymkiem czatu. Zapewnia on płynną konwersję komend (np. `/clear`).
+- **`Terminal.jsx`**: Główny punkt komunikacyjny czatu. Obsługuje renderowanie bogatego formatu Markdown ze wsparciem GitHub Flavored Markdown (`remark-gfm` — tabele, przekreślenia, zadania) oraz historię wiadomości (`localStorage` + Cloud Firestore). Posiada płynną syntezę mowy TTS (z filtracją składni tabel) oraz dynamiczny montaż widżetów pod dymkiem czatu.
+- **`ChatInlineWidgets.jsx`**: Zestaw wyspecjalizowanych, interaktywnych mini-widżetów montowanych w czacie: `TimetableChatWidget` (plan lekcji na dziś), `FinanceChatWidget` (saldo i paski 50/30/20), `WorkoutsChatWidget` (ostatnie sesje), `CalendarChatWidget` (nadchodzące wydarzenia).
 - **`TodoList.jsx`**: Interaktywny klient odpytujący `/api/tasks`. Pozwala na inline dodawanie (własny mały formularz) oraz interakcję (usuwanie, modyfikowanie checkboxów). Reaktywny na LLM.
 - **`Sidebar.jsx`**: Obsługuje routing (React Router), z logiką zapamiętywania stanu "collapsed" w `localStorage`. Zapewnia responsywność i układ justify-start w stanie złożonym.
 - **Odświeżanie danych (Polling)**: Komponenty używają hooków `useEffect` z funkcją `setInterval`, odpytując w tle backend. Przykłady: 

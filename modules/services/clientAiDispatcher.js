@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { saveCloudDocument } from './cloudSync.js';
+import { saveCloudDocument, deleteCloudDocument } from './cloudSync.js';
 
 /**
  * Autonomiczny Silnik AI Dyspozytora Klienckiego (Client-Side AI Dispatcher)
@@ -188,10 +188,11 @@ function determineWidgets(userText, aiResponse = '') {
   return Array.from(new Set(widgets));
 }
 
-export function parseAndExecuteAiActions(text) {
-  if (!text || typeof text !== 'string') return text;
+export function parseAndExecuteAiActionsWithWidgets(text) {
+  if (!text || typeof text !== 'string') return { cleanedText: text, extraWidgets: [] };
 
   let cleanedText = text;
+  const extraWidgets = [];
   const actionRegex = /\[ACTION:([A-Z_]+)([^\]]*)\]/g;
   let match;
 
@@ -221,6 +222,36 @@ export function parseAndExecuteAiActions(text) {
         };
         saveCloudDocument('tasks', id, newTask);
         window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'tasks' } }));
+        extraWidgets.push('tasks');
+      } else if (actionType === 'COMPLETE_TASK') {
+        try {
+          const raw = localStorage.getItem('cloud_cache_tasks');
+          if (raw) {
+            const list = JSON.parse(raw);
+            const query = (attrs.title || attrs.id || '').toLowerCase();
+            const found = list.find(t => t.id === attrs.id || (t.title && t.title.toLowerCase().includes(query)));
+            if (found) {
+              const updated = { ...found, status: 'completed', completed_at: new Date().toISOString() };
+              saveCloudDocument('tasks', found.id, updated);
+              window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'tasks' } }));
+              extraWidgets.push('tasks');
+            }
+          }
+        } catch {}
+      } else if (actionType === 'DELETE_TASK') {
+        try {
+          const raw = localStorage.getItem('cloud_cache_tasks');
+          if (raw) {
+            const list = JSON.parse(raw);
+            const query = (attrs.title || attrs.id || '').toLowerCase();
+            const found = list.find(t => t.id === attrs.id || (t.title && t.title.toLowerCase().includes(query)));
+            if (found) {
+              deleteCloudDocument('tasks', found.id);
+              window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'tasks' } }));
+              extraWidgets.push('tasks');
+            }
+          }
+        } catch {}
       } else if (actionType === 'ADD_LESSON') {
         const id = 't_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
         const newLesson = {
@@ -237,13 +268,32 @@ export function parseAndExecuteAiActions(text) {
         };
         saveCloudDocument('timetable', id, newLesson);
         window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'timetable' } }));
+        extraWidgets.push('timetable');
+      } else if (actionType === 'DELETE_LESSON') {
+        try {
+          const raw = localStorage.getItem('cloud_cache_timetable');
+          if (raw) {
+            const list = JSON.parse(raw);
+            const query = (attrs.subject || attrs.id || '').toLowerCase();
+            const dayFilter = (attrs.day || '').toLowerCase();
+            const found = list.find(l => 
+              (l.id === attrs.id || (l.subject && l.subject.toLowerCase().includes(query))) &&
+              (!dayFilter || l.day?.toLowerCase() === dayFilter)
+            );
+            if (found) {
+              deleteCloudDocument('timetable', found.id);
+              window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'timetable' } }));
+              extraWidgets.push('timetable');
+            }
+          }
+        } catch {}
       } else if (actionType === 'ADD_EXPENSE') {
         const id = 'fin_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
         const newExpense = {
           id,
           amount: parseFloat(attrs.amount) || 0,
           category: attrs.category || 'Inne',
-          type: attrs.type || 'expense',
+          type: 'expense',
           bucket: attrs.bucket || 'needs',
           description: attrs.description || '',
           transaction_date: attrs.date || new Date().toISOString().split('T')[0],
@@ -251,6 +301,34 @@ export function parseAndExecuteAiActions(text) {
         };
         saveCloudDocument('finances', id, newExpense);
         window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'finances' } }));
+        extraWidgets.push('finances');
+      } else if (actionType === 'ADD_INCOME') {
+        const id = 'fin_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+        const newIncome = {
+          id,
+          amount: Math.abs(parseFloat(attrs.amount) || 0),
+          category: attrs.category || 'Przychód',
+          type: 'income',
+          bucket: 'savings',
+          description: attrs.description || '',
+          transaction_date: attrs.date || new Date().toISOString().split('T')[0],
+          created_at: new Date().toISOString()
+        };
+        saveCloudDocument('finances', id, newIncome);
+        window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'finances' } }));
+        extraWidgets.push('finances');
+      } else if (actionType === 'CLEAR_FINANCES') {
+        try {
+          const raw = localStorage.getItem('cloud_cache_finances');
+          if (raw) {
+            const list = JSON.parse(raw);
+            list.forEach(f => {
+              if (f.id !== 'finance_settings' && !f.is_settings) deleteCloudDocument('finances', f.id);
+            });
+            window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'finances' } }));
+            extraWidgets.push('finances');
+          }
+        } catch {}
       } else if (actionType === 'ADD_WORKOUT') {
         const id = 'work_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
         const newWorkout = {
@@ -263,6 +341,21 @@ export function parseAndExecuteAiActions(text) {
         };
         saveCloudDocument('workouts', id, newWorkout);
         window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'workouts' } }));
+        extraWidgets.push('workouts');
+      } else if (actionType === 'DELETE_WORKOUT') {
+        try {
+          const raw = localStorage.getItem('cloud_cache_workouts');
+          if (raw) {
+            const list = JSON.parse(raw);
+            const query = (attrs.title || attrs.id || '').toLowerCase();
+            const found = list.find(w => w.id === attrs.id || (w.title && w.title.toLowerCase().includes(query)));
+            if (found) {
+              deleteCloudDocument('workouts', found.id);
+              window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'workouts' } }));
+              extraWidgets.push('workouts');
+            }
+          }
+        } catch {}
       } else if (actionType === 'ADD_EVENT') {
         const id = 'cal_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
         const newEvent = {
@@ -275,12 +368,33 @@ export function parseAndExecuteAiActions(text) {
         };
         saveCloudDocument('calendar', id, newEvent);
         window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'calendar' } }));
+        extraWidgets.push('calendar');
+      } else if (actionType === 'DELETE_EVENT') {
+        try {
+          const raw = localStorage.getItem('cloud_cache_calendar');
+          if (raw) {
+            const list = JSON.parse(raw);
+            const query = (attrs.title || attrs.id || '').toLowerCase();
+            const found = list.find(e => e.id === attrs.id || (e.title && e.title.toLowerCase().includes(query)));
+            if (found) {
+              deleteCloudDocument('calendar', found.id);
+              window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'calendar' } }));
+              extraWidgets.push('calendar');
+            }
+          }
+        } catch {}
       } else if (actionType === 'SET_THEME') {
         const themeId = attrs.theme;
         if (themeId) {
           localStorage.setItem('system_theme', themeId);
-          document.documentElement.classList.toggle('theme-light', themeId === 'light');
+          document.documentElement.classList.toggle('theme-light', themeId === 'light' || themeId.includes('light'));
           window.dispatchEvent(new CustomEvent('themeChanged', { detail: themeId }));
+        }
+      } else if (actionType === 'SET_ACCENT') {
+        const color = attrs.color;
+        if (color) {
+          localStorage.setItem('system_accent_color', color);
+          window.dispatchEvent(new CustomEvent('accentChanged', { detail: color }));
         }
       } else if (actionType === 'REMEMBER') {
         const id = 'brain_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
@@ -292,6 +406,25 @@ export function parseAndExecuteAiActions(text) {
         };
         saveCloudDocument('operator_brain', id, newBrain);
         window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'operator_brain' } }));
+      } else if (actionType === 'FORGET') {
+        try {
+          const raw = localStorage.getItem('cloud_cache_operator_brain');
+          if (raw) {
+            const list = JSON.parse(raw);
+            const query = (attrs.fact || attrs.id || '').toLowerCase();
+            const found = list.find(b => b.id === attrs.id || (b.fact && b.fact.toLowerCase().includes(query)));
+            if (found) {
+              deleteCloudDocument('operator_brain', found.id);
+              window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'operator_brain' } }));
+            }
+          }
+        } catch {}
+      } else if (actionType === 'SHOW_WIDGET') {
+        if (attrs.name) extraWidgets.push(attrs.name.toLowerCase());
+      } else if (actionType === 'NAVIGATE') {
+        if (attrs.path) {
+          window.dispatchEvent(new CustomEvent('navigateRequested', { detail: attrs.path }));
+        }
       }
     } catch (actErr) {
       console.warn('[AiDispatcher] Błąd wykonania akcji:', actionType, actErr);
@@ -300,7 +433,12 @@ export function parseAndExecuteAiActions(text) {
 
   // Oczyść znaczniki akcji z tekstu użytkownika
   cleanedText = cleanedText.replace(/\[ACTION:[A-Z_]+[^\]]*\]/g, '').trim();
-  return cleanedText;
+  return { cleanedText, extraWidgets };
+}
+
+export function parseAndExecuteAiActions(text) {
+  const res = parseAndExecuteAiActionsWithWidgets(text);
+  return res.cleanedText;
 }
 
 export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użytkownik', language = 'pl' }) => {
@@ -336,9 +474,9 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
 
     if (vercelRes.data && vercelRes.data.agent_response) {
       const rawContent = vercelRes.data.agent_response;
-      const content = parseAndExecuteAiActions(rawContent);
+      const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(rawContent);
       const backendWidgets = vercelRes.data.widgets || [];
-      const mergedWidgets = Array.from(new Set([...backendWidgets, ...determineWidgets(text, rawContent)]));
+      const mergedWidgets = Array.from(new Set([...backendWidgets, ...extraWidgets, ...determineWidgets(text, rawContent)]));
 
       return {
         content,
@@ -363,9 +501,9 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
 
       if (data && (data.agent_response || data.payload)) {
         const rawContent = data.agent_response || (data.payload?.agent_response || data.payload?.title || JSON.stringify(data.payload));
-        const content = parseAndExecuteAiActions(rawContent);
+        const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(rawContent);
         const backendWidgets = data.widgets || (data.widget ? [data.widget] : []);
-        const mergedWidgets = Array.from(new Set([...backendWidgets, ...determineWidgets(text, rawContent)]));
+        const mergedWidgets = Array.from(new Set([...backendWidgets, ...extraWidgets, ...determineWidgets(text, rawContent)]));
 
         return {
           content,
@@ -390,23 +528,73 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
         ? context.calendar.map(e => `- [${e.event_date || e.date || 'brak daty'}] ${e.title}`).join('\n')
         : 'Brak zaplanowanych wydarzeń.';
 
+      let totalIncome = 0;
+      let totalExpenses = 0;
+      let needsSum = 0;
+      let wantsSum = 0;
+      let savingsSum = 0;
+      const actualTxs = (context.finances || []).filter(f => f && !f.is_settings && f.id !== 'finance_settings' && f.amount !== undefined);
+      actualTxs.forEach(f => {
+        const amt = Number(f.amount) || 0;
+        if (f.type === 'income') totalIncome += amt;
+        else {
+          totalExpenses += amt;
+          const b = (f.bucket || '').toLowerCase();
+          if (b === 'wants' || b === 'zachcianki') wantsSum += amt;
+          else if (b === 'savings' || b === 'oszczędności') savingsSum += amt;
+          else needsSum += amt;
+        }
+      });
+      const netBalance = totalIncome - totalExpenses;
+      const needsPct = totalExpenses > 0 ? Math.round((needsSum / totalExpenses) * 100) : 0;
+      const wantsPct = totalExpenses > 0 ? Math.round((wantsSum / totalExpenses) * 100) : 0;
+      const savingsPct = totalExpenses > 0 ? Math.round((savingsSum / totalExpenses) * 100) : 0;
+
+      const financesSummary = actualTxs.length > 0
+        ? `Saldo konta: ${netBalance >= 0 ? '+' : ''}${netBalance.toFixed(2)} PLN | Przychody: +${totalIncome.toFixed(2)} PLN | Wydatki: -${totalExpenses.toFixed(2)} PLN
+Podział 50/30/20: Potrzeby ${needsSum.toFixed(2)} PLN (${needsPct}%), Zachcianki ${wantsSum.toFixed(2)} PLN (${wantsPct}%), Oszczędności ${savingsSum.toFixed(2)} PLN (${savingsPct}%)
+Ostatnie transakcje: ` + actualTxs.slice(0, 10).map(f => `${f.type === 'income' ? '+' : '-'}${f.amount} PLN (${f.category || 'Inne'})`).join(', ')
+        : 'Brak transakcji w bazie. Saldo: 0.00 PLN.';
+
+      const timetableSummary = (context.timetable || []).length > 0
+        ? context.timetable.map(l => `- [${(l.day || '').toUpperCase()}] ${l.time_start || ''}-${l.time_end || ''}: ${l.subject} (${l.room || 'sala b/d'}, ${l.teacher || 'prowadzący b/d'}, typ: ${l.type || 'Zajęcia'})`).join('\n')
+        : 'Brak wpisów w planie lekcji.';
+
+      const workoutsSummary = (context.workouts || []).length > 0
+        ? `Zarejestrowano ${context.workouts.length} treningów. Ostatnie: ` + context.workouts.slice(0, 5).map(w => `[${w.date || 'b/d'}] ${w.title} (${w.type || 'Siłowy'})`).join(', ')
+        : 'Brak sesji treningowych.';
+
       const systemPrompt = mode === 'mentor'
         ? `Jesteś J.A.R.V.I.S — inteligentnym mentorem i analitykiem w systemie OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas: ${context.dateStr}, ${context.timeStr}.
 Zadania w To-Do:
 ${tasksSummary}
+Plan Lekcji:
+${timetableSummary}
+Finanse i Budżet 50/30/20:
+${financesSummary}
+Treningi:
+${workoutsSummary}
 Kalendarz:
 ${calendarSummary}
-Zasady: Posiadasz bezpośredni dostęp do internetu oraz silnika Brave Search. NIGDY nie mów, że nie masz dostępu do wiadomości ze świata ani internetu! Odpowiadaj wyczerpująco, logicznie i wspierająco w języku ${language} z użyciem bogatego Markdown.
-Jeśli użytkownik prosi o akcję, możesz użyć [ACTION:ADD_TASK title="..." priority="HIGH|MED|LOW"] lub [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_WORKOUT ...], [ACTION:SET_THEME theme="..."] na końcu.`
+Zasady: Posiadasz bezpośredni dostęp do internetu oraz bazy Firestore. Odpowiadaj wyczerpująco, logicznie i wspierająco w języku ${language}.
+Gdy przedstawiasz tabele danych, pogodę, finanse czy harmonogramy, ZAWSZE używaj czytelnych tabel Markdown (| Kolumna | ... |).
+Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu: [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].`
         : `Jesteś F.R.I.D.A.Y — inżynieryjnym silnikiem wykonawczym w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas: ${context.dateStr}, ${context.timeStr}.
 Zadania w To-Do:
 ${tasksSummary}
+Plan Lekcji:
+${timetableSummary}
+Finanse i Budżet 50/30/20:
+${financesSummary}
+Treningi:
+${workoutsSummary}
 Kalendarz:
 ${calendarSummary}
-Zasady: Posiadasz bezpośredni dostęp do internetu oraz silnika Brave Search. NIGDY nie mów, że nie masz dostępu do wiadomości ze świata ani internetu! Odpowiadaj konkretnie, merytorycznie i technicznie w języku ${language} z użyciem bogatego Markdown.
-Jeśli użytkownik prosi o akcję, możesz użyć [ACTION:ADD_TASK title="..." priority="HIGH|MED|LOW"] lub [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_WORKOUT ...], [ACTION:SET_THEME theme="..."] na końcu.`;
+Zasady: Posiadasz bezpośredni dostęp do internetu oraz bazy Firestore. Odpowiadaj konkretnie, merytorycznie i technicznie w języku ${language}.
+Gdy przedstawiasz tabele danych, pogodę, finanse czy harmonogramy, ZAWSZE używaj czytelnych tabel Markdown (| Kolumna | ... |).
+Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu: [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].`;
 
       const response = await fetch(GROQ_ENDPOINT, {
         method: 'POST',
@@ -428,9 +616,9 @@ Jeśli użytkownik prosi o akcję, możesz użyć [ACTION:ADD_TASK title="..." p
       if (response.ok) {
         const resData = await response.json();
         const rawContent = resData.choices?.[0]?.message?.content || 'Brak odpowiedzi od modelu.';
-        const content = parseAndExecuteAiActions(rawContent);
+        const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(rawContent);
         const thoughts = mode === 'mentor' ? `Analiza kognitywna (GPT-OSS 120B): przetworzono zadania i kontekst operacyjny.` : null;
-        const widgets = determineWidgets(text, rawContent);
+        const widgets = Array.from(new Set([...extraWidgets, ...determineWidgets(text, rawContent)]));
 
         return {
           content,
@@ -625,26 +813,38 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
   }
 
   // Obsługa zapytań o Plan Lekcji
-  if (lower.includes('plan lekcji') || lower.includes('co mam dzisiaj w szkole') || lower.includes('jakie mam lekcje') || lower.includes('jaka lekcja') || lower.includes('zajęcia dzisiaj') || lower.includes('timetable')) {
+  if (lower.includes('plan lekcji') || lower.includes('co mam dzisiaj') || lower.includes('jakie mam lekcje') || lower.includes('jaka lekcja') || lower.includes('zajęcia') || lower.includes('timetable') || lower.includes('harmonogram')) {
     const timetable = Array.isArray(context.timetable) ? context.timetable : [];
     if (timetable.length === 0) {
       return {
-        content: `### 🎓 Plan Lekcji & Zajęć\n\nW Twojej bazie Firestore nie ma jeszcze żadnych zaplanowanych lekcji. Możesz dodać pierwszą lekcję wpisując polecenie np. *"dodaj lekcję Matematyka w poniedziałek 08:00-09:30"* lub przejść do zakładki **Plan Lekcji**:`,
+        content: `### 🎓 Plan Lekcji & Zajęć Dydaktycznych\n\nW Twojej bazie Firestore nie ma jeszcze żadnych zaplanowanych zajęć. Możesz dodać pierwszą lekcję wpisując polecenie np. *"dodaj lekcję Matematyka w poniedziałek 08:00-09:30"* lub skorzystać z widżetu poniżej:`,
         mentor_thoughts: 'Brak danych o planie lekcji w lokalnym cache.',
         widgets: ['timetable']
       };
     }
 
-    const todayLessons = timetable.filter(l => l.day === 'monday' || l.day === 'tuesday');
-    let content = `### 🎓 Twój Harmonogram Zajęć (Baza Timetable):\n\nZarejestrowano łącznie **${timetable.length}** bloków zajęć dydaktycznych:\n\n`;
-    timetable.slice(0, 8).forEach(l => {
-      content += `- 🗓️ **${l.day.toUpperCase()}** [${l.time_start || '08:00'} - ${l.time_end || '09:30'}]: **${l.subject}** (${l.room || 'sala nieokreślona'}, ${l.type || 'Wykład'})\n`;
-    });
-    content += `\n*Możesz przeglądać pełną siatkę tygodniową lub edytować godziny w widżecie poniżej:*`;
+    const dayTranslations = {
+      monday: 'Poniedziałek', tuesday: 'Wtorek', wednesday: 'Środa',
+      thursday: 'Czwartek', friday: 'Piątek', saturday: 'Sobota', sunday: 'Niedziela'
+    };
+
+    let content = `### 🎓 Harmonogram Zajęć (Plan Lekcji)\n\n` +
+      `Łącznie w bazie zarejestrowano **${timetable.length}** jednostek lekcyjnych:\n\n` +
+      `| Dzień | Godziny | Przedmiot | Sala | Prowadzący | Typ |\n` +
+      `|---|---|---|---|---|---|\n` +
+      timetable.slice(0, 10).map(l => {
+        const dName = dayTranslations[l.day?.toLowerCase()] || l.day || 'B/D';
+        const times = `${l.time_start || '08:00'} - ${l.time_end || '09:30'}`;
+        const room = l.room || '—';
+        const teacher = l.teacher || '—';
+        const type = l.type || 'Zajęcia';
+        return `| **${dName}** | \`${times}\` | **${l.subject}** | ${room} | ${teacher} | ${type} |`;
+      }).join('\n') +
+      `\n\n> **Podpowiedź:** Poniżej wyświetlono interaktywny widżet planu lekcji z widokiem na dziś:`;
 
     return {
       content,
-      mentor_thoughts: `Przeanalizowano plan lekcji: ${timetable.length} kursów w bazie.`,
+      mentor_thoughts: `Przeanalizowano plan lekcji: wygenerowano zestawienie ${timetable.length} kursów.`,
       widgets: ['timetable']
     };
   }
@@ -679,12 +879,16 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
   // Obsługa zapytań o treningi
   if (lower.includes('trening') || lower.includes('siłowni') || lower.includes('ćwiczen') || lower.includes('workout')) {
     const workouts = Array.isArray(context.workouts) ? context.workouts : [];
-    let content = `### 🏋️ Moduł Aktywności Fizycznej (Workouts)\n\n`;
+    let content = `### 🏋️ Dziennik Aktywności Fizycznej (Workouts)\n\n`;
     if (workouts.length === 0) {
       content += `Nie masz jeszcze zapisanych treningów w bieżącym rejestrze. Możesz dodać nowy trening pisząc *"dodaj trening: Klatka + Triceps (Siłowy)"* lub skorzystać z widżetu:`;
     } else {
-      content += `W bazie zarejestrowano **${workouts.length}** sesji treningowych:\n\n` +
-        workouts.slice(0, 5).map(w => `- 📅 **[${w.date || 'ostatnio'}]** ${w.title} *(${w.type})*`).join('\n') +
+      content += `Łącznie zarejestrowano **${workouts.length}** sesji treningowych:\n\n` +
+        `| Data | Nazwa Treningu | Kategoria | Szczegóły |\n` +
+        `|---|---|---|---|\n` +
+        workouts.slice(0, 6).map(w => {
+          return `| \`${w.date || 'B/D'}\` | **${w.title}** | \`${w.type || 'Siłowy'}\` | ${w.description || '—'} |`;
+        }).join('\n') +
         `\n\n*Poniżej masz bezpośredni dostęp do widżetu treningów:*`;
     }
     return {
@@ -738,25 +942,61 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
   }
 
   // Obsługa zapytań o Finanse
-  if (lower.includes('finans') || lower.includes('budżet') || lower.includes('stan konta') || lower.includes('ile wydałem') || lower.includes('pieniądze')) {
+  if (lower.includes('finans') || lower.includes('budżet') || lower.includes('stan konta') || lower.includes('ile wydałem') || lower.includes('pieniądze') || lower.includes('wydatki') || lower.includes('przychody')) {
     const finances = Array.isArray(context.finances) ? context.finances : [];
     let totalExp = 0;
     let totalInc = 0;
-    finances.forEach(f => {
-      if (f.type === 'income') totalInc += Number(f.amount || 0);
-      else totalExp += Number(f.amount || 0);
+    let bNeeds = 0;
+    let bWants = 0;
+    let bSavings = 0;
+
+    const actualTxs = finances.filter(f => f && !f.is_settings && f.id !== 'finance_settings' && f.amount !== undefined);
+
+    actualTxs.forEach(f => {
+      const amt = Number(f.amount || 0);
+      if (f.type === 'income') totalInc += amt;
+      else {
+        totalExp += amt;
+        const b = (f.bucket || '').toLowerCase();
+        if (b === 'wants' || b === 'zachcianki') bWants += amt;
+        else if (b === 'savings' || b === 'oszczędności') bSavings += amt;
+        else bNeeds += amt;
+      }
     });
     const balance = totalInc - totalExp;
+    const needsPct = totalExp > 0 ? Math.round((bNeeds / totalExp) * 100) : 0;
+    const wantsPct = totalExp > 0 ? Math.round((bWants / totalExp) * 100) : 0;
+    const savingsPct = totalExp > 0 ? Math.round((bSavings / totalExp) * 100) : 0;
 
     let content = `### 💰 Raport Finansowy & Budżet (Zasada 50/30/20)\n\n` +
-      `- **Wpływy zarejestrowane:** +${totalInc.toFixed(2)} PLN\n` +
-      `- **Wydatki skumulowane:** -${totalExp.toFixed(2)} PLN\n` +
-      `- **Bilans netto:** **${balance >= 0 ? '+' : ''}${balance.toFixed(2)} PLN**\n\n` +
-      `Liczba transakcji w bazie Firestore: **${finances.length}**.\n\n*Możesz zarządzać swoimi celami oszczędnościowymi w widżecie poniżej:*`;
+      `| Wskaźnik Budżetu | Wartość | Status Bilansu |\n` +
+      `|---|---|---|\n` +
+      `| **Saldo Bieżące** | **${balance >= 0 ? '+' : ''}${balance.toFixed(2)} PLN** | ${balance >= 0 ? '🟢 Dodatnie' : '🔴 Ujemne'} |\n` +
+      `| **Przychody Łącznie** | \`+${totalInc.toFixed(2)} PLN\` | Zarejestrowane wpływy |\n` +
+      `| **Wydatki Skumulowane** | \`-${totalExp.toFixed(2)} PLN\` | Zarejestrowane koszty |\n\n` +
+      `#### 📊 Alokacja Koszyków 50/30/20:\n\n` +
+      `| Koszyk | Wydano | % Wydatków | Rekomendowany Cel |\n` +
+      `|---|---|---|---|\n` +
+      `| **Potrzeby (Needs)** | ${bNeeds.toFixed(2)} PLN | **${needsPct}%** | 50% budżetu |\n` +
+      `| **Zachcianki (Wants)** | ${bWants.toFixed(2)} PLN | **${wantsPct}%** | 30% budżetu |\n` +
+      `| **Oszczędności (Savings)** | ${bSavings.toFixed(2)} PLN | **${savingsPct}%** | 20% budżetu |\n\n`;
+
+    if (actualTxs.length > 0) {
+      content += `#### 📋 Ostatnie Transakcje:\n\n` +
+        `| Data | Typ | Kwota | Kategoria | Opis |\n` +
+        `|---|---|---|---|---|\n` +
+        actualTxs.slice(0, 5).map(t => {
+          const sign = t.type === 'income' ? '+' : '-';
+          const typeLabel = t.type === 'income' ? 'Wpływ' : 'Wydatek';
+          return `| \`${t.transaction_date || 'B/D'}\` | ${typeLabel} | **${sign}${Number(t.amount).toFixed(2)} PLN** | ${t.category || 'Inne'} | ${t.description || '—'} |`;
+        }).join('\n') + `\n\n`;
+    }
+
+    content += `*Poniżej masz bezpośredni dostęp do interaktywnego widżetu finansów:*`;
 
     return {
       content,
-      mentor_thoughts: `Przeanalizowano stan finansów: bilans ${balance.toFixed(2)} PLN.`,
+      mentor_thoughts: `Przeanalizowano stan finansów: bilans ${balance.toFixed(2)} PLN, wydatki ${totalExp.toFixed(2)} PLN.`,
       widgets: ['finances']
     };
   }

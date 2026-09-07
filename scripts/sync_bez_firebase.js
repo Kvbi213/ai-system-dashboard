@@ -39,6 +39,7 @@ const filesToSync = [
   'modules/pages/LockScreen.jsx',
   'modules/components/Sidebar.jsx',
   'modules/components/Terminal.jsx',
+  'modules/components/ChatInlineWidgets.jsx',
   'modules/components/SystemMonitor.jsx',
   'modules/components/ModelWidget.jsx',
   'modules/components/SetupWizard.jsx',
@@ -49,6 +50,7 @@ const filesToSync = [
   'api/agent.js',
   'core.client.jsx',
   'assets/styles/index.css',
+  'package.json',
   'HISTORY.md'
 ];
 

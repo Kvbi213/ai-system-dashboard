@@ -211,33 +211,112 @@ export default async function handler(req, res) {
     const brain = Array.isArray(context.operatorBrain) ? context.operatorBrain : [];
     const timetable = Array.isArray(context.timetable) ? context.timetable : [];
 
-    const tasksSummary = tasks.length > 0
-      ? tasks.slice(0, 15).map(t => `- [${t.status === 'completed' ? 'WYKONANE' : 'OCZEKUJĄCE'}] [Priorytet: ${t.priority || 'MED'}] ${t.title || t.text} (${t.category || 'ogólne'})`).join('\n')
-      : 'Brak zadań w To-Do.';
-
-    const calendarSummary = calendar.length > 0
-      ? calendar.slice(0, 10).map(e => `- [${e.event_date || e.date || 'brak daty'}] ${e.title} ${e.event_time ? `(${e.event_time})` : ''}`).join('\n')
-      : 'Brak zaplanowanych wydarzeń.';
-
-    const financesSummary = finances.length > 0
-      ? `Zarejestrowano ${finances.length} transakcji. Ostatnie: ${finances.slice(0, 5).map(f => `${f.type === 'income' ? '+' : '-'}${f.amount} PLN (${f.category})`).join(', ')}`
-      : 'Brak transakcji w bazie.';
-
-    const workoutsSummary = workouts.length > 0
-      ? `Zarejestrowano ${workouts.length} treningów. Ostatnie: ${workouts.slice(0, 3).map(w => `${w.title} [${w.type}]`).join(', ')}`
-      : 'Brak sesji treningowych.';
-
-    const brainSummary = brain.length > 0
-      ? brain.slice(0, 8).map(b => `- [${b.category || 'General'}] ${b.fact || b.content}`).join('\n')
-      : 'Brak specjalnych wpisów w pamięci długoterminowej.';
-
-    const timetableSummary = timetable.length > 0
-      ? timetable.map(l => `- [${l.day || 'dzień'} ${l.time_start || ''}-${l.time_end || ''}] ${l.subject} (${l.room || 'sala nieokreślona'}, ${l.teacher || 'prowadzący nieokreślony'}, typ: ${l.type || 'zajęcia'})`).join('\n')
-      : 'Brak wpisów w planie lekcji.';
-
     const now = new Date();
     const dateStr = now.toLocaleDateString('pl-PL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     const timeStr = now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+
+    // 1. Szczegółowe podsumowanie Finansów i Budżetu 50/30/20
+    let totalIncome = 0;
+    let totalExpenses = 0;
+    let needsSum = 0;
+    let wantsSum = 0;
+    let savingsSum = 0;
+    const actualTxs = finances.filter(f => f && !f.is_settings && f.id !== 'finance_settings' && f.amount !== undefined);
+
+    actualTxs.forEach(f => {
+      const amt = Number(f.amount) || 0;
+      if (f.type === 'income') {
+        totalIncome += amt;
+      } else {
+        totalExpenses += amt;
+        const b = (f.bucket || '').toLowerCase();
+        if (b === 'wants' || b === 'zachcianki') wantsSum += amt;
+        else if (b === 'savings' || b === 'oszczędności' || b === 'oszczednosci') savingsSum += amt;
+        else needsSum += amt;
+      }
+    });
+
+    const netBalance = totalIncome - totalExpenses;
+    const needsPct = totalExpenses > 0 ? Math.round((needsSum / totalExpenses) * 100) : 0;
+    const wantsPct = totalExpenses > 0 ? Math.round((wantsSum / totalExpenses) * 100) : 0;
+    const savingsPct = totalExpenses > 0 ? Math.round((savingsSum / totalExpenses) * 100) : 0;
+
+    const txsList = actualTxs.slice(0, 15).map(f =>
+      `- [${f.transaction_date || 'brak daty'}] ${f.type === 'income' ? '+PRZYCHÓD' : '-WYDATEK'}: ${Number(f.amount).toFixed(2)} PLN | Kategoria: ${f.category || 'Inne'} | Koszyk: ${f.bucket || 'needs'} | Opis: ${f.description || '-'}`
+    ).join('\n');
+
+    const financesSummary = actualTxs.length > 0
+      ? `SALDO NETTO: ${netBalance >= 0 ? '+' : ''}${netBalance.toFixed(2)} PLN
+ŁĄCZNE PRZYCHODY: +${totalIncome.toFixed(2)} PLN
+ŁĄCZNE WYDATKI: -${totalExpenses.toFixed(2)} PLN
+ALOKACJA 50/30/20:
+- POTRZEBY (cel 50%): ${needsSum.toFixed(2)} PLN (${needsPct}% wydatków)
+- ZACHCIANKI (cel 30%): ${wantsSum.toFixed(2)} PLN (${wantsPct}% wydatków)
+- OSZCZĘDNOŚCI (cel 20%): ${savingsSum.toFixed(2)} PLN (${savingsPct}% wydatków)
+OSTATNIE TRANSAKCJE (${actualTxs.length} łącznie):
+${txsList}`
+      : 'Brak transakcji w bazie danych. Saldo wynosi 0.00 PLN.';
+
+    // 2. Szczegółowe podsumowanie Planu Lekcji (z podziałem na dziś, jutro i tydzień)
+    const dayNamesPl = { 1: 'poniedziałek', 2: 'wtorek', 3: 'środa', 4: 'czwartek', 5: 'piątek', 6: 'sobota', 0: 'niedziela' };
+    const dayIdMap = { 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday', 0: 'sunday' };
+    const todayDayIndex = now.getDay();
+    const todayDayId = dayIdMap[todayDayIndex];
+    const todayDayName = dayNamesPl[todayDayIndex];
+    const tomorrowDayIndex = (todayDayIndex + 1) % 7;
+    const tomorrowDayId = dayIdMap[tomorrowDayIndex];
+    const tomorrowDayName = dayNamesPl[tomorrowDayIndex];
+
+    const todayLessons = timetable
+      .filter(l => l.day === todayDayId || l.day?.toLowerCase() === todayDayName.toLowerCase())
+      .sort((a, b) => (a.time_start || '').localeCompare(b.time_start || ''));
+
+    const tomorrowLessons = timetable
+      .filter(l => l.day === tomorrowDayId || l.day?.toLowerCase() === tomorrowDayName.toLowerCase())
+      .sort((a, b) => (a.time_start || '').localeCompare(b.time_start || ''));
+
+    const todayStr = todayLessons.length > 0
+      ? todayLessons.map(l => `  * ${l.time_start || '??'} - ${l.time_end || '??'}: ${l.subject} (${l.type || 'Zajęcia'}, sala: ${l.room || 'brak'}, prowadzący: ${l.teacher || 'brak'})`).join('\n')
+      : '  Brak zajęć dydaktycznych na dziś.';
+
+    const tomorrowStr = tomorrowLessons.length > 0
+      ? tomorrowLessons.map(l => `  * ${l.time_start || '??'} - ${l.time_end || '??'}: ${l.subject} (${l.type || 'Zajęcia'}, sala: ${l.room || 'brak'}, prowadzący: ${l.teacher || 'brak'})`).join('\n')
+      : '  Brak zajęć dydaktycznych na jutro.';
+
+    const allLessonsStr = timetable.length > 0
+      ? timetable.map(l => `- [${(l.day || '').toUpperCase()}] ${l.time_start || ''}-${l.time_end || ''}: ${l.subject} (sala: ${l.room || '-'}, ${l.teacher || '-'}, typ: ${l.type || 'Wykład'})`).join('\n')
+      : 'Brak wpisów w planie lekcji.';
+
+    const timetableSummary = `
+DZISIAJ (${todayDayName.toUpperCase()}):
+${todayStr}
+
+JUTRO (${tomorrowDayName.toUpperCase()}):
+${tomorrowStr}
+
+PEŁNY HARMONOGRAM TYGODNIA (${timetable.length} pozycji łącznie):
+${allLessonsStr}`.trim();
+
+    // 3. Zadania To-Do
+    const tasksSummary = tasks.length > 0
+      ? tasks.slice(0, 20).map(t => `- [${t.status === 'completed' ? 'WYKONANE' : 'OCZEKUJĄCE'}] [Priorytet: ${t.priority || 'MED'}] ${t.title || t.text} (${t.category || 'ogólne'})`).join('\n')
+      : 'Brak zadań w To-Do.';
+
+    // 4. Kalendarz
+    const calendarSummary = calendar.length > 0
+      ? calendar.slice(0, 12).map(e => `- [${e.event_date || e.date || 'brak daty'}] ${e.title} ${e.event_time ? `(${e.event_time})` : ''} [${e.priority || 'MED'}]`).join('\n')
+      : 'Brak zaplanowanych wydarzeń.';
+
+    // 5. Treningi
+    const workoutsSummary = workouts.length > 0
+      ? `Zarejestrowano ${workouts.length} treningów. Ostatnie sesje:\n` +
+        workouts.slice(0, 8).map(w => `- [${w.date || 'brak daty'}] ${w.title} (Typ: ${w.type || 'Siłowy'}) ${w.description ? `| Opis: ${w.description}` : ''}`).join('\n')
+      : 'Brak sesji treningowych w bazie.';
+
+    // 6. Pamięć operatora
+    const brainSummary = brain.length > 0
+      ? brain.slice(0, 10).map(b => `- [${b.category || 'Wiedza'}] ${b.fact || b.content}`).join('\n')
+      : 'Brak wpisów w pamięci długoterminowej.';
 
     const liveIntelBlock = liveWebIntel 
       ? `\n🌐 AKTUALNE WYNIKI WYSZUKIWANIA ZE ŚWIATA NA ŻYWO (BRAVE SEARCH LIVE INTEL):\n${liveWebIntel}\n` 
@@ -245,7 +324,7 @@ export default async function handler(req, res) {
 
     // Wybór promptu systemowego w zależności od trybu
     const systemPrompt = mode === 'mentor'
-      ? `Jesteś J.A.RV.I.S — nadrzędnym inteligentnym mentorem, analitykiem strategicznym i powiernikiem użytkownika w systemie OmniDash. Rozmawiasz z ${userName}.
+      ? `Jesteś J.A.R.V.I.S — nadrzędnym inteligentnym mentorem, analitykiem strategicznym i powiernikiem użytkownika w systemie OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy: ${dateStr}, godzina ${timeStr}.
 
 BIEŻĄCY STAN PAMIĘCI I BAZY DANYCH UŻYTKOWNIKA (Live Firestore Sync):
@@ -255,34 +334,53 @@ ${tasksSummary}
 🎓 PLAN LEKCJI & HARMONOGRAM ZAJĘĆ (TIMETABLE):
 ${timetableSummary}
 
-📅 KALENDARZ & TERMINY:
-${calendarSummary}
-
-💰 FINANSE & BUDŻET:
+💰 FINANSE & BUDŻET 50/30/20:
 ${financesSummary}
 
 🏋️ TRENINGI & AKTYWNOŚĆ:
 ${workoutsSummary}
 
+📅 KALENDARZ & TERMINY:
+${calendarSummary}
+
 🧠 PAMIĘĆ DŁUGOTERMINOWA (OPERATOR BRAIN):
 ${brainSummary}
 ${liveIntelBlock}
-KRYTYCZNE REGUŁY OPERACYJNE (BRAVE SEARCH & LIVE INTERNET ACCESS):
+KRYTYCZNE REGUŁY OPERACYJNE:
 1. POSIADASZ BEZPOŚREDNI, AKTYWNY DOSTĘP DO INTERNETU I NAJNOWSZYCH WIADOMOŚCI ZE ŚWIATA PRZEZ WBUDOWANY SILNIK BRAVE SEARCH API.
 2. BEZWZGLĘDNY ZAKAZ mówienia: "nie mam bieżącego dostępu do globalnych wiadomości" lub "nie mam dostępu do internetu".
-3. Jeśli użytkownik pyta o wiadomości ze świata, wydarzenia, technologie, politykę czy fakty, przedstaw szczegółowe, rzetelne, wieloaspektowe podsumowanie bazując na powyższych wynikach Brave Search oraz swojej wiedzy.
-4. Używaj eleganckiego formatowania Markdown: sekcje z nagłówkami H3/H4, pogrubienia, drzewa punktów i akapity analityczne.
-5. Posiadasz pełną wiedzę o wszystkich elementach w To-Do, Planie Lekcji i Firestore — nigdy nie odpowiadaj wymijająco!
+3. Jeśli użytkownik pyta o finanse, plan lekcji, pogodę, treningi czy zadania — posiadasz pełne, precyzyjne dane powyżej! Nigdy nie odpowiadaj wymijająco.
+4. ZAWSZE GDY PREZENTUJESZ ZESTAWIENIA, TABELE WYNIKÓW, PROGNOZY POGODY, PORÓWNANIA, FINANSE CZY HARMONOGRAMY, STOSUJ STANDARDOWE TABELE MARKDOWN (GitHub Flavored Markdown z nagłówkami i separatorami |---|---|). System posiada pełny renderer remark-gfm i wyświetla tabele w elegancki, responsywny sposób!
+5. Używaj bogatego formatowania: nagłówki H3/H4, listy, pogrubienia, cytaty.
 
-DOSTĘPNE NARZĘDZIA AKCJI I INTERAKCJI Z SYSTEMEM (ACTION TAGS):
-Gdy użytkownik prosi Cię o dodanie lub modyfikację danych w systemie, możesz wyemitować na końcu odpowiedzi specjalny znacznik akcji, który zostanie automatycznie wykonany w bazie Firestore:
-- Dodanie zadania: [ACTION:ADD_TASK title="Nazwa zadania" priority="HIGH|MEDIUM|LOW"]
-- Dodanie lekcji do planu: [ACTION:ADD_LESSON day="monday|tuesday|wednesday|thursday|friday" subject="Nazwa" time_start="08:00" time_end="09:30" room="Sala" teacher="Prowadzący" type="Wykład|Laboratorium|Ćwiczenia"]
-- Dodanie wydatku/wpływu: [ACTION:ADD_EXPENSE amount="50" category="Kategoria" type="expense|income" bucket="needs|wants|savings" description="Opis"]
-- Dodanie treningu: [ACTION:ADD_WORKOUT title="Nazwa" type="Siłowy|Cardio|Kalistenika" description="Opis ćwiczeń"]
-- Dodanie wydarzenia: [ACTION:ADD_EVENT title="Wydarzenie" date="YYYY-MM-DD" time="HH:MM"]
-- Zmiana motywu: [ACTION:SET_THEME theme="dark|retro|monochrome|matrix|synthwave|nordic|light"]
-- Zapamiętanie faktu: [ACTION:REMEMBER fact="Fakt" category="Wiedza"]`
+DOSTĘPNE NARZĘDZIA AKCJI I INTERAKCJI Z SYSTEMEM (SYSTEM ACTION TAGS):
+Gdy użytkownik prosi Cię o dodanie, modyfikację lub usunięcie danych w systemie, wyemituj na samym końcu odpowiedzi odpowiedni znacznik akcji:
+- Zadania:
+  [ACTION:ADD_TASK title="Nazwa zadania" priority="HIGH|MEDIUM|LOW" category="kategoria"]
+  [ACTION:COMPLETE_TASK title="Nazwa zadania"]
+  [ACTION:DELETE_TASK title="Nazwa zadania"]
+- Plan Lekcji:
+  [ACTION:ADD_LESSON day="monday|tuesday|wednesday|thursday|friday|saturday|sunday" subject="Przedmiot" time_start="08:00" time_end="09:30" room="Sala" teacher="Prowadzący" type="Wykład|Laboratorium|Ćwiczenia"]
+  [ACTION:DELETE_LESSON subject="Przedmiot" day="monday|tuesday|..."]
+- Finanse:
+  [ACTION:ADD_EXPENSE amount="50.00" category="Jedzenie|Transport|Rachunki|Rozrywka|Zdrowie|Inne" bucket="needs|wants|savings" description="Opis wydatku"]
+  [ACTION:ADD_INCOME amount="2000.00" category="Wynagrodzenie|Stypendium|Inne" description="Opis wpływu"]
+  [ACTION:CLEAR_FINANCES]
+- Treningi:
+  [ACTION:ADD_WORKOUT title="Trening Siłowy" type="Siłowy|Cardio|Kalistenika|Bieganie" description="Opis serii i ćwiczeń"]
+  [ACTION:DELETE_WORKOUT title="Nazwa treningu"]
+- Kalendarz:
+  [ACTION:ADD_EVENT title="Wydarzenie" date="YYYY-MM-DD" time="HH:MM" priority="HIGH|MEDIUM|LOW"]
+  [ACTION:DELETE_EVENT title="Nazwa wydarzenia"]
+- Motyw i Styl:
+  [ACTION:SET_THEME theme="cyber_dark|retro_amber|monochrome|matrix|synthwave|nordic|paper_light"]
+  [ACTION:SET_ACCENT color="cyan|emerald|amber|violet|rose|sky|lime|orange"]
+- Pamięć:
+  [ACTION:REMEMBER fact="Fakt do zapamiętania" category="Wiedza|Preferencje|Osobiste"]
+  [ACTION:FORGET fact="Fakt do usunięcia"]
+- Widżety i Nawigacja:
+  [ACTION:SHOW_WIDGET name="timetable|finances|workouts|calendar|weather|tasks|news|system"]
+  [ACTION:NAVIGATE path="/timetable|/finances|/workouts|/calendar|/chat|/"]`
       : `Jesteś F.R.I.D.A.Y — wysoko wyspecjalizowanym inżynieryjnym systemem wykonawczym (Core Worker Engine) w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy: ${dateStr}, godzina ${timeStr}.
 
@@ -293,34 +391,53 @@ ${tasksSummary}
 🎓 PLAN LEKCJI & HARMONOGRAM ZAJĘĆ (TIMETABLE):
 ${timetableSummary}
 
-📅 KALENDARZ & TERMINY:
-${calendarSummary}
-
-💰 FINANSE & BUDŻET:
+💰 FINANSE & BUDŻET 50/30/20:
 ${financesSummary}
 
 🏋️ TRENINGI & AKTYWNOŚĆ:
 ${workoutsSummary}
 
+📅 KALENDARZ & TERMINY:
+${calendarSummary}
+
 🧠 PAMIĘĆ DŁUGOTERMINOWA (OPERATOR BRAIN):
 ${brainSummary}
 ${liveIntelBlock}
-KRYTYCZNE REGUŁY OPERACYJNE (BRAVE SEARCH & LIVE INTERNET ACCESS):
+KRYTYCZNE REGUŁY OPERACYJNE:
 1. POSIADASZ BEZPOŚREDNI, AKTYWNY DOSTĘP DO INTERNETU I NAJNOWSZYCH WIADOMOŚCI ZE ŚWIATA PRZEZ WBUDOWANY SILNIK BRAVE SEARCH API.
 2. BEZWZGLĘDNY ZAKAZ mówienia: "nie mam bieżącego dostępu do globalnych wiadomości" lub "nie mam dostępu do internetu".
-3. Jeśli użytkownik pyta o wiadomości, wydarzenia ze świata lub wyniki, podaj konkretne, uporządkowane fakty, wykorzystując dostarczone dane Brave Search.
-4. Udzielaj odpowiedzi wyczerpujących, merytorycznych, technicznych i szczegółowo rozpisanych z zachowaniem inżynieryjnej dyscypliny w języku ${language}.
-5. Posiadasz pełną wiedzę o wszystkich elementach w bazie — nigdy nie mów, że nie masz dostępu do systemu!
+3. Jeśli użytkownik pyta o finanse, plan lekcji, pogodę, treningi czy zadania — posiadasz pełne, precyzyjne dane powyżej! Nigdy nie mów, że nie masz dostępu do systemu.
+4. ZAWSZE GDY PREZENTUJESZ ZESTAWIENIA, TABELE WYNIKÓW, PROGNOZY POGODY, PORÓWNANIA, FINANSE CZY HARMONOGRAMY, STOSUJ STANDARDOWE TABELE MARKDOWN (GitHub Flavored Markdown z nagłówkami i separatorami |---|---|). System posiada pełny renderer remark-gfm i wyświetla tabele w elegancki, responsywny sposób!
+5. Udzielaj odpowiedzi wyczerpujących, merytorycznych, technicznych i szczegółowo rozpisanych w języku ${language}.
 
-DOSTĘPNE NARZĘDZIA AKCJI I INTERAKCJI Z SYSTEMEM (ACTION TAGS):
-Gdy użytkownik prosi Cię o dodanie lub modyfikację danych w systemie, możesz wyemitować na końcu odpowiedzi specjalny znacznik akcji, który zostanie automatycznie wykonany w bazie Firestore:
-- Dodanie zadania: [ACTION:ADD_TASK title="Nazwa zadania" priority="HIGH|MEDIUM|LOW"]
-- Dodanie lekcji do planu: [ACTION:ADD_LESSON day="monday|tuesday|wednesday|thursday|friday" subject="Nazwa" time_start="08:00" time_end="09:30" room="Sala" teacher="Prowadzący" type="Wykład|Laboratorium|Ćwiczenia"]
-- Dodanie wydatku/wpływu: [ACTION:ADD_EXPENSE amount="50" category="Kategoria" type="expense|income" bucket="needs|wants|savings" description="Opis"]
-- Dodanie treningu: [ACTION:ADD_WORKOUT title="Nazwa" type="Siłowy|Cardio|Kalistenika" description="Opis ćwiczeń"]
-- Dodanie wydarzenia: [ACTION:ADD_EVENT title="Wydarzenie" date="YYYY-MM-DD" time="HH:MM"]
-- Zmiana motywu: [ACTION:SET_THEME theme="dark|retro|monochrome|matrix|synthwave|nordic|light"]
-- Zapamiętanie faktu: [ACTION:REMEMBER fact="Fakt" category="Wiedza"]`;
+DOSTĘPNE NARZĘDZIA AKCJI I INTERAKCJI Z SYSTEMEM (SYSTEM ACTION TAGS):
+Gdy użytkownik prosi Cię o dodanie, modyfikację lub usunięcie danych w systemie, wyemituj na samym końcu odpowiedzi odpowiedni znacznik akcji:
+- Zadania:
+  [ACTION:ADD_TASK title="Nazwa zadania" priority="HIGH|MEDIUM|LOW" category="kategoria"]
+  [ACTION:COMPLETE_TASK title="Nazwa zadania"]
+  [ACTION:DELETE_TASK title="Nazwa zadania"]
+- Plan Lekcji:
+  [ACTION:ADD_LESSON day="monday|tuesday|wednesday|thursday|friday|saturday|sunday" subject="Przedmiot" time_start="08:00" time_end="09:30" room="Sala" teacher="Prowadzący" type="Wykład|Laboratorium|Ćwiczenia"]
+  [ACTION:DELETE_LESSON subject="Przedmiot" day="monday|tuesday|..."]
+- Finanse:
+  [ACTION:ADD_EXPENSE amount="50.00" category="Jedzenie|Transport|Rachunki|Rozrywka|Zdrowie|Inne" bucket="needs|wants|savings" description="Opis wydatku"]
+  [ACTION:ADD_INCOME amount="2000.00" category="Wynagrodzenie|Stypendium|Inne" description="Opis wpływu"]
+  [ACTION:CLEAR_FINANCES]
+- Treningi:
+  [ACTION:ADD_WORKOUT title="Trening Siłowy" type="Siłowy|Cardio|Kalistenika|Bieganie" description="Opis serii i ćwiczeń"]
+  [ACTION:DELETE_WORKOUT title="Nazwa treningu"]
+- Kalendarz:
+  [ACTION:ADD_EVENT title="Wydarzenie" date="YYYY-MM-DD" time="HH:MM" priority="HIGH|MEDIUM|LOW"]
+  [ACTION:DELETE_EVENT title="Nazwa wydarzenia"]
+- Motyw i Styl:
+  [ACTION:SET_THEME theme="cyber_dark|retro_amber|monochrome|matrix|synthwave|nordic|paper_light"]
+  [ACTION:SET_ACCENT color="cyan|emerald|amber|violet|rose|sky|lime|orange"]
+- Pamięć:
+  [ACTION:REMEMBER fact="Fakt do zapamiętania" category="Wiedza|Preferencje|Osobiste"]
+  [ACTION:FORGET fact="Fakt do usunięcia"]
+- Widżety i Nawigacja:
+  [ACTION:SHOW_WIDGET name="timetable|finances|workouts|calendar|weather|tasks|news|system"]
+  [ACTION:NAVIGATE path="/timetable|/finances|/workouts|/calendar|/chat|/"]`;
 
     const targetModel = model || 'openai/gpt-oss-120b';
     let chatCompletion;

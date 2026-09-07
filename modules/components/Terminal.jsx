@@ -2,16 +2,26 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Terminal as TerminalIcon, Send, Code, BrainCircuit, Lightbulb, X, Mic, Loader2, Copy, Check, Radio, User, Sparkles, Volume2, VolumeX, ArrowDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import WeatherWidget from './WeatherWidget';
 import ITNewsTicker from './ITNewsTicker';
 import SystemMonitor from './SystemMonitor';
 import TodoList from './TodoList';
 import ModelWidget from './ModelWidget';
 import NotificationsWidget from './NotificationsWidget';
+import { 
+  TimetableChatWidget, 
+  FinanceChatWidget, 
+  WorkoutsChatWidget, 
+  CalendarChatWidget 
+} from './ChatInlineWidgets';
 import { useChatContext } from '../context/ChatContext';
 
 const QUICK_PROMPTS = [
   { label: '📋 Zadania To-Do', text: 'witam serdecznie co mamy dziś w todo?' },
+  { label: '🎓 Plan lekcji', text: 'jaki mam dzisiaj plan lekcji i zajęcia?' },
+  { label: '💰 Stan finansów', text: 'podsumuj moje finanse i budżet 50/30/20' },
+  { label: '🏋️ Treningi', text: 'pokaż moje ostatnie treningi i aktywność' },
   { label: '☀️ Pogoda i prognoza', text: 'jaka jest dzisiaj pogoda i prognoza?' },
   { label: '📰 Wiadomości IT & AI', text: 'podsumuj najważniejsze wydarzenia technologiczne i AI' },
   { label: '🛰️ Status systemu', text: 'podaj aktualny stan i telemetrię systemu OmniDash' },
@@ -71,6 +81,9 @@ const ChatMessage = ({ msg, mode = 'worker' }) => {
     }
     window.speechSynthesis.cancel();
     const clean = (msg.content || '')
+      .replace(/\[ACTION:[A-Z_]+[^\]]*\]/g, '')
+      .replace(new RegExp('\\|[\\s\\-|:]+\\|', 'g'), ' ')
+      .replace(/\|/g, ', ')
       .replace(/[*_~`#>-]/g, ' ')
       .replace(/\[(.*?)\]\(.*?\)/g, '$1')
       .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '')
@@ -179,6 +192,7 @@ const ChatMessage = ({ msg, mode = 'worker' }) => {
         {/* AI Message Card */}
         <div className="w-full glass-panel p-4 md:p-5 rounded-2xl rounded-tl-sm border border-border/70 bg-gradient-to-br from-surface/90 via-surface/75 to-background/95 shadow-xl text-textPrimary text-sm md:text-[14.5px] leading-relaxed relative">
           <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
             components={{
               p: ({ node, children, ...props }) => (
                 <p className="mb-3 last:mb-0 leading-relaxed text-textPrimary/95 text-[14px] md:text-[14.5px]" {...props}>
@@ -229,6 +243,11 @@ const ChatMessage = ({ msg, mode = 'worker' }) => {
                   {children}
                 </em>
               ),
+              del: ({ node, children, ...props }) => (
+                <del className="line-through text-textMuted opacity-75" {...props}>
+                  {children}
+                </del>
+              ),
               h1: ({ node, children, ...props }) => (
                 <h1 className="text-lg md:text-xl font-bold text-white mt-4 mb-2 pb-1.5 border-b border-border/60 flex items-center gap-2" {...props}>
                   <span className="w-2 h-5 rounded-full bg-accentPrimary shrink-0" />
@@ -255,22 +274,36 @@ const ChatMessage = ({ msg, mode = 'worker' }) => {
                 <hr className="my-4 border-border/60" {...props} />
               ),
               table: ({ node, children, ...props }) => (
-                <div className="my-3 overflow-x-auto rounded-xl border border-border/60 shadow-md">
-                  <table className="w-full text-left text-xs md:text-sm border-collapse" {...props}>
+                <div className="my-3.5 overflow-x-auto rounded-xl border border-border/80 bg-surface/60 shadow-lg custom-scrollbar">
+                  <table className="w-full text-left text-xs md:text-[13.5px] border-collapse min-w-[500px]" {...props}>
                     {children}
                   </table>
                 </div>
               ),
               thead: ({ node, children, ...props }) => (
-                <thead className="bg-white/5 border-b border-border/80 text-accentPrimary uppercase text-[11px] font-mono tracking-wider" {...props}>
+                <thead className="bg-white/10 border-b border-border/80 text-accentPrimary uppercase text-[11px] font-mono tracking-wider" {...props}>
                   {children}
                 </thead>
               ),
+              tbody: ({ node, children, ...props }) => (
+                <tbody className="divide-y divide-border/30" {...props}>
+                  {children}
+                </tbody>
+              ),
+              tr: ({ node, children, ...props }) => (
+                <tr className="hover:bg-white/[0.04] transition-colors odd:bg-white/[0.015] even:bg-white/[0.035]" {...props}>
+                  {children}
+                </tr>
+              ),
               th: ({ node, children, ...props }) => (
-                <th className="px-3.5 py-2.5 font-semibold" {...props}>{children}</th>
+                <th className="px-3.5 py-2.5 font-semibold text-accentPrimary tracking-wider border-r border-border/40 last:border-r-0 whitespace-nowrap" {...props}>
+                  {children}
+                </th>
               ),
               td: ({ node, children, ...props }) => (
-                <td className="px-3.5 py-2 border-b border-border/30 text-textPrimary/90" {...props}>{children}</td>
+                <td className="px-3.5 py-2.5 text-textPrimary/90 border-r border-border/25 last:border-r-0 leading-relaxed" {...props}>
+                  {children}
+                </td>
               ),
               code: ({ node, inline, className, children, ...props }) => {
                 const match = /language-(\w+)/.exec(className || '');
@@ -292,6 +325,10 @@ const ChatMessage = ({ msg, mode = 'worker' }) => {
           {/* Render Attached Widgets */}
           {msg.widgets && msg.widgets.length > 0 && (
             <div className="mt-5 pt-4 border-t border-border/50 flex flex-wrap gap-4 pointer-events-auto w-full items-start">
+              {msg.widgets.includes('timetable') && <TimetableChatWidget />}
+              {msg.widgets.includes('finances') && <FinanceChatWidget />}
+              {msg.widgets.includes('workouts') && <WorkoutsChatWidget />}
+              {msg.widgets.includes('calendar') && <CalendarChatWidget />}
               {msg.widgets.includes('weather') && (
                 <div className="glass-panel p-5 rounded-xl border border-border w-full sm:w-[280px] flex items-center justify-center shadow-lg">
                   <WeatherWidget />
