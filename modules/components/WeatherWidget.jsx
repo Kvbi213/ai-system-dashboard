@@ -27,12 +27,30 @@ const WeatherWidget = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchWeather = async (lat, lon) => {
+    const fetchWeather = async (lat = 52.23, lon = 21.01) => {
       try {
-        const query = lat && lon ? `?lat=${lat}&lon=${lon}` : '';
-        const res = await fetch(`/api/weather/raw${query}`);
-        if (!res.ok) throw new Error('API Error');
-        const data = await res.json();
+        let data = null;
+        const isCloudMode = window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com');
+        if (!isCloudMode) {
+          try {
+            const query = lat && lon ? `?lat=${lat}&lon=${lon}` : '';
+            const res = await fetch(`/api/weather/raw${query}`);
+            const ct = res.headers.get('content-type') || '';
+            if (res.ok && ct.includes('application/json')) {
+              data = await res.json();
+            }
+          } catch (e) {
+            // fallback do bezpośredniego pobrania
+          }
+        }
+        // Bezpośrednie pobranie z Open-Meteo w chmurze lub przy braku backendu
+        if (!data || !data.current_weather) {
+          const directUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,precipitation_probability,weathercode`;
+          const directRes = await fetch(directUrl);
+          if (directRes.ok) {
+            data = await directRes.json();
+          }
+        }
         if (data?.current_weather) {
           setWeather(data.current_weather);
           const currentHour = new Date().getHours();

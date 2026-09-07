@@ -24,7 +24,12 @@ const WidgetsPage = () => {
   useEffect(() => {
     const saved = localStorage.getItem('system_active_widgets');
     if (saved) {
-      setActiveWidgets(JSON.parse(saved));
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') setActiveWidgets(parsed);
+      } catch (e) {
+        console.warn(e);
+      }
     }
 
     const handler = (e) => {

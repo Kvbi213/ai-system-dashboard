@@ -12,12 +12,37 @@ const CalendarPage = () => {
   // State for the right panel (selected day)
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const fetchEvents = async () => {
+  const isCloudMode = typeof window !== 'undefined' && (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com'));
+
+  const getFallbackEvents = () => {
     try {
-      const { data } = await axios.get('http://localhost:5000/api/calendar');
-      setEvents(data);
+      const saved = localStorage.getItem('system_calendar_events');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.warn(e);
+    }
+    const today = new Date().toISOString().split('T')[0];
+    return [
+      { id: '1', title: 'Start Systemu OmniDash', event_date: today, event_time: '09:00', priority: 'HIGH' }
+    ];
+  };
+
+  const fetchEvents = async () => {
+    if (isCloudMode) {
+      setEvents(getFallbackEvents());
+      setIsLoading(false);
+      return;
+    }
+    try {
+      const { data } = await axios.get('/api/calendar');
+      if (Array.isArray(data)) {
+        setEvents(data);
+      } else {
+        setEvents(getFallbackEvents());
+      }
     } catch (err) {
-      console.error('Błąd pobierania kalendarza', err);
+      console.warn('Używam lokalnych wydarzeń:', err.message);
+      setEvents(getFallbackEvents());
     } finally {
       setIsLoading(false);
     }
@@ -28,11 +53,17 @@ const CalendarPage = () => {
   }, []);
 
   const deleteEvent = async (id) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/calendar/${id}`);
-      fetchEvents();
-    } catch (err) {
-      console.error('Błąd usuwania wydarzenia', err);
+    setEvents(prev => {
+      const updated = (Array.isArray(prev) ? prev : []).filter(e => e.id !== id);
+      try { localStorage.setItem('system_calendar_events', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+    if (!isCloudMode) {
+      try {
+        await axios.delete(`/api/calendar/${id}`);
+      } catch (err) {
+        console.warn('Błąd usuwania wydarzenia:', err.message);
+      }
     }
   };
 
@@ -74,6 +105,8 @@ const CalendarPage = () => {
     setSelectedDate(targetDate);
   };
 
+  const safeEvents = Array.isArray(events) ? events : [];
+
   // Generate grid cells
   const gridCells = [];
   // Empty cells before the 1st
@@ -85,7 +118,7 @@ const CalendarPage = () => {
   for (let i = 1; i <= daysInMonth; i++) {
     const iterDate = new Date(currentYear, currentMonth, i);
     const dateString = formatDateString(iterDate);
-    const dayEvents = events.filter(e => e.event_date === dateString);
+    const dayEvents = safeEvents.filter(e => e.event_date === dateString);
     const hasEvents = dayEvents.length > 0;
     
     const isSelected = formatDateString(selectedDate) === dateString;
@@ -127,11 +160,11 @@ const CalendarPage = () => {
 
   // Right panel logic
   const selectedDateString = formatDateString(selectedDate);
-  const selectedDayEvents = events.filter(e => e.event_date === selectedDateString);
+  const selectedDayEvents = safeEvents.filter(e => e.event_date === selectedDateString);
 
   // Bottom panel logic
   const todayString = formatDateString(new Date());
-  const upcomingEvents = events.filter(e => e.event_date >= todayString).sort((a, b) => new Date(a.event_date) - new Date(b.event_date));
+  const upcomingEvents = safeEvents.filter(e => e.event_date >= todayString).sort((a, b) => new Date(a.event_date) - new Date(b.event_date));
 
   return (
     <div className="w-full h-full flex flex-col gap-6 relative z-10 animate-soft-enter overflow-hidden">

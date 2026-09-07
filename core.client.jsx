@@ -25,6 +25,25 @@ import ApiConfigScreen from './modules/components/ApiConfigScreen';
 import OnboardingTour from './modules/components/OnboardingTour';
 import SetupWizard from './modules/components/SetupWizard';
 import GlobalEventListener from './modules/components/GlobalEventListener';
+import ErrorBoundary from './modules/components/ErrorBoundary';
+
+// Globalny interceptor zabezpieczający przed parsowaniem HTML jako JSON w przypadku braku backendu / hostingu statycznego
+axios.interceptors.response.use(
+  (response) => {
+    const contentType = response.headers?.['content-type'] || '';
+    if (
+      typeof response.data === 'string' &&
+      (contentType.includes('text/html') ||
+       response.data.trim().startsWith('<!DOCTYPE') ||
+       response.data.trim().startsWith('<html'))
+    ) {
+      console.warn(`[Axios] Endpoint ${response.config.url} zwrócił HTML zamiast JSON.`);
+      return Promise.reject(new Error(`Endpoint ${response.config.url} zwrócił HTML`));
+    }
+    return response;
+  },
+  (error) => Promise.reject(error)
+);
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -83,7 +102,7 @@ const App = () => {
         return;
       }
 
-      axios.get('/api/system/keys-status')
+      axios.get('/api/system/keys-status', { timeout: 3000 })
         .then((res) => {
           if (typeof res.data !== 'object' || !res.data) {
             if (token) setIsAuthenticated(true);
@@ -99,7 +118,7 @@ const App = () => {
 
           if (token) {
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            axios.get('/api/auth/verify')
+            axios.get('/api/auth/verify', { timeout: 3000 })
               .then(() => setIsAuthenticated(true))
               .catch(() => {
                 sessionStorage.removeItem('dashboard_token');
@@ -147,19 +166,30 @@ const App = () => {
     };
   }, [isAuthenticated]);
 
-  if (isVerifying) return <div className="h-[100dvh] w-full flex items-center justify-center bg-background text-accent">Wczytywanie...</div>;
+  if (isVerifying) {
+    return (
+      <div className="h-[100dvh] w-full flex flex-col items-center justify-center bg-[#0A0B0E] text-textPrimary font-mono">
+        <div className="w-10 h-10 border-2 border-accentPrimary border-t-transparent rounded-full animate-spin mb-4 shadow-[0_0_20px_rgba(var(--color-accent-primary),0.4)]" />
+        <div className="text-sm font-bold tracking-widest text-accentPrimary">INICJALIZACJA SYSTEMU...</div>
+      </div>
+    );
+  }
 
   const handleUnlock = async () => {
     setIsAuthenticated(true);
+    const isCloudMode = window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com');
+    if (isCloudMode) return;
     try {
-      const res = await axios.get('/api/system/keys-status');
-      if (res.data.missing && res.data.missing.length > 0) {
+      const res = await axios.get('/api/system/keys-status', { timeout: 3000 });
+      if (res.data && Array.isArray(res.data.missing) && res.data.missing.length > 0) {
         setMissingKeys(res.data.missing);
       }
     } catch (e) {
-      console.error(e);
+      console.warn("Sprawdzanie kluczy pominięte:", e.message);
     }
   };
+
+  if (!isAuthenticated) return <LockScreen onUnlock={handleUnlock} />;
 
   if (!setupCompleted) {
     return <SetupWizard onComplete={() => setSetupCompleted(true)} />;
@@ -168,8 +198,6 @@ const App = () => {
   if (missingKeys.length > 0) {
     return <ApiConfigScreen missingKeys={missingKeys} onConfigured={() => setMissingKeys([])} />;
   }
-
-  if (!isAuthenticated) return <LockScreen onUnlock={handleUnlock} />;
 
   return (
     <ChatProvider>
@@ -208,7 +236,9 @@ const App = () => {
 
 const root = createRoot(document.getElementById('root'));
 root.render(
-  <I18nextProvider i18n={i18n}>
-    <App />
-  </I18nextProvider>
+  <ErrorBoundary>
+    <I18nextProvider i18n={i18n}>
+      <App />
+    </I18nextProvider>
+  </ErrorBoundary>
 );

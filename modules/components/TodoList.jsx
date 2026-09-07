@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { CheckSquare, Square, ListTodo, Trash2, Plus, Flag, RotateCcw, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -29,12 +29,46 @@ const TodoList = () => {
   const [form, setForm] = useState({ title: '', priority: 'MEDIUM', category: 'jednorazowe' });
   const [submitting, setSubmitting] = useState(false);
 
+  const isCloudMode = typeof window !== 'undefined' && (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com'));
+
+  const getFallbackTasks = () => {
+    try {
+      const saved = localStorage.getItem('system_tasks');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.warn(e);
+    }
+    return [
+      { id: '1', title: 'Wdrożenie Firebase Hosting (void-potato-7721)', priority: 'HIGH', status: 'completed', category: 'system' },
+      { id: '2', title: 'Autoryzacja właściciela: marektowarek21372137@gmail.com', priority: 'HIGH', status: 'completed', category: 'system' },
+      { id: '3', title: 'Personalizacja modułów i widżetów', priority: 'MEDIUM', status: 'pending', category: 'system' },
+    ];
+  };
+
+  const saveTasksLocal = (newTasks) => {
+    try {
+      localStorage.setItem('system_tasks', JSON.stringify(newTasks));
+    } catch (e) {
+      console.warn(e);
+    }
+  };
+
   const fetchTasks = async () => {
+    if (isCloudMode) {
+      setTasks(getFallbackTasks());
+      setLoading(false);
+      return;
+    }
     try {
       const { data } = await axios.get('/api/tasks');
-      setTasks(data);
+      if (Array.isArray(data)) {
+        setTasks(data);
+      } else {
+        setTasks(getFallbackTasks());
+      }
     } catch (err) {
-      console.error('Error fetching tasks', err);
+      console.warn('Używam lokalnych zadań:', err.message);
+      setTasks(getFallbackTasks());
     } finally {
       setLoading(false);
     }
@@ -48,22 +82,56 @@ const TodoList = () => {
 
   const toggleTask = async (id, currentStatus) => {
     const newStatus = currentStatus === 'pending' ? 'completed' : 'pending';
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
-    try { await axios.patch(`/api/tasks/${id}/status`, { status: newStatus }); }
-    catch { fetchTasks(); }
+    setTasks(prev => {
+      const updated = (Array.isArray(prev) ? prev : []).map(t => t.id === id ? { ...t, status: newStatus } : t);
+      if (isCloudMode) saveTasksLocal(updated);
+      return updated;
+    });
+    if (!isCloudMode) {
+      try { await axios.patch(`/api/tasks/${id}/status`, { status: newStatus }); }
+      catch { fetchTasks(); }
+    }
   };
 
   const deleteTask = async (id, e) => {
     e.stopPropagation();
-    setTasks(prev => prev.filter(t => t.id !== id));
-    try { await axios.delete(`/api/tasks/${id}`); }
-    catch { fetchTasks(); }
+    setTasks(prev => {
+      const updated = (Array.isArray(prev) ? prev : []).filter(t => t.id !== id);
+      if (isCloudMode) saveTasksLocal(updated);
+      return updated;
+    });
+    if (!isCloudMode) {
+      try { await axios.delete(`/api/tasks/${id}`); }
+      catch { fetchTasks(); }
+    }
   };
 
   const handleAdd = async (e) => {
     e.preventDefault();
     if (!form.title.trim()) return;
     setSubmitting(true);
+    const newTask = {
+      id: 'task_' + Date.now(),
+      title: form.title.trim(),
+      priority: form.priority,
+      category: form.category,
+      target_date: new Date().toISOString().split('T')[0],
+      target_time: '12:00',
+      status: 'pending'
+    };
+
+    if (isCloudMode) {
+      setTasks(prev => {
+        const updated = [newTask, ...(Array.isArray(prev) ? prev : [])];
+        saveTasksLocal(updated);
+        return updated;
+      });
+      setForm({ title: '', priority: 'MEDIUM', category: 'jednorazowe' });
+      setShowForm(false);
+      setSubmitting(false);
+      return;
+    }
+
     try {
       await axios.post('/api/tasks', {
         title: form.title.trim(),
@@ -76,14 +144,22 @@ const TodoList = () => {
       setShowForm(false);
       fetchTasks();
     } catch (err) {
-      console.error('Error adding task', err);
+      console.error('Error adding task, saving locally', err);
+      setTasks(prev => {
+        const updated = [newTask, ...(Array.isArray(prev) ? prev : [])];
+        saveTasksLocal(updated);
+        return updated;
+      });
+      setForm({ title: '', priority: 'MEDIUM', category: 'jednorazowe' });
+      setShowForm(false);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const pending = tasks.filter(t => t.status === 'pending');
-  const done = tasks.filter(t => t.status === 'completed');
+  const safeTasks = Array.isArray(tasks) ? tasks : [];
+  const pending = safeTasks.filter(t => t.status === 'pending');
+  const done = safeTasks.filter(t => t.status === 'completed');
 
   return (
     <div className="glass-panel h-full rounded-xl p-4 flex flex-col gap-3">

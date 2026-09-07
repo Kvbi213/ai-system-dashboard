@@ -9,24 +9,24 @@ const MemoryPage = () => {
     try {
       setLoading(true);
       const res = await fetch('/api/memory');
-      const data = await res.json();
-      if (data.facts) setFacts(data.facts);
+      const ct = res.headers.get('content-type') || '';
+      if (res.ok && ct.includes('application/json')) {
+        const data = await res.json();
+        if (Array.isArray(data.facts)) setFacts(data.facts);
+      }
     } catch (err) {
-      console.error(err);
+      console.warn('Używam lokalnej pamięci (brak backendu):', err.message);
     } finally {
       setLoading(false);
     }
   };
 
   const deleteFact = async (id) => {
+    setFacts(prev => (Array.isArray(prev) ? prev : []).filter(f => f.id !== id));
     try {
-      const res = await fetch(`/api/memory/${id}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
-        setFacts(prev => prev.filter(f => f.id !== id));
-      }
+      await fetch(`/api/memory/${id}`, { method: 'DELETE' });
     } catch (err) {
-      console.error(err);
+      console.warn(err);
     }
   };
 
@@ -34,10 +34,14 @@ const MemoryPage = () => {
     fetchMemory();
   }, []);
 
+  const safeFacts = Array.isArray(facts) ? facts : [];
+
   // Grupowanie według kategorii
-  const groupedFacts = facts.reduce((acc, fact) => {
-    if (!acc[fact.category]) acc[fact.category] = [];
-    acc[fact.category].push(fact);
+  const groupedFacts = safeFacts.reduce((acc, fact) => {
+    if (!fact) return acc;
+    const cat = fact.category || 'General';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(fact);
     return acc;
   }, {});
 

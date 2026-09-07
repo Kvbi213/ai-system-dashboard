@@ -1,9 +1,23 @@
 ## Wersja Bieżąca
-**v2.2.0**
+**v2.2.1**
 
-## v 2.2.0 — 2026-09-07
-**Typ:** MINOR
-**Zakres:** Integracja Chmurowa Firebase Firestore & Restrykcja Dostępu Właściciela
+## v 2.2.1 — 2026-09-07
+**Typ:** PATCH
+**Zakres:** Eliminacja Defektu Czarnego Ekranu (Crash Guard & Static Host Resilience)
+
+### Zmiany
+- [+] Dodano: Komponent `ErrorBoundary.jsx` (Crash Guard) zapobiegający odmontowywaniu drzewa React do czarnego ekranu i oferujący panel ratunkowy (reset sesji, przeładowanie, kopiowanie logu błędu).
+- [+] Dodano: Globalny interceptor Axios odrzucający odpowiedzi HTML zwracane przez reguły rewrite hostingu statycznego dla zapytań `/api/*`.
+- [*] Zmodyfikowano: `core.client.jsx` zoptymalizowano sekwencję bramek autoryzacyjnych (LockScreen przed SetupWizard), dodano animated loader dla `isVerifying` oraz 3-sekundowy timeout dla zapytań inicjalizacyjnych.
+- [*] Zmodyfikowano: `TodoList.jsx`, `NewsFeed.jsx`, `CalendarPage.jsx`, `WorkoutsPage.jsx`, `SystemMonitor.jsx`, `AgentQueue.jsx`, `ModelStatus.jsx`, `MemoryPage.jsx`, `WidgetsPage.jsx` zabezpieczono przed błędami wywołania metod tablicowych (`.filter`, `.map`, `.reduce`) oraz dodano fallback telemetryczny w trybie chmurowym.
+- [*] Zmodyfikowano: `WeatherWidget.jsx` wzbogacono o bezpośredni fallback do otwartego API Open-Meteo w środowisku chmurowym.
+- [*] Zmodyfikowano: `FinancePage.jsx` usunięto błąd `ReferenceError: bal is not defined`.
+- [*] Zmodyfikowano: Przeprowadzono ponowne wdrożenie na Firebase Hosting (`void-potato-7721.web.app`).
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ### Zmiany
 - [+] Dodano: Utworzono projekt w Google Cloud Firebase o unikalnym identyfikatorze `void-potato-7721` (Void Potato Matrix).

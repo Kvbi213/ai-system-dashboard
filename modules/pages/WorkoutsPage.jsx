@@ -21,10 +21,11 @@ const WorkoutsPage = () => {
   const loadData = async () => {
     try {
       const res = await axios.get('/api/workouts');
-      setWorkouts(res.data);
+      setWorkouts(Array.isArray(res.data) ? res.data : []);
       setIsLoading(false);
     } catch (err) {
-      console.error(err);
+      console.warn('Używam lokalnych treningów (brak backendu):', err.message);
+      setWorkouts([]);
       setIsLoading(false);
     }
   };

@@ -5,33 +5,41 @@ const GlobalEventListener = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const eventSource = new EventSource('/api/events');
+    const isCloudMode = typeof window !== 'undefined' && (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com'));
+    if (isCloudMode) return;
 
-    eventSource.addEventListener('navigate', (e) => {
-      try {
-        const data = JSON.parse(e.data);
-        if (data && data.path) {
-          navigate(data.path);
+    let eventSource;
+    try {
+      eventSource = new EventSource('/api/events');
+
+      eventSource.addEventListener('navigate', (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data && data.path) {
+            navigate(data.path);
+          }
+        } catch (err) {
+          console.error('Błąd parsowania zdarzenia navigate:', err);
         }
-      } catch (err) {
-        console.error('Błąd parsowania zdarzenia navigate:', err);
-      }
-    });
+      });
 
-    eventSource.addEventListener('osint_scan_start', (e) => {
-      console.log('OSINT scan started in background:', e.data);
-    });
+      eventSource.addEventListener('osint_scan_start', (e) => {
+        console.log('OSINT scan started in background:', e.data);
+      });
 
-    eventSource.addEventListener('reload', () => {
-      window.location.reload();
-    });
+      eventSource.addEventListener('reload', () => {
+        window.location.reload();
+      });
 
-    eventSource.onerror = (error) => {
-      console.error('SSE Error:', error);
-    };
+      eventSource.onerror = (error) => {
+        console.warn('SSE rozłączone (serwer offline):', error);
+      };
+    } catch (err) {
+      console.warn('Nie udało się zainicjować SSE:', err);
+    }
 
     return () => {
-      eventSource.close();
+      if (eventSource) eventSource.close();
     };
   }, [navigate]);
 

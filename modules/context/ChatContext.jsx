@@ -14,8 +14,15 @@ export const ChatProvider = ({ children }) => {
   const [workerMessages, setWorkerMessages] = useState(() => {
     const ghostMode = localStorage.getItem('system_ghost_mode') === 'true';
     if (!ghostMode) {
-      const saved = localStorage.getItem('system_chat_history');
-      if (saved) return JSON.parse(saved);
+      try {
+        const saved = localStorage.getItem('system_chat_history');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (e) {
+        console.warn('Nie udało się załadować historii czatu:', e);
+      }
     }
     return [{ role: 'ai', content: t('chatOnlineWorker', 'SYSTEM ONLINE. Oczekuję na polecenia, mordo.') }];
   });
@@ -23,8 +30,15 @@ export const ChatProvider = ({ children }) => {
   const [mentorMessages, setMentorMessages] = useState(() => {
     const ghostMode = localStorage.getItem('system_ghost_mode') === 'true';
     if (!ghostMode) {
-      const saved = localStorage.getItem('system_mentor_history');
-      if (saved) return JSON.parse(saved);
+      try {
+        const saved = localStorage.getItem('system_mentor_history');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (e) {
+        console.warn('Nie udało się załadować historii mentora:', e);
+      }
     }
     return [{ role: 'ai', content: t('chatOnlineMentor', 'Cześć. Z czym się dzisiaj mierzysz? Chłodna analiza bez słodzenia gwarantowana.') }];
   });

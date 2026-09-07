@@ -32,17 +32,27 @@ const FinancePage = () => {
 
   const loadData = async () => {
     try {
-      const [finRes, setRes] = await Promise.all([
-        axios.get('/api/finances'),
-        axios.get('/api/finance/settings')
-      ]);
+      let finData = [];
+      let setData = null;
+      try {
+        const [finRes, setRes] = await Promise.all([
+          axios.get('/api/finances'),
+          axios.get('/api/finance/settings')
+        ]);
+        if (Array.isArray(finRes.data)) finData = finRes.data;
+        if (setRes.data && typeof setRes.data === 'object') setData = setRes.data;
+      } catch (err) {
+        console.warn('Używam lokalnych danych finansowych:', err.message);
+      }
       
-      setFinances(finRes.data);
-      setSettings(setRes.data);
+      setFinances(finData);
+      setSettings(setData);
 
+      let bal = 0;
       let spent = { needs: 0, wants: 0, savings: 0, unassigned: 0 };
       
-      finRes.data.forEach(item => {
+      finData.forEach(item => {
+        if (!item || typeof item.amount !== 'number') return;
         if (item.type === 'income') {
           bal += item.amount;
           if (item.bucket) {

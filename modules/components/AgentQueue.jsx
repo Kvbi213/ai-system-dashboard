@@ -9,9 +9,12 @@ const AgentQueue = () => {
     const fetchSchedule = async () => {
       try {
         const { data } = await axios.get('/api/schedule');
-        setScheduleData(data);
+        if (data && typeof data === 'object' && Array.isArray(data.jobs)) {
+          setScheduleData(data);
+        } else {
+          setScheduleData({ jobs: [], count: 0 });
+        }
       } catch (err) {
-        console.error("Błąd pobierania /api/schedule", err);
         setScheduleData({ jobs: [], count: 0 });
       }
     };
@@ -20,6 +23,9 @@ const AgentQueue = () => {
     const iv = setInterval(fetchSchedule, 10000);
     return () => clearInterval(iv);
   }, []);
+
+  const jobs = scheduleData && Array.isArray(scheduleData.jobs) ? scheduleData.jobs : [];
+  const count = scheduleData && typeof scheduleData.count === 'number' ? scheduleData.count : jobs.length;
 
   return (
     <div className="glass-panel p-5 rounded-xl border border-border flex flex-col h-full relative overflow-hidden">
@@ -30,7 +36,7 @@ const AgentQueue = () => {
         <div>
           <h3 className="font-mono text-sm font-bold text-textPrimary">Agent Task Queue</h3>
           <p className="text-[10px] text-textMuted uppercase tracking-wider">
-            {scheduleData ? `ZAPLANOWANE: ${scheduleData.count}` : 'Ładowanie danych...'}
+            {scheduleData ? `ZAPLANOWANE: ${count}` : 'Ładowanie danych...'}
           </p>
         </div>
       </div>
@@ -42,14 +48,14 @@ const AgentQueue = () => {
           </div>
         )}
 
-        {scheduleData && scheduleData.jobs.length === 0 && (
+        {scheduleData && jobs.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-2 opacity-50">
             <Activity className="w-6 h-6 text-textMuted" />
             <p className="text-xs font-mono text-textMuted">Kolejka pusta. System nasłuchuje.</p>
           </div>
         )}
 
-        {scheduleData && scheduleData.jobs.map((job, idx) => (
+        {scheduleData && jobs.map((job, idx) => (
           <div key={idx} className="p-3 rounded-xl border border-accentPrimary/30 bg-accentPrimary/5">
             <div className="flex items-center justify-between mb-1">
               <span className="font-mono text-xs font-bold text-accentPrimary flex items-center gap-2">
