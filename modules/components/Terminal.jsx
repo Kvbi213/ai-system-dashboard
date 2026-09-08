@@ -727,7 +727,7 @@ const Terminal = () => {
           className="flex-1 overflow-y-auto space-y-3 font-sans text-sm mb-3 custom-scrollbar pr-2 relative"
         >
           {messages.map((msg, i) => (
-            <ChatMessage key={i} msg={msg} mode={mode} />
+            <ChatMessage key={msg.id || (msg.timestamp ? `${msg.role}_${msg.timestamp}` : `msg_${i}`)} msg={msg} mode={mode} />
           ))}
           {isProcessing && (
             <div className="flex items-center gap-2.5 text-textMuted font-sans p-3 glass-panel rounded-xl max-w-fit border border-border/50 animate-pulse">

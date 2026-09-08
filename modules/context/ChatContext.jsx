@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { dispatchAiQuery } from '../services/clientAiDispatcher';
-import { subscribeCollection, saveCloudDocument } from '../services/cloudSync';
+import { subscribeCollection, saveCloudDocument, clearChatHistoryCloud } from '../services/cloudSync';
 
 const ChatContext = createContext();
 
@@ -17,32 +17,58 @@ export const ChatProvider = ({ children }) => {
     const ghostMode = localStorage.getItem('system_ghost_mode') === 'true';
     if (!ghostMode) {
       try {
+        const clearedWorker = parseInt(localStorage.getItem('system_chat_cleared_worker') || '0', 10);
         const saved = localStorage.getItem('system_chat_history');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const filtered = parsed.filter(m => {
+              const msgTime = new Date(m.timestamp || m.updated_at || 0).getTime();
+              return !clearedWorker || msgTime > clearedWorker;
+            });
+            if (filtered.length > 0) return filtered;
+          }
         }
       } catch (e) {
         console.warn('Nie udało się załadować historii czatu:', e);
       }
     }
-    return [{ role: 'ai', content: t('chatOnlineWorker', 'SYSTEM ONLINE. Oczekuję na polecenia, mordo.') }];
+    return [{ 
+      id: 'welcome_worker_init',
+      role: 'ai', 
+      content: t('chatOnlineWorker', 'SYSTEM ONLINE. Oczekuję na polecenia, mordo.'),
+      timestamp: new Date().toISOString(),
+      chatMode: 'worker'
+    }];
   });
 
   const [mentorMessages, setMentorMessages] = useState(() => {
     const ghostMode = localStorage.getItem('system_ghost_mode') === 'true';
     if (!ghostMode) {
       try {
+        const clearedMentor = parseInt(localStorage.getItem('system_chat_cleared_mentor') || '0', 10);
         const saved = localStorage.getItem('system_mentor_history');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const filtered = parsed.filter(m => {
+              const msgTime = new Date(m.timestamp || m.updated_at || 0).getTime();
+              return !clearedMentor || msgTime > clearedMentor;
+            });
+            if (filtered.length > 0) return filtered;
+          }
         }
       } catch (e) {
         console.warn('Nie udało się załadować historii mentora:', e);
       }
     }
-    return [{ role: 'ai', content: t('chatOnlineMentor', 'Cześć. Z czym się dzisiaj mierzysz? Chłodna analiza bez słodzenia gwarantowana.') }];
+    return [{ 
+      id: 'welcome_mentor_init',
+      role: 'ai', 
+      content: t('chatOnlineMentor', 'Cześć. Z czym się dzisiaj mierzysz? Chłodna analiza bez słodzenia gwarantowana.'),
+      timestamp: new Date().toISOString(),
+      chatMode: 'mentor'
+    }];
   });
 
   const [thoughtsLog, setThoughtsLog] = useState([
@@ -55,34 +81,122 @@ export const ChatProvider = ({ children }) => {
     if (ghostMode) return;
 
     const unsubscribe = subscribeCollection('chat_history', (cloudMsgs) => {
-      if (Array.isArray(cloudMsgs) && cloudMsgs.length > 0) {
-        // Posortuj chronologicznie
-        const sorted = [...cloudMsgs].sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
-        
-        const workerFromCloud = sorted.filter(m => !m.chatMode || m.chatMode === 'worker');
-        const mentorFromCloud = sorted.filter(m => m.chatMode === 'mentor');
+      const clearedWorker = parseInt(localStorage.getItem('system_chat_cleared_worker') || '0', 10);
+      const clearedMentor = parseInt(localStorage.getItem('system_chat_cleared_mentor') || '0', 10);
 
-        if (workerFromCloud.length > 0) {
-          setWorkerMessages(prev => {
-            // Połącz unikalne po id lub treści
-            const existingIds = new Set(prev.map(p => p.id || p.content));
-            const newItems = workerFromCloud.filter(c => !existingIds.has(c.id || c.content));
-            return newItems.length > 0 ? [...prev, ...newItems] : prev;
-          });
-        }
+      const allMsgs = Array.isArray(cloudMsgs) ? cloudMsgs : [];
 
-        if (mentorFromCloud.length > 0) {
-          setMentorMessages(prev => {
-            const existingIds = new Set(prev.map(p => p.id || p.content));
-            const newItems = mentorFromCloud.filter(c => !existingIds.has(c.id || c.content));
-            return newItems.length > 0 ? [...prev, ...newItems] : prev;
-          });
+      // Filtruj wiadomości dla trybu WORKER nowsze niż znacznik czyszczenia
+      const workerFromCloud = allMsgs.filter(m => {
+        const msgMode = m.chatMode || 'worker';
+        if (msgMode !== 'worker') return false;
+        const msgTime = new Date(m.timestamp || m.updated_at || 0).getTime();
+        return !clearedWorker || msgTime > clearedWorker;
+      });
+
+      // Filtruj wiadomości dla trybu MENTOR nowsze niż znacznik czyszczenia
+      const mentorFromCloud = allMsgs.filter(m => {
+        if (m.chatMode !== 'mentor') return false;
+        const msgTime = new Date(m.timestamp || m.updated_at || 0).getTime();
+        return !clearedMentor || msgTime > clearedMentor;
+      });
+
+      setWorkerMessages(prev => {
+        // Zachowaj wiadomości w pamięci z obecnej sesji po czyszczeniu
+        const validPrev = prev.filter(m => {
+          const t = new Date(m.timestamp || 0).getTime();
+          return !clearedWorker || t > clearedWorker;
+        });
+
+        // Połącz unikalne po id lub roli/treści/czasie
+        const map = new Map();
+        validPrev.forEach(m => {
+          const key = m.id || `${m.role}_${m.content}_${m.timestamp}`;
+          map.set(key, m);
+        });
+        workerFromCloud.forEach(m => {
+          const key = m.id || `${m.role}_${m.content}_${m.timestamp}`;
+          map.set(key, m);
+        });
+
+        const merged = Array.from(map.values());
+        merged.sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
+
+        if (merged.length === 0) {
+          return [{
+            id: `welcome_worker_${clearedWorker || 'init'}`,
+            role: 'ai',
+            content: t('chatOnlineWorker', 'SYSTEM ONLINE. Oczekuję na polecenia, mordo.'),
+            timestamp: new Date(clearedWorker || Date.now()).toISOString(),
+            chatMode: 'worker'
+          }];
         }
-      }
+        return merged;
+      });
+
+      setMentorMessages(prev => {
+        const validPrev = prev.filter(m => {
+          const t = new Date(m.timestamp || 0).getTime();
+          return !clearedMentor || t > clearedMentor;
+        });
+
+        const map = new Map();
+        validPrev.forEach(m => {
+          const key = m.id || `${m.role}_${m.content}_${m.timestamp}`;
+          map.set(key, m);
+        });
+        mentorFromCloud.forEach(m => {
+          const key = m.id || `${m.role}_${m.content}_${m.timestamp}`;
+          map.set(key, m);
+        });
+
+        const merged = Array.from(map.values());
+        merged.sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
+
+        if (merged.length === 0) {
+          return [{
+            id: `welcome_mentor_${clearedMentor || 'init'}`,
+            role: 'ai',
+            content: t('chatOnlineMentor', 'Cześć. Z czym się dzisiaj mierzysz? Chłodna analiza bez słodzenia gwarantowana.'),
+            timestamp: new Date(clearedMentor || Date.now()).toISOString(),
+            chatMode: 'mentor'
+          }];
+        }
+        return merged;
+      });
     });
 
-    return () => unsubscribe();
-  }, []);
+    const handleChatCleared = (e) => {
+      const ts = e.detail?.timestamp || Date.now();
+      const iso = new Date(ts).toISOString();
+      const targetMode = e.detail?.mode || 'all';
+
+      if (targetMode === 'worker' || targetMode === 'all') {
+        setWorkerMessages([{
+          id: `welcome_worker_${ts}`,
+          role: 'ai',
+          content: t('chatOnlineWorker', 'SYSTEM ONLINE. Oczekuję na polecenia, mordo.'),
+          timestamp: iso,
+          chatMode: 'worker'
+        }]);
+      }
+      if (targetMode === 'mentor' || targetMode === 'all') {
+        setMentorMessages([{
+          id: `welcome_mentor_${ts}`,
+          role: 'ai',
+          content: t('chatOnlineMentor', 'Cześć. Z czym się dzisiaj mierzysz? Chłodna analiza bez słodzenia gwarantowana.'),
+          timestamp: iso,
+          chatMode: 'mentor'
+        }]);
+      }
+    };
+    window.addEventListener('chatCleared', handleChatCleared);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('chatCleared', handleChatCleared);
+    };
+  }, [t]);
 
   useEffect(() => {
     const ghostMode = localStorage.getItem('system_ghost_mode') === 'true';
@@ -112,17 +226,42 @@ export const ChatProvider = ({ children }) => {
       };
 
       if (cmd === '/clear') {
+        const clearTimestamp = Date.now();
+        const clearIso = new Date(clearTimestamp).toISOString();
+
         if (mode === 'worker') {
-          setWorkerMessages([{ role: 'ai', content: t('chatOnlineWorker', 'SYSTEM ONLINE. Oczekuję na polecenia, mordo.'), timestamp: new Date().toISOString() }]);
+          localStorage.setItem('system_chat_cleared_worker', String(clearTimestamp));
+          const welcome = [{ 
+            id: `welcome_worker_${clearTimestamp}`,
+            role: 'ai', 
+            content: t('chatOnlineWorker', 'SYSTEM ONLINE. Oczekuję na polecenia, mordo.'), 
+            timestamp: clearIso,
+            chatMode: 'worker'
+          }];
+          setWorkerMessages(welcome);
+          localStorage.setItem('system_chat_history', JSON.stringify(welcome));
+          window.dispatchEvent(new CustomEvent('chatCleared', { detail: { timestamp: clearTimestamp, mode: 'worker' } }));
+          clearChatHistoryCloud('worker').catch(err => console.warn('[ChatContext] Błąd czyszczenia chmury worker:', err));
         } else {
-          setMentorMessages([{ role: 'ai', content: t('chatOnlineMentor', 'Cześć. Z czym się dzisiaj mierzysz? Chłodna analiza bez słodzenia gwarantowana.'), timestamp: new Date().toISOString() }]);
+          localStorage.setItem('system_chat_cleared_mentor', String(clearTimestamp));
+          const welcome = [{ 
+            id: `welcome_mentor_${clearTimestamp}`,
+            role: 'ai', 
+            content: t('chatOnlineMentor', 'Cześć. Z czym się dzisiaj mierzysz? Chłodna analiza bez słodzenia gwarantowana.'), 
+            timestamp: clearIso,
+            chatMode: 'mentor'
+          }];
+          setMentorMessages(welcome);
+          localStorage.setItem('system_mentor_history', JSON.stringify(welcome));
           setThoughtsLog([t("chatMentorReset", "System Mentor zresetowany. Oczekiwanie na dane wejściowe...")]);
+          window.dispatchEvent(new CustomEvent('chatCleared', { detail: { timestamp: clearTimestamp, mode: 'mentor' } }));
+          clearChatHistoryCloud('mentor').catch(err => console.warn('[ChatContext] Błąd czyszczenia chmury mentor:', err));
         }
         return;
       }
       
       if (cmd === '/help') {
-        pushSysMsg(t('chatHelpMsg', 'Dostępne polecenia systemowe:\n- /clear - czyści ekran obecnego trybu.\n- /purge - agresywnie usuwa lokalną historię z pamięci cache i czyści ekran.\n- /mode [worker|mentor] - przełącza tryb sztucznej inteligencji.\n- /export - zapisuje log z rozmową do pliku na dysku twardym.\n- /ping - weryfikuje łączność i opóźnienie do API System.'));
+        pushSysMsg(t('chatHelpMsg', 'Dostępne polecenia systemowe:\n- /clear - czyści ekran obecnego trybu oraz usuwa historię z chmury.\n- /purge - agresywnie usuwa historię z pamięci podręcznej i chmury dla obu trybów.\n- /mode [worker|mentor] - przełącza tryb sztucznej inteligencji.\n- /export - zapisuje log z rozmową do pliku na dysku twardym.\n- /ping - weryfikuje łączność i opóźnienie do API System.'));
         return;
       }
 
@@ -157,13 +296,35 @@ export const ChatProvider = ({ children }) => {
       }
 
       if (cmd === '/purge') {
-        localStorage.removeItem(mode === 'worker' ? 'system_chat_history' : 'system_mentor_history');
-        if (mode === 'worker') {
-          setWorkerMessages([{ role: 'ai', content: t('chatPurgeWorker', 'SYSTEM ONLINE. Pamięć podręczna całkowicie wyczyszczona.'), timestamp: new Date().toISOString() }]);
-        } else {
-          setMentorMessages([{ role: 'ai', content: t('chatPurgeMentor1', 'Pamięć długoterminowa zresetowana. Czekam na nowe wytyczne.'), timestamp: new Date().toISOString() }]);
-          setThoughtsLog([t("chatPurgeMentor2", "System Mentor uruchomiony (PURGED).")]);
-        }
+        const clearTimestamp = Date.now();
+        const clearIso = new Date(clearTimestamp).toISOString();
+
+        localStorage.setItem('system_chat_cleared_worker', String(clearTimestamp));
+        localStorage.setItem('system_chat_cleared_mentor', String(clearTimestamp));
+        localStorage.removeItem('system_chat_history');
+        localStorage.removeItem('system_mentor_history');
+
+        const workerWelcome = [{ 
+          id: `welcome_worker_${clearTimestamp}`,
+          role: 'ai', 
+          content: t('chatPurgeWorker', 'SYSTEM ONLINE. Pamięć podręczna całkowicie wyczyszczona.'), 
+          timestamp: clearIso,
+          chatMode: 'worker'
+        }];
+        const mentorWelcome = [{ 
+          id: `welcome_mentor_${clearTimestamp}`,
+          role: 'ai', 
+          content: t('chatPurgeMentor1', 'Pamięć długoterminowa zresetowana. Czekam na nowe wytyczne.'), 
+          timestamp: clearIso,
+          chatMode: 'mentor'
+        }];
+
+        setWorkerMessages(workerWelcome);
+        setMentorMessages(mentorWelcome);
+        setThoughtsLog([t("chatPurgeMentor2", "System Mentor uruchomiony (PURGED).")]);
+
+        window.dispatchEvent(new CustomEvent('chatCleared', { detail: { timestamp: clearTimestamp, mode: 'all' } }));
+        clearChatHistoryCloud('all').catch(err => console.warn('[ChatContext] Błąd purge chmury:', err));
         return;
       }
 

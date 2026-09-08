@@ -681,6 +681,50 @@ export const updateCloudDocumentField = async (collectionName, docId, fields) =>
 };
 
 /**
+ * Trwale usuwa historię konwersacji z bazy Cloud Firestore oraz lokalnej pamięci podręcznej (cache).
+ * @param {'worker' | 'mentor' | 'all'} targetMode Tryb chatu do wyczyszczenia
+ */
+export const clearChatHistoryCloud = async (targetMode = 'worker') => {
+  const cacheKey = `cloud_cache_${CLOUD_COLLECTIONS.CHAT_HISTORY}`;
+
+  // 1. Natychmiastowe czyszczenie pamięci lokalnej (Optymistyczne UI)
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    let items = cached ? JSON.parse(cached) : [];
+    if (Array.isArray(items)) {
+      const remaining = targetMode === 'all'
+        ? []
+        : items.filter(m => (m.chatMode || 'worker') !== targetMode);
+      localStorage.setItem(cacheKey, JSON.stringify(remaining));
+      window.dispatchEvent(new CustomEvent('cloudDataChanged', {
+        detail: { collection: CLOUD_COLLECTIONS.CHAT_HISTORY, action: 'clear_mode', mode: targetMode }
+      }));
+    }
+  } catch (e) {
+    console.warn('[CloudSync] Błąd czyszczenia cache czatu:', e);
+  }
+
+  // 2. Usunięcie dokumentów z bazy Cloud Firestore
+  if (firestore && typeof collection === 'function') {
+    try {
+      const colRef = collection(firestore, CLOUD_COLLECTIONS.CHAT_HISTORY);
+      const snap = await getDocs(colRef);
+      const deletePromises = [];
+      snap.forEach(docSnap => {
+        const data = docSnap.data();
+        const msgMode = data.chatMode || 'worker';
+        if (targetMode === 'all' || msgMode === targetMode) {
+          deletePromises.push(deleteDoc(doc(firestore, CLOUD_COLLECTIONS.CHAT_HISTORY, docSnap.id)));
+        }
+      });
+      await Promise.allSettled(deletePromises);
+    } catch (e) {
+      console.warn('[CloudSync] Błąd usuwania historii czatu z Firestore:', e);
+    }
+  }
+};
+
+/**
  * Inicjalizuje wszystkie kolekcje Firestore (tasks, finances, workouts, calendar, operator_brain, chat_history)
  * sprawdzając ich stan i wysyłając dane starterowe.
  */

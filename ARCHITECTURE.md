@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.11.3 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.11.4 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Cloud-First Firestore Sync, Resilient Action Parser, Dynamic 0% Budgeting & Funds Allocation, Calendar Management, Warsaw Timezone AI Engine, Vercel Serverless & Firebase Hosting)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Cloud-First Firestore Sync, Deterministic Chat Purge & Session Cutoff, Dynamic 0% Budgeting & Funds Allocation, Calendar Management, Warsaw Timezone AI Engine, Vercel Serverless & Firebase Hosting)
 
 ---
 
@@ -48,8 +48,11 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   ├── firebaseClient.js      ← Klient frontendowy Firebase Web SDK (Auth, Firestore).
 │   │
 │   ├── /services/             ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
-│   │   ├── cloudSync.js       ← Dwukierunkowa subskrypcja 7 kolekcji Firestore z auto-inicjalizacją.
+│   │   ├── cloudSync.js       ← Dwukierunkowa subskrypcja 7 kolekcji Firestore z auto-inicjalizacją i cloud purge czatu (clearChatHistoryCloud).
 │   │   └── clientAiDispatcher.js ← Autonomiczny silnik zapytań LLM (openai/gpt-oss-120b) przez Vercel Gateway.
+│   │
+│   ├── /context/              ← Konteksty globalnego stanu aplikacji.
+│   │   └── ChatContext.jsx    ← Zarządzanie wiadomościami Workera/Mentora, obsługa komend systemowych (/clear, /purge) i izolacja sesji.
 │   │
 │   ├── /ai/                   ← Pliki konfiguracyjne dla agentów AI.
 │   │   ├── prompts.js         ← Zbiór promptów systemowych (Worker, Mentor).

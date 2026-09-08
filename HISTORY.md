@@ -1,5 +1,22 @@
 ## Wersja Bieżąca
-**v2.11.3**
+**v2.11.4**
+
+## v 2.11.4 — 2026-09-08
+**Typ:** PATCH  
+**Zakres:** Eliminacja Defektu Komendy /clear & /purge, Trwały Purge Historii Chatu w Cloud Firestore (`clearChatHistoryCloud`), Strażnik Granicy Sesji (`clearedAt` Timestamp Guard) & Zapobieganie Resurekcji Wiadomości.
+
+### Zmiany
+- [+] Dodano: Funkcję `clearChatHistoryCloud(targetMode)` w `modules/services/cloudSync.js` wykonującą natychmiastowe usunięcie wiadomości z lokalnego cache i asynchroniczne równoległe usunięcie (`deleteDoc`) z kolekcji `chat_history` w Cloud Firestore.
+- [+] Dodano: Granicę odcięcia sesji chatu (`system_chat_cleared_worker` i `system_chat_cleared_mentor`) w `localStorage`, chroniącą przed resurekcją starych komunikatów w listenerze `subscribeCollection`.
+- [+] Dodano: Ścisłe sortowanie chronologiczne i deduplikację unikalnych identyfikatorów wiadomości przy napływie aktualizacji z chmury w `ChatContext.jsx`.
+- [+] Dodano: Obsługę globalnego zdarzenia `chatCleared` integrującą czyszczenie w `ChatContext.jsx`, `CommandPalette.jsx` oraz pigułce szybkiego promptu `🧹 Wyczyść czat`.
+- [+] Dodano: Stabilne klucze renderowania list wiadomości w `Terminal.jsx` (`key={msg.id || ...}`) zapobiegające anomaliom DOM.
+- [*] Zmodyfikowano: Skrypt synchronizacji `scripts/sync_bez_firebase.js` rozszerzony o pliki `ChatContext.jsx`, `CommandPalette.jsx` oraz dokumentację wersji.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 2.11.3 — 2026-09-08
 **Typ:** PATCH  

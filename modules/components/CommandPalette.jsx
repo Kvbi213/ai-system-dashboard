@@ -5,7 +5,7 @@ import {
   Dumbbell, Shield, Settings, Lock, Sun, Moon, Sparkles, Globe, 
   Cpu, ArrowRight, CornerDownLeft, Plus, GraduationCap 
 } from 'lucide-react';
-import { saveCloudDocument } from '../services/cloudSync';
+import { saveCloudDocument, clearChatHistoryCloud } from '../services/cloudSync';
 
 const CommandPalette = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -71,9 +71,14 @@ const CommandPalette = () => {
       sessionStorage.removeItem('dashboard_token');
       window.location.reload();
     } else if (action.type === 'clear_chat') {
+      const clearTimestamp = Date.now();
+      localStorage.setItem('system_chat_cleared_worker', String(clearTimestamp));
+      localStorage.setItem('system_chat_cleared_mentor', String(clearTimestamp));
       localStorage.removeItem('system_chat_history');
       localStorage.removeItem('system_mentor_history');
-      showToast('Pamięć podręczna konwersacji wyczyszczona.');
+      clearChatHistoryCloud('all').catch(() => {});
+      window.dispatchEvent(new CustomEvent('chatCleared', { detail: { timestamp: clearTimestamp, mode: 'all' } }));
+      showToast('Pamięć konwersacji wyczyszczona w chmurze i lokalnie.');
       setIsOpen(false);
     }
   };

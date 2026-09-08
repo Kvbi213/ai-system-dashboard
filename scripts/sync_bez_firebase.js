@@ -44,6 +44,8 @@ const filesToSync = [
   'modules/components/ModelWidget.jsx',
   'modules/components/SetupWizard.jsx',
   'modules/components/ITNewsTicker.jsx',
+  'modules/components/CommandPalette.jsx',
+  'modules/context/ChatContext.jsx',
   'modules/config/constants.js',
   'modules/services/clientAiDispatcher.js',
   'api/news.js',
@@ -55,7 +57,10 @@ const filesToSync = [
   'HISTORY.md',
   'ARCHITECTURE.md',
   'docs/versions/v2.11.0.md',
-  'docs/versions/v2.11.1.md'
+  'docs/versions/v2.11.1.md',
+  'docs/versions/v2.11.2.md',
+  'docs/versions/v2.11.3.md',
+  'docs/versions/v2.11.4.md'
 ];
 
 filesToSync.forEach(relPath => {
