@@ -505,6 +505,14 @@ export const INITIAL_FIRESTORE_DATA = {
 ]
 };
 
+const emitCloudDataChanged = (detail) => {
+  if (typeof window !== 'undefined') {
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail }));
+    }, 0);
+  }
+};
+
 export const subscribeCollection = (collectionName, onData, fallbackData = []) => {
   // Najpierw natychmiast załaduj dane z cache localStorage dla zerowego czasu oczekiwania
   const cacheKey = `cloud_cache_${collectionName}`;
@@ -543,7 +551,7 @@ export const subscribeCollection = (collectionName, onData, fallbackData = []) =
         if (items.length > 0) {
           localStorage.setItem(cacheKey, JSON.stringify(items));
           onData(items);
-          window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: collectionName, count: items.length } }));
+          emitCloudDataChanged({ collection: collectionName, count: items.length });
         } else {
           // Kolekcja w chmurze jest pusta (np. po czyszczeniu przez użytkownika lub świeża instalacja)
           const isFreshEmptyCol = !localStorage.getItem(`cloud_initialized_${collectionName}`);
@@ -563,13 +571,13 @@ export const subscribeCollection = (collectionName, onData, fallbackData = []) =
                 console.warn(`[CloudSync] Inicjalizacja ${collectionName}/${item.id}:`, syncErr.message);
               }
             });
-            window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: collectionName, count: defaultItems.length } }));
+            emitCloudDataChanged({ collection: collectionName, count: defaultItems.length });
           } else {
             // Jeśli baza w chmurze jest pusta (np. po celowym wyczyszczeniu), zapisujemy pustą tablicę do cache i UI!
             localStorage.setItem(`cloud_initialized_${collectionName}`, 'true');
             localStorage.setItem(cacheKey, JSON.stringify([]));
             onData([]);
-            window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: collectionName, count: 0 } }));
+            emitCloudDataChanged({ collection: collectionName, count: 0 });
           }
         }
       },
@@ -606,7 +614,7 @@ export const saveCloudDocument = async (collectionName, docId, data) => {
       items.unshift(itemToSave);
     }
     localStorage.setItem(cacheKey, JSON.stringify(items));
-    window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: collectionName, action: 'save', item: itemToSave } }));
+    emitCloudDataChanged({ collection: collectionName, action: 'save', item: itemToSave });
   } catch (e) {
     console.warn(`[CloudSync] Błąd optymistycznego zapisu:`, e);
   }
@@ -634,7 +642,7 @@ export const deleteCloudDocument = async (collectionName, docId) => {
     if (Array.isArray(items)) {
       items = items.filter((i) => String(i.id) !== idStr);
       localStorage.setItem(cacheKey, JSON.stringify(items));
-      window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: collectionName, action: 'delete', id: idStr } }));
+      emitCloudDataChanged({ collection: collectionName, action: 'delete', id: idStr });
     }
   } catch (e) {
     console.warn(`[CloudSync] Błąd optymistycznego usunięcia:`, e);
@@ -661,7 +669,7 @@ export const updateCloudDocumentField = async (collectionName, docId, fields) =>
     if (Array.isArray(items)) {
       items = items.map((i) => (String(i.id) === idStr ? { ...i, ...fields, updated_at: new Date().toISOString() } : i));
       localStorage.setItem(cacheKey, JSON.stringify(items));
-      window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: collectionName, action: 'update', id: idStr } }));
+      emitCloudDataChanged({ collection: collectionName, action: 'update', id: idStr });
     }
   } catch (e) {
     console.warn(`[CloudSync] Błąd optymistycznej aktualizacji:`, e);
@@ -696,9 +704,9 @@ export const clearChatHistoryCloud = async (targetMode = 'worker') => {
         ? []
         : items.filter(m => (m.chatMode || 'worker') !== targetMode);
       localStorage.setItem(cacheKey, JSON.stringify(remaining));
-      window.dispatchEvent(new CustomEvent('cloudDataChanged', {
-        detail: { collection: CLOUD_COLLECTIONS.CHAT_HISTORY, action: 'clear_mode', mode: targetMode }
-      }));
+      emitCloudDataChanged({
+        collection: CLOUD_COLLECTIONS.CHAT_HISTORY, action: 'clear_mode', mode: targetMode
+      });
     }
   } catch (e) {
     console.warn('[CloudSync] Błąd czyszczenia cache czatu:', e);

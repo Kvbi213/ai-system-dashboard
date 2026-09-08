@@ -65,8 +65,18 @@ const SearchPage = () => {
     if (!query.trim()) return;
 
     setIsSearching(true);
+    const isCloudMode = typeof window !== 'undefined' && (
+      window.location.hostname.includes('web.app') || 
+      window.location.hostname.includes('firebaseapp.com') ||
+      window.location.hostname.includes('vercel.app') ||
+      (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
+    );
+    const endpoint = isCloudMode 
+      ? `https://ai-system-dashboard.vercel.app/api/news?q=${encodeURIComponent(query)}`
+      : `/api/news?q=${encodeURIComponent(query)}`;
+
     try {
-      const response = await axios.get(`/api/news?q=${encodeURIComponent(query)}`);
+      const response = await axios.get(endpoint);
 
       if (response.data.results && response.data.results.length > 0) {
         setResults(response.data.results);

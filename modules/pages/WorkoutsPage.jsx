@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Dumbbell, Plus, Trash2, Calendar, Clock, Activity, Flame, Search, Sparkles, Filter } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
-import { subscribeCollection, saveCloudDocument, deleteCloudDocument } from '../services/cloudSync';
+import { subscribeCollection, saveCloudDocument, deleteCloudDocument, isCloudEnvironment } from '../services/cloudSync';
 
 const WorkoutsPage = () => {
   const { t } = useTranslation();
@@ -30,22 +30,24 @@ const WorkoutsPage = () => {
       }
     });
 
-    // Pobranie z backendu Express jeśli jest online
-    axios.get('/api/workouts')
-      .then(res => {
-        if (Array.isArray(res.data) && res.data.length > 0) {
-          setWorkouts(prev => {
-            const combined = [...res.data];
-            prev.forEach(p => {
-              if (!combined.some(c => String(c.id) === String(p.id))) {
-                combined.push(p);
-              }
+    // Pobranie z backendu Express jeśli jest online (tylko lokalnie)
+    if (!isCloudEnvironment()) {
+      axios.get('/api/workouts')
+        .then(res => {
+          if (Array.isArray(res.data) && res.data.length > 0) {
+            setWorkouts(prev => {
+              const combined = [...res.data];
+              prev.forEach(p => {
+                if (!combined.some(c => String(c.id) === String(p.id))) {
+                  combined.push(p);
+                }
+              });
+              return combined;
             });
-            return combined;
-          });
-        }
-      })
-      .catch(() => {});
+          }
+        })
+        .catch(() => {});
+    }
 
     return () => unsub();
   }, []);
@@ -54,9 +56,11 @@ const WorkoutsPage = () => {
     const idStr = String(id);
     setWorkouts(prev => prev.filter(w => String(w.id) !== idStr));
     await deleteCloudDocument('workouts', idStr);
-    try {
-      await axios.delete(`/api/workouts/${idStr}`);
-    } catch {}
+    if (!isCloudEnvironment()) {
+      try {
+        await axios.delete(`/api/workouts/${idStr}`);
+      } catch {}
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -79,9 +83,11 @@ const WorkoutsPage = () => {
     });
 
     await saveCloudDocument('workouts', newWorkout.id, newWorkout);
-    try {
-      await axios.post('/api/workouts', newWorkout);
-    } catch {}
+    if (!isCloudEnvironment()) {
+      try {
+        await axios.post('/api/workouts', newWorkout);
+      } catch {}
+    }
   };
 
   const getTypeColor = (type) => {

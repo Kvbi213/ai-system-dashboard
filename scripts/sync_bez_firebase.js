@@ -41,6 +41,10 @@ const filesToSync = [
   'modules/components/Terminal.jsx',
   'modules/components/ChatInlineWidgets.jsx',
   'modules/components/SystemMonitor.jsx',
+  'modules/components/NetworkMonitor.jsx',
+  'modules/components/ModelStatus.jsx',
+  'modules/components/AgentQueue.jsx',
+  'modules/components/WeatherWidget.jsx',
   'modules/components/ModelWidget.jsx',
   'modules/components/SetupWizard.jsx',
   'modules/components/ITNewsTicker.jsx',
@@ -51,6 +55,7 @@ const filesToSync = [
   'api/news.js',
   'api/agent.js',
   'api/status.js',
+  'api/osint.js',
   'core.client.jsx',
   'assets/styles/index.css',
   'package.json',
@@ -60,7 +65,8 @@ const filesToSync = [
   'docs/versions/v2.11.1.md',
   'docs/versions/v2.11.2.md',
   'docs/versions/v2.11.3.md',
-  'docs/versions/v2.11.4.md'
+  'docs/versions/v2.11.4.md',
+  'docs/versions/v2.11.5.md'
 ];
 
 filesToSync.forEach(relPath => {

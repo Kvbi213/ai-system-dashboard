@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.11.4 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.11.5 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Cloud-First Firestore Sync, Deterministic Chat Purge & Session Cutoff, Dynamic 0% Budgeting & Funds Allocation, Calendar Management, Warsaw Timezone AI Engine, Vercel Serverless & Firebase Hosting)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Cloud-First Firestore Sync, Deterministic Chat Purge & Session Cutoff, Dynamic 0% Budgeting & Funds Allocation, Calendar Management, Warsaw Timezone AI Engine, Multi-Cloud OSINT Serverless, Vercel Serverless & Firebase Hosting)
 
 ---
 
@@ -10,7 +10,7 @@
 System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-oss-120b` (Groq SDK). Projekt łączy w sobie cechy inteligentnego terminala poleceń, zarządzania zadaniami (To-Do), planu lekcji i harmonogramu zajęć (Timetable), kalendarza z możliwością ręcznego planowania, elastycznego budżetu z dynamicznym dysponowaniem środkami (autopodział dochodów 50/30/20, jedna pula, podział własny oraz transfery między koszykami), planera treningów, długoterminowej pamięci (Operator Brain), monitoringu systemu oraz wyszukiwania w sieci na żywo (Brave Search API).
 
 **Główne Paradygmaty:**
-1. **Multi-Cloud & Cloud-First Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (`https://void-potato-7721.web.app`), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`) z otwartymi regułami dostępu (`firestore.rules`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`https://ai-system-dashboard.vercel.app/api/agent`, `api/news`, `api/models`, `api/status`). Wszystkie operacje na telefonach, tabletach i desktopie natychmiast synchronizują się z chmurą bez wymogu logowania Google OAuth.
+1. **Multi-Cloud & Cloud-First Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (`https://void-potato-7721.web.app`), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`) z otwartymi regułami dostępu (`firestore.rules`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`https://ai-system-dashboard.vercel.app/api/agent`, `api/news`, `api/models`, `api/status`, `api/osint`). Wszystkie operacje na telefonach, tabletach i desktopie natychmiast synchronizują się z chmurą bez wymogu logowania Google OAuth.
 2. **Mobile-First Touch Architecture:** Pełna natywna obsługa urządzeń mobilnych (iOS/Android) z trójwarstwową architekturą nawigacyjną: Mobile Top App Bar (`h-14`), Mobile Bottom Quick Bar (`h-16` z `safe-area-inset-bottom`) oraz wysuwaną szufladą (Bottom Sheet Drawer).
 3. **Advanced Budgeting & Envelope Allocation:** Autonomiczny i elastyczny system podziału finansów. Użytkownik decyduje, czy każdy przychód jest automatycznie rozdzielany wg proporcji (np. 50/30/20), przypisywany w całości do jednej puli (np. Oszczędności), czy dzielony kwotowo. Wbudowane narzędzie transferu środków pozwala na swobodne przesuwanie kapitału między kubełkami z bieżącym śledzeniem dostępnych środków (`availableNeeds`, `availableWants`, `availableSavings`).
 4. **LLM with Precise Warsaw Timezone & Multi-Tool Engine:** Cała logika kognitywna oparta jest na modelu `openai/gpt-oss-120b`. Klient każdorazowo przesyła precyzyjny timestamp oraz zlokalizowaną godzinę, a Vercel Gateway wymusza strefę `Europe/Warsaw`, gwarantując natychmiastową i niezmiennie poprawną wiedzę o aktualnej godzinie w Polsce.
@@ -30,6 +30,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   ├── agent.js               ← CORS-enabled proxy do openai/gpt-oss-120b z wstrzykiwaniem kontekstu, narzędzi akcji & Live Brave Search
 │   ├── news.js                ← Serverless endpoint newsowy z integracją Brave Search News API i kategoryzacją
 │   ├── models.js              ← Dynamiczny wykaz dostępnych modeli LLM z fallbackiem
+│   ├── osint.js               ← Multi-cloud OSINT intelligence (DNS, GeoJS, Wayback, WHOIS, HIBP)
 │   └── status.js              ← Healthcheck i pomiar opóźnień (ping)
 │
 ├── core.server.js             ← Mózg backendu lokalnego (Express.js).

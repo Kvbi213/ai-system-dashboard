@@ -1,5 +1,26 @@
 ## Wersja Bieżąca
-**v2.11.4**
+**v2.11.5**
+
+## v 2.11.5 — 2026-09-08
+**Typ:** PATCH  
+**Zakres:** Eliminacja Błędów Zwracania HTML w Endpointach API (Cloud-First Guard `isCloudEnvironment`), Nowa Funkcja Serverless `api/osint.js` na Vercel z CORS i Fallback Kliencki, Telemetria Kliencka w SystemMonitor/NetworkMonitor/ModelStatus/AgentQueue, Wyciszenie Ostrzeżeń Geolocation i Eliminacja Wywołań setState Podczas Renderowania.
+
+### Zmiany
+- [+] Dodano: Dedykowaną funkcję Vercel Serverless Function `api/osint.js` z pełną obsługą CORS (`Access-Control-Allow-Origin: *`), rozpoznawaniem typów celów (IP, domena, MAC, email, hasło), rozwiązywaniem DNS (Node DNS + Google DNS fallback), geolokalizacją GeoJS, historią migawek Wayback Machine, zapytaniami WHOIS i HaveIBeenPwned Range API.
+- [+] Dodano: Autonomiczny mechanizm fallbacku klienckiego (browser-native OSINT scan) w `modules/pages/OSINTPage.jsx`, gwarantujący natychmiastowe wyniki bez ryzyka błędu HTML ze strony hostingu statycznego.
+- [+] Dodano: Asynchroniczny dyspozytor zdarzeń `emitCloudDataChanged` w `modules/services/cloudSync.js` z opóźnieniem `setTimeout(..., 0)`, co całkowicie eliminuje ostrzeżenia Reacta o aktualizowaniu stanu innych komponentów w trakcie renderowania.
+- [*] Zmodyfikowano: `FinancePage.jsx`, `TimetablePage.jsx` oraz `WorkoutsPage.jsx` zabezpieczono warunkiem `if (!isCloudEnvironment())` przed niepotrzebnym odpytywaniem lokalnych tras Express w środowisku statycznym Firebase Hosting.
+- [*] Zmodyfikowano: `SettingsPage.jsx` w trybie chmurowym natychmiast zwraca konfigurację projektu Firestore `void-potato-7721` bez odpytywania `/api/firebase/status` oraz zarządza kodem PIN lokalnie w chmurze.
+- [*] Zmodyfikowano: `SystemMonitor.jsx`, `NetworkMonitor.jsx`, `ModelStatus.jsx` oraz `AgentQueue.jsx` w środowisku chmurowym wykorzystują telemetrię kliencką (`performance.memory`, `performance.now()`) oraz endpoint `https://ai-system-dashboard.vercel.app/api/status`, eliminując cykliczne błędy w konsoli co 5-10 sekund.
+- [*] Zmodyfikowano: W `core.client.jsx` interceptor Axios ogranicza powiadomienia `console.warn` wyłącznie do lokalnego środowiska deweloperskiego (`localhost`).
+- [*] Zmodyfikowano: W `WeatherWidget.jsx` zmieniono logowanie błędu braku dostępu do geolokalizacji na `console.debug`.
+- [*] Zmodyfikowano: `ChatContext.jsx` dla komendy `/ping` pinguje bramę Vercel Gateway w trybie chmurowym.
+- [*] Zmodyfikowano: `scripts/sync_bez_firebase.js` zaktualizowano o nowe pliki `api/osint.js`, monitory oraz dokumentację v2.11.5.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 2.11.4 — 2026-09-08
 **Typ:** PATCH  

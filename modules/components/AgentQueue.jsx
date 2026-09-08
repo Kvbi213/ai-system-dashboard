@@ -6,7 +6,19 @@ const AgentQueue = () => {
   const [scheduleData, setScheduleData] = useState(null);
 
   useEffect(() => {
+    const isCloudMode = typeof window !== 'undefined' && (
+      window.location.hostname.includes('web.app') || 
+      window.location.hostname.includes('firebaseapp.com') ||
+      window.location.hostname.includes('vercel.app') ||
+      (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
+    );
+
     const fetchSchedule = async () => {
+      if (isCloudMode) {
+        setScheduleData({ jobs: [], count: 0 });
+        return;
+      }
+
       try {
         const { data } = await axios.get('/api/schedule');
         if (data && typeof data === 'object' && Array.isArray(data.jobs)) {

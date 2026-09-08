@@ -39,8 +39,12 @@ axios.interceptors.response.use(
        response.data.trim().startsWith('<!DOCTYPE') ||
        response.data.trim().startsWith('<html'))
     ) {
-      console.warn(`[Axios] Endpoint ${response.config.url} zwrócił HTML zamiast JSON.`);
-      return Promise.reject(new Error(`Endpoint ${response.config.url} zwrócił HTML`));
+      if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        console.warn(`[Axios] Endpoint ${response.config?.url} zwrócił HTML zamiast JSON.`);
+      } else {
+        console.debug(`[Axios] Endpoint ${response.config?.url} zwrócił HTML zamiast JSON.`);
+      }
+      return Promise.reject(new Error(`Endpoint ${response.config?.url || 'unknown'} zwrócił HTML`));
     }
     return response;
   },

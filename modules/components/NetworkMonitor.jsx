@@ -2,8 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { Wifi, Globe, Server, AlertCircle } from 'lucide-react';
 
 const NetworkMonitor = () => {
+  const isCloudMode = typeof window !== 'undefined' && (
+    window.location.hostname.includes('web.app') || 
+    window.location.hostname.includes('firebaseapp.com') ||
+    window.location.hostname.includes('vercel.app') ||
+    (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
+  );
+
   const [nodes, setNodes] = useState([
-    { id: 'internal', name: 'API Gateway', url: '/api/system/metrics', latency: 0, status: 'unknown' },
+    { 
+      id: 'internal', 
+      name: isCloudMode ? 'Vercel Gateway' : 'API Gateway', 
+      url: isCloudMode ? 'https://ai-system-dashboard.vercel.app/api/status' : '/api/system/metrics', 
+      latency: 0, 
+      status: 'unknown' 
+    },
     { id: 'google', name: 'Google DNS', url: 'https://dns.google/resolve?name=google.com', latency: 0, status: 'unknown' },
     { id: 'cloudflare', name: 'Cloudflare', url: 'https://cloudflare-dns.com/dns-query?name=cloudflare.com', latency: 0, status: 'unknown', headers: { accept: 'application/dns-json' } }
   ]);

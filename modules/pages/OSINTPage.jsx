@@ -11,21 +11,106 @@ const OSINTPage = () => {
   const [results, setResults] = useState(null);
   const [error, setError] = useState('');
 
+  const runClientSideScan = async (rawTarget) => {
+    const input = rawTarget.trim();
+    const ipRegex = /\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/;
+    const domainRegex = /\b[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}\b/;
+    let type = 'string';
+    let target = input;
+    if (ipRegex.test(input)) { type = 'ip'; target = input.match(ipRegex)[0]; }
+    else if (domainRegex.test(input)) { type = 'domain'; target = input.match(domainRegex)[0]; }
+
+    const scanData = { target_type: type, target_value: target };
+    let ipToScan = target;
+
+    if (type === 'domain') {
+      try {
+        const dnsRes = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(target)}&type=A`);
+        if (dnsRes.ok) {
+          const dnsJson = await dnsRes.json();
+          if (dnsJson.Answer && dnsJson.Answer.length > 0) {
+            const aRec = dnsJson.Answer.find(a => a.type === 1);
+            if (aRec && aRec.data) {
+              ipToScan = aRec.data;
+              scanData.resolved_ip = ipToScan;
+            }
+          }
+        }
+      } catch {}
+
+      try {
+        const wbRes = await fetch(`https://archive.org/wayback/available?url=${encodeURIComponent(target)}`);
+        if (wbRes.ok) {
+          scanData.wayback = await wbRes.json();
+        }
+      } catch {}
+    }
+
+    if (ipToScan && (type === 'ip' || type === 'domain')) {
+      try {
+        const geoRes = await fetch(`https://get.geojs.io/v1/ip/geo/${ipToScan}.json`);
+        if (geoRes.ok) {
+          scanData.geo = await geoRes.json();
+        }
+      } catch {}
+    }
+
+    return scanData;
+  };
+
   const handleScan = async (e) => {
     e.preventDefault();
     if (!query.trim()) return;
     setLoading(true);
     setError('');
     setResults(null);
-    try {
-      const res = await axios.post('/api/osint', { target: query.trim() });
-      if (res.data.error) setError(res.data.error);
-      else setResults(res.data);
-    } catch (err) {
-      setError(err.response?.data?.error || err.message);
-    } finally {
-      setLoading(false);
+
+    const isCloudMode = typeof window !== 'undefined' && (
+      window.location.hostname.includes('web.app') || 
+      window.location.hostname.includes('firebaseapp.com') ||
+      window.location.hostname.includes('vercel.app') ||
+      (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
+    );
+
+    const endpoints = isCloudMode
+      ? [
+          'https://ai-system-dashboard.vercel.app/api/osint',
+          '/api/osint'
+        ]
+      : [
+          '/api/osint',
+          'https://ai-system-dashboard.vercel.app/api/osint'
+        ];
+
+    let success = false;
+    for (const ep of endpoints) {
+      try {
+        const res = await axios.post(ep, { target: query.trim() }, { timeout: 7000 });
+        if (res.data && typeof res.data === 'object' && !res.data.error) {
+          setResults(res.data);
+          success = true;
+          break;
+        } else if (res.data && res.data.error) {
+          setError(res.data.error);
+          success = true;
+          break;
+        }
+      } catch (err) {
+        console.debug(`[OSINT] Endpoint ${ep} niedostępny:`, err.message);
+      }
     }
+
+    if (!success) {
+      // Fallback kliencki prosto w przeglądarce
+      try {
+        const clientData = await runClientSideScan(query.trim());
+        setResults(clientData);
+      } catch (clientErr) {
+        setError('Nie udało się wykonać skanu OSINT: ' + clientErr.message);
+      }
+    }
+
+    setLoading(false);
   };
 
   return (

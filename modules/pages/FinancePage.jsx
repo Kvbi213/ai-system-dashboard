@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { Plus, Trash2, TrendingUp, TrendingDown, Wallet, DollarSign, Settings2, Target, Heart, PieChart, Search, Filter, Sparkles, ArrowRightLeft, ArrowRight } from 'lucide-react';
-import { subscribeCollection, saveCloudDocument, deleteCloudDocument, updateCloudDocumentField } from '../services/cloudSync';
+import { subscribeCollection, saveCloudDocument, deleteCloudDocument, updateCloudDocumentField, isCloudEnvironment } from '../services/cloudSync';
 
 const FinancePage = () => {
   const { t } = useTranslation();
@@ -93,23 +93,25 @@ const FinancePage = () => {
       }
     });
 
-    // Opcjonalne pobranie z backendu Express jeśli aktywny
-    axios.get('/api/finances')
-      .then(res => {
-        if (Array.isArray(res.data) && res.data.length > 0) {
-          const txs = res.data.filter(d => d && d.id !== 'finance_settings' && !d.is_settings);
-          setFinances(prev => {
-            const combined = [...txs];
-            prev.forEach(p => {
-              if (!combined.some(c => String(c.id) === String(p.id))) {
-                combined.push(p);
-              }
+    // Opcjonalne pobranie z backendu Express jeśli aktywny (tylko w środowisku lokalnym)
+    if (!isCloudEnvironment()) {
+      axios.get('/api/finances')
+        .then(res => {
+          if (Array.isArray(res.data) && res.data.length > 0) {
+            const txs = res.data.filter(d => d && d.id !== 'finance_settings' && !d.is_settings);
+            setFinances(prev => {
+              const combined = [...txs];
+              prev.forEach(p => {
+                if (!combined.some(c => String(c.id) === String(p.id))) {
+                  combined.push(p);
+                }
+              });
+              return combined;
             });
-            return combined;
-          });
-        }
-      })
-      .catch(() => {});
+          }
+        })
+        .catch(() => {});
+    }
 
     return () => unsub();
   }, []);
@@ -223,9 +225,11 @@ const FinancePage = () => {
     setSettings(dataToSubmit);
     localStorage.setItem('system_finance_settings', JSON.stringify(dataToSubmit));
     await saveCloudDocument('finances', 'finance_settings', { ...dataToSubmit, is_settings: true });
-    try {
-      await axios.post('/api/finance/settings', dataToSubmit);
-    } catch {}
+    if (!isCloudEnvironment()) {
+      try {
+        await axios.post('/api/finance/settings', dataToSubmit);
+      } catch {}
+    }
     setShowModal(false);
   };
 
@@ -233,9 +237,11 @@ const FinancePage = () => {
     const idStr = String(id);
     setFinances(prev => prev.filter(item => String(item.id) !== idStr));
     await deleteCloudDocument('finances', idStr);
-    try {
-      await axios.delete(`/api/finances/${idStr}`);
-    } catch {}
+    if (!isCloudEnvironment()) {
+      try {
+        await axios.delete(`/api/finances/${idStr}`);
+      } catch {}
+    }
   };
 
   const handleSubmit = async (e) => {

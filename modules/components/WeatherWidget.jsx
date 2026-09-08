@@ -80,7 +80,7 @@ const WeatherWidget = () => {
       navigator.geolocation.getCurrentPosition(
         (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude),
         (err) => {
-          console.log('Brak dostępu do lokalizacji, używam domyślnej.', err);
+          console.debug('Brak dostępu do lokalizacji, używam domyślnej.', err);
           fetchWeather();
         },
         { timeout: 5000 }

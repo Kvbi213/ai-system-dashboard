@@ -6,7 +6,7 @@ import {
   Sparkles, CheckCircle, AlertCircle, LayoutGrid, List, RefreshCw
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { subscribeCollection, saveCloudDocument, deleteCloudDocument, CLOUD_COLLECTIONS } from '../services/cloudSync';
+import { subscribeCollection, saveCloudDocument, deleteCloudDocument, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
 
 const DAYS = [
   { id: 'monday', label: 'Poniedziałek', short: 'Pon', dayIndex: 1 },
@@ -120,18 +120,20 @@ const TimetablePage = () => {
       }
     });
 
-    // Fallback Express jeśli działa
-    axios.get('/api/timetable')
-      .then(res => {
-        if (Array.isArray(res.data) && res.data.length > 0) {
-          setLessons(prev => {
-            const map = new Map(prev.map(item => [String(item.id), item]));
-            res.data.forEach(item => map.set(String(item.id), item));
-            return Array.from(map.values());
-          });
-        }
-      })
-      .catch(() => {});
+    // Fallback Express jeśli działa (tylko w trybie lokalnym)
+    if (!isCloudEnvironment()) {
+      axios.get('/api/timetable')
+        .then(res => {
+          if (Array.isArray(res.data) && res.data.length > 0) {
+            setLessons(prev => {
+              const map = new Map(prev.map(item => [String(item.id), item]));
+              res.data.forEach(item => map.set(String(item.id), item));
+              return Array.from(map.values());
+            });
+          }
+        })
+        .catch(() => {});
+    }
 
     return () => unsub();
   }, []);
@@ -278,7 +280,9 @@ const TimetablePage = () => {
 
     setLessons(prev => [...prev, newLesson]);
     await saveCloudDocument('timetable', newLesson.id, newLesson);
-    try { await axios.post('/api/timetable', newLesson); } catch {}
+    if (!isCloudEnvironment()) {
+      try { await axios.post('/api/timetable', newLesson); } catch {}
+    }
   };
 
   const handleDelete = async (id) => {
@@ -286,7 +290,9 @@ const TimetablePage = () => {
     if (!window.confirm('Czy na pewno chcesz usunąć te zajęcia z planu?')) return;
     setLessons(prev => prev.filter(l => String(l.id) !== idStr));
     await deleteCloudDocument('timetable', idStr);
-    try { await axios.delete(`/api/timetable/${idStr}`); } catch {}
+    if (!isCloudEnvironment()) {
+      try { await axios.delete(`/api/timetable/${idStr}`); } catch {}
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -307,13 +313,15 @@ const TimetablePage = () => {
 
     setShowModal(false);
     await saveCloudDocument('timetable', lessonPayload.id, lessonPayload);
-    try {
-      if (editingLesson) {
-        await axios.put(`/api/timetable/${lessonPayload.id}`, lessonPayload);
-      } else {
-        await axios.post('/api/timetable', lessonPayload);
-      }
-    } catch {}
+    if (!isCloudEnvironment()) {
+      try {
+        if (editingLesson) {
+          await axios.put(`/api/timetable/${lessonPayload.id}`, lessonPayload);
+        } else {
+          await axios.post('/api/timetable', lessonPayload);
+        }
+      } catch {}
+    }
   };
 
   return (

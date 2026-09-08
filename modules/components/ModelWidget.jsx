@@ -4,7 +4,9 @@ import { Server, Activity, Database, Zap, Check } from 'lucide-react';
 
 const API_BASE = typeof window !== 'undefined' && (
   window.location.hostname.includes('web.app') || 
-  window.location.hostname.includes('firebaseapp.com')
+  window.location.hostname.includes('firebaseapp.com') ||
+  window.location.hostname.includes('vercel.app') ||
+  (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
 ) ? 'https://ai-system-dashboard.vercel.app' : '';
 
 const CURATED_DEFAULT_MODELS = [

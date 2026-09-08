@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { dispatchAiQuery } from '../services/clientAiDispatcher';
-import { subscribeCollection, saveCloudDocument, clearChatHistoryCloud } from '../services/cloudSync';
+import { subscribeCollection, saveCloudDocument, clearChatHistoryCloud, isCloudEnvironment } from '../services/cloudSync';
 
 const ChatContext = createContext();
 
@@ -331,7 +331,10 @@ export const ChatProvider = ({ children }) => {
       if (cmd === '/ping') {
         const start = Date.now();
         pushSysMsg(t('chatPing', '[*] INFO: PINGowanie systemu...'));
-        axios.get('/api/weather', { timeout: 5000 }).then(() => {
+        const pingUrl = isCloudEnvironment()
+          ? 'https://ai-system-dashboard.vercel.app/api/status'
+          : '/api/weather';
+        axios.get(pingUrl, { timeout: 5000 }).then(() => {
           const end = Date.now();
           pushSysMsg(t('chatPingSuccess', '[+] SUCCESS: Połączenie stabilne. Opóźnienie: ') + (end - start) + 'ms.');
         }).catch(err => {

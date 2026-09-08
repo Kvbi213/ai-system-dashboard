@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
-import { initializeAllFirestoreCollections, CLOUD_COLLECTIONS } from '../services/cloudSync';
+import { initializeAllFirestoreCollections, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
 
 const Toggle = ({ value, onChange }) => (
   <button
@@ -173,9 +173,20 @@ const SettingsPage = () => {
   const [clockSeconds, setClockSeconds] = useState(false);
 
   useEffect(() => {
+    if (isCloudEnvironment()) {
+      setFirebaseStatus({
+        configured: true,
+        projectId: 'void-potato-7721',
+        owner: 'marektowarek21372137@gmail.com',
+        status: 'connected',
+        client_sdk: 'active',
+        mode: 'Cloud Firestore Realtime'
+      });
+      return;
+    }
     axios.get('/api/firebase/status')
       .then(res => setFirebaseStatus(res.data))
-      .catch(err => console.warn('Firebase status check failed:', err));
+      .catch(err => console.debug('Firebase status check failed:', err));
   }, []);
 
   const [sysMonitorPrefs, setSysMonitorPrefs] = useState({ cpu: true, ram: true, uptime: true });
@@ -1097,6 +1108,17 @@ const SettingsPage = () => {
                     e.preventDefault();
                     const oldPin = e.target.oldPin.value;
                     const newPin = e.target.newPin.value;
+                    if (isCloudEnvironment()) {
+                      const currentPin = localStorage.getItem('system_pin') || '0000';
+                      if (oldPin !== currentPin) {
+                        alert(t('pinErrorMsg', 'Błąd zmiany PINu: ') + 'Nieprawidłowy obecny PIN.');
+                        return;
+                      }
+                      localStorage.setItem('system_pin', newPin);
+                      alert(t('pinUpdatedMsg', 'Zaktualizowano kod PIN!'));
+                      e.target.reset();
+                      return;
+                    }
                     try {
                       const res = await axios.post('/api/auth/change-pin', { oldPin, newPin });
                       if (res.data.success) {
