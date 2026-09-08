@@ -11,7 +11,15 @@ const FinancePage = () => {
   const [settings, setSettings] = useState(() => {
     try {
       const saved = localStorage.getItem('system_finance_settings');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          monthly_income: parsed.monthly_income !== undefined && !isNaN(Number(parsed.monthly_income)) ? Number(parsed.monthly_income) : 5000,
+          needs_percent: parsed.needs_percent !== undefined && !isNaN(Number(parsed.needs_percent)) ? Number(parsed.needs_percent) : 50,
+          wants_percent: parsed.wants_percent !== undefined && !isNaN(Number(parsed.wants_percent)) ? Number(parsed.wants_percent) : 30,
+          savings_percent: parsed.savings_percent !== undefined && !isNaN(Number(parsed.savings_percent)) ? Number(parsed.savings_percent) : 20
+        };
+      }
     } catch {}
     return { monthly_income: 5000, needs_percent: 50, wants_percent: 30, savings_percent: 20 };
   });
@@ -58,10 +66,10 @@ const FinancePage = () => {
     });
   }, [settings]);
 
-  const targetNeeds = Number(settings?.needs_percent) || 50;
-  const targetWants = Number(settings?.wants_percent) || 30;
-  const targetSavings = Number(settings?.savings_percent) || 20;
-  const monthlyIncome = Number(settings?.monthly_income) || 5000;
+  const targetNeeds = settings?.needs_percent !== undefined && !isNaN(Number(settings?.needs_percent)) ? Number(settings.needs_percent) : 50;
+  const targetWants = settings?.wants_percent !== undefined && !isNaN(Number(settings?.wants_percent)) ? Number(settings.wants_percent) : 30;
+  const targetSavings = settings?.savings_percent !== undefined && !isNaN(Number(settings?.savings_percent)) ? Number(settings.savings_percent) : 20;
+  const monthlyIncome = settings?.monthly_income !== undefined && !isNaN(Number(settings?.monthly_income)) ? Number(settings.monthly_income) : 5000;
 
   // 1. Subskrypcja Firestore CloudSync + lokalny cache
   useEffect(() => {
@@ -71,10 +79,10 @@ const FinancePage = () => {
         const settingsDoc = data.find(d => d && (d.id === 'finance_settings' || d.is_settings));
         if (settingsDoc) {
           setSettings(prev => ({
-            monthly_income: Number(settingsDoc.monthly_income) || prev.monthly_income,
-            needs_percent: Number(settingsDoc.needs_percent) || prev.needs_percent,
-            wants_percent: Number(settingsDoc.wants_percent) || prev.wants_percent,
-            savings_percent: Number(settingsDoc.savings_percent) || prev.savings_percent
+            monthly_income: settingsDoc.monthly_income !== undefined && !isNaN(Number(settingsDoc.monthly_income)) ? Number(settingsDoc.monthly_income) : prev.monthly_income,
+            needs_percent: settingsDoc.needs_percent !== undefined && !isNaN(Number(settingsDoc.needs_percent)) ? Number(settingsDoc.needs_percent) : prev.needs_percent,
+            wants_percent: settingsDoc.wants_percent !== undefined && !isNaN(Number(settingsDoc.wants_percent)) ? Number(settingsDoc.wants_percent) : prev.wants_percent,
+            savings_percent: settingsDoc.savings_percent !== undefined && !isNaN(Number(settingsDoc.savings_percent)) ? Number(settingsDoc.savings_percent) : prev.savings_percent
           }));
         }
 
@@ -166,13 +174,13 @@ const FinancePage = () => {
 
     const needsLimitPct = allocated.needs > 0 
       ? Math.round((spent.needs / allocated.needs) * 100) 
-      : (budgetNeeds > 0 ? Math.round((spent.needs / budgetNeeds) * 100) : 0);
+      : (budgetNeeds > 0 ? Math.round((spent.needs / budgetNeeds) * 100) : (spent.needs > 0 ? 100 : 0));
     const wantsLimitPct = allocated.wants > 0 
       ? Math.round((spent.wants / allocated.wants) * 100) 
-      : (budgetWants > 0 ? Math.round((spent.wants / budgetWants) * 100) : 0);
+      : (budgetWants > 0 ? Math.round((spent.wants / budgetWants) * 100) : (spent.wants > 0 ? 100 : 0));
     const savingsLimitPct = budgetSavings > 0 
       ? Math.round((allocated.savings / budgetSavings) * 100) 
-      : 0;
+      : (allocated.savings > 0 ? 100 : 0);
 
     return {
       balance: net,
@@ -198,13 +206,19 @@ const FinancePage = () => {
 
   const handleSetupSubmit = async (e, skip = false) => {
     if (e) e.preventDefault();
+    const parseField = (val, fallback) => {
+      if (val === '' || val === null || val === undefined) return fallback;
+      const num = parseFloat(val);
+      return isNaN(num) ? fallback : Math.max(0, num);
+    };
+
     const dataToSubmit = skip 
       ? { monthly_income: 0, needs_percent: 50, wants_percent: 30, savings_percent: 20 } 
       : {
-          monthly_income: parseFloat(setupData.monthly_income) || 0,
-          needs_percent: parseFloat(setupData.needs_percent) || 50,
-          wants_percent: parseFloat(setupData.wants_percent) || 30,
-          savings_percent: parseFloat(setupData.savings_percent) || 20
+          monthly_income: parseField(setupData.monthly_income, 0),
+          needs_percent: parseField(setupData.needs_percent, 50),
+          wants_percent: parseField(setupData.wants_percent, 0),
+          savings_percent: parseField(setupData.savings_percent, 0)
         };
     setSettings(dataToSubmit);
     localStorage.setItem('system_finance_settings', JSON.stringify(dataToSubmit));
@@ -212,6 +226,7 @@ const FinancePage = () => {
     try {
       await axios.post('/api/finance/settings', dataToSubmit);
     } catch {}
+    setShowModal(false);
   };
 
   const handleDelete = async (id) => {
@@ -452,8 +467,11 @@ const FinancePage = () => {
           <div>
             <div className="flex items-center justify-between mb-1">
               <p className="text-[11px] text-pink-400 font-mono font-semibold tracking-wider">ZACHCIANKI ({targetWants}%)</p>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${stats.availableWants >= 0 ? 'bg-pink-500/15 text-pink-300' : 'bg-rose-500/15 text-rose-300'}`}>
-                {stats.availableWants >= 0 ? 'Dostępne' : 'Deficyt'}
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+                targetWants === 0 && (stats.availableWants || 0) === 0 ? 'bg-white/10 text-textMuted border border-white/10' :
+                stats.availableWants >= 0 ? 'bg-pink-500/15 text-pink-300' : 'bg-rose-500/15 text-rose-300'
+              }`}>
+                {targetWants === 0 && (stats.availableWants || 0) === 0 ? 'Pula 0%' : (stats.availableWants >= 0 ? 'Dostępne' : 'Deficyt')}
               </span>
             </div>
             <p className={`text-2xl font-bold font-mono ${stats.availableWants >= 0 ? 'text-textPrimary' : 'text-rose-400'}`}>
@@ -1168,19 +1186,20 @@ const FinancePage = () => {
               </div>
 
               <div>
-                <label className="text-xs font-mono text-textMuted block mb-1.5">Szybkie profile alokacji:</label>
-                <div className="grid grid-cols-4 gap-2">
+                <label className="text-xs font-mono text-textMuted block mb-1.5">Szybkie profile alokacji (w tym 0% na zachcianki):</label>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                   {[
                     { label: '50/30/20', n: 50, w: 30, s: 20 },
-                    { label: '60/20/20', n: 60, w: 20, s: 20 },
-                    { label: '70/20/10', n: 70, w: 20, s: 10 },
-                    { label: '40/30/30', n: 40, w: 30, s: 30 }
+                    { label: '70/0/30 (Frugal)', n: 70, w: 0, s: 30 },
+                    { label: '80/0/20 (Minimal)', n: 80, w: 0, s: 20 },
+                    { label: '50/0/50 (FIRE)', n: 50, w: 0, s: 50 },
+                    { label: '60/20/20', n: 60, w: 20, s: 20 }
                   ].map(p => (
                     <button
                       key={p.label}
                       type="button"
                       onClick={() => setSetupData(prev => ({ ...prev, needs_percent: p.n, wants_percent: p.w, savings_percent: p.s }))}
-                      className="px-2 py-1.5 text-[11px] font-mono bg-white/5 hover:bg-white/10 border border-border/50 rounded-lg text-textMuted hover:text-white transition-colors text-center"
+                      className="px-2 py-1.5 text-[10px] sm:text-[11px] font-mono bg-white/5 hover:bg-white/10 border border-border/50 rounded-lg text-textMuted hover:text-white transition-colors text-center"
                     >
                       {p.label}
                     </button>
@@ -1193,27 +1212,33 @@ const FinancePage = () => {
                   <label className="text-[11px] font-mono text-cyan-400 block mb-1">Potrzeby %</label>
                   <input 
                     type="number" 
+                    min="0"
+                    max="100"
                     value={setupData.needs_percent} 
-                    onChange={e => setSetupData({...setupData, needs_percent: parseFloat(e.target.value) || 0})} 
-                    className="w-full bg-black/30 border border-border rounded-lg p-2 text-textPrimary font-mono text-center" 
+                    onChange={e => setSetupData({...setupData, needs_percent: e.target.value === '' ? '' : (parseFloat(e.target.value) || 0)})} 
+                    className="w-full bg-black/30 border border-border rounded-lg p-2 text-textPrimary font-mono text-center outline-none focus:border-cyan-400" 
                   />
                 </div>
                 <div>
                   <label className="text-[11px] font-mono text-pink-400 block mb-1">Zachcianki %</label>
                   <input 
                     type="number" 
+                    min="0"
+                    max="100"
                     value={setupData.wants_percent} 
-                    onChange={e => setSetupData({...setupData, wants_percent: parseFloat(e.target.value) || 0})} 
-                    className="w-full bg-black/30 border border-border rounded-lg p-2 text-textPrimary font-mono text-center" 
+                    onChange={e => setSetupData({...setupData, wants_percent: e.target.value === '' ? '' : (parseFloat(e.target.value) || 0)})} 
+                    className="w-full bg-black/30 border border-border rounded-lg p-2 text-textPrimary font-mono text-center outline-none focus:border-pink-400" 
                   />
                 </div>
                 <div>
                   <label className="text-[11px] font-mono text-emerald-400 block mb-1">Oszczędności %</label>
                   <input 
                     type="number" 
+                    min="0"
+                    max="100"
                     value={setupData.savings_percent} 
-                    onChange={e => setSetupData({...setupData, savings_percent: parseFloat(e.target.value) || 0})} 
-                    className="w-full bg-black/30 border border-border rounded-lg p-2 text-textPrimary font-mono text-center" 
+                    onChange={e => setSetupData({...setupData, savings_percent: e.target.value === '' ? '' : (parseFloat(e.target.value) || 0)})} 
+                    className="w-full bg-black/30 border border-border rounded-lg p-2 text-textPrimary font-mono text-center outline-none focus:border-emerald-400" 
                   />
                 </div>
               </div>

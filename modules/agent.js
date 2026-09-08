@@ -182,7 +182,12 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
         } else if (toolCall.function.name === 'UPDATE_FINANCE_SETTINGS') {
           await executeRun(
             'INSERT INTO finance_settings (monthly_income, needs_percent, wants_percent, savings_percent) VALUES (?, ?, ?, ?)',
-            [args.monthly_income || 5000, args.needs_percent || 50, args.wants_percent || 30, args.savings_percent || 20]
+            [
+              args.monthly_income !== undefined && !isNaN(Number(args.monthly_income)) ? Number(args.monthly_income) : 5000,
+              args.needs_percent !== undefined && !isNaN(Number(args.needs_percent)) ? Number(args.needs_percent) : 50,
+              args.wants_percent !== undefined && !isNaN(Number(args.wants_percent)) ? Number(args.wants_percent) : 30,
+              args.savings_percent !== undefined && !isNaN(Number(args.savings_percent)) ? Number(args.savings_percent) : 20
+            ]
           );
           toolResultsText += `\nNarzędzie UPDATE_FINANCE_SETTINGS: Ustawienia zaktualizowane.`;
           broadcastEvent('finance_settings_updated', {});

@@ -237,6 +237,11 @@ export default async function handler(req, res) {
     let needsSum = 0;
     let wantsSum = 0;
     let savingsSum = 0;
+    const settingsDoc = finances.find(f => f && (f.id === 'finance_settings' || f.is_settings));
+    const targetNeeds = settingsDoc?.needs_percent !== undefined && !isNaN(Number(settingsDoc.needs_percent)) ? Number(settingsDoc.needs_percent) : 50;
+    const targetWants = settingsDoc?.wants_percent !== undefined && !isNaN(Number(settingsDoc.wants_percent)) ? Number(settingsDoc.wants_percent) : 30;
+    const targetSavings = settingsDoc?.savings_percent !== undefined && !isNaN(Number(settingsDoc.savings_percent)) ? Number(settingsDoc.savings_percent) : 20;
+
     const actualTxs = finances.filter(f => f && !f.is_settings && f.id !== 'finance_settings' && f.amount !== undefined);
 
     actualTxs.forEach(f => {
@@ -265,10 +270,10 @@ export default async function handler(req, res) {
       ? `SALDO NETTO: ${netBalance >= 0 ? '+' : ''}${netBalance.toFixed(2)} PLN
 ŁĄCZNE PRZYCHODY: +${totalIncome.toFixed(2)} PLN
 ŁĄCZNE WYDATKI: -${totalExpenses.toFixed(2)} PLN
-ALOKACJA 50/30/20:
-- POTRZEBY (cel 50%): ${needsSum.toFixed(2)} PLN (${needsPct}% wydatków)
-- ZACHCIANKI (cel 30%): ${wantsSum.toFixed(2)} PLN (${wantsPct}% wydatków)
-- OSZCZĘDNOŚCI (cel 20%): ${savingsSum.toFixed(2)} PLN (${savingsPct}% wydatków)
+ALOKACJA BUDŻETOWA (${targetNeeds}/${targetWants}/${targetSavings}):
+- POTRZEBY (cel ${targetNeeds}%): ${needsSum.toFixed(2)} PLN (${needsPct}% wydatków)
+- ZACHCIANKI (cel ${targetWants}%): ${wantsSum.toFixed(2)} PLN (${wantsPct}% wydatków)
+- OSZCZĘDNOŚCI (cel ${targetSavings}%): ${savingsSum.toFixed(2)} PLN (${savingsPct}% wydatków)
 OSTATNIE TRANSAKCJE (${actualTxs.length} łącznie):
 ${txsList}`
       : 'Brak transakcji w bazie danych. Saldo wynosi 0.00 PLN.';

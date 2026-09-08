@@ -148,10 +148,19 @@ export const FinanceChatWidget = () => {
     }
   });
 
-  const [settings, setSettings] = useState({
-    needs_percent: 50,
-    wants_percent: 30,
-    savings_percent: 20
+  const [settings, setSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('system_finance_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          needs_percent: parsed.needs_percent !== undefined && !isNaN(Number(parsed.needs_percent)) ? Number(parsed.needs_percent) : 50,
+          wants_percent: parsed.wants_percent !== undefined && !isNaN(Number(parsed.wants_percent)) ? Number(parsed.wants_percent) : 30,
+          savings_percent: parsed.savings_percent !== undefined && !isNaN(Number(parsed.savings_percent)) ? Number(parsed.savings_percent) : 20
+        };
+      }
+    } catch {}
+    return { needs_percent: 50, wants_percent: 30, savings_percent: 20 };
   });
 
   useEffect(() => {
@@ -160,9 +169,9 @@ export const FinanceChatWidget = () => {
         const settingsDoc = data.find(d => d && (d.id === 'finance_settings' || d.is_settings));
         if (settingsDoc) {
           setSettings({
-            needs_percent: Number(settingsDoc.needs_percent) || 50,
-            wants_percent: Number(settingsDoc.wants_percent) || 30,
-            savings_percent: Number(settingsDoc.savings_percent) || 20
+            needs_percent: settingsDoc.needs_percent !== undefined && !isNaN(Number(settingsDoc.needs_percent)) ? Number(settingsDoc.needs_percent) : 50,
+            wants_percent: settingsDoc.wants_percent !== undefined && !isNaN(Number(settingsDoc.wants_percent)) ? Number(settingsDoc.wants_percent) : 30,
+            savings_percent: settingsDoc.savings_percent !== undefined && !isNaN(Number(settingsDoc.savings_percent)) ? Number(settingsDoc.savings_percent) : 20
           });
         }
         const txs = data.filter(d => d && d.id !== 'finance_settings' && !d.is_settings && d.amount !== undefined);

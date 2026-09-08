@@ -558,6 +558,11 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
       let needsSum = 0;
       let wantsSum = 0;
       let savingsSum = 0;
+      const settingsDoc = (context.finances || []).find(f => f && (f.id === 'finance_settings' || f.is_settings));
+      const targetNeeds = settingsDoc?.needs_percent !== undefined && !isNaN(Number(settingsDoc.needs_percent)) ? Number(settingsDoc.needs_percent) : 50;
+      const targetWants = settingsDoc?.wants_percent !== undefined && !isNaN(Number(settingsDoc.wants_percent)) ? Number(settingsDoc.wants_percent) : 30;
+      const targetSavings = settingsDoc?.savings_percent !== undefined && !isNaN(Number(settingsDoc.savings_percent)) ? Number(settingsDoc.savings_percent) : 20;
+
       const actualTxs = (context.finances || []).filter(f => f && !f.is_settings && f.id !== 'finance_settings' && f.amount !== undefined);
       actualTxs.forEach(f => {
         const amt = Number(f.amount) || 0;
@@ -577,7 +582,7 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
 
       const financesSummary = actualTxs.length > 0
         ? `Saldo konta: ${netBalance >= 0 ? '+' : ''}${netBalance.toFixed(2)} PLN | Przychody: +${totalIncome.toFixed(2)} PLN | Wydatki: -${totalExpenses.toFixed(2)} PLN
-Podział 50/30/20: Potrzeby ${needsSum.toFixed(2)} PLN (${needsPct}%), Zachcianki ${wantsSum.toFixed(2)} PLN (${wantsPct}%), Oszczędności ${savingsSum.toFixed(2)} PLN (${savingsPct}%)
+Podział ${targetNeeds}/${targetWants}/${targetSavings}: Potrzeby ${needsSum.toFixed(2)} PLN (${needsPct}%), Zachcianki ${wantsSum.toFixed(2)} PLN (${wantsPct}%), Oszczędności ${savingsSum.toFixed(2)} PLN (${savingsPct}%)
 Ostatnie transakcje: ` + actualTxs.slice(0, 10).map(f => `${f.type === 'income' ? '+' : '-'}${f.amount} PLN (${f.category || 'Inne'})`).join(', ')
         : 'Brak transakcji w bazie. Saldo: 0.00 PLN.';
 

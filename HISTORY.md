@@ -1,5 +1,22 @@
 ## Wersja Bieżąca
-**v2.11.2**
+**v2.11.3**
+
+## v 2.11.3 — 2026-09-08
+**Typ:** PATCH  
+**Zakres:** Obsługa Wartości 0% w Koszykach Budżetowych (Zachcianki, Potrzeby, Oszczędności), Eliminacja Regresji Falsy Check, Ochrona Przed Dzieleniem Przez Zero w Limitach, Profile Frugal/Minimal/FIRE.
+
+### Zmiany
+- [+] Dodano: Pełną obsługę wartości `0%` w konfiguracji budżetu (`needs_percent`, `wants_percent`, `savings_percent`) — wyeliminowano błąd logiczny polegający na traktowaniu `0` jako wartości falsy i wymuszaniu wartości domyślnych (`30%`).
+- [+] Dodano: Bezpieczne parsowanie wskaźników procentowych w `FinancePage.jsx`, `ChatInlineWidgets.jsx`, `modules/agent.js`, `api/agent.js` oraz `clientAiDispatcher.js`.
+- [+] Dodano: Ochronę przed dzieleniem przez zero w kalkulacjach limitów wydatków (`needsLimitPct`, `wantsLimitPct`, `savingsLimitPct`).
+- [+] Dodano: Nowe szybkie presety alokacji w modalu ustawień: `70/0/30 (Frugal)`, `80/0/20 (Minimal)`, `50/0/50 (FIRE)`.
+- [+] Dodano: Dedykowany stan i badge `Pula 0%` na karcie Zachcianek, gdy użytkownik ustali zerowy limit.
+- [*] Zmodyfikowano: Pomyślna weryfikacja kompilacji produkcyjnej obu repozytoriów (0 błędów) oraz wdrożenie na Firebase Hosting.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
+
+---
 
 ## v 2.11.2 — 2026-09-07
 **Typ:** PATCH  
