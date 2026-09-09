@@ -10,8 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "../");
 
-export const ALLOWED_OWNER_EMAIL = process.env.FIREBASE_OWNER_EMAIL || "marektowarek21372137@gmail.com";
-export const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || "void-potato-7721";
+export const ALLOWED_OWNER_EMAIL = process.env.FIREBASE_OWNER_EMAIL || "owner@omnidash.local";
+export const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || "omnidash-cloud";
 
 let db = null;
 let auth = null;

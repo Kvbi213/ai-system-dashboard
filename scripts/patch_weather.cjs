@@ -1,6 +1,8 @@
 const fs = require('fs');
+const path = require('path');
 
-let data = fs.readFileSync('/home/lis/Pulpit/ai-system-dashboard/modules/components/WeatherWidget.jsx', 'utf8');
+const targetPath = path.resolve(__dirname, '../modules/components/WeatherWidget.jsx');
+let data = fs.readFileSync(targetPath, 'utf8');
 
 // Imports
 data = data.replace(
@@ -40,5 +42,5 @@ data = data.replace(
   '<span className="text-[10px] text-textMuted font-mono">{labelKey ? t(labelKey) : \'\'}</span>'
 );
 
-fs.writeFileSync('/home/lis/Pulpit/ai-system-dashboard/modules/components/WeatherWidget.jsx', data);
+fs.writeFileSync(targetPath, data);
 console.log("WeatherWidget updated");

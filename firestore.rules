@@ -2,8 +2,29 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Funkcja weryfikująca zadeklarowane kolekcje aplikacji OmniDash
+    function isAllowedCollection(col) {
+      return col in [
+        'tasks', 
+        'finances', 
+        'workouts', 
+        'calendar', 
+        'operator_brain', 
+        'chat_history', 
+        'timetable', 
+        'notes',
+        'system_logs'
+      ];
+    }
+
+    // Reguła zezwalająca na operacje wyłącznie w obrębie zadeklarowanych kolekcji
+    match /{collection}/{document=**} {
+      allow read, write: if isAllowedCollection(collection);
+    }
+
+    // Bezwzględna blokada dla wszelkich pozostałych ścieżek i kolekcji
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

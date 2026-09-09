@@ -36,7 +36,7 @@ export const INITIAL_FIRESTORE_DATA = {
     { id: 'c2', title: 'Audyt Stabilności Modelu GPT-120B', event_date: new Date().toISOString().split('T')[0], event_time: '14:30', priority: 'MEDIUM' }
   ],
   operator_brain: [
-    { id: 'b1', category: 'Identity', fact: 'Operator: marektowarek21372137@gmail.com — pełne uprawnienia nadrzędne (Root Owner).', created_at: new Date().toISOString() },
+    { id: 'b1', category: 'Identity', fact: 'Operator: Administrator Systemu — pełne uprawnienia nadrzędne (Root Owner).', created_at: new Date().toISOString() },
     { id: 'b2', category: 'Engine & Model', fact: 'Podstawowy model kognitywny: openai/gpt-oss-120b zasilany przez Vercel Serverless Gateway.', created_at: new Date().toISOString() },
     { id: 'b3', category: 'Architecture', fact: 'Ekosystem rozproszony: Firebase Hosting + Firestore Realtime Database + Vercel Serverless API.', created_at: new Date().toISOString() },
     { id: 'b4', category: 'Preferences', fact: 'Formatowanie odpowiedzi: wyczerpujące, merytoryczne, wieloaspektowe z drzewiastymi strukturami Markdown.', created_at: new Date().toISOString() },

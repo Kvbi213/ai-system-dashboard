@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0\.."
 title AI System Dashboard - Startup
 echo ==============================================
 echo       AI SYSTEM DASHBOARD - STARTUP SCRIPT

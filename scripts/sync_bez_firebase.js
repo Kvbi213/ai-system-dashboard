@@ -69,6 +69,8 @@ const filesToSync = [
   '.github/workflows/main.yml',
   'modules/routes/system.js',
   'vite.config.js',
+  '.eslintrc.cjs',
+  'firestore.rules',
   'api/news.js',
   'api/agent.js',
   'api/status.js',

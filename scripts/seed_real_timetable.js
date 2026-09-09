@@ -486,11 +486,12 @@ async function seed() {
   if (fs.existsSync(saPath)) {
     try {
       const sa = JSON.parse(fs.readFileSync(saPath, 'utf8'));
+      const targetProjectId = process.env.FIREBASE_PROJECT_ID || 'omnidash-cloud';
       if (!getApps().length) {
-        initializeApp({ credential: cert(sa), projectId: 'void-potato-7721' });
+        initializeApp({ credential: cert(sa), projectId: targetProjectId });
       }
       const firestore = getFirestore();
-      console.log('[+] Połączono z Cloud Firestore (void-potato-7721).');
+      console.log(`[+] Połączono z Cloud Firestore (${targetProjectId}).`);
 
       // Wyczyść ewentualne stare lekcje
       const snapshot = await firestore.collection('timetable').get();
@@ -508,7 +509,7 @@ async function seed() {
         });
         count++;
       }
-      console.log(`[+] Zapisano pomyślnie ${count} lekcji dla Grupy 1 w Cloud Firestore (void-potato-7721)!`);
+      console.log(`[+] Zapisano pomyślnie ${count} lekcji dla Grupy 1 w Cloud Firestore (${targetProjectId})!`);
     } catch (err) {
       console.error('[!] Błąd zapisu do Firestore:', err.message);
     }

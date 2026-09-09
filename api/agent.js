@@ -5,7 +5,7 @@ export const config = {
 };
 
 async function performLiveBraveSearch(query) {
-  const apiKey = process.env.BRAVE_SEARCH_API_KEY || 'BSAFmBe5BK_uBCgM4Qhrj1HHvsGijhh';
+  const apiKey = process.env.BRAVE_SEARCH_API_KEY;
   if (!apiKey) return null;
 
   try {
@@ -148,6 +148,25 @@ function determineWidgets(userText, aiResponse = '') {
   return Array.from(new Set(widgets));
 }
 
+// Prosty mechanizm ochrony przed nadużyciami (Rate Limiting na instancji Serverless)
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const MAX_REQUESTS_PER_WINDOW = 30;
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const record = rateLimitMap.get(ip);
+  if (!record || (now - record.startTime) > RATE_LIMIT_WINDOW_MS) {
+    rateLimitMap.set(ip, { count: 1, startTime: now });
+    return true;
+  }
+  if (record.count >= MAX_REQUESTS_PER_WINDOW) {
+    return false;
+  }
+  record.count += 1;
+  return true;
+}
+
 export default async function handler(req, res) {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -164,6 +183,11 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed. Use POST.' });
+  }
+
+  const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1').split(',')[0].trim();
+  if (!checkRateLimit(clientIp)) {
+    return res.status(429).json({ error: 'Zbyt wiele zapytań (limit: 30/min). Spróbuj ponownie za chwilę.' });
   }
 
   try {
@@ -405,7 +429,7 @@ Gdy użytkownik prosi Cię o dodanie, modyfikację lub usunięcie danych w syste
 - Widżety i Nawigacja:
   [ACTION:SHOW_WIDGET name="timetable|finances|workouts|calendar|weather|tasks|news|system"]
   [ACTION:NAVIGATE path="/timetable|/finances|/workouts|/calendar|/chat|/"]
-KRYTYCZNA REGUŁA SKŁADNI: Znaczniki akcji emituj ZAWSZE na samym końcu w czystej postaci [ACTION:NAZWA klucz="wartość"]. BEZWZGLĘDNY ZAKAZ pogrubiania (** ani `) wewnątrz ani wokół znaczników.`
+KRYTYCZNA REGUŁA SKŁADNI: Znaczniki akcji emituj ZAWSZE na samym końcu w czystej postaci [ACTION:NAZWA klucz="wartość"]. BEZWZGLĘDNY ZAKAZ pogrubiania (** ani grawisów) wewnątrz ani wokół znaczników.`
       : `Jesteś F.R.I.D.A.Y — wysoko wyspecjalizowanym inżynieryjnym systemem wykonawczym (Core Worker Engine) w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy (Polska / Warszawa): ${dateStr}, godzina ${timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${dateStr}, godzina ${timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
@@ -464,7 +488,7 @@ Gdy użytkownik prosi Cię o dodanie, modyfikację lub usunięcie danych w syste
 - Widżety i Nawigacja:
   [ACTION:SHOW_WIDGET name="timetable|finances|workouts|calendar|weather|tasks|news|system"]
   [ACTION:NAVIGATE path="/timetable|/finances|/workouts|/calendar|/chat|/"]
-KRYTYCZNA REGUŁA SKŁADNI: Znaczniki akcji emituj ZAWSZE na samym końcu w czystej postaci [ACTION:NAZWA klucz="wartość"]. BEZWZGLĘDNY ZAKAZ pogrubiania (** ani `) wewnątrz ani wokół znaczników.`;
+KRYTYCZNA REGUŁA SKŁADNI: Znaczniki akcji emituj ZAWSZE na samym końcu w czystej postaci [ACTION:NAZWA klucz="wartość"]. BEZWZGLĘDNY ZAKAZ pogrubiania (** ani grawisów) wewnątrz ani wokół znaczników.`;
 
     const targetModel = model || 'openai/gpt-oss-120b';
     let chatCompletion;

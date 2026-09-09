@@ -3,6 +3,9 @@ dist/
 .env
 /data/logs/
 /data/tasks.sqlite
+*.sqlite
+*.db
+database.sqlite
 .DS_Store
 
 *.log

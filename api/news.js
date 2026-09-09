@@ -42,7 +42,7 @@ export default async function handler(req, res) {
 
   const query = req.query.q || 'technologia sztuczna inteligencja cyberbezpieczenstwo 2026';
   const category = req.query.category || 'ai';
-  const apiKey = process.env.BRAVE_SEARCH_API_KEY || 'BSAFmBe5BK_uBCgM4Qhrj1HHvsGijhh';
+  const apiKey = process.env.BRAVE_SEARCH_API_KEY;
 
   try {
     if (apiKey) {

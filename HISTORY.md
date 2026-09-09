@@ -51,7 +51,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (10/10 ENTERPRISE GRADE)
 - [+] Dodano: Autonomiczny mechanizm fallbacku klienckiego (browser-native OSINT scan) w `modules/pages/OSINTPage.jsx`, gwarantujący natychmiastowe wyniki bez ryzyka błędu HTML ze strony hostingu statycznego.
 - [+] Dodano: Asynchroniczny dyspozytor zdarzeń `emitCloudDataChanged` w `modules/services/cloudSync.js` z opóźnieniem `setTimeout(..., 0)`, co całkowicie eliminuje ostrzeżenia Reacta o aktualizowaniu stanu innych komponentów w trakcie renderowania.
 - [*] Zmodyfikowano: `FinancePage.jsx`, `TimetablePage.jsx` oraz `WorkoutsPage.jsx` zabezpieczono warunkiem `if (!isCloudEnvironment())` przed niepotrzebnym odpytywaniem lokalnych tras Express w środowisku statycznym Firebase Hosting.
-- [*] Zmodyfikowano: `SettingsPage.jsx` w trybie chmurowym natychmiast zwraca konfigurację projektu Firestore `void-potato-7721` bez odpytywania `/api/firebase/status` oraz zarządza kodem PIN lokalnie w chmurze.
+- [*] Zmodyfikowano: `SettingsPage.jsx` w trybie chmurowym natychmiast zwraca konfigurację projektu Firestore `<PROJECT_ID_REDACTED>` bez odpytywania `/api/firebase/status` oraz zarządza kodem PIN lokalnie w chmurze.
 - [*] Zmodyfikowano: `SystemMonitor.jsx`, `NetworkMonitor.jsx`, `ModelStatus.jsx` oraz `AgentQueue.jsx` w środowisku chmurowym wykorzystują telemetrię kliencką (`performance.memory`, `performance.now()`) oraz endpoint `https://ai-system-dashboard.vercel.app/api/status`, eliminując cykliczne błędy w konsoli co 5-10 sekund.
 - [*] Zmodyfikowano: W `core.client.jsx` interceptor Axios ogranicza powiadomienia `console.warn` wyłącznie do lokalnego środowiska deweloperskiego (`localhost`).
 - [*] Zmodyfikowano: W `WeatherWidget.jsx` zmieniono logowanie błędu braku dostępu do geolokalizacji na `console.debug`.
@@ -234,7 +234,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 - [+] Dodano: Dodatkowe opcje sterowania interfejsem w Ustawieniach: przełącznik efektu Glassmorphism (rozmycie tła), przełącznik animacji interfejsu (tryb natychmiastowy / terminalowy), tryb kompaktowy UI o wysokiej gęstości danych oraz selektor domyślnego modelu AI (`openai/gpt-oss-120b`).
 - [+] Dodano: Narzędzie kopii zapasowej konfiguracji — eksport wszystkich ustawień do pliku `omnidash-config.json` oraz natychmiastowy import JSON.
 - [*] Zmodyfikowano: Poprawiono ładowanie akcentów i modyfikatorów UI (`compact-mode`, `no-glass`, `no-animations`) przy starcie w `core.client.jsx`.
-- [*] Zmodyfikowano: Pomyślnie zrekompilowano (0 błędów) i opublikowano na **Firebase Hosting** (`https://void-potato-7721.web.app`) oraz **Vercel Production** (`https://ai-system-dashboard.vercel.app`).
+- [*] Zmodyfikowano: Pomyślnie zrekompilowano (0 błędów) i opublikowano na **Firebase Hosting** (`https://<HOST_REDACTED>.web.app`) oraz **Vercel Production** (`https://ai-system-dashboard.vercel.app`).
 - [*] Zmodyfikowano: Zsynchronizowano i zrekompilowano (0 błędów) repozytorium lustrzane `AI SYSTEM DASHBOARD GITHUB - BEZ FIREBASE`.
 
 ### Audyt
@@ -245,9 +245,9 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ### Zmiany
 - [!] Naprawiono: Całkowicie wyeliminowano błąd "Błąd połączenia z API Groq" w widżecie wyboru modeli AI (`ModelWidget.jsx`). Wdrożono dedykowaną funkcję serverless `api/models.js` na Vercel z pełną obsługą CORS, dynamicznym wykrywaniem modeli (`openai/gpt-oss-120b`, `llama-3.3-70b-versatile`) oraz resilient fallback.
 - [*] Zmodyfikowano: Przebudowano karty wskaźników budżetowych w `FinancePage.jsx` (`POTRZEBY`, `ZACHCIANKI`, `OSZCZĘDNOŚCI`) — dodano obliczanie procentu wykorzystania limitu (`% limitu`), dynamiczne paski postępu, synchronizację z Firestore oraz szybkie profile (`50/30/20`, `60/20/20`, `70/20/10`, `40/30/30`). Kliknięcie w dowolną kartę otwiera konfigurator.
-- [-] Usunięto: Zgodnie z dyspozycją operatora wyczyszczono bazy danych dla kategorii `finanse` i `treningi` w Cloud Firestore (`void-potato-7721`) oraz lokalnej SQLite (`tasks.sqlite`). Opróżniono tablice startowe w `cloudSync.js`.
+- [-] Usunięto: Zgodnie z dyspozycją operatora wyczyszczono bazy danych dla kategorii `finanse` i `treningi` w Cloud Firestore (`<PROJECT_ID_REDACTED>`) oraz lokalnej SQLite (`tasks.sqlite`). Opróżniono tablice startowe w `cloudSync.js`.
 - [*] Zmodyfikowano: Zapewniono pełną dwukierunkową synchronizację: wszystkie dane zapisują się natychmiastowo lokalnie (SQLite / localStorage) oraz w chmurze Google Cloud Firestore, zapewniając dostęp z dowolnego urządzenia w czasie rzeczywistym.
-- [*] Zmodyfikowano: Pomyślnie zrekompilowano (0 błędów) i opublikowano na **Firebase Hosting** (`https://void-potato-7721.web.app`) oraz **Vercel Production** (`https://ai-system-dashboard.vercel.app`).
+- [*] Zmodyfikowano: Pomyślnie zrekompilowano (0 błędów) i opublikowano na **Firebase Hosting** (`https://<HOST_REDACTED>.web.app`) oraz **Vercel Production** (`https://ai-system-dashboard.vercel.app`).
 - [*] Zmodyfikowano: Zsynchronizowano i zrekompilowano repozytorium lustrzane `AI SYSTEM DASHBOARD GITHUB - BEZ FIREBASE`.
 
 ### Audyt
@@ -261,8 +261,8 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 
 ### Zmiany
 - [*] Zmodyfikowano: Oczyszczono plan lekcji w `modules/services/cloudSync.js`, Firestore oraz SQLite — usunięto wszystkie pozycje drugiej grupy. Użytkownik przypisany jest bezwzględnie do Grupy 1 (pierwsza pozycja na każdym dzielonym bloku).
-- [*] Zmodyfikowano: Wykonano migrację 38 zajęć bezpośrednio do kolekcji `timetable` w Cloud Firestore (`void-potato-7721`) oraz lokalnej bazy SQLite (`data/tasks.sqlite`).
-- [*] Zmodyfikowano: Skompilowano z wynikiem 0 błędów i wdrożono na **Firebase Hosting** (`https://void-potato-7721.web.app`) oraz **Vercel Production** (`https://ai-system-dashboard.vercel.app`).
+- [*] Zmodyfikowano: Wykonano migrację 38 zajęć bezpośrednio do kolekcji `timetable` w Cloud Firestore (`<PROJECT_ID_REDACTED>`) oraz lokalnej bazy SQLite (`data/tasks.sqlite`).
+- [*] Zmodyfikowano: Skompilowano z wynikiem 0 błędów i wdrożono na **Firebase Hosting** (`https://<HOST_REDACTED>.web.app`) oraz **Vercel Production** (`https://ai-system-dashboard.vercel.app`).
 - [*] Zmodyfikowano: Zaktualizowano i zrekompilowano repozytorium `AI SYSTEM DASHBOARD GITHUB - BEZ FIREBASE`.
 
 ### Audyt
@@ -284,7 +284,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 - [+] Dodano: Pozycję w menu bocznym `Sidebar.jsx` z ikoną `GraduationCap` oraz skrót szybkiej nawigacji w `CommandPalette.jsx` (Ctrl + K).
 - [+] Dodano: Kafelek `timetable` w panelu diagnostycznym `SettingsPage.jsx` z obsługą jednoczesnej synchronizacji 7 kategorii.
 - [+] Dodano: Tabelę `timetable` w lokalnej bazie SQLite `modules/database.js` oraz dedykowany router `modules/routes/timetable.js` zamontowany w `core.server.js`.
-- [*] Zmodyfikowano: Pomyślnie zrekompilowano i opublikowano na **Vercel Production** (`https://ai-system-dashboard.vercel.app`) oraz **Firebase Hosting** (`https://void-potato-7721.web.app`).
+- [*] Zmodyfikowano: Pomyślnie zrekompilowano i opublikowano na **Vercel Production** (`https://ai-system-dashboard.vercel.app`) oraz **Firebase Hosting** (`https://<HOST_REDACTED>.web.app`).
 - [*] Zmodyfikowano: Zsynchronizowano i pomyślnie zbudowano lustro lokalne `AI SYSTEM DASHBOARD GITHUB - BEZ FIREBASE`.
 
 ### Audyt
@@ -302,7 +302,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 - [+] Dodano: Rygorystyczny protokół eliminacji fałszywych komunikatów o braku dostępu do internetu w promptach systemowych trybów Mentor (J.A.R.V.I.S) i Worker (F.R.I.D.A.Y).
 - [+] Dodano: Dynamiczne obliczanie i prezentację procentów oraz limitów budżetowych w `modules/pages/FinancePage.jsx` (`POTRZEBY (X%)`, `ZACHCIANKI (Y%)`, `OSZCZĘDNOŚCI (Z%)`, wykres kołowy donut, cel alokacji, modale edycji parametrów) w oparciu o konfigurację użytkownika z trwałą synchronizacją w Cloud Firestore.
 - [*] Zmodyfikowano: `api/agent.js` z uniwersalną obsługą parametrów wejściowych (`text`, `message`, `prompt`).
-- [*] Zmodyfikowano: Zrekompilowano i opublikowano na **Vercel Production** (`https://ai-system-dashboard.vercel.app`) oraz **Firebase Hosting** (`https://void-potato-7721.web.app`).
+- [*] Zmodyfikowano: Zrekompilowano i opublikowano na **Vercel Production** (`https://ai-system-dashboard.vercel.app`) oraz **Firebase Hosting** (`https://<HOST_REDACTED>.web.app`).
 - [*] Zmodyfikowano: Zsynchronizowano i zrekompilowano repozytorium `AI SYSTEM DASHBOARD GITHUB - BEZ FIREBASE`.
 
 ### Audyt
@@ -324,7 +324,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 - [*] Zmodyfikowano: `modules/pages/MemoryPage.jsx` — w pełni zintegrowano z kolekcją `operator_brain` w Firestore w czasie rzeczywistym wraz z modalem dodawania faktów.
 - [*] Zmodyfikowano: `modules/context/ChatContext.jsx` — dodano automatyczną, trwałą synchronizację wiadomości z kolekcją `chat_history` w Firestore (niezależnie od urządzenia i przeglądarki).
 - [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` — dodano panel diagnostyczny Vercel AI Gateway (pomiar opóźnienia ping w ms) oraz Centrum Kategorii Firestore z 1-kliknięciową auto-inicjalizacją.
-- [*] Zmodyfikowano: Pomyślnie zbudowano i opublikowano na Vercel Production (`https://ai-system-dashboard.vercel.app`) oraz zaktualizowano Firebase Hosting (`https://void-potato-7721.web.app`).
+- [*] Zmodyfikowano: Pomyślnie zbudowano i opublikowano na Vercel Production (`https://ai-system-dashboard.vercel.app`) oraz zaktualizowano Firebase Hosting (`https://<HOST_REDACTED>.web.app`).
 - [*] Zmodyfikowano: Zsynchronizowano i zrekompilowano katalog `AI SYSTEM DASHBOARD GITHUB - BEZ FIREBASE`.
 
 ### Audyt
@@ -341,7 +341,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 - [+] Dodano: Pasek szybkich podpowiedzi (`Quick Prompts`) z pigułkami akcji (To-Do, Pogoda, Wiadomości IT, Status systemu, /clear) do natychmiastowego wywoływania zapytań 1-kliknięciem.
 - [+] Dodano: Pływający przycisk *"Przewiń na dół"* pojawiający się dynamicznie podczas przeglądania wcześniejszej historii czatu.
 - [*] Zmodyfikowano: `ChatContext.jsx` wzbogacony o precyzyjne znaczniki czasu ISO dla każdej wiadomości użytkownika i asystenta.
-- [*] Zmodyfikowano: Pomyślnie zrekompilowano i opublikowano wersję produkcyjną na Firebase Hosting (`https://void-potato-7721.web.app`) oraz w lokalnej instancji Pulpitu.
+- [*] Zmodyfikowano: Pomyślnie zrekompilowano i opublikowano wersję produkcyjną na Firebase Hosting (`https://<HOST_REDACTED>.web.app`) oraz w lokalnej instancji Pulpitu.
 
 ### Audyt
 Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
@@ -360,7 +360,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 - [+] Dodano: Wzbogacony inteligentny fallback offline, generujący ustrukturyzowane zestawienie oczekujących i zrealizowanych zadań z identyfikatorami priorytetów wraz z widżetem To-Do.
 - [*] Zmodyfikowano: `modules/components/CommandPalette.jsx` — ujednolicono schemat zapisu zadań (`title`, `status`, `priority`) do wspólnej kolekcji `tasks`.
 - [*] Zmodyfikowano: `vite.config.js` oraz `.env` — zapewniono stałe wstrzykiwanie `VITE_GROQ_API_KEY` do bundla produkcyjnego.
-- [*] Zmodyfikowano: Pomyślnie zrekompilowano i opublikowano nową wersję na Firebase Hosting (`https://void-potato-7721.web.app`) oraz w lokalnej instancji Pulpitu.
+- [*] Zmodyfikowano: Pomyślnie zrekompilowano i opublikowano nową wersję na Firebase Hosting (`https://<HOST_REDACTED>.web.app`) oraz w lokalnej instancji Pulpitu.
 
 ### Audyt
 Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
@@ -375,7 +375,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 - [*] Zmodyfikowano: Przełączono domyślny model językowy z `llama-3.3-70b-versatile` na `openai/gpt-oss-120b` (GPT-OSS 120B) w `modules/agent.js` (zarówno pętla decyzyjna z łańcuchem fallbacków, jak i auto-podsumowania `generateHourlySummary`).
 - [*] Zmodyfikowano: Zaktualizowano autonomiczny dyspozytor LLM po stronie przeglądarki `modules/services/clientAiDispatcher.js` do wykonywania zapytań z modelem `openai/gpt-oss-120b`.
 - [*] Zmodyfikowano: Zaktualizowano komponent telemetrii modelu `modules/components/ModelStatus.jsx` do raportowania aktywnego modelu `openai/gpt-oss-120b`.
-- [*] Zmodyfikowano: Pomyślnie zrekompilowano i zsynchronizowano zmiany w wersji chmurowej Firebase (`https://void-potato-7721.web.app`) oraz w lokalnej instancji pulpitu wolnej od Firebase (`AI SYSTEM DASHBOARD GITHUB - BEZ FIREBASE`).
+- [*] Zmodyfikowano: Pomyślnie zrekompilowano i zsynchronizowano zmiany w wersji chmurowej Firebase (`https://<HOST_REDACTED>.web.app`) oraz w lokalnej instancji pulpitu wolnej od Firebase (`AI SYSTEM DASHBOARD GITHUB - BEZ FIREBASE`).
 
 ### Audyt
 Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
@@ -393,7 +393,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 - [+] Dodano: Pierścień SVG Donut Chart w `FinancePage.jsx` do wizualizacji alokacji budżetu 50/30/20 oraz dynamiczny wskaźnik przepływów Cashflow.
 - [*] Zmodyfikowano: `ChatContext.jsx` zintegrowany z nowym silnikiem `dispatchAiQuery`.
 - [*] Zmodyfikowano: `WorkoutsPage.jsx` wzbogacony o kategoryzację, analitykę i synchronizację chmurową.
-- [*] Zmodyfikowano: Pomyślnie zbudowano i wdrożono produkcję na `https://void-potato-7721.web.app`.
+- [*] Zmodyfikowano: Pomyślnie zbudowano i wdrożono produkcję na `https://<HOST_REDACTED>.web.app`.
 
 ### Audyt
 Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
@@ -411,7 +411,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 - [*] Zmodyfikowano: `TodoList.jsx`, `NewsFeed.jsx`, `CalendarPage.jsx`, `WorkoutsPage.jsx`, `SystemMonitor.jsx`, `AgentQueue.jsx`, `ModelStatus.jsx`, `MemoryPage.jsx`, `WidgetsPage.jsx` zabezpieczono przed błędami wywołania metod tablicowych (`.filter`, `.map`, `.reduce`) oraz dodano fallback telemetryczny w trybie chmurowym.
 - [*] Zmodyfikowano: `WeatherWidget.jsx` wzbogacono o bezpośredni fallback do otwartego API Open-Meteo w środowisku chmurowym.
 - [*] Zmodyfikowano: `FinancePage.jsx` usunięto błąd `ReferenceError: bal is not defined`.
-- [*] Zmodyfikowano: Przeprowadzono ponowne wdrożenie na Firebase Hosting (`void-potato-7721.web.app`).
+- [*] Zmodyfikowano: Przeprowadzono ponowne wdrożenie na Firebase Hosting (`<HOST_REDACTED>.web.app`).
 
 ### Audyt
 Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
@@ -419,12 +419,12 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ---
 
 ### Zmiany
-- [+] Dodano: Utworzono projekt w Google Cloud Firebase o unikalnym identyfikatorze `void-potato-7721` (Void Potato Matrix).
+- [+] Dodano: Utworzono projekt w Google Cloud Firebase o unikalnym identyfikatorze `<PROJECT_ID_REDACTED>` (Void Potato Matrix).
 - [+] Dodano: Baza danych Cloud Firestore `(default)` w regionie `europe-central2` (Warszawa).
 - [+] Dodano: Moduł backendowy `modules/firebase.js` (Firebase Admin SDK) obsługujący połączenie i synchronizację.
 - [+] Dodano: Moduł tras Express `modules/routes/firebase.js` z punktami końcowymi statusu, weryfikacji i synchronizacji bazy.
 - [+] Dodano: Klient frontendowy `modules/firebaseClient.js` (Firebase Web SDK) do autoryzacji w chmurze.
-- [+] Dodano: Wdrożono reguły bezpieczeństwa `firestore.rules` ograniczające dostęp wyłącznie do autoryzowanego właściciela (`marektowarek21372137@gmail.com`).
+- [+] Dodano: Wdrożono reguły bezpieczeństwa `firestore.rules` ograniczające dostęp wyłącznie do autoryzowanego właściciela (`<EMAIL_REDACTED>`).
 - [*] Zmodyfikowano: `LockScreen.jsx` rozszerzono o autoryzację tożsamości Firebase Właściciela.
 - [*] Zmodyfikowano: `SettingsPage.jsx` wzbogacono o panel monitorowania Firestore i przycisk synchronizacji SQLite -> Firestore.
 - [*] Zmodyfikowano: `core.server.js` zintegrowano z routerem `/api/firebase`.
@@ -624,3 +624,4 @@ Status: ZGODNY Z PROTOKOŁEM SYSTEM
 Status: ZGODNY Z PROTOKOŁEM SYSTEM
 
 ---
+

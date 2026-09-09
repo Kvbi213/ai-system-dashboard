@@ -1,6 +1,8 @@
 const fs = require('fs');
+const path = require('path');
 
-let data = fs.readFileSync('/home/lis/Pulpit/ai-system-dashboard/modules/components/TodoList.jsx', 'utf8');
+const targetPath = path.resolve(__dirname, '../modules/components/TodoList.jsx');
+let data = fs.readFileSync(targetPath, 'utf8');
 
 // Imports
 data = data.replace(
@@ -31,5 +33,5 @@ data = data.replace('Brak aktywnych procesów.', '{t(\'todoNoActive\')}');
 data = data.replace('cykliczne', '{t(\'todoCyclic\')}');
 data = data.replace('Ukończone ({done.length})', '{t(\'todoCompleted\')} ({done.length})');
 
-fs.writeFileSync('/home/lis/Pulpit/ai-system-dashboard/modules/components/TodoList.jsx', data);
+fs.writeFileSync(targetPath, data);
 console.log("TodoList updated");

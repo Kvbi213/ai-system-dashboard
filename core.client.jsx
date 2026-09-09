@@ -9,18 +9,29 @@ import './assets/styles/index.css';
 import Sidebar from './modules/components/Sidebar';
 import Dashboard from './modules/pages/Dashboard';
 import ChatPage from './modules/pages/ChatPage';
-import SearchPage from './modules/pages/SearchPage';
-import SettingsPage from './modules/pages/SettingsPage';
-import WidgetsPage from './modules/pages/WidgetsPage';
-import CalendarPage from './modules/pages/CalendarPage';
-import FinancePage from './modules/pages/FinancePage';
-import WorkoutsPage from './modules/pages/WorkoutsPage';
-import TimetablePage from './modules/pages/TimetablePage';
-import MemoryPage from './modules/pages/MemoryPage';
-import OSINTPage from './modules/pages/OSINTPage';
 import LockScreen from './modules/pages/LockScreen';
-import ServerPage from './modules/pages/ServerPage';
-import BrowserPage from './modules/pages/BrowserPage';
+
+// Code-splitting (Dynamic imports) dla podstron funkcyjnych w celu redukcji początkowego bundle JS
+const SearchPage = React.lazy(() => import('./modules/pages/SearchPage'));
+const SettingsPage = React.lazy(() => import('./modules/pages/SettingsPage'));
+const WidgetsPage = React.lazy(() => import('./modules/pages/WidgetsPage'));
+const CalendarPage = React.lazy(() => import('./modules/pages/CalendarPage'));
+const FinancePage = React.lazy(() => import('./modules/pages/FinancePage'));
+const WorkoutsPage = React.lazy(() => import('./modules/pages/WorkoutsPage'));
+const TimetablePage = React.lazy(() => import('./modules/pages/TimetablePage'));
+const MemoryPage = React.lazy(() => import('./modules/pages/MemoryPage'));
+const OSINTPage = React.lazy(() => import('./modules/pages/OSINTPage'));
+const ServerPage = React.lazy(() => import('./modules/pages/ServerPage'));
+const BrowserPage = React.lazy(() => import('./modules/pages/BrowserPage'));
+
+const PageFallback = () => (
+  <div className="flex-1 h-full flex items-center justify-center p-8">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-8 h-8 rounded-full border-2 border-accentPrimary/20 border-t-accentPrimary animate-spin" />
+      <span className="font-mono text-xs text-textMuted tracking-wider uppercase animate-pulse">Ładowanie modułu...</span>
+    </div>
+  </div>
+);
 import { ChatProvider } from './modules/context/ChatContext';
 import { ToastProvider } from './modules/context/ToastContext';
 import ToastContainer from './modules/components/ToastContainer';
@@ -241,21 +252,23 @@ const App = () => {
 
           {/* Główny obszar zawartości (Router) */}
           <div className="flex-1 h-full p-2.5 sm:p-4 md:p-8 overflow-hidden min-w-0 flex flex-col pb-20 md:pb-0">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/chat" element={<ChatPage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/osint" element={<OSINTPage />} />
-              <Route path="/calendar" element={<CalendarPage />} />
-              <Route path="/timetable" element={<TimetablePage />} />
-              <Route path="/finances" element={<FinancePage />} />
-              <Route path="/workouts" element={<WorkoutsPage />} />
-              <Route path="/widgets" element={<WidgetsPage />} />
-              <Route path="/memory" element={<MemoryPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/server" element={<ServerPage />} />
-              <Route path="/browser" element={<BrowserPage />} />
-            </Routes>
+            <React.Suspense fallback={<PageFallback />}>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/chat" element={<ChatPage />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/osint" element={<OSINTPage />} />
+                <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/timetable" element={<TimetablePage />} />
+                <Route path="/finances" element={<FinancePage />} />
+                <Route path="/workouts" element={<WorkoutsPage />} />
+                <Route path="/widgets" element={<WidgetsPage />} />
+                <Route path="/memory" element={<MemoryPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/server" element={<ServerPage />} />
+                <Route path="/browser" element={<BrowserPage />} />
+              </Routes>
+            </React.Suspense>
           </div>
 
         </div>
