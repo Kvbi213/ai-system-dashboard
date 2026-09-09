@@ -1,4 +1,7 @@
 import re
+import os
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 pl_keys = {
     'termCopyText': 'Kopiuj tekst',
@@ -260,7 +263,8 @@ zh_keys = en_keys
 import json
 
 def update_i18n(lang, keys):
-    with open('/home/lis/Pulpit/ai-system-dashboard/modules/i18n.js', 'r', encoding='utf-8') as f:
+    i18n_path = os.path.join(BASE_DIR, 'modules/i18n.js')
+    with open(i18n_path, 'r', encoding='utf-8') as f:
         content = f.read()
     pattern = r'(' + lang + r':\s*\{\s*translation:\s*\{)'
     match = re.search(pattern, content)
@@ -270,7 +274,7 @@ def update_i18n(lang, keys):
         for k, v in keys.items():
             keys_str += f'\\n      "{k}": "{v}",'
         content = content[:start_idx] + keys_str + content[start_idx:]
-        with open('/home/lis/Pulpit/ai-system-dashboard/modules/i18n.js', 'w', encoding='utf-8') as f:
+        with open(i18n_path, 'w', encoding='utf-8') as f:
             f.write(content)
 
 update_i18n('pl', pl_keys)
@@ -434,8 +438,9 @@ finance_repl = [
     ('>Data<', '>{t("finDate", "Data")}<')
 ]
 
-process_component('/home/lis/Pulpit/ai-system-dashboard/modules/components/Terminal.jsx', terminal_repl)
-process_component('/home/lis/Pulpit/ai-system-dashboard/modules/context/ChatContext.jsx', chat_repl)
-process_component('/home/lis/Pulpit/ai-system-dashboard/modules/pages/WorkoutsPage.jsx', work_repl)
-process_component('/home/lis/Pulpit/ai-system-dashboard/modules/pages/OSINTPage.jsx', osint_repl)
-process_component('/home/lis/Pulpit/ai-system-dashboard/modules/pages/FinancePage.jsx', finance_repl)
+process_component(os.path.join(BASE_DIR, 'modules/components/Terminal.jsx'), terminal_repl)
+process_component(os.path.join(BASE_DIR, 'modules/context/ChatContext.jsx'), chat_repl)
+process_component(os.path.join(BASE_DIR, 'modules/pages/WorkoutsPage.jsx'), work_repl)
+process_component(os.path.join(BASE_DIR, 'modules/pages/OSINTPage.jsx'), osint_repl)
+process_component(os.path.join(BASE_DIR, 'modules/pages/FinancePage.jsx'), finance_repl)
+

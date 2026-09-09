@@ -18,3 +18,6 @@ firebase-service-account*.json
 
 .vercel
 .env*
+.firebaserc
+ZASADYPRACY.md
+scripts/seed_real_timetable.js

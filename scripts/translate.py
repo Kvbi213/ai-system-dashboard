@@ -422,12 +422,15 @@ def replace_in_file(path, replacements):
     with open(path, 'w', encoding='utf-8') as f:
         f.write(content)
 
-replace_in_file('/home/lis/Pulpit/ai-system-dashboard/modules/pages/SettingsPage.jsx', settings_replacements)
-replace_in_file('/home/lis/Pulpit/ai-system-dashboard/modules/components/SetupWizard.jsx', setup_replacements)
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+replace_in_file(os.path.join(BASE_DIR, 'modules/pages/SettingsPage.jsx'), settings_replacements)
+replace_in_file(os.path.join(BASE_DIR, 'modules/components/SetupWizard.jsx'), setup_replacements)
 
 # Now update i18n.js
 import json
-with open('/home/lis/Pulpit/ai-system-dashboard/modules/i18n.js', 'r', encoding='utf-8') as f:
+i18n_path = os.path.join(BASE_DIR, 'modules/i18n.js')
+with open(i18n_path, 'r', encoding='utf-8') as f:
     i18n_content = f.read()
 
 def inject_keys(content, lang, new_keys):
@@ -448,7 +451,7 @@ i18n_content = inject_keys(i18n_content, 'en', en_keys)
 i18n_content = inject_keys(i18n_content, 'uk', uk_keys)
 i18n_content = inject_keys(i18n_content, 'zh', zh_keys)
 
-with open('/home/lis/Pulpit/ai-system-dashboard/modules/i18n.js', 'w', encoding='utf-8') as f:
+with open(i18n_path, 'w', encoding='utf-8') as f:
     f.write(i18n_content)
 
 print("Done translating settings, setup wizard, and i18n")

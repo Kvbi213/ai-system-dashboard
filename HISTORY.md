@@ -1,5 +1,24 @@
 ## Wersja Bieżąca
-**v2.14.0**
+**v2.14.1**
+
+## v 2.14.1 — 2026-09-09
+**Typ:** PATCH  
+**Zakres:** Wzmocnienie Bezpieczeństwa & Zero-Leak Sanitization Repozytorium: Wykluczenie z Indeksu Gita i Zabezpieczenie Pliku ZASADYPRACY.md, Usunięcie Prywatnych Konfiguracji Chmurowych (.firebaserc, scripts/seed_real_timetable.js, docs/error.log) z Wypychania do Gita, Aktualizacja Reguł .gitignore, Pełna Normalizacja Bezwzględnych Ścieżek i Identyfikatorów Projektowych w Dokumentacji i Narzędziach.
+
+### Zmiany
+- [+] Dodano: Reguły ignorowania w `.gitignore` dla `ZASADYPRACY.md`, `.firebaserc`, `scripts/seed_real_timetable.js`.
+- [+] Dodano: Raport wdrożenia `/docs/versions/v2.14.1.md`.
+- [*] Zmodyfikowano: Wyrejestrowano z indeksu Gita (`git rm --cached`): `ZASADYPRACY.md` (pozostawiony lokalnie dla zachowania Priorytetu Zero), `.firebaserc`, `scripts/seed_real_timetable.js`, `docs/error.log`.
+- [*] Zmodyfikowano: Wyczyszczono lokalny plik `docs/error.log` usuwając archiwalne zrzuty stosu Express/Axios.
+- [*] Zmodyfikowano: Przeskanowano i znormalizowano archiwalną dokumentację (`HISTORY.md`, `docs/versions/v2.2.0.md`, `docs/versions/v2.10.0.md`, `docs/versions/v2.11.0.md`) usuwając wszelkie odnośniki `file:///c:/Users/...` oraz prywatne nazwy instancji chmurowych.
+- [*] Zmodyfikowano: `scripts/translate.py`, `scripts/translate2.py`, `scripts/update_i18n.cjs` zabezpieczono przed wyciekiem ścieżek bezwzględnych poprzez dynamiczną alokację `BASE_DIR`.
+- [*] Zmodyfikowano: Zaktualizowano `ARCHITECTURE.md` oraz podniesiono wersję w `package.json` do `2.14.1`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
+
 
 ## v 2.14.0 — 2026-09-09
 **Typ:** MINOR  
@@ -181,7 +200,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 
 ### Zmiany
 - [+] Dodano: Integrację `remark-gfm@4.0.1` w `Terminal.jsx` wraz z komponentem `ReactMarkdown`. Tabele w wiadomościach asystenta AI (np. prognozy pogody, raporty finansowe, harmonogramy) są od teraz renderowane jako pełnoprawne, responsywne tabele HTML z horyzontalnym przewijaniem, czytelnymi nagłówkami i naprzemiennym cieniowaniem wierszy.
-- [+] Dodano: Dedykowany komponent [ChatInlineWidgets.jsx](file:///c:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/modules/components/ChatInlineWidgets.jsx) z 4 interaktywnymi widżetami montowanymi pod odpowiedziami AI w Terminalu:
+- [+] Dodano: Dedykowany komponent `ChatInlineWidgets.jsx` z 4 interaktywnymi widżetami montowanymi pod odpowiedziami AI w Terminalu:
   - `TimetableChatWidget`: dzisiejszy plan lekcji z godzinami, salami i statusem.
   - `FinanceChatWidget`: bieżące saldo, wydatki, paski alokacji budżetu 50/30/20 (Potrzeby, Zachcianki, Oszczędności).
   - `WorkoutsChatWidget`: ostatnie sesje treningowe z datami i kategoriami.
@@ -438,7 +457,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ---
 
 ### Zmiany
-- [+] Dodano: Utworzono projekt w Google Cloud Firebase o unikalnym identyfikatorze `<PROJECT_ID_REDACTED>` (Void Potato Matrix).
+- [+] Dodano: Utworzono projekt w Google Cloud Firebase o unikalnym identyfikatorze `<PROJECT_ID_REDACTED>` (Cloud Firebase Instance).
 - [+] Dodano: Baza danych Cloud Firestore `(default)` w regionie `europe-central2` (Warszawa).
 - [+] Dodano: Moduł backendowy `modules/firebase.js` (Firebase Admin SDK) obsługujący połączenie i synchronizację.
 - [+] Dodano: Moduł tras Express `modules/routes/firebase.js` z punktami końcowymi statusu, weryfikacji i synchronizacji bazy.

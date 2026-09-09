@@ -1,6 +1,6 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.14.0 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.14.1 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE)  
 **Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Cloud-First Firestore Sync, Real-Time SSE Telemetry, Theme Toggle Dark/Light, React Testing Library + JSDOM Suite, Toast Notification Hub, Network Online/Offline Guard, Automated Testing Suite Vitest 39/39 PASS, CSV & PDF Export Engine, Dual CI/CD Pipelines main.yml & ci.yml, Deterministic Chat Purge, Dynamic 0% Budgeting & Dual-Mode Donut Allocation, Calendar Management, Warsaw Timezone AI Engine, Multi-Cloud OSINT Serverless, Vercel Serverless & Firebase Hosting)
 
@@ -53,7 +53,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 ├── index.html                 ← Plik ładujący aplikację SPA.
 ├── vercel.json                ← Konfiguracja routingu i rewrites Vercel.
 │
-├── ZASADYPRACY.md             ← Nadrzędny Rygor Operacyjny [PRIORYTET ZERO].
+├── ZASADYPRACY.md             ← Nadrzędny Rygor Operacyjny [PRIORYTET ZERO] (Protokół lokalny sesji AI, chroniony w .gitignore).
 ├── ARCHITECTURE.md            ← (Ten plik) Centralne źródło prawdy o systemie.
 ├── HISTORY.md                 ← Niemutowalny rejestr wersji (SemVer append-only).
 ├── README.md                  ← Główna prezentacja repozytorium z diagramami Mermaid.

@@ -1,6 +1,8 @@
 const fs = require('fs');
+const path = require('path');
 
-const data = fs.readFileSync('/home/lis/Pulpit/ai-system-dashboard/modules/i18n.js', 'utf8');
+const i18nPath = path.resolve(__dirname, '../modules/i18n.js');
+const data = fs.readFileSync(i18nPath, 'utf8');
 
 // We will do a string replacement to inject our keys.
 // Find the end of each language block.
@@ -242,5 +244,6 @@ for(const b of blocks) {
   }
 }
 
-fs.writeFileSync('/home/lis/Pulpit/ai-system-dashboard/modules/i18n.js', out);
+fs.writeFileSync(i18nPath, out);
 console.log("Updated i18n.js");
+
