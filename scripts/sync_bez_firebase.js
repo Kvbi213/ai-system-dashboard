@@ -49,9 +49,22 @@ const filesToSync = [
   'modules/components/SetupWizard.jsx',
   'modules/components/ITNewsTicker.jsx',
   'modules/components/CommandPalette.jsx',
+  'modules/components/ToastContainer.jsx',
+  'modules/components/ExportModal.jsx',
   'modules/context/ChatContext.jsx',
+  'modules/context/ToastContext.jsx',
   'modules/config/constants.js',
   'modules/services/clientAiDispatcher.js',
+  'modules/services/budgetCalculator.js',
+  'modules/services/exportService.js',
+  'modules/services/timeUtils.js',
+  'modules/osint.js',
+  'tests/budget.test.js',
+  'tests/export.test.js',
+  'tests/time.test.js',
+  'tests/osint.test.js',
+  'tests/cloudSync.test.js',
+  '.github/workflows/ci.yml',
   'api/news.js',
   'api/agent.js',
   'api/status.js',
@@ -59,6 +72,7 @@ const filesToSync = [
   'core.client.jsx',
   'assets/styles/index.css',
   'package.json',
+  'README.md',
   'HISTORY.md',
   'ARCHITECTURE.md',
   'docs/versions/v2.11.0.md',
@@ -66,7 +80,8 @@ const filesToSync = [
   'docs/versions/v2.11.2.md',
   'docs/versions/v2.11.3.md',
   'docs/versions/v2.11.4.md',
-  'docs/versions/v2.11.5.md'
+  'docs/versions/v2.11.5.md',
+  'docs/versions/v2.12.0.md'
 ];
 
 filesToSync.forEach(relPath => {

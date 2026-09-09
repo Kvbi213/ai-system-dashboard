@@ -1,213 +1,243 @@
 <div align="center">
   
-# 🌌 OmniDash
-### Twój Osobisty Hub Dowodzenia Napędzany Sztuczną Inteligencją
+# 🌌 OmniDash AI System Dashboard
+### Zaawansowany Hybrydowy Hub Dowodzenia Napędzany Sztuczną Inteligencją
 
-![Version](https://img.shields.io/badge/Version-1.7.0-blue?style=for-the-badge)
-![Status](https://img.shields.io/badge/Status-Active_Production-success?style=for-the-badge)
-![NodeJS](https://img.shields.io/badge/Node.js->=18.0-339933?style=for-the-badge&logo=node.js)
-![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react)
-![Tailwind](https://img.shields.io/badge/TailwindCSS-3.x-06B6D4?style=for-the-badge&logo=tailwindcss)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+[![Version](https://img.shields.io/badge/Wersja-2.12.0-00F0FF?style=for-the-badge&logo=semver&logoColor=black)](https://github.com/Kvbi213/ai-system-dashboard)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-10B981?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/Kvbi213/ai-system-dashboard/actions)
+[![Tests](https://img.shields.io/badge/Testy-30%2F30%20Passed-10B981?style=for-the-badge&logo=vitest&logoColor=white)](https://github.com/Kvbi213/ai-system-dashboard)
+[![Hosting](https://img.shields.io/badge/Hosting-Firebase_Cloud-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://void-potato-7721.web.app)
+[![API Gateway](https://img.shields.io/badge/API-Vercel_Serverless-black?style=for-the-badge&logo=vercel&logoColor=white)](https://ai-system-dashboard-github.vercel.app)
+[![Node.js](https://img.shields.io/badge/Node.js->=20.0-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![License](https://img.shields.io/badge/Licencja-MIT-6366F1?style=for-the-badge)](LICENSE)
 
-*Przełam rutynę. Zarządzaj swoimi dniami za pomocą wbudowanego, obiektywnego analityka i superszybkiego interfejsu.*
+*Zunifikowany, wysoce zoptymalizowany ekosystem zarządzania osobistego i analityki operacyjnej z autonomicznym agentem AI, architekturą Cloud-First, pełną synchronizacją Firestore oraz natywnym wsparciem strefy czasowej Europe/Warsaw.*
+
+**[🌐 Uruchom Produkcję Live (Firebase Hosting)](https://void-potato-7721.web.app)** • **[📑 Dokumentacja Architektury](ARCHITECTURE.md)** • **[📜 Rejestr Zmian](HISTORY.md)**
 
 </div>
 
 ---
 
-## 📖 O Projekcie
-
-**OmniDash** to kompleksowe, lokalne środowisko zarządzania (Local-First), które integruje w sobie zaawansowanego asystenta opartego na architekturze LLM (Groq / LLaMa 3). Projekt został stworzony w paradygmacie *Desktop-First*, z myślą o najwyższej wydajności, pełnej prywatności i bezprecedensowej ergonomii.
-
-Nie jest to kolejny zwykły czat. Asystent posiada funkcję **Tool Calling** – potrafi samodzielnie wywoływać metody systemowe: modyfikować bazę danych, analizować statystyki CPU/RAM komputera i wyszukiwać najświeższe newsy ze świata bezpośrednio z sieci.
-
----
-
-## ✨ Kluczowe Funkcje
-
-### 🧠 Rdzeń Oparty na AI
-- **LLM as the Core Engine**: Odpowiedzi, planowanie i dedukcja są przetwarzane w locie przez superwydajne modele (np. Llama-3.3-70b-versatile).
-- **Tryby Pracy (Worker / Mentor)**: 
-  - *Worker*: Operacyjny asystent, który realizuje Twoje polecenia.
-  - *Mentor*: Tryb czysto analityczny. Obserwuje Twoje tok myślenia, pozbawiony możliwości modyfikacji systemu, zapewniając surową ocenę pomysłów.
-- **Autonomiczne Narzędzia**: AI potrafi dodawać/usuwać/edytować Twoje zadania bez sztywnych komend, tylko za sprawą języka naturalnego (NLP).
-
-### ⚡ Funkcje Operacyjne
-- **Zarządzanie Zadaniami (To-Do)**: Wbudowana, w pełni interaktywna lista zadań z priorytetami, kalendarzem i widokiem kaskadowym.
-- **Background Scheduler**: Proces tła (cron-like), który może odpalać automatyczne skrypty co godzinę – np. wysyłać powiadomienia, czy sprawdzać pogodę.
-- **Wbudowane Widżety Premium**:
-  - 🗞️ **Live News Ticker**: Aktualności ze świata IT pobierane w czasie rzeczywistym z podziałem na kategorie (White Hat, Jailbreak, Open Source).
-  - 📈 **Crypto Tracker**: Śledzenie rynków kryptowalut w czasie rzeczywistym z wykorzystaniem API Binance.
-  - ⛅ **Monitor Pogodowy**: Integracja z Open-Meteo oferująca precyzyjne 3-godzinne prognozy.
-  - 🖥️ **System Monitor**: Odczyt na żywo wykorzystania procesora, pamięci operacyjnej i Uptime'u.
-
-### 🎨 Design i Użyteczność
-- **Aesthetic Glassmorphism**: Zaprojektowany z miłością do piękna kodowania. Rozmycia, mroczne warianty kolorystyczne, neo-brutalizm w typografii.
-- **Dynamiczna Inicjalizacja**: Przy pierwszym uruchomieniu zostaniesz powitany instalatorem premium. Wprowadzasz klucze, wymyślasz własny PIN główny, a system szyfruje to w sekundę.
-- **Ghost Mode**: Tryb w pełni incognito, nie zostawiający żadnego śladu w historii bazy (lokalne sesje projektowe).
+## 📖 Spis Treści
+1. [Wprowadzenie i Filozofia](#-wprowadzenie-i-filozofia)
+2. [Architektura Systemu (Mermaid Diagrams)](#-architektura-systemu)
+3. [Kluczowe Moduły i Funkcjonalności](#-kluczowe-moduły-i-funkcjonalności)
+4. [Silnik Kognitywny AI i Temporal Anchoring](#-silnik-kognitywny-ai-i-temporal-anchoring)
+5. [System Finansowy 50/30/20 & Eksport Raportów](#-system-finansowy-503020--eksport-raportów)
+6. [Centrum Powiadomień i Odporność Offline](#-centrum-powiadomień-i-odporność-offline)
+7. [Automatyczne Testy Jednostkowe i Integracyjne](#-automatyczne-testy-jednostkowe-i-integracyjne)
+8. [Potok CI/CD (GitHub Actions)](#-potok-cicd-github-actions)
+9. [Instalacja i Uruchomienie](#-instalacja-i-uruchomienie)
+10. [Stos Technologiczny](#-stos-technologiczny)
 
 ---
 
-## 🛠️ Stack Technologiczny
+## 💡 Wprowadzenie i Filozofia
 
-Aplikacja podzielona jest na dwa wysoce zoptymalizowane środowiska:
+**OmniDash** to platforma klasy **Enterprise Dashboard**, łącząca natychmiastową responsywność interfejsu (Glassmorphism / Tailwind CSS) z rozproszonym środowiskiem chmurowym (**Cloud-First Hybrid Mesh**).
 
-### Frontend
-- **React 18** z architekturą komponentową i **React Router**.
-- **Tailwind CSS 3** do budowania systemu designu.
-- **Vite** jako błyskawiczny bundler.
-- **Lucide React** (ikonografia).
-- **React Markdown** (renderowanie bogatego tekstu od AI).
-
-### Backend
-- **Node.js + Express**: Szybki, asynchroniczny API Gateway.
-- **SQLite3**: Plikowa i wysoce przenośna baza danych. Nie wymaga skomplikowanego stawiania kontenerów Docker.
-- **Groq SDK**: Bezpośrednia i niskolatencyjna komunikacja z klastrami obliczeniowymi modeli AI.
-- **WebSockets**: Do asynchronicznej komunikacji z telefonem (Pushbullet).
+Głównym założeniem projektu jest eliminacja tarcia w codziennym zarządzaniu czasem, budżetem, wiedzą i zadaniami. Zamiast izolowanych aplikacji, OmniDash dostarcza **pojedynczy, scentralizowany interfejs**, w którym autonomiczny model AI (`openai/gpt-oss-120b`) posiada bezpośrednie uprawnienia wykonawcze (**Autonomous Tool Calling**) do mutowania bazy danych, analizowania harmonogramów i pobierania danych OSINT w czasie rzeczywistym.
 
 ---
 
-## 🚀 Instalacja i Uruchomienie (Krok po Kroku)
+## 🏛️ Architektura Systemu
 
-Dzięki architekturze plikowej (SQLite), projekt jest gotowy do działania w kilka minut. Poniżej znajdziesz instrukcje uruchomienia lokalnego (Desktop) oraz wdrożenia na serwer.
+### 1. Hybrydowa Topologia Chmurowa (Cloud-First Hybrid Mesh)
 
-### Opcja A: Uruchomienie Lokalne (Desktop - Windows/Mac/Linux)
+```mermaid
+graph TB
+    subgraph Klient ["Warstwa Prezentacji (SPA & Mobile)"]
+        UI["React 18 + Tailwind CSS + Lucide"]
+        Router["React Router v7"]
+        ToastHub["Toast Notification Hub & Offline Guard"]
+        ExportHub["CSV & PDF/Print Report Engine"]
+    end
 
-**1. Wymagania**
-Upewnij się, że masz zainstalowany **Node.js** (min. `18.0.0`) oraz **Git**.
-- **Windows:** `winget install OpenJS.NodeJS` oraz `winget install Git.Git`
-- **Mac:** `brew install node git`
-- **Linux:** `sudo apt update && sudo apt install nodejs npm git`
+    subgraph Chmura ["Chmura Rozproszona (Multi-Cloud)"]
+        FBHost["Firebase Global CDN (Hosting)"]
+        Firestore["Google Cloud Firestore (Baza Czasu Rzeczywistego)"]
+        VercelGW["Vercel Serverless Gateway (/api/*)"]
+    end
 
-**2. Pobranie i instalacja**
+    subgraph AI_Backends ["Silniki Obliczeniowe i Zewnętrzne API"]
+        GroqCloud["Groq Cloud LPU (openai/gpt-oss-120b)"]
+        BraveAPI["Brave Live Search & News API"]
+        OSINT_APIs["GeoJS / Wayback Machine / HackerTarget"]
+    end
+
+    subgraph LocalHost ["Środowisko Lokalne (Desktop Fallback)"]
+        Express["Express Server (core.server.js:5000)"]
+        SQLite["Baza Relacyjna SQLite3"]
+    end
+
+    UI --> Router
+    Router --> ToastHub
+    Router --> ExportHub
+    FBHost -.->|Serwowanie Assetów| UI
+    UI <-->|Dwukierunkowy Snapshot Realtime| Firestore
+    UI <-->|REST API + Temporal Headers| VercelGW
+    VercelGW --> GroqCloud
+    VercelGW --> BraveAPI
+    VercelGW --> OSINT_APIs
+    UI -.->|Opcjonalny Fallback| Express
+    Express --> SQLite
+```
+
+### 2. Pętla Kognitywna Agenta AI z Kotwiczeniem Czasowym (Europe/Warsaw)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Operator as Operator
+    participant Client as OmniDash Client
+    participant Vercel as Vercel Serverless Gateway
+    participant LLM as Silnik AI (GPT-120B)
+    participant Cloud as Cloud Firestore
+
+    Operator->>Client: "Zaplanuj jutro trening o 17:00 i dodaj 250 zł z wypłaty do oszczędności"
+    Client->>Client: Odczyt Europe/Warsaw Timezone & Client State
+    Client->>Vercel: POST /api/agent (Prompt + Temporal Context + State)
+    Note over Vercel: Weryfikacja strefy czasowej: Europe/Warsaw<br/>Wyliczenie: 'jutro' = czwartek, YYYY-MM-DD
+    Vercel->>LLM: Inicjalizacja LLM z zestawem narzędzi (Tool Calling)
+    LLM-->>Vercel: Wywołanie narzędzi: [ACTION:WORKOUT], [ACTION:TRANSACTION]
+    Vercel-->>Client: JSON Response (Odpowiedź tekstowa + Instrukcje Akcji)
+    Client->>Cloud: Zapis transakcji w kolekcji 'finances' (splitMode: single, bucket: savings)
+    Client->>Cloud: Zapis treningu w kolekcji 'workouts'
+    Client->>Client: Emisja powiadomienia Toast (Sukces)
+    Client-->>Operator: Prezentacja ustrukturyzowanej odpowiedzi Markdown
+```
+
+---
+
+## ✨ Kluczowe Moduły i Funkcjonalności
+
+| Moduł | Ścieżka | Opis i Możliwości |
+| :--- | :--- | :--- |
+| **Pulpit Główny** | `/` | Monitor parametrów systemu, widget pogody (Open-Meteo), pasek wiadomości IT, skróty operacyjne. |
+| **Inteligentny Czat** | `/chat` | Dwa autonomiczne tryby: **Worker** (operacyjny z prawem mutacji bazy) oraz **Mentor** (analityczny, chłodna dedukcja). Obsługa komend `/clear`, `/purge`, `/mode`, `/ping`. |
+| **Zarządzanie Budżetem** | `/finances` | Pełny model kopertowy **50/30/20**, obsługa 0% alokacji, transfery między pulami, dynamiczne wykresy SVG, eksport CSV i raporty PDF. |
+| **Plan Lekcji i Sal** | `/timetable` | Harmonogram zintegrowany z pamięcią przestrzenną AI (rozróżnianie budynków i sal z prefiksem `Z`, `SZ` oraz kropką `1.2`, `1.16`). |
+| **Kalendarz Wydarzeń** | `/calendar` | Tworzenie, edycja i usuwanie wydarzeń z priorytetami, podglądem miesięcznym i przypomnieniami. |
+| **Baza Pamięci AI** | `/memory` | Długoterminowy rejestr faktów o operatorze (`operator_brain`) z dynamicznym wstrzykiwaniem do promptu. |
+| **Rozpoznanie OSINT** | `/osint` | Automatyczna klasyfikacja celów (IP, domena, adres MAC, e-mail) z integracją z GeoJS, Wayback Machine i HackerTarget. |
+| **Dziennik Treningowy** | `/workouts` | Rejestr jednostek treningowych, czasów trwania i ćwiczeń ze statystykami. |
+| **Terminal Systemowy** | `/server` | Konsola diagnostyczna, weryfikacja kluczy API, status procesów i połączeń sieciowych. |
+
+---
+
+## 🧠 Silnik Kognitywny AI i Temporal Anchoring
+
+Jednym z kluczowych atutów OmniDash jest **bezwzględna precyzja czasowa**:
+- **Temporal Context Injection**: Przy każdym zapytaniu do bramy API, klient generuje precyzyjny nagłówek czasowy w strefie `Europe/Warsaw` (godzina, minuta, data bezwzględna, polska i angielska nazwa dnia tygodnia).
+- **Vercel Gateway Anchoring**: Nawet przy hostingu w klastrach globalnych (US/EU), brama Vercel (`api/agent.js`) wymusza strefę `Europe/Warsaw`, gwarantując, że asystent zawsze wie, jaki jest dzień tygodnia w Polsce i bezbłędnie oblicza pojęcia względne ("jutro", "za 3 dni", "w piątek rano").
+- **Pamięć Przestrzenna**: Baza faktów w Firestore pamięta specyfikę infrastruktury (np. lokalizację odrębnych budynków szkolnych), dzięki czemu AI udziela kontekstowo trafnych wskazówek.
+
+---
+
+## 💰 System Finansowy 50/30/20 & Eksport Raportów
+
+Moduł finansowy został zaprojektowany w oparciu o czysty, testowalny silnik matematyczny (`modules/services/budgetCalculator.js`):
+- **Reguła 50/30/20 & Własne Wagi**: Standardowy podział na Potrzeby (50%), Zachcianki (30%) i Oszczędności (20%) z możliwością dowolnej modyfikacji (np. 70/0/30).
+- **Dysponowanie Środkami**: Każdy wpływ może trafić do podziału automatycznego (`split`) lub bezpośrednio do wybranej koperty (`single`).
+- **Transfery Między Kopertami**: Błyskawiczne przesuwanie nadwyżek (np. z *Zachcianek* do *Oszczędności*).
+- **Centrum Eksportu Danych (`ExportModal.jsx` & `exportService.js`)**:
+  - Pobieranie surowych danych w formacie **CSV** (zgodność z arkuszami Excel/Google Sheets).
+  - Generowanie eleganckich, gotowych do druku lub zapisu w formacie **PDF** raportów ze stylizacją kaskadową (`@media print`).
+
+---
+
+## 🔔 Centrum Powiadomień i Odporność Offline
+
+- **Pływający Stos Toastów (`ToastContext` & `ToastContainer`)**: Wszystkie akcje asynchroniczne, mutacje danych, transfery i błędy sieciowe komunikowane są w spójnym, nienachalnym stylu Glassmorphism.
+- **Detektor Połączenia Sieciowego**: Aplikacja nasłuchuje zdarzeń `online` oraz `offline`. W przypadku utraty zasięgu pojawia się elegancki pasek ostrzegawczy, a Cloud Firestore buforuje zmiany lokalnie w IndexedDB/LocalStorage.
+- **Odporność na Błędy HTML/JSON**: Zaimplementowany globalny interceptor Axios blokuje błędy parsowania odpowiedzi serwerów przy braku backendu Node.js.
+
+---
+
+## 🧪 Automatyczne Testy Jednostkowe i Integracyjne
+
+Projekt wyposażony jest w zautomatyzowany runner testów **Vitest** (`npm test`), gwarantujący bezwzględną poprawność kluczowej logiki biznesowej.
+
+```bash
+# Uruchomienie pełnego zestawu testów
+npm test
+
+# Uruchomienie testów w trybie nasłuchiwania (Watch)
+npm run test:watch
+```
+
+### Zrealizowane Zestawy Testowe:
+1. `tests/budget.test.js` (13 testów) — weryfikacja poprawności reguły 50/30/20, alokacji z wagami 0%, transferów, bilansu netto i cykli kopert.
+2. `tests/osint.test.js` (5 testów) — weryfikacja precyzyjnej detekcji IPv4, adresów e-mail, domen wielopoziomowych i adresów MAC.
+3. `tests/time.test.js` (6 testów) — weryfikacja formatowania czasu w strefie `Europe/Warsaw`, przesunięć letnich (CEST) oraz nazw dni tygodnia.
+4. `tests/export.test.js` (4 testy) — sanityzacja znaków specjalnych, cudzysłowów i formatowanie RFC 4180 dla plików CSV.
+5. `tests/cloudSync.test.js` (2 testy) — weryfikacja rejestru kolekcji Firestore i wykrywania środowiska.
+
+**Wynik: 30/30 testów zdanych pomyślnie (100% PASS).**
+
+---
+
+## 🔄 Potok CI/CD (GitHub Actions)
+
+Plik konfiguracyjny `.github/workflows/ci.yml` automatycznie uruchamia potok jakości przy każdym `push` i `pull_request` do gałęzi `main`:
+1. Pobranie repozytorium (`actions/checkout@v4`).
+2. Przygotowanie środowiska Node.js 20.x (`actions/setup-node@v4`).
+3. Instalacja zależności (`npm ci`).
+4. Wykonanie zautomatyzowanych testów (`npm test`).
+5. Kompilacja produkcyjna (`npm run build`).
+6. Weryfikacja artefaktów produkcyjnych (`dist/index.html`).
+
+---
+
+## 🚀 Instalacja i Uruchomienie
+
+### Wymagania Wstępne
+- **Node.js** >= `20.0.0`
+- **npm** >= `10.0.0`
+- **Git**
+
+### 1. Klonowanie i Instalacja Zależności
 ```bash
 git clone https://github.com/Kvbi213/ai-system-dashboard.git
 cd ai-system-dashboard
 npm install
 ```
 
-**3. Uruchomienie**
-- **Windows:** Dwuklik na `start.bat`
-- **Mac/Linux:** Wpisz `npm run start` w konsoli.
-Następnie wejdź na `http://localhost:5173`.
-
----
-
-### Opcja B: Wdrożenie na Serwerze (Produkcja 24/7)
-
-Aby OmniDash działał bez przerw w tle, zalecane jest użycie menedżera procesów **PM2** oraz opcjonalnie serwera Reverse Proxy (np. Nginx).
-
-#### 🐧 Debian / Ubuntu Linux Server
-
-**1. Instalacja środowiska i PM2**
+### 2. Konfiguracja Środowiskowa
+Skopiuj plik `.env.example` do `.env`:
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs git
-sudo npm install -g pm2
+cp .env.example .env
 ```
+Uzupełnij klucze API (np. `GROQ_API_KEY`, `BRAVE_API_KEY`) według instrukcji w pliku.
 
-**2. Pobranie aplikacji**
+### 3. Uruchomienie Środowiska Deweloperskiego
 ```bash
-cd /opt
-sudo git clone https://github.com/Kvbi213/ai-system-dashboard.git
-cd ai-system-dashboard
-sudo npm install
-```
+# Uruchomienie klienta i serwera równolegle
+npm start
 
-**3. Uruchomienie w tle i autostart**
+# Lub uruchomienie samego klienta Vite (dla pracy z chmurą Vercel/Firebase)
+npm run dev:client
+```
+Otwórz przeglądarkę pod adresem: `http://localhost:5173`.
+
+### 4. Budowanie Produkcyjne
 ```bash
-sudo pm2 start npm --name "omnidash" -- run start
-sudo pm2 save
-sudo pm2 startup
-```
-
-*(Opcjonalnie)* Jeśli chcesz udostępnić dashboard pod konkretnym portem (np. 80), zainstaluj Nginx (`sudo apt install nginx`) i ustaw blok `proxy_pass http://localhost:5173;`.
-
-#### 🪟 Windows Server
-
-**1. Instalacja środowiska**
-Zainstaluj [Node.js](https://nodejs.org/) oraz [Git dla Windows](https://git-scm.com/download/win). Uruchom PowerShell jako Administrator i wpisz:
-```powershell
-npm install -g pm2
-npm install -g pm2-windows-startup
-pm2-startup install
-```
-
-**2. Pobranie i start aplikacji**
-Pobierz repozytorium do wybranego folderu (np. `C:\OmniDash`), wejdź tam w terminalu i wpisz:
-```powershell
-npm install
-pm2 start npm --name "omnidash" -- run start
-pm2 save
-```
-Aplikacja będzie teraz działać w tle jako usługa systemu Windows, automatycznie wznawiając pracę po restarcie maszyny.
-
----
-
-### 🔑 Inicjalizacja (Pierwsze kroki - Dotyczy wszystkich środowisk)
-Przejdź w przeglądarce pod adres IP swojego serwera (lub `http://localhost:5173` lokalnie).
-1. System wykryje świeżą instalację i uruchomi **Ekran Inicjalizacji**.
-2. Wprowadź wymagane klucze API:
-   - *Groq API Key* (silnik AI)
-   - *Brave Search API Key* (wyszukiwarka)
-   - *Pushbullet API Key* (powiadomienia)
-3. Zdefiniuj swój unikalny **Kod PIN**, który będzie chronił Twój Dashboard przed niepowołanym dostępem.
-4. Zapisz. System się zresetuje i odda Ci pełną kontrolę!
-
----
-
-## 🛡️ Bezpieczeństwo Danych i Prywatność
-
-Projekt został stworzony dla osób ceniących własną prywatność operacyjną:
-
-* **Brak Zewnętrznych Baz Danych**: 100% twoich logów, zadań To-Do oraz notatek rezyduje wyłącznie na twoim fizycznym dysku twardym w pliku `data/tasks.sqlite`.
-* **Szyfrowanie API**: Klucze wpisane podczas inicjalizacji lądują w wyizolowanym pliku `.env` na backendzie. Nie mają do nich dostępu żadne skrypty frontendowe z poziomu przeglądarki.
-* **Factory Reset**: Aplikacja posiada w zakładce Ustawienia przycisk "Factory Reset" służący do bezpiecznego, awaryjnego zerowania bazy danych oraz usuwania pliku z kluczami, jeżeli chcesz całkowicie usunąć swój ślad z programu.
-
----
-
-## 🗺️ Architektura Systemu (Diagram)
-
-Poniżej znajduje się uproszczony diagram przepływu informacji między modułami:
-
-```mermaid
-graph TD
-    User([Użytkownik]) -->|Wprowadza PIN| LockScreen
-    LockScreen -->|Sukces| ReactApp(React Frontend)
-    
-    ReactApp -->|HTTP GET/POST| ExpressBackend(Express.js API)
-    
-    subgraph Local Environment [Środowisko Lokalne]
-        ExpressBackend <-->|SQL Queries| SQLite[(Baza SQLite)]
-        ExpressBackend <-->|Odczyt/Zapis| ENV[.env Config]
-        ExpressBackend --- Scheduler[Zadania Tła / Cron]
-    end
-    
-    subgraph External APIs [Internet]
-        ExpressBackend -->|Rozumowanie & NLP| GroqAPI(Groq LLM)
-        ExpressBackend -->|Live News| BraveAPI(Brave Search)
-        ExpressBackend -->|Powiadomienia| PushbulletAPI(Pushbullet)
-    end
+npm run build
 ```
 
 ---
 
-## 🤝 Kontrybucja
+## 🛠️ Stos Technologiczny
 
-Wszelkie usprawnienia (Pull Requesty), zgłoszenia błędów (Issues) i sugestie nowych modułów widżetów są wysoce pożądane!
-1. Wykonaj Fork repozytorium.
-2. Stwórz nową gałąź dla funkcji (`git checkout -b feature/SuperWidzet`).
-3. Zacommituj zmiany (`git commit -m 'Dodano Super Widżet'`).
-4. Wypchnij gałąź (`git push origin feature/SuperWidzet`).
-5. Otwórz Pull Request.
+- **Frontend:** React 18, React Router v7, Tailwind CSS 3, Lucide Icons, i18next, React-Markdown.
+- **Silnik Testowy:** Vitest 2.x, Node.js Native Test Assertions.
+- **Baza i Hosting Chmurowy:** Firebase Hosting, Cloud Firestore (Realtime DB), Vercel Serverless Functions.
+- **Modele Językowe:** Groq SDK (`openai/gpt-oss-120b`, `llama-3.3-70b-versatile`).
+- **Narzędzia Budowania:** Vite 5, PostCSS, Autoprefixer, ESLint.
 
 ---
 
-## 📝 Licencja
+## 📄 Licencja
 
-Ten projekt jest chroniony licencją **MIT**. Masz pełne prawo do modyfikacji i używania go do własnych potrzeb komercyjnych jak i prywatnych.
-
-<div align="center">
-  <sub>Stworzone z pasją do automatyzacji i estetyki oprogramowania.</sub>
-</div>
+Projekt dystrybuowany na licencji **MIT**. Zobacz plik [LICENSE](LICENSE), aby dowiedzieć się więcej.

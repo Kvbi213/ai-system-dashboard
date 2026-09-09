@@ -9,6 +9,8 @@
     "start": "concurrently \"npm run dev:server\" \"wait-on http-get://127.0.0.1:5000/api/system/keys-status && npm run dev:client\"",
     "build": "vite build",
     "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -41,6 +43,7 @@
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.4",
     "vite": "^5.3.1",
+    "vitest": "^2.1.9",
     "wait-on": "^9.0.10"
   }
 }

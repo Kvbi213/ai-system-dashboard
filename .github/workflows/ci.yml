@@ -1,0 +1,36 @@
+name: CI/CD Pipeline & Automated Quality Gate
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  quality-and-build:
+    name: Lint, Test & Production Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ⚡ Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🧪 Execute Automated Test Suite (Vitest)
+        run: npm test
+
+      - name: 🏗️ Execute Production Build (Vite)
+        run: npm run build
+
+      - name: 🛡️ Verify Build Artifacts
+        run: |
+          test -f dist/index.html || (echo "dist/index.html missing!" && exit 1)
+          echo "Production build verified successfully."

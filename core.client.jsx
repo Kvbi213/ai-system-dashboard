@@ -22,6 +22,8 @@ import LockScreen from './modules/pages/LockScreen';
 import ServerPage from './modules/pages/ServerPage';
 import BrowserPage from './modules/pages/BrowserPage';
 import { ChatProvider } from './modules/context/ChatContext';
+import { ToastProvider } from './modules/context/ToastContext';
+import ToastContainer from './modules/components/ToastContainer';
 import ApiConfigScreen from './modules/components/ApiConfigScreen';
 import OnboardingTour from './modules/components/OnboardingTour';
 import SetupWizard from './modules/components/SetupWizard';
@@ -232,6 +234,7 @@ const App = () => {
           
           <OnboardingTour />
           <CommandPalette />
+          <ToastContainer />
           
           {/* Nawigacja (Desktop Sidebar + Mobilny Header i Bottom Bar) */}
           <Sidebar />
@@ -265,7 +268,9 @@ const root = createRoot(document.getElementById('root'));
 root.render(
   <ErrorBoundary>
     <I18nextProvider i18n={i18n}>
-      <App />
+      <ToastProvider>
+        <App />
+      </ToastProvider>
     </I18nextProvider>
   </ErrorBoundary>
 );

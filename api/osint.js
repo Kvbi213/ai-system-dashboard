@@ -7,15 +7,15 @@ export const config = {
 
 const detectTargetType = (target) => {
   const input = target.trim();
+  const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/;
   const ipRegex = /\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/;
-  const domainRegex = /\b[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}\b/;
   const macRegex = /\b([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})\b/;
-  const emailRegex = /\b[^\s@]+@[^\s@]+\.[^\s@]+\b/;
+  const domainRegex = /\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}\b/;
 
-  if (ipRegex.test(input)) return { type: 'ip', value: input.match(ipRegex)[0] };
-  if (domainRegex.test(input)) return { type: 'domain', value: input.match(domainRegex)[0] };
-  if (macRegex.test(input)) return { type: 'mac', value: input.match(macRegex)[0] };
   if (emailRegex.test(input)) return { type: 'email', value: input.match(emailRegex)[0] };
+  if (ipRegex.test(input)) return { type: 'ip', value: input.match(ipRegex)[0] };
+  if (macRegex.test(input)) return { type: 'mac', value: input.match(macRegex)[0] };
+  if (domainRegex.test(input)) return { type: 'domain', value: input.match(domainRegex)[0] };
   return { type: 'string', value: input };
 };
 

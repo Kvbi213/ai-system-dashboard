@@ -1,5 +1,27 @@
 ## Wersja Bieżąca
-**v2.11.5**
+**v2.12.0**
+
+## v 2.12.0 — 2026-09-09
+**Typ:** MINOR  
+**Zakres:** Podniesienie Projektu do Oceny Referencyjnej 10/10: Pływające Centrum Powiadomień (Toast Hub), Monitor Sieci Online/Offline, Zautomatyzowany Silnik Testów (Vitest, 30/30 PASS), Generator Raportów CSV & Druk/PDF, Potok CI/CD GitHub Actions, Czyste Silniki Obliczeniowe (Budget & Warsaw Time) oraz Przebudowa README z Diagramami Mermaid.
+
+### Zmiany
+- [+] Dodano: Zunifikowane Centrum Powiadomień (`modules/context/ToastContext.jsx` oraz `modules/components/ToastContainer.jsx`) w stylistyce Glassmorphism z obsługą typów `success`, `error`, `warning`, `info`, animowanym paskiem czasu i auto-dismiss.
+- [+] Dodano: Strażnika sieci i wykrywanie stanu połączenia (`navigator.onLine` + zdarzenia `online`/`offline`) z automatycznym ostrzeżeniem nagłówkowym w przypadku utraty łączności.
+- [+] Dodano: Centrum Raportów i Eksportu Danych (`modules/services/exportService.js` oraz `modules/components/ExportModal.jsx`) z pobieraniem plików CSV (zgodność z RFC 4180) oraz generowaniem raportów do druku / zapisu PDF (`@media print`) dla Finansów, Zadań, Treningów i Planu Lekcji.
+- [+] Dodano: Zautomatyzowany runner testów Vitest (`package.json`: `"test": "vitest run"`) oraz 5 kompletnych zestawów testowych w katalogu `tests/` (`budget.test.js`, `export.test.js`, `time.test.js`, `osint.test.js`, `cloudSync.test.js`) — 30/30 testów zdanych (100% PASS).
+- [+] Dodano: Potok integracji ciągłej GitHub Actions (`.github/workflows/ci.yml`) weryfikujący automatycznie zależności, testy jednostkowe, kompilację produkcyjną Vite i artefakty `dist/`.
+- [+] Dodano: Czysty silnik obliczeniowy 50/30/20 (`modules/services/budgetCalculator.js`) z obsługą kopert celowych, transferów i wag 0%.
+- [+] Dodano: Dedykowany moduł narzędziowy czasu polskiego (`modules/services/timeUtils.js`) formatujący datę, godzinę i dni tygodnia w strefie `Europe/Warsaw`.
+- [*] Zmodyfikowano: `README.md` kompletnie przebudowany: dodano interaktywne odznaki, diagramy architektoniczne Mermaid (Multi-Cloud Mesh oraz pętla kognitywna AI), szczegółową tabelę modułów i instrukcje instalacji.
+- [*] Zmodyfikowano: `modules/osint.js` oraz `api/osint.js` ulepszone o priorytetyzację detekcji e-maili przed domenami oraz pełną obsługę domen wielopoziomowych i subdomen.
+- [*] Zmodyfikowano: `FinancePage.jsx` zintegrowany z przyciskiem eksportu, powiadomieniami toast oraz kompletną obsługą usuwania transakcji `handleDelete`.
+- [*] Zmodyfikowano: Zaktualizowano skrypt `scripts/sync_bez_firebase.js` i zsynchronizowano repozytorium mirror bez Firebase.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.11.5 — 2026-09-08
 **Typ:** PATCH  

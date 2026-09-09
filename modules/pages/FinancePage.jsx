@@ -1,8 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { Plus, Trash2, TrendingUp, TrendingDown, Wallet, DollarSign, Settings2, Target, Heart, PieChart, Search, Filter, Sparkles, ArrowRightLeft, ArrowRight } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, TrendingDown, Wallet, DollarSign, Settings2, Target, Heart, PieChart, Search, Filter, Sparkles, ArrowRightLeft, ArrowRight, Download } from 'lucide-react';
 import { subscribeCollection, saveCloudDocument, deleteCloudDocument, updateCloudDocumentField, isCloudEnvironment } from '../services/cloudSync';
+import { useToast } from '../context/ToastContext';
+import ExportModal from '../components/ExportModal';
 
 const FinancePage = () => {
   const { t } = useTranslation();
@@ -27,7 +29,9 @@ const FinancePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all'); // all | income | expense | needs | wants | savings
   
+  const { toast } = useToast();
   const [showModal, setShowModal] = useState(false); // false | 'transaction' | 'transfer' | 'settings'
+  const [showExportModal, setShowExportModal] = useState(false);
   const [formData, setFormData] = useState({
     type: 'expense',
     amount: '',
@@ -234,13 +238,18 @@ const FinancePage = () => {
   };
 
   const handleDelete = async (id) => {
-    const idStr = String(id);
-    setFinances(prev => prev.filter(item => String(item.id) !== idStr));
-    await deleteCloudDocument('finances', idStr);
-    if (!isCloudEnvironment()) {
-      try {
-        await axios.delete(`/api/finances/${idStr}`);
-      } catch {}
+    try {
+      const idStr = String(id);
+      setFinances(prev => prev.filter(item => String(item.id) !== idStr));
+      await deleteCloudDocument('finances', idStr);
+      if (!isCloudEnvironment()) {
+        try {
+          await axios.delete(`/api/finances/${idStr}`);
+        } catch {}
+      }
+      toast.info('Pozycja usunięta z rejestru finansowego.', 'Finanse');
+    } catch (err) {
+      toast.error(`Nie udało się usunąć wpisu: ${err.message}`, 'Błąd');
     }
   };
 
@@ -303,6 +312,10 @@ const FinancePage = () => {
       transaction_date: new Date().toISOString().split('T')[0]
     });
 
+    toast.success(
+      newEntry.type === 'income' ? `Zarejestrowano wpływ +${amt.toFixed(2)} PLN` : `Zarejestrowano wydatek -${amt.toFixed(2)} PLN`,
+      'Finanse'
+    );
     await saveCloudDocument('finances', newEntry.id, newEntry);
   };
 
@@ -311,7 +324,7 @@ const FinancePage = () => {
     const amt = parseFloat(transferData.amount);
     if (isNaN(amt) || amt <= 0) return;
     if (transferData.fromBucket === transferData.toBucket) {
-      alert("Wybierz dwie różne pule!");
+      toast.warning("Wybierz dwie różne pule do transferu środków!", "Transfer");
       return;
     }
 
@@ -338,6 +351,7 @@ const FinancePage = () => {
       transaction_date: new Date().toISOString().split('T')[0]
     });
 
+    toast.success(`Przesunięto ${amt.toFixed(2)} PLN z puli ${bucketNames[newTransfer.fromBucket] || newTransfer.fromBucket} do ${bucketNames[newTransfer.toBucket] || newTransfer.toBucket}.`, 'Transfer');
     await saveCloudDocument('finances', newTransfer.id, newTransfer);
   };
 
@@ -412,6 +426,14 @@ const FinancePage = () => {
             title="Konfiguracja wskaźników budżetowych"
           >
             <Settings2 className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+
+          <button 
+            onClick={() => setShowExportModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2 sm:py-2.5 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 rounded-lg transition-all border border-cyan-500/30 font-mono text-xs sm:text-sm font-semibold shrink-0 shadow-sm"
+            title="Eksportuj do CSV lub wygeneruj raport PDF/Druk"
+          >
+            <Download className="w-4 h-4" /> Eksportuj
           </button>
 
           <button 
@@ -1268,6 +1290,13 @@ const FinancePage = () => {
           </div>
         </div>
       )}
+
+      {/* Modal Eksportu Raportów i Danych CSV/PDF */}
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        finances={finances}
+      />
     </div>
   );
 };
