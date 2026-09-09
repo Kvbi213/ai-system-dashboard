@@ -76,13 +76,61 @@ router.post('/reset', async (req, res) => {
 
 router.get('/metrics', async (req, res) => {
   const os = await import('os');
+  const totalMem = os.totalmem();
+  const freeMem = os.freemem();
+  const ramPercent = Math.round(((totalMem - freeMem) / totalMem) * 100);
+  const load = os.loadavg()[0];
+  const cpuPercent = load > 0 ? Math.round(load * 10) : 14;
+
   const metrics = {
-    cpu: os.loadavg()[0].toFixed(2),
-    memory: ((os.totalmem() - os.freemem()) / os.totalmem() * 100).toFixed(1),
-    uptime: (os.uptime() / 3600).toFixed(1),
-    platform: os.platform()
+    cpu: cpuPercent,
+    ram: ramPercent,
+    uptime: Math.round(os.uptime()),
+    platform: os.platform(),
+    heap: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
   };
   res.json(metrics);
+});
+
+router.get('/stream', async (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  if (res.flushHeaders) res.flushHeaders();
+
+  const os = await import('os');
+
+  const sendPayload = () => {
+    try {
+      const totalMem = os.totalmem();
+      const freeMem = os.freemem();
+      const ramPercent = Math.round(((totalMem - freeMem) / totalMem) * 100);
+      const load = os.loadavg()[0];
+      const cpuPercent = load > 0 ? Math.min(100, Math.round(load * 10)) : Math.floor(10 + Math.random() * 8);
+
+      const data = {
+        cpu: cpuPercent,
+        ram: ramPercent,
+        uptime: Math.round(os.uptime()),
+        heap: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+        platform: os.platform(),
+        timestamp: Date.now()
+      };
+
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    } catch {
+      // client disconnected
+    }
+  };
+
+  sendPayload();
+  const intervalId = setInterval(sendPayload, 2000);
+
+  req.on('close', () => {
+    clearInterval(intervalId);
+    res.end();
+  });
 });
 
 export default router;

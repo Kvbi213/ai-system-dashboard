@@ -22,9 +22,9 @@ const NewsFeed = () => {
   const isCloudMode = typeof window !== 'undefined' && (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com'));
 
   const getFallbackLogs = () => [
-    { id: '1', content: 'Inicjalizacja środowiska chmurowego: void-potato-7721', created_at: new Date().toISOString() },
+    { id: '1', content: 'Inicjalizacja środowiska chmurowego: OmniDash Cloud', created_at: new Date().toISOString() },
     { id: '2', content: 'Połączenie z bazą Firestore i reguły bezpieczeństwa aktywne', created_at: new Date(Date.now() - 300000).toISOString() },
-    { id: '3', content: 'Sesja właściciela zweryfikowana (marektowarek21372137@gmail.com)', created_at: new Date(Date.now() - 600000).toISOString() },
+    { id: '3', content: 'Sesja administratora pomyślnie zweryfikowana', created_at: new Date(Date.now() - 600000).toISOString() },
   ];
 
   const fetchLogs = useCallback(async () => {

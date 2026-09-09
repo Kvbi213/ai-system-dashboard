@@ -33,8 +33,8 @@ const TodoList = () => {
   const isCloudMode = typeof window !== 'undefined' && (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com'));
 
   const getFallbackTasks = () => [
-    { id: '1', title: 'Wdrożenie Firebase Hosting (void-potato-7721)', priority: 'HIGH', status: 'completed', category: 'system' },
-    { id: '2', title: 'Autoryzacja właściciela: marektowarek21372137@gmail.com', priority: 'HIGH', status: 'completed', category: 'system' },
+    { id: '1', title: 'Wdrożenie Cloud Hosting (OmniDash)', priority: 'HIGH', status: 'completed', category: 'system' },
+    { id: '2', title: 'Autoryzacja profilu administratora', priority: 'HIGH', status: 'completed', category: 'system' },
     { id: '3', title: 'Personalizacja modułów i widżetów', priority: 'MEDIUM', status: 'pending', category: 'system' },
   ];
 

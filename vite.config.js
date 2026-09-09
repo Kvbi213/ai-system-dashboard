@@ -7,6 +7,10 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    test: {
+      environment: 'jsdom',
+      globals: true
+    },
     define: {
       'import.meta.env.VITE_GROQ_API_KEY': JSON.stringify(groqKey)
     },

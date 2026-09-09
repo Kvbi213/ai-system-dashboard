@@ -181,12 +181,12 @@ const LockScreen = ({ onUnlock }) => {
           className="mt-2.5 text-[11px] text-accentPrimary/80 hover:text-accentPrimary hover:underline font-mono text-center flex items-center justify-center gap-1.5 transition-colors py-1"
         >
           <ShieldCheck size={13} />
-          <span>Wejście bezpośrednie jako: marektowarek21372137@gmail.com</span>
+          <span>Wejście bezpośrednie jako Właściciel</span>
         </button>
 
         <div className="mt-3 flex items-center gap-2 text-[11px] font-mono text-textMuted bg-background/50 border border-border/40 rounded-lg px-3 py-1.5 w-full justify-center">
           <ShieldCheck size={14} className="text-accentPrimary" />
-          <span>PROJEKT: void-potato-7721 (TYLKO WŁAŚCICIEL)</span>
+          <span>PROJEKT CHMUROWY (STREFA AUTORYZOWANA)</span>
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, MessageSquare, Search, Settings, ChevronLeft, ChevronRight, 
   LayoutGrid, CalendarDays, BrainCircuit, Crosshair, Wallet, Dumbbell, Globe, 
-  Server, GraduationCap, Menu, X, Palette, Sparkles, Check
+  Server, GraduationCap, Menu, X, Palette, Sparkles, Check, Sun, Moon
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -144,6 +144,13 @@ const Sidebar = () => {
     window.dispatchEvent(new CustomEvent('themeChanged', { detail: chip.id }));
   };
 
+  const isLightMode = currentTheme === 'light';
+  const toggleDarkLight = () => {
+    const targetTheme = isLightMode ? 'dark' : 'light';
+    const chip = THEME_CHIPS.find(c => c.id === targetTheme) || THEME_CHIPS[0];
+    applyThemeQuick(chip);
+  };
+
   // 4 najważniejsze zakładki do dolnego paska mobilnego
   const mobileQuickTabs = [
     { name: 'Pulpit', path: '/', icon: LayoutDashboard },
@@ -175,6 +182,16 @@ const Sidebar = () => {
         </div>
 
         <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={toggleDarkLight}
+            className="w-9 h-9 rounded-lg bg-surface border border-border flex items-center justify-center text-textMuted hover:text-accentPrimary hover:border-accentPrimary transition-colors active:scale-95"
+            title={isLightMode ? "Przełącz na tryb ciemny" : "Przełącz na tryb jasny"}
+            aria-label="Przełącz tryb jasny/ciemny"
+          >
+            {isLightMode ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-400" />}
+          </button>
+
           <button
             type="button"
             onClick={() => navigate('/search')}
@@ -474,7 +491,26 @@ const Sidebar = () => {
           })}
         </div>
 
-        <div className={`w-full ${isCollapsed ? 'px-2 flex justify-center' : 'px-6'} mt-auto pt-4 flex items-center transition-all border-t border-border/40`}>
+        <div className={`w-full ${isCollapsed ? 'px-2 flex flex-col items-center' : 'px-6 flex flex-col'} mt-auto pt-4 gap-1.5 transition-all border-t border-border/40`}>
+          <button
+            type="button"
+            onClick={toggleDarkLight}
+            title={isCollapsed ? (isLightMode ? "Tryb Ciemny" : "Tryb Jasny") : undefined}
+            aria-label="Przełącz tryb jasny/ciemny"
+            className={`flex items-center gap-4 p-3 rounded-lg transition-all duration-200 group text-textMuted hover:text-textPrimary hover:bg-surface border border-transparent ${
+              isCollapsed ? 'justify-center w-12 h-12' : 'w-full justify-start'
+            }`}
+          >
+            <div className="shrink-0 transition-colors group-hover:text-accentPrimary">
+              {isLightMode ? <Moon className="w-6 h-6 text-indigo-400" /> : <Sun className="w-6 h-6 text-amber-400" />}
+            </div>
+            {!isCollapsed && (
+              <span className="font-sans text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+                {isLightMode ? 'Tryb Ciemny' : 'Tryb Jasny'}
+              </span>
+            )}
+          </button>
+
           <Link 
             to="/settings"
             title={isCollapsed ? t('settings') : undefined}

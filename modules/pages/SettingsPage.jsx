@@ -176,8 +176,8 @@ const SettingsPage = () => {
     if (isCloudEnvironment()) {
       setFirebaseStatus({
         configured: true,
-        projectId: 'void-potato-7721',
-        owner: 'marektowarek21372137@gmail.com',
+        projectId: 'omnidash-cloud',
+        owner: 'admin@omnidash.local',
         status: 'connected',
         client_sdk: 'active',
         mode: 'Cloud Firestore Realtime'
@@ -1193,14 +1193,14 @@ const SettingsPage = () => {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <HardDrive className="w-5 h-5 text-accentPrimary" />
-                      <p className="font-semibold text-textPrimary font-sans text-sm">Baza Chmurowa Firebase Firestore (void-potato-7721)</p>
+                      <p className="font-semibold text-textPrimary font-sans text-sm">Baza Chmurowa Firebase Firestore</p>
                     </div>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/30">
                       {firebaseStatus?.connected ? "POŁĄCZONO (WARSZAWA)" : "LIVE CLOUD SYNC"}
                     </span>
                   </div>
                   <p className="text-xs text-textMuted leading-relaxed mb-3">
-                    Projekt: <strong className="text-textPrimary font-mono">void-potato-7721</strong> (Void Potato Matrix) w regionie <strong className="text-textPrimary">europe-central2</strong>. Bezpieczeństwo oparte o restrykcyjne reguły Firestore: dostęp dla konta administratora.
+                    Projekt: <strong className="text-textPrimary font-mono">OmniDash Cloud</strong> w regionie <strong className="text-textPrimary">europe-central2</strong>. Bezpieczeństwo oparte o restrykcyjne reguły Firestore: dostęp dla konta administratora.
                   </p>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-3">

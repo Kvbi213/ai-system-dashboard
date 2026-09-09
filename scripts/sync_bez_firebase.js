@@ -18,7 +18,7 @@ export const googleProvider = null;
 export const firestore = null;
 export const signInWithPopup = async () => null;
 export const signOut = async () => {};
-export const ALLOWED_OWNER_EMAIL = "marektowarek21372137@gmail.com";
+export const ALLOWED_OWNER_EMAIL = "owner@omnidash.local";
 `;
 fs.writeFileSync(path.join(targetDir, 'modules/firebaseClient.js'), firebaseClientStub, 'utf8');
 
@@ -64,7 +64,11 @@ const filesToSync = [
   'tests/time.test.js',
   'tests/osint.test.js',
   'tests/cloudSync.test.js',
+  'tests/components.test.jsx',
   '.github/workflows/ci.yml',
+  '.github/workflows/main.yml',
+  'modules/routes/system.js',
+  'vite.config.js',
   'api/news.js',
   'api/agent.js',
   'api/status.js',
@@ -81,7 +85,8 @@ const filesToSync = [
   'docs/versions/v2.11.3.md',
   'docs/versions/v2.11.4.md',
   'docs/versions/v2.11.5.md',
-  'docs/versions/v2.12.0.md'
+  'docs/versions/v2.12.0.md',
+  'docs/versions/v2.13.0.md'
 ];
 
 filesToSync.forEach(relPath => {
