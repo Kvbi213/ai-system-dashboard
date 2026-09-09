@@ -10,9 +10,33 @@ import {
 } from '../services/exportService';
 import { calculateFinanceStats } from '../services/budgetCalculator';
 
-export default function ExportModal({ isOpen, onClose, finances = [], tasks = [], workouts = [], timetable = [] }) {
+export default function ExportModal({ isOpen, onClose, finances = [], tasks = [], workouts = [], timetable = [], settings = null }) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('finances');
+
+  const getFinanceSettings = () => {
+    if (settings) {
+      return {
+        targetNeeds: settings.needs_percent !== undefined ? Number(settings.needs_percent) : 50,
+        targetWants: settings.wants_percent !== undefined ? Number(settings.wants_percent) : 30,
+        targetSavings: settings.savings_percent !== undefined ? Number(settings.savings_percent) : 20,
+        monthlyIncome: settings.monthly_income !== undefined ? Number(settings.monthly_income) : 0
+      };
+    }
+    try {
+      const saved = localStorage.getItem('system_finance_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          targetNeeds: parsed.needs_percent !== undefined ? Number(parsed.needs_percent) : 50,
+          targetWants: parsed.wants_percent !== undefined ? Number(parsed.wants_percent) : 30,
+          targetSavings: parsed.savings_percent !== undefined ? Number(parsed.savings_percent) : 20,
+          monthlyIncome: parsed.monthly_income !== undefined ? Number(parsed.monthly_income) : 0
+        };
+      }
+    } catch {}
+    return { targetNeeds: 50, targetWants: 30, targetSavings: 20, monthlyIncome: 0 };
+  };
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -48,7 +72,8 @@ export default function ExportModal({ isOpen, onClose, finances = [], tasks = []
 
   const handlePrintFinances = () => {
     try {
-      const stats = calculateFinanceStats(finances, { targetNeeds: 50, targetWants: 30, targetSavings: 20 });
+      const finCfg = getFinanceSettings();
+      const stats = calculateFinanceStats(finances, finCfg);
       const valid = finances.filter(t => t && !t.is_settings && t.id !== 'finance_settings');
 
       const summaryCards = `
@@ -66,15 +91,15 @@ export default function ExportModal({ isOpen, onClose, finances = [], tasks = []
             <div class="card-val" style="color: ${stats.net >= 0 ? '#059669' : '#dc2626'};">${stats.net.toFixed(2)} PLN</div>
           </div>
           <div class="card">
-            <div class="card-label">Koperta Potrzeby (50%)</div>
+            <div class="card-label">Koperta Potrzeby (${finCfg.targetNeeds}%)</div>
             <div class="card-val">${stats.available.needs.toFixed(2)} PLN</div>
           </div>
           <div class="card">
-            <div class="card-label">Koperta Zachcianki (30%)</div>
+            <div class="card-label">Koperta Zachcianki (${finCfg.targetWants}%)</div>
             <div class="card-val">${stats.available.wants.toFixed(2)} PLN</div>
           </div>
           <div class="card">
-            <div class="card-label">Koperta Oszczędności (20%)</div>
+            <div class="card-label">Koperta Oszczędności (${finCfg.targetSavings}%)</div>
             <div class="card-val">${stats.available.savings.toFixed(2)} PLN</div>
           </div>
         </div>
@@ -127,7 +152,8 @@ export default function ExportModal({ isOpen, onClose, finances = [], tasks = []
 
   const handlePrintAll = () => {
     try {
-      const stats = calculateFinanceStats(finances, { targetNeeds: 50, targetWants: 30, targetSavings: 20 });
+      const finCfg = getFinanceSettings();
+      const stats = calculateFinanceStats(finances, finCfg);
       const completedTasks = tasks.filter(t => t.status === 'completed').length;
 
       const summaryHtml = `

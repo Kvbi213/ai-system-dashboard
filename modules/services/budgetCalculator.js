@@ -80,12 +80,12 @@ export function calculateFinanceStats(transactions = [], options = {}) {
         income += amt;
         if (item.splitMode === 'single' && item.bucket && allocated[item.bucket] !== undefined) {
           allocated[item.bucket] += amt;
-        } else if (item.distribution) {
+        } else if (item.splitMode === 'custom' && item.distribution) {
           allocated.needs += Number(item.distribution.needs) || 0;
           allocated.wants += Number(item.distribution.wants) || 0;
           allocated.savings += Number(item.distribution.savings) || 0;
         } else {
-          // Dynamiczny podział według aktualnej konfiguracji
+          // Dynamiczny podział według aktualnej konfiguracji (dla trybu 'split' lub wpisów bez jawnego trybu)
           const dist = calculateBudgetDistribution(amt, targetNeeds, targetWants, targetSavings);
           allocated.needs += dist.needs;
           allocated.wants += dist.wants;
@@ -121,6 +121,12 @@ export function calculateFinanceStats(transactions = [], options = {}) {
   const wantsPct = totalExp > 0 ? Math.round((spent.wants / totalExp) * 100) : 0;
   const savingsPct = totalExp > 0 ? Math.round((spent.savings / totalExp) * 100) : 0;
 
+  // Procentowy podział pul portfela (faktyczna alokacja środków)
+  const totalAlloc = Math.round((allocated.needs + allocated.wants + allocated.savings) * 100) / 100;
+  const allocNeedsPct = totalAlloc > 0 ? Math.round((allocated.needs / totalAlloc) * 100) : targetNeeds;
+  const allocWantsPct = totalAlloc > 0 ? Math.round((allocated.wants / totalAlloc) * 100) : targetWants;
+  const allocSavingsPct = totalAlloc > 0 ? Math.round((allocated.savings / totalAlloc) * 100) : targetSavings;
+
   // Envelope remaining balances
   const availableNeeds = Math.round((allocated.needs - spent.needs) * 100) / 100;
   const availableWants = Math.round((allocated.wants - spent.wants) * 100) / 100;
@@ -148,28 +154,52 @@ export function calculateFinanceStats(transactions = [], options = {}) {
     income: Math.round(income * 100) / 100,
     expenses: Math.round(expenses * 100) / 100,
     net,
+    balance: net,
+    totalIncome: Math.round(income * 100) / 100,
+    totalExpenses: Math.round(expenses * 100) / 100,
     allocated,
     spent,
+    buckets: spent,
     available: {
       needs: availableNeeds,
       wants: availableWants,
       savings: availableSavings
     },
+    availableNeeds,
+    availableWants,
+    availableSavings,
     percentages: {
       needs: needsPct,
       wants: wantsPct,
       savings: savingsPct
     },
+    needsPct,
+    wantsPct,
+    savingsPct,
+    allocationPercentages: {
+      needs: allocNeedsPct,
+      wants: allocWantsPct,
+      savings: allocSavingsPct
+    },
+    allocNeedsPct,
+    allocWantsPct,
+    allocSavingsPct,
     targets: {
       needs: budgetNeeds,
       wants: budgetWants,
       savings: budgetSavings
     },
+    budgetNeeds,
+    budgetWants,
+    budgetSavings,
     limits: {
       needsLimitPct,
       wantsLimitPct,
       savingsLimitPct
-    }
+    },
+    needsLimitPct,
+    wantsLimitPct,
+    savingsLimitPct
   };
 }
 

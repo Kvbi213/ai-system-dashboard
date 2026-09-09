@@ -149,6 +149,86 @@ describe('Budget Calculator & 50/30/20 Envelope Engine', () => {
       expect(stats.allocated.wants).toBe(0);
       expect(stats.allocated.savings).toBe(1000);
     });
+
+    it('should dynamically recalculate split incomes when budget targets change (e.g. 30/0/70)', () => {
+      const transactions = [
+        // Transaction originally created with old distribution snapshot
+        {
+          id: '1',
+          type: 'income',
+          amount: 517.50,
+          splitMode: 'split',
+          distribution: { needs: 258.75, wants: 155.25, savings: 103.50 },
+          transaction_date: '2026-09-01'
+        },
+        {
+          id: '2',
+          type: 'expense',
+          amount: 23.24,
+          bucket: 'needs',
+          transaction_date: '2026-09-02'
+        }
+      ];
+
+      const stats = calculateFinanceStats(transactions, {
+        monthlyIncome: 0,
+        targetNeeds: 30,
+        targetWants: 0,
+        targetSavings: 70
+      });
+
+      expect(stats.income).toBe(517.50);
+      expect(stats.expenses).toBe(23.24);
+      expect(stats.net).toBe(494.26);
+
+      // Dynamic 30/0/70 allocation: 30% of 517.50 = 155.25, 0% = 0, 70% = 362.25
+      expect(stats.allocated.needs).toBe(155.25);
+      expect(stats.allocated.wants).toBe(0);
+      expect(stats.allocated.savings).toBe(362.25);
+
+      // Remaining envelope balances
+      expect(stats.available.needs).toBe(132.01); // 155.25 - 23.24
+      expect(stats.available.wants).toBe(0);
+      expect(stats.available.savings).toBe(362.25);
+
+      // Mathematical consistency check
+      expect(stats.available.needs + stats.available.wants + stats.available.savings).toBe(stats.net);
+
+      // Expense percentage: 100% needs
+      expect(stats.percentages.needs).toBe(100);
+      expect(stats.percentages.wants).toBe(0);
+      expect(stats.percentages.savings).toBe(0);
+
+      // Allocation percentage of pools: 30% needs, 0% wants, 70% savings
+      expect(stats.allocationPercentages.needs).toBe(30);
+      expect(stats.allocationPercentages.wants).toBe(0);
+      expect(stats.allocationPercentages.savings).toBe(70);
+    });
+
+    it('should preserve fixed user amounts when splitMode is custom', () => {
+      const transactions = [
+        {
+          id: '1',
+          type: 'income',
+          amount: 1000,
+          splitMode: 'custom',
+          distribution: { needs: 400, wants: 400, savings: 200 },
+          transaction_date: '2026-09-01'
+        }
+      ];
+
+      const stats = calculateFinanceStats(transactions, {
+        monthlyIncome: 1000,
+        targetNeeds: 30,
+        targetWants: 0,
+        targetSavings: 70
+      });
+
+      // Must preserve custom distribution even though target is 30/0/70
+      expect(stats.allocated.needs).toBe(400);
+      expect(stats.allocated.wants).toBe(400);
+      expect(stats.allocated.savings).toBe(200);
+    });
   });
 
   describe('cycleSplitMode', () => {

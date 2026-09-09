@@ -1,5 +1,24 @@
 ## Wersja Bieżąca
-**v2.13.0**
+**v2.14.0**
+
+## v 2.14.0 — 2026-09-09
+**Typ:** MINOR  
+**Zakres:** Eliminacja Anomalii Spójności Danych Finansowych: Rozdzielenie Analityki Wydatków od Puli Portfela (Dwutrybowy SVG Donut Chart [Wydatki vs Cel | Pule Portfela]), Dynamiczna Repartycja Przychodów Typu Split po Zmianie Celów Budżetowych (np. 30/0/70), Pasek Automatycznej Weryfikacji Integralności Matematycznej w Cashflow Trend oraz Dynamiczny Eksport Raportów.
+
+### Zmiany
+- [+] Dodano: Dwutrybowy przełącznik widoku Donut Chart w `FinancePage.jsx` (`[Wydatki vs Cel | Pule Portfela]`), eliminujący mylenie podziału pojedynczych wydatków (np. 23.24 PLN) z alokacją całego kapitału / przychodów (517.50 PLN).
+- [+] Dodano: Pasek weryfikacji integralności matematycznej w Cashflow Trend (`Wpływy - Wydatki = Cashflow = Dostępne w kopertach [Spójne ✅]`).
+- [+] Dodano: Nowy parametr analityczny `allocationPercentages` w silniku `modules/services/budgetCalculator.js` zwracający rzeczywisty procentowy rozkład środków w portfelu.
+- [+] Dodano: Testy jednostkowe w `tests/budget.test.js` sprawdzające automatyczne przeliczanie przychodów typu split przy zmianie reguły budżetowej oraz zachowanie stałych wartości w trybie custom. Stan testów: 39/39 PASS (100%).
+- [*] Zmodyfikowano: `budgetCalculator.js` – wpisy przychodów w trybie `split` (oraz bez jawnego trybu) są dynamicznie dzielone według aktywnych procentów budżetowych, zapobiegając blokowaniu starych snapshotów `distribution`.
+- [*] Zmodyfikowano: `FinancePage.jsx` – ujednolicono obliczenia przy pomocy silnika `calculateFinanceStats` oraz zaimplementowano automatyczną re-synchronizację zapisanych transakcji `split` w procedurze `handleSetupSubmit`.
+- [*] Zmodyfikowano: `ExportModal.jsx` – zastąpiono statyczne etykiety 50/30/20 dynamicznym odczytem konfiguracji przekazanej w props lub zapisanej w `system_finance_settings`.
+- [*] Zmodyfikowano: Podniesiono wersję w `package.json` do `2.14.0`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.13.0 — 2026-09-09
 **Typ:** MINOR  

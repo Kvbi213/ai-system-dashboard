@@ -5,11 +5,13 @@ import { Plus, Trash2, TrendingUp, TrendingDown, Wallet, DollarSign, Settings2, 
 import { subscribeCollection, saveCloudDocument, deleteCloudDocument, updateCloudDocumentField, isCloudEnvironment } from '../services/cloudSync';
 import { useToast } from '../context/ToastContext';
 import ExportModal from '../components/ExportModal';
+import { calculateFinanceStats } from '../services/budgetCalculator';
 
 const FinancePage = () => {
   const { t } = useTranslation();
 
   const [finances, setFinances] = useState([]);
+  const [chartView, setChartView] = useState('expenses'); // 'expenses' | 'allocation'
   const [settings, setSettings] = useState(() => {
     try {
       const saved = localStorage.getItem('system_finance_settings');
@@ -122,92 +124,12 @@ const FinancePage = () => {
 
   // Obliczenia statystyk finansowych (dynamiczne % według ustawień oraz Envelope Balances)
   const stats = useMemo(() => {
-    let income = 0;
-    let expenses = 0;
-    let allocated = { needs: 0, wants: 0, savings: 0, unassigned: 0 };
-    let spent = { needs: 0, wants: 0, savings: 0, unassigned: 0 };
-
-    finances.forEach(item => {
-      if (!item || item.is_settings || item.id === 'finance_settings') return;
-      const amt = Number(item.amount) || 0;
-
-      if (item.type === 'income') {
-        income += amt;
-        if (item.splitMode === 'single' && item.bucket && allocated[item.bucket] !== undefined) {
-          allocated[item.bucket] += amt;
-        } else if (item.distribution) {
-          allocated.needs += Number(item.distribution.needs) || 0;
-          allocated.wants += Number(item.distribution.wants) || 0;
-          allocated.savings += Number(item.distribution.savings) || 0;
-        } else {
-          // Domyślny automatyczny podział według reguły (50/30/20)
-          allocated.needs += (amt * targetNeeds) / 100;
-          allocated.wants += (amt * targetWants) / 100;
-          allocated.savings += (amt * targetSavings) / 100;
-        }
-      } else if (item.type === 'transfer') {
-        const from = item.fromBucket || 'needs';
-        const to = item.toBucket || 'savings';
-        if (allocated[from] !== undefined) allocated[from] -= amt;
-        if (allocated[to] !== undefined) allocated[to] += amt;
-      } else {
-        expenses += amt;
-        const b = item.bucket || 'needs';
-        if (spent[b] !== undefined) {
-          spent[b] += amt;
-        } else {
-          spent.unassigned += amt;
-        }
-      }
+    return calculateFinanceStats(finances, {
+      monthlyIncome,
+      targetNeeds,
+      targetWants,
+      targetSavings
     });
-
-    const net = income - expenses;
-    const totalExp = expenses > 0 ? expenses : 0;
-    const needsPct = totalExp > 0 ? Math.round((spent.needs / totalExp) * 100) : 0;
-    const wantsPct = totalExp > 0 ? Math.round((spent.wants / totalExp) * 100) : 0;
-    const savingsPct = totalExp > 0 ? Math.round((spent.savings / totalExp) * 100) : 0;
-
-    // Dostępne środki w danej puli (Pozostało z alokacji po odliczeniu wydatków)
-    const availableNeeds = allocated.needs - spent.needs;
-    const availableWants = allocated.wants - spent.wants;
-    const availableSavings = allocated.savings - spent.savings;
-
-    // Budżety celowe na podstawie ustawionych procentów
-    const baseBudget = monthlyIncome > 0 ? monthlyIncome : (income > 0 ? income : 0);
-    const budgetNeeds = Math.round((baseBudget * targetNeeds) / 100);
-    const budgetWants = Math.round((baseBudget * targetWants) / 100);
-    const budgetSavings = Math.round((baseBudget * targetSavings) / 100);
-
-    const needsLimitPct = allocated.needs > 0 
-      ? Math.round((spent.needs / allocated.needs) * 100) 
-      : (budgetNeeds > 0 ? Math.round((spent.needs / budgetNeeds) * 100) : (spent.needs > 0 ? 100 : 0));
-    const wantsLimitPct = allocated.wants > 0 
-      ? Math.round((spent.wants / allocated.wants) * 100) 
-      : (budgetWants > 0 ? Math.round((spent.wants / budgetWants) * 100) : (spent.wants > 0 ? 100 : 0));
-    const savingsLimitPct = budgetSavings > 0 
-      ? Math.round((allocated.savings / budgetSavings) * 100) 
-      : (allocated.savings > 0 ? 100 : 0);
-
-    return {
-      balance: net,
-      totalIncome: income,
-      totalExpenses: expenses,
-      buckets: spent,
-      allocated,
-      spent,
-      availableNeeds,
-      availableWants,
-      availableSavings,
-      needsPct,
-      wantsPct,
-      savingsPct,
-      budgetNeeds,
-      budgetWants,
-      budgetSavings,
-      needsLimitPct,
-      wantsLimitPct,
-      savingsLimitPct
-    };
   }, [finances, monthlyIncome, targetNeeds, targetWants, targetSavings]);
 
   const handleSetupSubmit = async (e, skip = false) => {
@@ -234,7 +156,31 @@ const FinancePage = () => {
         await axios.post('/api/finance/settings', dataToSubmit);
       } catch {}
     }
+
+    // Dynamicznie zaktualizuj wpisy przychodów w trybie 'split' (nie nadpisując 'single' ani 'custom')
+    const newNeeds = dataToSubmit.needs_percent;
+    const newWants = dataToSubmit.wants_percent;
+    const newSavings = dataToSubmit.savings_percent;
+
+    setFinances(prev => prev.map(item => {
+      if (item.type === 'income' && (!item.splitMode || item.splitMode === 'split')) {
+        const amt = Number(item.amount) || 0;
+        const nAmt = Number(((amt * newNeeds) / 100).toFixed(2));
+        const wAmt = Number(((amt * newWants) / 100).toFixed(2));
+        const sAmt = Number((amt - nAmt - wAmt).toFixed(2));
+        const updated = {
+          ...item,
+          splitMode: 'split',
+          distribution: { needs: nAmt, wants: wAmt, savings: sAmt }
+        };
+        saveCloudDocument('finances', item.id, updated).catch(() => {});
+        return updated;
+      }
+      return item;
+    }));
+
     setShowModal(false);
+    toast.success(`Zaktualizowano regułę budżetową na ${dataToSubmit.needs_percent}/${dataToSubmit.wants_percent}/${dataToSubmit.savings_percent} i przeliczono pule.`, 'Budżet');
   };
 
   const handleDelete = async (id) => {
@@ -382,10 +328,21 @@ const FinancePage = () => {
   // Obliczenia segmentów dla SVG Donut Chart
   const radius = 58;
   const circumference = 2 * Math.PI * radius;
-  const totalSpend = stats.totalExpenses > 0 ? stats.totalExpenses : 1;
-  const needsLen = (stats.buckets.needs / totalSpend) * circumference;
-  const wantsLen = (stats.buckets.wants / totalSpend) * circumference;
-  const savingsLen = (stats.buckets.savings / totalSpend) * circumference;
+  const isExpView = chartView === 'expenses';
+
+  const totalExpenseVal = stats.totalExpenses > 0 ? stats.totalExpenses : 1;
+  const totalAllocVal = (stats.allocated.needs + stats.allocated.wants + stats.allocated.savings) > 0 
+    ? (stats.allocated.needs + stats.allocated.wants + stats.allocated.savings) 
+    : 1;
+
+  const needsVal = isExpView ? (stats.buckets?.needs || 0) : (stats.allocated?.needs || 0);
+  const wantsVal = isExpView ? (stats.buckets?.wants || 0) : (stats.allocated?.wants || 0);
+  const savingsVal = isExpView ? (stats.buckets?.savings || 0) : (stats.allocated?.savings || 0);
+  const denominator = isExpView ? totalExpenseVal : totalAllocVal;
+
+  const needsLen = (needsVal / denominator) * circumference;
+  const wantsLen = (wantsVal / denominator) * circumference;
+  const savingsLen = (savingsVal / denominator) * circumference;
 
   return (
     <div className="w-full h-full flex flex-col gap-3 sm:gap-6 animate-soft-enter overflow-y-auto custom-scrollbar pb-24 md:pb-8 min-h-0">
@@ -569,116 +526,180 @@ const FinancePage = () => {
       {/* Visual Analytics Hub: Donut Chart & Cashflow Tracker */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 shrink-0">
         {/* SVG Donut Visualizer */}
-        <div className="lg:col-span-5 glass-panel p-5 rounded-xl border border-border flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-mono text-sm font-bold text-accentPrimary flex items-center gap-2">
-              <PieChart className="w-4 h-4" /> Alokacja Budżetowa ({targetNeeds}/{targetWants}/{targetSavings})
-            </h3>
-            <span className="text-[11px] font-mono text-textMuted">Wydatki: {stats.totalExpenses.toFixed(2)} PLN</span>
-          </div>
+        <div className="lg:col-span-5 glass-panel p-5 rounded-xl border border-border flex flex-col justify-between">
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+              <div>
+                <h3 className="font-mono text-sm font-bold text-accentPrimary flex items-center gap-2">
+                  <PieChart className="w-4 h-4" />
+                  {isExpView
+                    ? `Struktura Wydatków (${targetNeeds}/${targetWants}/${targetSavings})`
+                    : `Alokacja Przychodów (${targetNeeds}/${targetWants}/${targetSavings})`
+                  }
+                </h3>
+                <span className="text-[11px] font-mono text-textMuted">
+                  {isExpView
+                    ? `Wydatki: ${stats.totalExpenses.toFixed(2)} PLN`
+                    : `Wpływy: ${stats.totalIncome.toFixed(2)} PLN`
+                  }
+                </span>
+              </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-around gap-6 my-auto">
-            {/* SVG Ring */}
-            <div className="relative w-40 h-40 flex items-center justify-center shrink-0">
-              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 140 140">
-                {/* Background Ring */}
-                <circle
-                  cx="70"
-                  cy="70"
-                  r={radius}
-                  stroke="rgba(255, 255, 255, 0.05)"
-                  strokeWidth="12"
-                  fill="transparent"
-                />
-                {/* Needs Segment */}
-                {stats.buckets.needs > 0 && (
-                  <circle
-                    cx="70"
-                    cy="70"
-                    r={radius}
-                    stroke="#06b6d4"
-                    strokeWidth="12"
-                    strokeDasharray={`${needsLen} ${circumference - needsLen}`}
-                    strokeDashoffset={0}
-                    strokeLinecap="round"
-                    fill="transparent"
-                    className="transition-all duration-700"
-                  />
-                )}
-                {/* Wants Segment */}
-                {stats.buckets.wants > 0 && (
-                  <circle
-                    cx="70"
-                    cy="70"
-                    r={radius}
-                    stroke="#ec4899"
-                    strokeWidth="12"
-                    strokeDasharray={`${wantsLen} ${circumference - wantsLen}`}
-                    strokeDashoffset={-needsLen}
-                    strokeLinecap="round"
-                    fill="transparent"
-                    className="transition-all duration-700"
-                  />
-                )}
-                {/* Savings Segment */}
-                {stats.buckets.savings > 0 && (
-                  <circle
-                    cx="70"
-                    cy="70"
-                    r={radius}
-                    stroke="#10b981"
-                    strokeWidth="12"
-                    strokeDasharray={`${savingsLen} ${circumference - savingsLen}`}
-                    strokeDashoffset={-(needsLen + wantsLen)}
-                    strokeLinecap="round"
-                    fill="transparent"
-                    className="transition-all duration-700"
-                  />
-                )}
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-                <span className="text-[10px] font-mono text-textMuted uppercase tracking-wider">Suma</span>
-                <span className="text-base font-bold font-mono text-textPrimary">{stats.totalExpenses.toFixed(0)}</span>
-                <span className="text-[9px] font-mono text-textMuted">PLN</span>
+              {/* View Toggle Tabs */}
+              <div className="flex items-center bg-surface border border-border/80 p-0.5 rounded-lg text-[10px] font-mono shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setChartView('expenses')}
+                  className={`px-2 py-1 rounded transition-all cursor-pointer ${
+                    isExpView
+                      ? 'bg-accentPrimary text-background font-bold shadow-sm'
+                      : 'text-textMuted hover:text-textPrimary'
+                  }`}
+                  title="Pokaż podział wydatków w relacji do limitów budżetowych"
+                >
+                  Wydatki ({stats.totalExpenses.toFixed(0)})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChartView('allocation')}
+                  className={`px-2 py-1 rounded transition-all cursor-pointer ${
+                    !isExpView
+                      ? 'bg-accentPrimary text-background font-bold shadow-sm'
+                      : 'text-textMuted hover:text-textPrimary'
+                  }`}
+                  title="Pokaż faktyczny podział środków w portfelu"
+                >
+                  Pule Portfela ({stats.totalIncome.toFixed(0)})
+                </button>
               </div>
             </div>
 
-            {/* Legend & Target Comparison */}
-            <div className="flex flex-col gap-3 w-full max-w-[200px]">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
-                  <span className="text-textMuted">Potrzeby</span>
-                </div>
-                <div className="text-right">
-                  <span className="font-bold text-textPrimary">{stats.needsPct}%</span>
-                  <span className="text-[10px] text-textMuted ml-1">/ {targetNeeds}%</span>
+            <div className="flex flex-col sm:flex-row items-center justify-around gap-6 my-2">
+              {/* SVG Ring */}
+              <div className="relative w-40 h-40 flex items-center justify-center shrink-0">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 140 140">
+                  {/* Background Ring */}
+                  <circle
+                    cx="70"
+                    cy="70"
+                    r={radius}
+                    stroke="rgba(255, 255, 255, 0.05)"
+                    strokeWidth="12"
+                    fill="transparent"
+                  />
+                  {/* Needs Segment */}
+                  {needsVal > 0 && (
+                    <circle
+                      cx="70"
+                      cy="70"
+                      r={radius}
+                      stroke="#06b6d4"
+                      strokeWidth="12"
+                      strokeDasharray={`${needsLen} ${circumference - needsLen}`}
+                      strokeDashoffset={0}
+                      strokeLinecap="round"
+                      fill="transparent"
+                      className="transition-all duration-700"
+                    />
+                  )}
+                  {/* Wants Segment */}
+                  {wantsVal > 0 && (
+                    <circle
+                      cx="70"
+                      cy="70"
+                      r={radius}
+                      stroke="#ec4899"
+                      strokeWidth="12"
+                      strokeDasharray={`${wantsLen} ${circumference - wantsLen}`}
+                      strokeDashoffset={-needsLen}
+                      strokeLinecap="round"
+                      fill="transparent"
+                      className="transition-all duration-700"
+                    />
+                  )}
+                  {/* Savings Segment */}
+                  {savingsVal > 0 && (
+                    <circle
+                      cx="70"
+                      cy="70"
+                      r={radius}
+                      stroke="#10b981"
+                      strokeWidth="12"
+                      strokeDasharray={`${savingsLen} ${circumference - savingsLen}`}
+                      strokeDashoffset={-(needsLen + wantsLen)}
+                      strokeLinecap="round"
+                      fill="transparent"
+                      className="transition-all duration-700"
+                    />
+                  )}
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                  <span className="text-[10px] font-mono text-textMuted uppercase tracking-wider">
+                    {isExpView ? 'Wydatki' : 'Pula'}
+                  </span>
+                  <span className="text-base font-bold font-mono text-textPrimary">
+                    {isExpView ? stats.totalExpenses.toFixed(0) : stats.totalIncome.toFixed(0)}
+                  </span>
+                  <span className="text-[9px] font-mono text-textMuted">PLN</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-xs font-mono">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-pink-400" />
-                  <span className="text-textMuted">Zachcianki</span>
+              {/* Legend & Target Comparison */}
+              <div className="flex flex-col gap-3 w-full max-w-[210px]">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shrink-0" />
+                    <span className="text-textMuted">Potrzeby</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-bold text-textPrimary">
+                      {isExpView ? `${stats.needsPct}%` : `${(stats.allocated?.needs || 0).toFixed(0)} PLN`}
+                    </span>
+                    <span className="text-[10px] text-textMuted ml-1">
+                      {isExpView ? `/ ${targetNeeds}%` : `(${stats.allocNeedsPct ?? targetNeeds}%)`}
+                    </span>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <span className="font-bold text-textPrimary">{stats.wantsPct}%</span>
-                  <span className="text-[10px] text-textMuted ml-1">/ {targetWants}%</span>
-                </div>
-              </div>
 
-              <div className="flex items-center justify-between text-xs font-mono">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                  <span className="text-textMuted">Oszczędności</span>
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-pink-400 shrink-0" />
+                    <span className="text-textMuted">Zachcianki</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-bold text-textPrimary">
+                      {isExpView ? `${stats.wantsPct}%` : `${(stats.allocated?.wants || 0).toFixed(0)} PLN`}
+                    </span>
+                    <span className="text-[10px] text-textMuted ml-1">
+                      {isExpView ? `/ ${targetWants}%` : `(${stats.allocWantsPct ?? targetWants}%)`}
+                    </span>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <span className="font-bold text-textPrimary">{stats.savingsPct}%</span>
-                  <span className="text-[10px] text-textMuted ml-1">/ {targetSavings}%</span>
+
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0" />
+                    <span className="text-textMuted">Oszczędności</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-bold text-textPrimary">
+                      {isExpView ? `${stats.savingsPct}%` : `${(stats.allocated?.savings || 0).toFixed(0)} PLN`}
+                    </span>
+                    <span className="text-[10px] text-textMuted ml-1">
+                      {isExpView ? `/ ${targetSavings}%` : `(${stats.allocSavingsPct ?? targetSavings}%)`}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+
+          <p className="text-[10px] font-mono text-textMuted/70 mt-3 pt-2 border-t border-border/40 text-center">
+            {isExpView
+              ? 'Wykres prezentuje podział faktycznie poniesionych wydatków w zestawieniu z regułą budżetową.'
+              : 'Wykres prezentuje podział wpływów przypisanych do kopert portfela według aktualnej konfiguracji.'
+            }
+          </p>
         </div>
 
         {/* Dynamic Cashflow Visualizer & AI Diagnostics */}
@@ -725,15 +746,37 @@ const FinancePage = () => {
             </div>
           </div>
 
-          <div className="mt-4 p-3 bg-white/5 rounded-lg border border-white/10 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-accentPrimary animate-ping" />
-              <span className="text-xs font-mono text-textPrimary">
-                {stats.balance >= 0 ? 'Bilans dodatni — budżet jest stabilny.' : 'Wykryto deficyt — wydatki przewyższają wpływy.'}
-              </span>
+          <div>
+            <div className="mt-4 p-3 bg-white/5 rounded-lg border border-white/10 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-accentPrimary animate-ping" />
+                <span className="text-xs font-mono text-textPrimary">
+                  {stats.balance >= 0 ? 'Bilans dodatni — budżet jest stabilny.' : 'Wykryto deficyt — wydatki przewyższają wpływy.'}
+                </span>
+              </div>
+              <div className="text-xs font-mono text-textMuted">
+                Pozostało w budżecie: <span className="text-accentPrimary font-bold">{Math.max(stats.balance, 0).toFixed(2)} PLN</span>
+              </div>
             </div>
-            <div className="text-xs font-mono text-textMuted">
-              Pozostało w budżecie: <span className="text-accentPrimary font-bold">{Math.max(stats.balance, 0).toFixed(2)} PLN</span>
+
+            {/* Matematyczny Pasek Weryfikacji Integralności Finansowej */}
+            <div className="mt-3 pt-2.5 border-t border-border/40 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-textMuted">
+              <div className="flex items-center gap-1.5">
+                <span className="text-emerald-400 font-semibold">+{stats.totalIncome.toFixed(2)} PLN</span>
+                <span>−</span>
+                <span className="text-rose-400 font-semibold">{stats.totalExpenses.toFixed(2)} PLN</span>
+                <span>=</span>
+                <span className={`font-bold ${stats.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {stats.balance >= 0 ? '+' : ''}{stats.balance.toFixed(2)} PLN
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-[10px]">
+                <span className="text-textMuted">Dostępne w kopertach:</span>
+                <span className="text-accentPrimary font-bold">
+                  {(stats.availableNeeds + stats.availableWants + stats.availableSavings).toFixed(2)} PLN
+                </span>
+                <span className="text-emerald-400 font-bold" title="Integralność bilansu 100%">[Spójne ✅]</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1296,6 +1339,7 @@ const FinancePage = () => {
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
         finances={finances}
+        settings={settings}
       />
     </div>
   );

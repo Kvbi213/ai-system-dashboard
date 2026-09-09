@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.13.0 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.14.0 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE)  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Cloud-First Firestore Sync, Real-Time SSE Telemetry, Theme Toggle Dark/Light, React Testing Library + JSDOM Suite, Toast Notification Hub, Network Online/Offline Guard, Automated Testing Suite Vitest 37/37 PASS, CSV & PDF Export Engine, Dual CI/CD Pipelines main.yml & ci.yml, Deterministic Chat Purge, Dynamic 0% Budgeting & Funds Allocation, Calendar Management, Warsaw Timezone AI Engine, Multi-Cloud OSINT Serverless, Vercel Serverless & Firebase Hosting)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Cloud-First Firestore Sync, Real-Time SSE Telemetry, Theme Toggle Dark/Light, React Testing Library + JSDOM Suite, Toast Notification Hub, Network Online/Offline Guard, Automated Testing Suite Vitest 39/39 PASS, CSV & PDF Export Engine, Dual CI/CD Pipelines main.yml & ci.yml, Deterministic Chat Purge, Dynamic 0% Budgeting & Dual-Mode Donut Allocation, Calendar Management, Warsaw Timezone AI Engine, Multi-Cloud OSINT Serverless, Vercel Serverless & Firebase Hosting)
 
 ---
 
@@ -11,7 +11,7 @@ System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-
 
 **Główne Paradygmaty:**
 1. **Multi-Cloud & Cloud-First Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (Prywatna Instancja Produkcyjna), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`/api/agent`, `api/news`, `api/models`, `api/status`, `api/osint`). Wszystkie operacje na telefonach, tabletach i desktopie natychmiast synchronizują się z chmurą bez wymogu logowania Google OAuth.
-2. **Quality Gate & Automated Testing (37/37 PASS):** Zintegrowany silnik testowy Vitest (`npm test`) z 6 dedykowanymi zestawami testowymi weryfikującymi algorytm budżetowy, klasyfikację celów OSINT, strefę czasową `Europe/Warsaw`, eksport CSV, rejestr synchronizacji chmurowej oraz renderowanie komponentów Reacta z `@testing-library/react` i `jsdom` (SystemMonitor SSE/Client, WeatherWidget fallback, Sidebar theme toggle, Toast notifications, ExportModal).
+2. **Quality Gate & Automated Testing (39/39 PASS):** Zintegrowany silnik testowy Vitest (`npm test`) z 6 dedykowanymi zestawami testowymi weryfikującymi algorytm budżetowy, klasyfikację celów OSINT, strefę czasową `Europe/Warsaw`, eksport CSV, rejestr synchronizacji chmurowej oraz renderowanie komponentów Reacta z `@testing-library/react` i `jsdom` (SystemMonitor SSE/Client, WeatherWidget fallback, Sidebar theme toggle, Toast notifications, ExportModal).
 3. **Real-time SSE Telemetry & Dual Mode:** Backend Express dostarcza strumień Server-Sent Events (`/api/system/stream`) emitujący metryki CPU/RAM/Heap/Uptime co 2 sekundy. W chmurze komponent `SystemMonitor` automatycznie przechodzi w tryb telemetrii przeglądarkowej ze wskaźnikami `● SSE LIVE` i `● CLIENT`.
 4. **Instant Theme Toggle:** Szybki przełącznik trybu jasnego/ciemnego (Sun/Moon) umieszczony w widocznym miejscu w nagłówku mobilnym oraz stopce menu bocznego na desktopie, zintegrowany z pamięcią `localStorage` i 7 paletami kolorystycznymi.
 5. **Toast Notification Hub & Offline Guard:** Pływające komunikaty w stylu Glassmorphism informujące o operacjach i mutacjach w czasie rzeczywistym. Detektor `navigator.onLine` oraz zdarzeń sieciowych ostrzega o utracie połączenia z automatycznym buforowaniem operacji w pamięci podręcznej Firestore.
@@ -98,7 +98,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │       ├── ChatPage.jsx     ← Pełnoekranowy Terminal AI.
 │       ├── TimetablePage.jsx← Plan Lekcji & Zajęć (Live Tracker, widok osi czasu i siatki, CRUD, Firestore sync).
 │       ├── CalendarPage.jsx ← Kalendarz operacyjny i terminarz zdarzeń.
-│       ├── FinancePage.jsx  ← Finanse, budżet (konfigurowalne wagi procentowe) i statystyki.
+│       ├── FinancePage.jsx  ← Finanse, budżet (konfigurowalne wagi procentowe, dwutrybowy Donut Chart [Wydatki vs Pule], dynamiczna repartycja split).
 │       ├── WorkoutsPage.jsx ← Dziennik sesji treningowych.
 │       ├── MemoryPage.jsx   ← Pamięć długoterminowa asystenta (Operator Brain).
 │       ├── SearchPage.jsx   ← Wyszukiwarka zintegrowana z Brave Search.
