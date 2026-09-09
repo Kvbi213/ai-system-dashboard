@@ -10,7 +10,7 @@
 System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-oss-120b` (Groq SDK). Projekt łączy w sobie cechy inteligentnego terminala poleceń, zarządzania zadaniami (To-Do), planu lekcji i harmonogramu zajęć (Timetable), kalendarza z możliwością ręcznego planowania, elastycznego budżetu z dynamicznym dysponowaniem środkami (autopodział dochodów 50/30/20, jedna pula, podział własny oraz transfery między koszykami), planera treningów, długoterminowej pamięci (Operator Brain), monitoringu systemu oraz wyszukiwania w sieci na żywo (Brave Search API).
 
 **Główne Paradygmaty:**
-1. **Multi-Cloud & Cloud-First Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (`https://void-potato-7721.web.app`), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`https://ai-system-dashboard.vercel.app/api/agent`, `api/news`, `api/models`, `api/status`, `api/osint`). Wszystkie operacje na telefonach, tabletach i desktopie natychmiast synchronizują się z chmurą bez wymogu logowania Google OAuth.
+1. **Multi-Cloud & Cloud-First Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (Prywatna Instancja Produkcyjna), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`/api/agent`, `api/news`, `api/models`, `api/status`, `api/osint`). Wszystkie operacje na telefonach, tabletach i desktopie natychmiast synchronizują się z chmurą bez wymogu logowania Google OAuth.
 2. **Quality Gate & Automated Testing (10/10):** Zintegrowany silnik testowy Vitest (`npm test`) z 5 dedykowanymi zestawami testowymi weryfikującymi algorytm budżetowy, klasyfikację celów OSINT, strefę czasową `Europe/Warsaw`, eksport CSV oraz rejestr synchronizacji chmurowej (30/30 testów zdanych ze 100% skutecznością). Potok GitHub Actions (`.github/workflows/ci.yml`) weryfikuje każdą zmianę kodu.
 3. **Toast Notification Hub & Offline Guard:** Pływające komunikaty w stylu Glassmorphism informujące o operacjach i mutacjach w czasie rzeczywistym. Detektor `navigator.onLine` oraz zdarzeń sieciowych ostrzega o utracie połączenia z automatycznym buforowaniem operacji w pamięci podręcznej Firestore.
 4. **Data Export & Reporting Engine:** Zaawansowany generator raportów (`exportService.js`) z bezpośrednim pobieraniem plików CSV (zgodność ze standardem RFC 4180) oraz generowaniem raportów do druku i zapisu do pliku PDF (`@media print`).
@@ -129,7 +129,7 @@ Backend to lekka aplikacja oparta na Express.js. Działa na porcie `5000`. Pełn
 | `/api/schedule` | `GET` | - | Zwraca tablicę aktualnie zakolejkowanych procesów cyklicznych Schedulera (dla AgentQueue.jsx). |
 | `/api/logs` | `GET` | - | Zwraca ostatnie wpisy z tabeli `system_logs` (dla NewsFeed.jsx). |
 | `/api/system/metrics`| `GET` | - | Zwraca dane o zużyciu sprzętu (CPU, RAM, Uptime). |
-| `/api/firebase/status` | `GET` | - | Zwraca status połączenia z Firestore (projekt `void-potato-7721`) oraz konfigurację właściciela. |
+| `/api/firebase/status` | `GET` | - | Zwraca status połączenia z Firestore (projekt `$FIREBASE_PROJECT_ID`) oraz konfigurację właściciela. |
 | `/api/firebase/verify-owner` | `POST` | `idToken` lub `email` | Uwierzytelnia właściciela z chmury Firebase i przyznaje unikalny token sesyjny. |
 | `/api/firebase/sync` | `POST` | - | Przeprowadza pełną synchronizację bazy lokalnej SQLite do chmury Firestore. |
 | `/api/firebase/data/:col` | `GET` | URL param: `col` | Bezpośredni odczyt dokumentów z kolekcji Firestore w chmurze. |
@@ -235,13 +235,13 @@ Backend posiada całkowicie niezależny pętlowy proces chronometryczny:
 
 ---
 
-## 9. INTEGRACJA CHMUROWA FIREBASE & RESTRYKCJA DOSTĘPU (void-potato-7721)
+## 9. INTEGRACJA CHMUROWA FIREBASE & RESTRYKCJA DOSTĘPU
 
 Projekt chmurowy w Google Firebase został utworzony w architekturze ścisłej izolacji:
-- **Identyfikator Projektu:** `void-potato-7721` (Void Potato Matrix)
+- **Identyfikator Projektu:** `$FIREBASE_PROJECT_ID`
 - **Instancja Bazy Danych:** Cloud Firestore `(default)` w lokalizacji `europe-central2` (Warszawa).
 - **Model Bezpieczeństwa (Single-Owner Access):**
-  - Reguły `firestore.rules` dopuszczają operacje zapisu i odczytu wyłącznie dla uwierzytelnionego konta właściciela (`marektowarek21372137@gmail.com`).
+  - Reguły `firestore.rules` dopuszczają operacje zapisu i odczytu wyłącznie dla uwierzytelnionego konta właściciela (`<ALLOWED_OWNER_EMAIL>`).
   - Każda próba logowania lub odpytania API przez inną tożsamość kończy się natychmiastowym kodem `403 Forbidden`.
   - Backend udostępnia bezpieczną procedurę synchronizacji dwukierunkowej (`/api/firebase/sync`), migrując dane zadań, transakcji i kalendarza z lokalnego SQLite do Cloud Firestore.
 

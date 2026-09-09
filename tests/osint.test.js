@@ -21,9 +21,9 @@ describe('OSINT Target Detection & Classifier Engine', () => {
     expect(res1.type).toBe('domain');
     expect(res1.value).toBe('github.com');
 
-    const res2 = detectTargetType('void-potato-7721.web.app');
+    const res2 = detectTargetType('cloud-dashboard-demo.web.app');
     expect(res2.type).toBe('domain');
-    expect(res2.value).toBe('void-potato-7721.web.app');
+    expect(res2.value).toBe('cloud-dashboard-demo.web.app');
 
     const res3 = detectTargetType('portal.szkola.edu.pl');
     expect(res3.type).toBe('domain');
@@ -41,9 +41,9 @@ describe('OSINT Target Detection & Classifier Engine', () => {
   });
 
   it('should accurately detect email addresses', () => {
-    const res1 = detectTargetType('marektowarek21372137@gmail.com');
+    const res1 = detectTargetType('operator@antigravity.dev');
     expect(res1.type).toBe('email');
-    expect(res1.value).toBe('marektowarek21372137@gmail.com');
+    expect(res1.value).toBe('operator@antigravity.dev');
 
     const res2 = detectTargetType('security@system.io');
     expect(res2.type).toBe('email');

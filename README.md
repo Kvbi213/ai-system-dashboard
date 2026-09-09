@@ -6,14 +6,14 @@
 [![Version](https://img.shields.io/badge/Wersja-2.12.0-00F0FF?style=for-the-badge&logo=semver&logoColor=black)](https://github.com/Kvbi213/ai-system-dashboard)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-10B981?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/Kvbi213/ai-system-dashboard/actions)
 [![Tests](https://img.shields.io/badge/Testy-30%2F30%20Passed-10B981?style=for-the-badge&logo=vitest&logoColor=white)](https://github.com/Kvbi213/ai-system-dashboard)
-[![Hosting](https://img.shields.io/badge/Hosting-Firebase_Cloud-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://void-potato-7721.web.app)
-[![API Gateway](https://img.shields.io/badge/API-Vercel_Serverless-black?style=for-the-badge&logo=vercel&logoColor=white)](https://ai-system-dashboard-github.vercel.app)
+[![Hosting](https://img.shields.io/badge/Hosting-Firebase_Cloud-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](#)
+[![API Gateway](https://img.shields.io/badge/API-Vercel_Serverless-black?style=for-the-badge&logo=vercel&logoColor=white)](#)
 [![Node.js](https://img.shields.io/badge/Node.js->=20.0-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/Licencja-MIT-6366F1?style=for-the-badge)](LICENSE)
 
 *Zunifikowany, wysoce zoptymalizowany ekosystem zarządzania osobistego i analityki operacyjnej z autonomicznym agentem AI, architekturą Cloud-First, pełną synchronizacją Firestore oraz natywnym wsparciem strefy czasowej Europe/Warsaw.*
 
-**[🌐 Uruchom Produkcję Live (Firebase Hosting)](https://void-potato-7721.web.app)** • **[📑 Dokumentacja Architektury](ARCHITECTURE.md)** • **[📜 Rejestr Zmian](HISTORY.md)**
+**[📑 Dokumentacja Architektury](ARCHITECTURE.md)** • **[📜 Rejestr Zmian](HISTORY.md)**
 
 </div>
 
