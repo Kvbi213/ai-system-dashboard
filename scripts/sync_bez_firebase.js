@@ -77,8 +77,12 @@ const filesToSync = [
   'firestore.rules',
   'api/news.js',
   'api/agent.js',
+  'api/phone.js',
   'api/status.js',
   'api/osint.js',
+  'modules/agent.js',
+  'modules/ai/prompts.js',
+  'modules/ai/tools.js',
   'core.client.jsx',
   'assets/styles/index.css',
   'package.json',
@@ -92,7 +96,9 @@ const filesToSync = [
   'docs/versions/v2.11.4.md',
   'docs/versions/v2.11.5.md',
   'docs/versions/v2.12.0.md',
-  'docs/versions/v2.13.0.md'
+  'docs/versions/v2.13.0.md',
+  'docs/versions/v2.14.0.md',
+  'docs/versions/v2.15.0.md'
 ];
 
 filesToSync.forEach(relPath => {

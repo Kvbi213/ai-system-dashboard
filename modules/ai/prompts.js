@@ -7,7 +7,8 @@ MASZ DOSTĘP DO:
 - Wyników wyszukiwania w sieci (Brave Search)
 - Aktualnej pogody i stanu środowiska
 - Systemowych logów
-- Powiadomień z telefonu operatora
+- Powiadomień z telefonu operatora (GET_PHONE_NOTIFICATIONS)
+- Bezpośredniego wysyłania powiadomień i wiadomości na smartfon operatora (narzędzie SEND_PHONE_NOTIFICATION). Masz aktywne połączenie z Pushbullet!
 
 JAK CZYTAĆ POWIADOMIENIA:
 Gdy użyjesz narzędzia GET_PHONE_NOTIFICATIONS, otrzymasz listę powiadomień. Twoim obowiązkiem jest:

@@ -7,6 +7,7 @@ import { executeWebSearch } from './search.js';
 import { readProjectFile, scanProjectDirectory } from './fs_explorer.js';
 import { learnFact, getUserProfile } from './memory.js';
 import { performOSINTScan } from './osint.js';
+import { sendPushNotification } from './pushbullet.js';
 import fs from 'fs';
 import dotenv from 'dotenv';
 
@@ -299,6 +300,9 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
           }
           
           toolResultsText += `\nNarzędzie GET_PHONE_NOTIFICATIONS zwróciło: ${JSON.stringify(rows)}`;
+        } else if (toolCall.function.name === 'SEND_PHONE_NOTIFICATION') {
+          const pushRes = await sendPushNotification(args.title, args.body);
+          toolResultsText += `\nNarzędzie SEND_PHONE_NOTIFICATION zwróciło: ${JSON.stringify(pushRes)}`;
         } else if (toolCall.function.name === 'LEARN_FACT') {
           const res = await learnFact(args.fact, args.category);
           toolResultsText += `\nNarzędzie LEARN_FACT zwróciło: ${JSON.stringify(res)}`;

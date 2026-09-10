@@ -383,5 +383,26 @@ export const agentTools = [
               required: ["bug_description", "severity"]
           }
       }
+  },
+  {
+      type: "function",
+      function: {
+          name: "SEND_PHONE_NOTIFICATION",
+          description: "Wysyła natychmiastowe powiadomienie push lub wiadomość na smartfon operatora przez Pushbullet API.",
+          parameters: {
+              type: "object",
+              properties: {
+                  title: {
+                      type: "string",
+                      description: "Tytuł powiadomienia na telefonie"
+                  },
+                  body: {
+                      type: "string",
+                      description: "Treść wiadomości wysyłana na telefon"
+                  }
+              },
+              required: ["title", "body"]
+          }
+      }
   }
 ];

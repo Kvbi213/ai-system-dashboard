@@ -448,7 +448,10 @@ export function parseAndExecuteAiActionsWithWidgets(text) {
         if (body) {
           try {
             const token = localStorage.getItem('token') || '';
-            fetch('/api/phone/push', {
+            const pushEndpoint = isCloudMode
+              ? 'https://ai-system-dashboard.vercel.app/api/phone'
+              : '/api/phone/push';
+            fetch(pushEndpoint, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
