@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.14.1 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.15.0 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE)  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Cloud-First Firestore Sync, Real-Time SSE Telemetry, Theme Toggle Dark/Light, React Testing Library + JSDOM Suite, Toast Notification Hub, Network Online/Offline Guard, Automated Testing Suite Vitest 39/39 PASS, CSV & PDF Export Engine, Dual CI/CD Pipelines main.yml & ci.yml, Deterministic Chat Purge, Dynamic 0% Budgeting & Dual-Mode Donut Allocation, Calendar Management, Warsaw Timezone AI Engine, Multi-Cloud OSINT Serverless, Vercel Serverless & Firebase Hosting)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Cloud-First Firestore Sync, Bidirectional Pushbullet & AI Expense Tracking, Real-Time SSE Telemetry, Theme Toggle Dark/Light, React Testing Library + JSDOM Suite, Toast Notification Hub, Network Online/Offline Guard, Automated Testing Suite Vitest 54/54 PASS, CSV & PDF Export Engine, Dual CI/CD Pipelines main.yml & ci.yml, Deterministic Chat Purge, Dynamic 0% Budgeting & Dual-Mode Donut Allocation, Calendar Management, Warsaw Timezone AI Engine, Multi-Cloud OSINT Serverless, Vercel Serverless & Firebase Hosting)
 
 ---
 
@@ -11,14 +11,15 @@ System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-
 
 **Główne Paradygmaty:**
 1. **Multi-Cloud & Cloud-First Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (Prywatna Instancja Produkcyjna), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`/api/agent`, `api/news`, `api/models`, `api/status`, `api/osint`). Wszystkie operacje na telefonach, tabletach i desktopie natychmiast synchronizują się z chmurą bez wymogu logowania Google OAuth.
-2. **Quality Gate & Automated Testing (39/39 PASS):** Zintegrowany silnik testowy Vitest (`npm test`) z 6 dedykowanymi zestawami testowymi weryfikującymi algorytm budżetowy, klasyfikację celów OSINT, strefę czasową `Europe/Warsaw`, eksport CSV, rejestr synchronizacji chmurowej oraz renderowanie komponentów Reacta z `@testing-library/react` i `jsdom` (SystemMonitor SSE/Client, WeatherWidget fallback, Sidebar theme toggle, Toast notifications, ExportModal).
-3. **Real-time SSE Telemetry & Dual Mode:** Backend Express dostarcza strumień Server-Sent Events (`/api/system/stream`) emitujący metryki CPU/RAM/Heap/Uptime co 2 sekundy. W chmurze komponent `SystemMonitor` automatycznie przechodzi w tryb telemetrii przeglądarkowej ze wskaźnikami `● SSE LIVE` i `● CLIENT`.
-4. **Instant Theme Toggle:** Szybki przełącznik trybu jasnego/ciemnego (Sun/Moon) umieszczony w widocznym miejscu w nagłówku mobilnym oraz stopce menu bocznego na desktopie, zintegrowany z pamięcią `localStorage` i 7 paletami kolorystycznymi.
-5. **Toast Notification Hub & Offline Guard:** Pływające komunikaty w stylu Glassmorphism informujące o operacjach i mutacjach w czasie rzeczywistym. Detektor `navigator.onLine` oraz zdarzeń sieciowych ostrzega o utracie połączenia z automatycznym buforowaniem operacji w pamięci podręcznej Firestore.
-6. **Data Export & Reporting Engine:** Zaawansowany generator raportów (`exportService.js`) z bezpośrednim pobieraniem plików CSV (zgodność ze standardem RFC 4180) oraz generowaniem raportów do druku i zapisu do pliku PDF (`@media print`).
-7. **Advanced Budgeting & Envelope Allocation:** Autonomiczny i elastyczny system podziału finansów oparty na dedykowanym silniku matematycznym `budgetCalculator.js`. Obsługa podziałów standardowych 50/30/20, alokacji z koszykami 0% (np. 70/0/30) oraz bezpośrednich transferów między kopertami.
-8. **LLM with Precise Warsaw Timezone & Multi-Tool Engine:** Cała logika kognitywna oparta jest na modelu `openai/gpt-oss-120b`. Klient każdorazowo przesyła precyzyjny timestamp oraz zlokalizowaną godzinę, a Vercel Gateway wymusza strefę `Europe/Warsaw`, gwarantując natychmiastową i niezmiennie poprawną wiedzę o aktualnej godzinie w Polsce.
-9. **Clean & Modern Aesthetics**: Interfejs zaprojektowany w oparciu o czyste linie, glassmorphism, elegancką i nowoczesną typografię oraz bogatą paletę motywów (Dark Cyber, Retro Amber CRT, Monochrome Slate, Matrix Terminal, Synthwave 80s, Nordic Frost, Paper Light).
+2. **Quality Gate & Automated Testing (54/54 PASS):** Zintegrowany silnik testowy Vitest (`npm test`) z 7 dedykowanymi zestawami testowymi weryfikującymi algorytm budżetowy, klasyfikację celów OSINT, strefę czasową `Europe/Warsaw`, eksport CSV, rejestr synchronizacji chmurowej, klasyfikator powiadomień Pushbullet oraz renderowanie komponentów Reacta z `@testing-library/react` i `jsdom`.
+3. **Bidirectional Pushbullet Integration & Autonomous Expense Tracking:** Dwukierunkowa integracja ze smartfonem operatora. System nasłuchuje powiadomień płatniczych i bankowych ze strumienia WebSocket (`wss://stream.pushbullet.com`), deduplikuje je w oknie 60s, kognitywnie wyodrębnia kwotę i przypisuje do koszyka 50/30/20 (Needs vs Wants vs Savings), automatycznie rejestruje wydatek w SQLite i Firestore oraz wysyła potwierdzenie na telefon. Dodatkowo asystent AI może wysyłać wiadomości i zadania na smartfon operatora znacznikiem `[ACTION:SEND_PUSH]`.
+4. **Real-time SSE Telemetry & Dual Mode:** Backend Express dostarcza strumień Server-Sent Events (`/api/system/stream`) emitujący metryki CPU/RAM/Heap/Uptime co 2 sekundy. W chmurze komponent `SystemMonitor` automatycznie przechodzi w tryb telemetrii przeglądarkowej ze wskaźnikami `● SSE LIVE` i `● CLIENT`.
+5. **Instant Theme Toggle:** Szybki przełącznik trybu jasnego/ciemnego (Sun/Moon) umieszczony w widocznym miejscu w nagłówku mobilnym oraz stopce menu bocznego na desktopie, zintegrowany z pamięcią `localStorage` i 7 paletami kolorystycznymi.
+6. **Toast Notification Hub & Offline Guard:** Pływające komunikaty w stylu Glassmorphism informujące o operacjach i mutacjach w czasie rzeczywistym. Detektor `navigator.onLine` oraz zdarzeń sieciowych ostrzega o utracie połączenia z automatycznym buforowaniem operacji w pamięci podręcznej Firestore.
+7. **Data Export & Reporting Engine:** Zaawansowany generator raportów (`exportService.js`) z bezpośrednim pobieraniem plików CSV (zgodność ze standardem RFC 4180) oraz generowaniem raportów do druku i zapisu do pliku PDF (`@media print`).
+8. **Advanced Budgeting & Envelope Allocation:** Autonomiczny i elastyczny system podziału finansów oparty na dedykowanym silniku matematycznym `budgetCalculator.js`. Obsługa podziałów standardowych 50/30/20, alokacji z koszykami 0% (np. 70/0/30) oraz bezpośrednich transferów między kopertami.
+9. **LLM with Precise Warsaw Timezone & Multi-Tool Engine:** Cała logika kognitywna oparta jest na modelu `openai/gpt-oss-120b`. Klient każdorazowo przesyła precyzyjny timestamp oraz zlokalizowaną godzinę, a Vercel Gateway wymusza strefę `Europe/Warsaw`, gwarantując natychmiastową i niezmiennie poprawną wiedzę o aktualnej godzinie w Polsce.
+10. **Clean & Modern Aesthetics**: Interfejs zaprojektowany w oparciu o czyste linie, glassmorphism, elegancką i nowoczesną typografię oraz bogatą paletę motywów.
 
 ---
 
@@ -33,11 +34,13 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   ├── main.yml               ← Główny potok CI/CD produkcyjny
 │   └── ci.yml                 ← Równoległy potok weryfikacyjny pull requestów
 │
-├── /tests/                    ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest)
+├── /tests/                    ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 54/54 PASS)
+│   ├── pushbullet_finance.test.js ← Testy kasyfikatora wydatków Pushbullet i akcji SEND_PUSH
 │   ├── components.test.jsx    ← Testy komponentów Reacta (@testing-library/react + JSDOM)
 │   ├── budget.test.js         ← Testy reguły 50/30/20, alokacji, wag 0% i transferów
 │   ├── export.test.js         ← Testy serializacji RFC 4180 dla plików CSV
 │   ├── time.test.js           ← Testy obliczeń czasowych strefy Europe/Warsaw
+
 │   ├── osint.test.js          ← Testy klasyfikatora celów OSINT (IP, e-mail, domena, MAC)
 │   └── cloudSync.test.js      ← Testy rejestru kolekcji i detekcji środowiska
 │
@@ -66,6 +69,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   ├── osint.js               ← Narzędzia rozpoznania OSINT i klasyfikator celów.
 │   │
 │   ├── /services/             ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
+│   │   ├── pushbulletClassifier.js ← Kognitywny klasyfikator wydatków 50/30/20 i deduplikator powiadomień.
 │   │   ├── cloudSync.js       ← Dwukierunkowa subskrypcja 8 kolekcji Firestore z auto-inicjalizacją i cloud purge czatu.
 │   │   ├── clientAiDispatcher.js ← Autonomiczny silnik zapytań LLM (openai/gpt-oss-120b) przez Vercel Gateway.
 │   │   ├── budgetCalculator.js ← Czysty silnik kalkulacji budżetowych 50/30/20 i kopert.

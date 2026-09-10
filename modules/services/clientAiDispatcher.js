@@ -442,6 +442,29 @@ export function parseAndExecuteAiActionsWithWidgets(text) {
         } catch {}
       } else if (actionType === 'SHOW_WIDGET') {
         if (attrs.name) extraWidgets.push(attrs.name.toLowerCase());
+      } else if (actionType === 'SEND_PUSH') {
+        const title = attrs.title || 'OmniDash System';
+        const body = attrs.body || '';
+        if (body) {
+          try {
+            const token = localStorage.getItem('token') || '';
+            fetch('/api/phone/push', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ title, body })
+            }).catch(() => {});
+
+            window.dispatchEvent(new CustomEvent('toastTriggered', {
+              detail: {
+                type: 'info',
+                message: `📱 Wysłano powiadomienie na Twój telefon: ${title}`
+              }
+            }));
+          } catch {}
+        }
       } else if (actionType === 'NAVIGATE') {
         if (attrs.path) {
           window.dispatchEvent(new CustomEvent('navigateRequested', { detail: attrs.path }));
@@ -610,7 +633,7 @@ Kalendarz:
 ${calendarSummary}
 Zasady: Posiadasz bezpośredni dostęp do internetu oraz bazy Firestore. Odpowiadaj wyczerpująco, logicznie i wspierająco w języku ${language}.
 Gdy przedstawiasz tabele danych, pogodę, finanse czy harmonogramy, ZAWSZE używaj czytelnych tabel Markdown (| Kolumna | ... |).
-Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu w czystej postaci (BEZ pogrubień **): [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].`
+Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu w czystej postaci (BEZ pogrubień **): [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SEND_PUSH ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].`
         : `Jesteś F.R.I.D.A.Y — inżynieryjnym silnikiem wykonawczym w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
@@ -626,7 +649,7 @@ Kalendarz:
 ${calendarSummary}
 Zasady: Posiadasz bezpośredni dostęp do internetu oraz bazy Firestore. Odpowiadaj konkretnie, merytorycznie i technicznie w języku ${language}.
 Gdy przedstawiasz tabele danych, pogodę, finanse czy harmonogramy, ZAWSZE używaj czytelnych tabel Markdown (| Kolumna | ... |).
-Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu w czystej postaci (BEZ pogrubień **): [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].`;
+Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu w czystej postaci (BEZ pogrubień **): [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SEND_PUSH ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].`;
 
       const response = await fetch(GROQ_ENDPOINT, {
         method: 'POST',

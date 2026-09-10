@@ -1,5 +1,26 @@
 ## Wersja Bieżąca
-**v2.14.1**
+**v2.15.0**
+
+## v 2.15.0 — 2026-09-10
+**Typ:** MINOR  
+**Zakres:** Dwukierunkowa Integracja Pushbullet ze Smartfonem Operatora: Autonomiczny Kasyfikator Wydatków 50/30/20 z Powiadomień Mobilnych (Portfel Google, BLIK, Banki), Hybrydowa Persystencja SQLite + Cloud Firestore, Nowy Znacznik Akcji AI [ACTION:SEND_PUSH] oraz Punkty Końcowe API /api/phone/push.
+
+### Zmiany
+- [+] Dodano: Dedykowany moduł regułowo-kognitywny `modules/services/pushbulletClassifier.js` realizujący filtrację powiadomień bankowych, odsiewanie kodów jednorazowych BLIK/2FA, deduplikację w oknie czasowym 60s oraz ekstrakcję kwoty, waluty, podmiotu i alokacji 50/30/20 (Needs vs Wants vs Savings) za pomocą LLM i reguł heurystycznych.
+- [+] Dodano: Automatyczne księgowanie wydatków w `modules/pushbullet.js` do bazy SQLite (`finances`) oraz chmury Cloud Firestore z natychmiastowym rozgłaszaniem zdarzeń SSE (`broadcastEvent('finance_updated')`).
+- [+] Dodano: Zwrotne powiadomienie Push do telefonu operatora po automatycznym zaksięgowaniu wydatku (`formatExpenseConfirmation`).
+- [+] Dodano: Punkty końcowe `POST /api/phone/push` i `GET /api/phone/status` w `modules/routes/phone.js`.
+- [+] Dodano: Nowy znacznik akcji `[ACTION:SEND_PUSH title="..." body="..."]` w promptach asystenta AI (`api/agent.js` oraz `modules/services/clientAiDispatcher.js`), umożliwiający asystentowi przesyłanie wiadomości i zadań bezpośrednio na telefon operatora.
+- [+] Dodano: Zestaw 15 testów jednostkowych w `tests/pushbullet_finance.test.js`. Łączny stan testów w projekcie: 54/54 PASS (100%).
+- [*] Zmodyfikowano: `modules/routes/auth.js` o bezpieczne wyjątki dla ścieżek `/phone/`.
+- [*] Zmodyfikowano: `scripts/sync_bez_firebase.js` zsynchronizowano z nowymi modułami Pushbullet.
+- [*] Zmodyfikowano: Podniesiono wersję w `package.json` do `2.15.0`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
+
 
 ## v 2.14.1 — 2026-09-09
 **Typ:** PATCH  

@@ -426,6 +426,8 @@ Gdy użytkownik prosi Cię o dodanie, modyfikację lub usunięcie danych w syste
 - Pamięć:
   [ACTION:REMEMBER fact="Fakt do zapamiętania" category="Wiedza|Preferencje|Osobiste"]
   [ACTION:FORGET fact="Fakt do usunięcia"]
+- Powiadomienia Telefonu (Pushbullet):
+  [ACTION:SEND_PUSH title="Tytuł powiadomienia" body="Treść wiadomości wysyłana na telefon"]
 - Widżety i Nawigacja:
   [ACTION:SHOW_WIDGET name="timetable|finances|workouts|calendar|weather|tasks|news|system"]
   [ACTION:NAVIGATE path="/timetable|/finances|/workouts|/calendar|/chat|/"]
@@ -485,6 +487,8 @@ Gdy użytkownik prosi Cię o dodanie, modyfikację lub usunięcie danych w syste
 - Pamięć:
   [ACTION:REMEMBER fact="Fakt do zapamiętania" category="Wiedza|Preferencje|Osobiste"]
   [ACTION:FORGET fact="Fakt do usunięcia"]
+- Powiadomienia Telefonu (Pushbullet):
+  [ACTION:SEND_PUSH title="Tytuł powiadomienia" body="Treść wiadomości wysyłana na telefon"]
 - Widżety i Nawigacja:
   [ACTION:SHOW_WIDGET name="timetable|finances|workouts|calendar|weather|tasks|news|system"]
   [ACTION:NAVIGATE path="/timetable|/finances|/workouts|/calendar|/chat|/"]
