@@ -478,6 +478,10 @@ export function parseAndExecuteAiActionsWithWidgets(text) {
     }
   }
 
+  // Usuń ewentualne halucynowane sekcje poradnikowe (np. "Co zrobić z tymi informacjami? Skopiuj tabelę...")
+  cleanedText = cleanedText.replace(/(?:---|___|\*\*\*|\n|^)\s*#{2,4}\s*Co zrobić z tymi informacjami\??[\s\S]*?(?=(?:\[ACTION:|$))/gi, '');
+  cleanedText = cleanedText.replace(/[-*]\s*Skopiuj powyższ[a-zęóąśłżźćń\s]+i wyślij ją do siebie[^\n]*/gi, '');
+
   // Oczyść znaczniki akcji z tekstu użytkownika (w tym otoczone przez **, * lub `)
   cleanedText = cleanedText.replace(/(?:\*\*|\*|`|\s)*\[(?:\*\*|\*|`|\s)*ACTION\s*:\s*[A-Za-z_]+(?:\*\*|\*|`|\s)*[^\]]*\](?:\*\*|\*|`|\s)*/gi, '').trim();
   return { cleanedText, extraWidgets };
@@ -634,7 +638,8 @@ Treningi:
 ${workoutsSummary}
 Kalendarz:
 ${calendarSummary}
-Zasady: Posiadasz bezpośredni dostęp do internetu oraz bazy Firestore. Odpowiadaj wyczerpująco, logicznie i wspierająco w języku ${language}.
+Zasady: Posiadasz bezpośredni dostęp do internetu, bazy danych oraz smartfona użytkownika przez Pushbullet API. Odpowiadaj wyczerpująco, logicznie i wspierająco w języku ${language}.
+BEZWZGLĘDNY ZAKAZ sugerowania użytkownikowi ręcznego kopiowania danych lub wysyłania sobie wiadomości/SMS („skopiuj powyższą tabelę i wyślij do siebie...”). Jeśli dane mają trafić na telefon lub użytkownik chce powiadomienia, wyemituj [ACTION:SEND_PUSH title="..." body="..."]. Nigdy nie twórz sekcji „Co zrobić z tymi informacjami?”. Lekcje są w bazie Timetable, nie proponuj dodawania ich do kalendarza.
 Gdy przedstawiasz tabele danych, pogodę, finanse czy harmonogramy, ZAWSZE używaj czytelnych tabel Markdown (| Kolumna | ... |).
 Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu w czystej postaci (BEZ pogrubień **): [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SEND_PUSH ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].`
         : `Jesteś F.R.I.D.A.Y — inżynieryjnym silnikiem wykonawczym w OmniDash. Rozmawiasz z ${userName}.
@@ -650,7 +655,8 @@ Treningi:
 ${workoutsSummary}
 Kalendarz:
 ${calendarSummary}
-Zasady: Posiadasz bezpośredni dostęp do internetu oraz bazy Firestore. Odpowiadaj konkretnie, merytorycznie i technicznie w języku ${language}.
+Zasady: Posiadasz bezpośredni dostęp do internetu, bazy danych oraz smartfona użytkownika przez Pushbullet API. Odpowiadaj konkretnie, merytorycznie i technicznie w języku ${language}.
+BEZWZGLĘDNY ZAKAZ sugerowania użytkownikowi ręcznego kopiowania danych lub wysyłania sobie wiadomości/SMS („skopiuj powyższą tabelę i wyślij do siebie...”). Jeśli dane mają trafić na telefon lub użytkownik chce powiadomienia, wyemituj [ACTION:SEND_PUSH title="..." body="..."]. Nigdy nie twórz sekcji „Co zrobić z tymi informacjami?”. Lekcje są w bazie Timetable, nie proponuj dodawania ich do kalendarza.
 Gdy przedstawiasz tabele danych, pogodę, finanse czy harmonogramy, ZAWSZE używaj czytelnych tabel Markdown (| Kolumna | ... |).
 Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu w czystej postaci (BEZ pogrubień **): [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SEND_PUSH ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].`;
 

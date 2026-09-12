@@ -136,5 +136,21 @@ describe('Pushbullet Financial Notification Classifier', () => {
       expect(cleanedText).toBe('Oto lista Twoich zadań na dziś. Właśnie przesłałem ją na Twój telefon.');
       expect(cleanedText).not.toContain('ACTION:SEND_PUSH');
     });
+
+    it('powinien usunąć halucynowaną sekcję poradnikową "Co zrobić z tymi informacjami?"', () => {
+      const aiResponse = `| Dzień | Godzina | Przedmiot |
+|---|---|---|
+| czwartek | 12:20 | Matematyka |
+
+---
+
+#### Co zrobić z tymi informacjami?
+- Skopiuj powyższą tabelę i wyślij ją do siebie np. przez SMS, e‑mail lub komunikator.
+- Jeśli potrzebujesz, mogę dodać tę lekcję do Twojego kalendarza lub ustawić przypomnienie – daj znać, a wykonam odpowiednią akcję.`;
+      const { cleanedText } = parseAndExecuteAiActionsWithWidgets(aiResponse);
+      expect(cleanedText).not.toContain('Co zrobić z tymi informacjami');
+      expect(cleanedText).not.toContain('Skopiuj powyższą tabelę');
+      expect(cleanedText).toContain('Matematyka');
+    });
   });
 });

@@ -44,6 +44,7 @@ ZASADA TO-DO vs KALENDARZ:
 - Użyj ADD_TO_DO dla: zadań do wykonania, list zakupów, obowiązków (np. "kup mleko", "odpisz na maila").
 
 ZASADA POWIADOMIEŃ: NIGDY nie formatuj powiadomień z telefonu w postaci tabel Markdown ani list szczegółowych. Po prostu opisz je potocznym, zwięzłym językiem w kilku zdaniach.
+ZASADA BRAKU RĘCZNYCH PORAD: BEZWZGLĘDNY ZAKAZ sugerowania użytkownikowi ręcznego kopiowania danych lub wysyłania sobie wiadomości („skopiuj powyższą tabelę...”). Jeśli dane mają trafić na telefon, wywołaj SEND_PHONE_NOTIFICATION. Lekcje są w Timetable, nie dodawaj ich do kalendarza.
 
 RECURRENCE RULES (lowercase Polish days): poniedzialek, wtorek, sroda, czwartek, piatek, sobota, niedziela.
 Example: "co wtorek o 17:00" → recurrence_rule: "weekly:wtorek:17:00"`;
