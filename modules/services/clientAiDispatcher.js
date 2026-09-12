@@ -204,11 +204,52 @@ function determineWidgets(userText, aiResponse = '') {
   return Array.from(new Set(widgets));
 }
 
-export function parseAndExecuteAiActionsWithWidgets(text) {
+export function isPushRequest(text) {
+  if (!text || typeof text !== 'string') return false;
+  const t = text.toLowerCase();
+  const pushKeywords = [
+    'wyślij na telefon', 'wyślij mi na telefon', 'wyślij to na telefon', 'prześlij na telefon',
+    'wyślij na tel', 'wyślij mi na tel', 'wyślij to na tel', 'prześlij na tel',
+    'wyślij na komórk', 'wyślij mi na komórk', 'prześlij na komórk', 'wyślij na smartfon',
+    'na telefon', 'na tel', 'na komórk', 'na smartfon',
+    'pushbullet', 'powiadomienie na telefon', 'powiadomienie push', 'wyślij powiadomienie',
+    'prześlij powiadomienie'
+  ];
+  return pushKeywords.some(kw => t.includes(kw));
+}
+
+export function extractPushDetails(userQuery, aiText) {
+  let title = 'OmniDash Powiadomienie';
+  const q = (userQuery || '').toLowerCase();
+  if (q.includes('lekcj') || q.includes('plan')) {
+    title = 'OmniDash: Plan Lekcji';
+  } else if (q.includes('pogod')) {
+    title = 'OmniDash: Prognoza Pogody';
+  } else if (q.includes('zadani') || q.includes('todo')) {
+    title = 'OmniDash: Zadania';
+  } else if (q.includes('finans') || q.includes('wydatek')) {
+    title = 'OmniDash: Finanse';
+  } else if (q.includes('trening')) {
+    title = 'OmniDash: Trening';
+  }
+
+  const cleanBody = (aiText || '')
+    .replace(/\[ACTION:[^\]]+\]/gi, '')
+    .replace(/[#*`_~]/g, '')
+    .replace(/\|[^\n]+\|/g, (row) => row.split('|').map(c => c.trim()).filter(Boolean).join(' | '))
+    .replace(/\n{2,}/g, '\n')
+    .trim();
+
+  const body = cleanBody.slice(0, 280).trim() || 'Powiadomienie z systemu OmniDash.';
+  return { title, body };
+}
+
+export function parseAndExecuteAiActionsWithWidgets(text, userQuery = '') {
   if (!text || typeof text !== 'string') return { cleanedText: text, extraWidgets: [] };
 
   let cleanedText = text;
   const extraWidgets = [];
+  let hadSendPush = false;
   // Odporny regex dopasowujący tagi akcji nawet jeśli model otoczy je pogrubieniem (**), grawisem (`) lub spacjami
   const actionRegex = /(?:\*\*|\*|`|\s)*\[(?:\*\*|\*|`|\s)*ACTION\s*:\s*(?:\*\*|\*|`|\s)*([A-Za-z_]+)(?:\*\*|\*|`|\s)*([^\]]*)\](?:\*\*|\*|`|\s)*/gi;
   let match;
@@ -443,6 +484,7 @@ export function parseAndExecuteAiActionsWithWidgets(text) {
       } else if (actionType === 'SHOW_WIDGET') {
         if (attrs.name) extraWidgets.push(attrs.name.toLowerCase());
       } else if (actionType === 'SEND_PUSH') {
+        hadSendPush = true;
         const title = attrs.title || 'OmniDash System';
         const body = attrs.body || '';
         if (body) {
@@ -482,13 +524,41 @@ export function parseAndExecuteAiActionsWithWidgets(text) {
   cleanedText = cleanedText.replace(/(?:---|___|\*\*\*|\n|^)\s*#{2,4}\s*Co zrobić z tymi informacjami\??[\s\S]*?(?=(?:\[ACTION:|$))/gi, '');
   cleanedText = cleanedText.replace(/[-*]\s*Skopiuj powyższ[a-zęóąśłżźćń\s]+i wyślij ją do siebie[^\n]*/gi, '');
 
+  // Jeśli użytkownik prosił o wysyłkę na telefon, a w odpowiedzi nie było znacznika SEND_PUSH - wyślij automatycznie
+  if (!hadSendPush && isPushRequest(userQuery)) {
+    const { title, body } = extractPushDetails(userQuery, cleanedText);
+    if (body) {
+      try {
+        const token = localStorage.getItem('token') || '';
+        const pushEndpoint = isCloudMode
+          ? 'https://ai-system-dashboard.vercel.app/api/phone'
+          : '/api/phone/push';
+        fetch(pushEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ title, body })
+        }).catch(() => {});
+
+        window.dispatchEvent(new CustomEvent('toastTriggered', {
+          detail: {
+            type: 'info',
+            message: `📱 Wysłano powiadomienie na Twój telefon: ${title}`
+          }
+        }));
+      } catch {}
+    }
+  }
+
   // Oczyść znaczniki akcji z tekstu użytkownika (w tym otoczone przez **, * lub `)
   cleanedText = cleanedText.replace(/(?:\*\*|\*|`|\s)*\[(?:\*\*|\*|`|\s)*ACTION\s*:\s*[A-Za-z_]+(?:\*\*|\*|`|\s)*[^\]]*\](?:\*\*|\*|`|\s)*/gi, '').trim();
   return { cleanedText, extraWidgets };
 }
 
-export function parseAndExecuteAiActions(text) {
-  const res = parseAndExecuteAiActionsWithWidgets(text);
+export function parseAndExecuteAiActions(text, userQuery = '') {
+  const res = parseAndExecuteAiActionsWithWidgets(text, userQuery);
   return res.cleanedText;
 }
 
@@ -529,7 +599,7 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
 
     if (vercelRes.data && vercelRes.data.agent_response) {
       const rawContent = vercelRes.data.agent_response;
-      const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(rawContent);
+      const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(rawContent, text);
       const backendWidgets = vercelRes.data.widgets || [];
       const mergedWidgets = Array.from(new Set([...backendWidgets, ...extraWidgets, ...determineWidgets(text, rawContent)]));
 
@@ -556,7 +626,7 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
 
       if (data && (data.agent_response || data.payload)) {
         const rawContent = data.agent_response || (data.payload?.agent_response || data.payload?.title || JSON.stringify(data.payload));
-        const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(rawContent);
+        const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(rawContent, text);
         const backendWidgets = data.widgets || (data.widget ? [data.widget] : []);
         const mergedWidgets = Array.from(new Set([...backendWidgets, ...extraWidgets, ...determineWidgets(text, rawContent)]));
 
@@ -628,23 +698,21 @@ Ostatnie transakcje: ` + actualTxs.slice(0, 10).map(f => `${f.type === 'income' 
         ? `Jesteś J.A.R.V.I.S — inteligentnym mentorem i analitykiem w systemie OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
-Zadania w To-Do:
-${tasksSummary}
-Plan Lekcji:
-${timetableSummary}
-Finanse i Budżet 50/30/20:
-${financesSummary}
-Treningi:
-${workoutsSummary}
-Kalendarz:
-${calendarSummary}
+
+🚨 KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
+Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomieniu lub Pushbullet (np. „wyślij na telefon”, „wyślij mi to”, „przypomnij na telefonie”, „wyślij powiadomienie”, „chcę to na komórce”, „pushbullet”):
+1. PRZEANALIZUJ PYTANIE UŻYTKOWNIKA ORAZ POTRZEBNE DANE Z BAZY (np. następna lekcja, plan lekcji, pogoda, zadania, finanse).
+2. W treści odpowiedzi zwięźle potwierdź, że wysyłasz powiadomienie na telefon.
+3. BEZWZGLĘDNIE, ZAWSZE I BEZ WYJĄTKU na samym końcu odpowiedzi wyemituj znacznik:
+   [ACTION:SEND_PUSH title="Zwięzły Tytuł" body="Treść wiadomości wysyłana na telefon"]
+4. BEZWZGLĘDNY ZAKAZ mówienia, że nie masz połączenia z Pushbullet, że nie masz dostępu do telefonu lub że użytkownik musi to sam konfigurować.
+5. BEZWZGLĘDNY ZAKAZ sugerowania ręcznego kopiowania tekstu („skopiuj powyższą tabelę”)! PO PROSTU ANALIZUJ I WYSYŁAJ!
+
 Zasady: Posiadasz bezpośredni dostęp do internetu, bazy danych oraz smartfona użytkownika przez Pushbullet API. Odpowiadaj wyczerpująco, logicznie i wspierająco w języku ${language}.
 BEZWZGLĘDNY ZAKAZ sugerowania użytkownikowi ręcznego kopiowania danych lub wysyłania sobie wiadomości/SMS („skopiuj powyższą tabelę i wyślij do siebie...”). Jeśli dane mają trafić na telefon lub użytkownik chce powiadomienia, wyemituj [ACTION:SEND_PUSH title="..." body="..."]. Nigdy nie twórz sekcji „Co zrobić z tymi informacjami?”. Lekcje są w bazie Timetable, nie proponuj dodawania ich do kalendarza.
 Gdy przedstawiasz tabele danych, pogodę, finanse czy harmonogramy, ZAWSZE używaj czytelnych tabel Markdown (| Kolumna | ... |).
-Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu w czystej postaci (BEZ pogrubień **): [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SEND_PUSH ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].`
-        : `Jesteś F.R.I.D.A.Y — inżynieryjnym silnikiem wykonawczym w OmniDash. Rozmawiasz z ${userName}.
-Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
-PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
+Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu w czystej postaci (BEZ pogrubień **): [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SEND_PUSH ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].
+
 Zadania w To-Do:
 ${tasksSummary}
 Plan Lekcji:
@@ -654,11 +722,35 @@ ${financesSummary}
 Treningi:
 ${workoutsSummary}
 Kalendarz:
-${calendarSummary}
+${calendarSummary}`
+        : `Jesteś F.R.I.D.A.Y — inżynieryjnym silnikiem wykonawczym w OmniDash. Rozmawiasz z ${userName}.
+Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
+PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
+
+🚨 KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
+Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomieniu lub Pushbullet (np. „wyślij na telefon”, „wyślij mi to”, „przypomnij na telefonie”, „wyślij powiadomienie”, „chcę to na komórce”, „pushbullet”):
+1. PRZEANALIZUJ PYTANIE UŻYTKOWNIKA ORAZ POTRZEBNE DANE Z BAZY (np. następna lekcja, plan lekcji, pogoda, zadania, finanse).
+2. W treści odpowiedzi zwięźle potwierdź, że wysyłasz powiadomienie na telefon.
+3. BEZWZGLĘDNIE, ZAWSZE I BEZ WYJĄTKU na samym końcu odpowiedzi wyemituj znacznik:
+   [ACTION:SEND_PUSH title="Zwięzły Tytuł" body="Treść wiadomości wysyłana na telefon"]
+4. BEZWZGLĘDNY ZAKAZ mówienia, że nie masz połączenia z Pushbullet, że nie masz dostępu do telefonu lub że użytkownik musi to sam konfigurować.
+5. BEZWZGLĘDNY ZAKAZ sugerowania ręcznego kopiowania tekstu („skopiuj powyższą tabelę”)! PO PROSTU ANALIZUJ I WYSYŁAJ!
+
 Zasady: Posiadasz bezpośredni dostęp do internetu, bazy danych oraz smartfona użytkownika przez Pushbullet API. Odpowiadaj konkretnie, merytorycznie i technicznie w języku ${language}.
 BEZWZGLĘDNY ZAKAZ sugerowania użytkownikowi ręcznego kopiowania danych lub wysyłania sobie wiadomości/SMS („skopiuj powyższą tabelę i wyślij do siebie...”). Jeśli dane mają trafić na telefon lub użytkownik chce powiadomienia, wyemituj [ACTION:SEND_PUSH title="..." body="..."]. Nigdy nie twórz sekcji „Co zrobić z tymi informacjami?”. Lekcje są w bazie Timetable, nie proponuj dodawania ich do kalendarza.
 Gdy przedstawiasz tabele danych, pogodę, finanse czy harmonogramy, ZAWSZE używaj czytelnych tabel Markdown (| Kolumna | ... |).
-Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu w czystej postaci (BEZ pogrubień **): [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SEND_PUSH ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].`;
+Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu w czystej postaci (BEZ pogrubień **): [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SEND_PUSH ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].
+
+Zadania w To-Do:
+${tasksSummary}
+Plan Lekcji:
+${timetableSummary}
+Finanse i Budżet 50/30/20:
+${financesSummary}
+Treningi:
+${workoutsSummary}
+Kalendarz:
+${calendarSummary}`;
 
       const response = await fetch(GROQ_ENDPOINT, {
         method: 'POST',
@@ -680,7 +772,7 @@ Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu 
       if (response.ok) {
         const resData = await response.json();
         const rawContent = resData.choices?.[0]?.message?.content || 'Brak odpowiedzi od modelu.';
-        const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(rawContent);
+        const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(rawContent, text);
         const thoughts = mode === 'mentor' ? `Analiza kognitywna (GPT-OSS 120B): przetworzono zadania i kontekst operacyjny.` : null;
         const widgets = Array.from(new Set([...extraWidgets, ...determineWidgets(text, rawContent)]));
 
@@ -703,6 +795,38 @@ Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu 
 function handleAutonomousFallback(text, mode, userName, context = getClientContextSummary()) {
   const lower = text.toLowerCase().trim();
   const { pendingTasks, completedTasks } = context;
+
+  // Obsługa żądania wysyłki na telefon przez Pushbullet
+  if (isPushRequest(text)) {
+    const { title, body } = extractPushDetails(text, text);
+    try {
+      const token = localStorage.getItem('token') || '';
+      const pushEndpoint = isCloudMode
+        ? 'https://ai-system-dashboard.vercel.app/api/phone'
+        : '/api/phone/push';
+      fetch(pushEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ title, body })
+      }).catch(() => {});
+
+      window.dispatchEvent(new CustomEvent('toastTriggered', {
+        detail: {
+          type: 'info',
+          message: `📱 Wysłano powiadomienie na Twój telefon: ${title}`
+        }
+      }));
+    } catch {}
+
+    return {
+      content: `📱 **Przeanalizowano polecenie i wysłano powiadomienie Push na Twój telefon.**\n\n- **Tytuł:** ${title}\n- **Treść:** ${body}`,
+      mentor_thoughts: `Przekazano bezpośrednie powiadomienie na telefon operatora: "${title}".`,
+      widgets: []
+    };
+  }
 
   // Obsługa dodawania zadania w języku naturalnym
   if (

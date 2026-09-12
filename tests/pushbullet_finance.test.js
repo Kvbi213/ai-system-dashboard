@@ -6,7 +6,11 @@ import {
   extractExpenseHeuristic,
   formatExpenseConfirmation
 } from '../modules/services/pushbulletClassifier.js';
-import { parseAndExecuteAiActionsWithWidgets } from '../modules/services/clientAiDispatcher.js';
+import {
+  parseAndExecuteAiActionsWithWidgets,
+  isPushRequest,
+  extractPushDetails
+} from '../modules/services/clientAiDispatcher.js';
 
 describe('Pushbullet Financial Notification Classifier', () => {
   describe('isFinancialNotification', () => {
@@ -153,4 +157,50 @@ describe('Pushbullet Financial Notification Classifier', () => {
       expect(cleanedText).toContain('Matematyka');
     });
   });
+
+  describe('Autonomous Push Intent Detection (isPushRequest & extractPushDetails)', () => {
+    it('powinien poprawnie wykrywać intencję wysłania powiadomienia na telefon', () => {
+      expect(isPushRequest('wyślij mi na telefon następną lekcję')).toBe(true);
+      expect(isPushRequest('jaka jest nastepna lekcja i wyslij to na tel')).toBe(true);
+      expect(isPushRequest('prześlij na telefon zadania na dziś')).toBe(true);
+      expect(isPushRequest('sprawdź pogodę i wyślij powiadomienie push')).toBe(true);
+      expect(isPushRequest('wyślij na smartfon')).toBe(true);
+      expect(isPushRequest('czy możesz to przesłać na komórkę?')).toBe(true);
+    });
+
+    it('powinien zwracać false dla zapytań bez intencji push', () => {
+      expect(isPushRequest('jaka jest następna lekcja?')).toBe(false);
+      expect(isPushRequest('pokaż mi plan zajęć na czwartek')).toBe(false);
+      expect(isPushRequest('ile wydałem w tym miesiącu na jedzenie?')).toBe(false);
+      expect(isPushRequest('')).toBe(false);
+      expect(isPushRequest(null)).toBe(false);
+      expect(isPushRequest(undefined)).toBe(false);
+    });
+
+    it('powinien wyodrębnić adekwatny tytuł i oczyszczoną treść w extractPushDetails', () => {
+      const query = 'wyślij mi na telefon plan lekcji';
+      const aiResponse = `**Plan Lekcji na Dziś:**
+| Godzina | Przedmiot | Sala |
+| 08:00 | Fizyka | 101 |
+| 09:00 | Matematyka | 202 |
+
+[ACTION:SEND_PUSH title="Plan" body="test"]`;
+
+      const details = extractPushDetails(query, aiResponse);
+      expect(details.title).toBe('OmniDash: Plan Lekcji');
+      expect(details.body).not.toContain('ACTION:SEND_PUSH');
+      expect(details.body).not.toContain('**');
+      expect(details.body).toContain('Fizyka');
+      expect(details.body).toContain('Matematyka');
+      expect(details.body.length).toBeLessThanOrEqual(280);
+    });
+
+    it('powinien dopasować tytuł dla zapytań o pogodę, zadania i finanse', () => {
+      expect(extractPushDetails('jaka jest pogoda i wyślij na tel', '18C, deszcz').title).toBe('OmniDash: Prognoza Pogody');
+      expect(extractPushDetails('wyślij na telefon moje zadania todo', '1. Kup mleko').title).toBe('OmniDash: Zadania');
+      expect(extractPushDetails('wyślij na tel raport finanse i wydatki', 'Suma: 150 PLN').title).toBe('OmniDash: Finanse');
+      expect(extractPushDetails('wyślij mi to na telefon', 'Informacja ogólna').title).toBe('OmniDash Powiadomienie');
+    });
+  });
 });
+
