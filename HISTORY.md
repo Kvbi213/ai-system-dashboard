@@ -1,5 +1,25 @@
 ## Wersja Bieżąca
-**v2.17.0**
+**v2.18.0**
+
+## v 2.18.0 — 2026-09-14
+**Typ:** MINOR  
+**Zakres:** Zaawansowana Czułość Wykrywania Wake Word "Hej Omni" (Fonetyczna Matryca Cichej Mowy, MaxAlternatives = 5, Wyłączenie Agresywnej Bramki Szumów) oraz Dedykowany Silnik Microsoft Edge Cognitive Neural TTS (Studio 24kHz MP3, Marek / Zofia, Zero API Key).
+
+### Zmiany
+- [+] Dodano: Domyślny silnik studyjnej syntezy mowy Microsoft Edge Neural (`msedge-tts`) w `modules/services/ttsService.js`, `modules/routes/ai.js` oraz `api/voice/tts.js` z ultra-naturalnymi głosami `pl-PL-MarekNeural` i `pl-PL-ZofiaNeural` bez wymogu kluczy API.
+- [+] Dodano: Pełną fonetyczną matrycę wariantów cichej mowy w języku polskim w `modules/services/wakeWordService.js` („oni”, „o mnie”, „on mi”, „omnie”, „omnia”, „omi”, „homi”) eliminującą konieczność podnoszenia głosu lub krzyczenia.
+- [+] Dodano: Weryfikację wielu hipotez transkrypcyjnych (`recognition.maxAlternatives = 5`) w `wakeWordService.js` oraz `Terminal.jsx`.
+- [+] Dodano: Wyłączenie programowej bramki szumów (`noiseSuppression: false`) w mikrofonie, zapobiegając ucinaniu cichej i spokojnej mowy.
+- [+] Dodano: Obsługę niedomkniętych transkrypcji częściowych (`interimResults`) przy zdarzeniu `onend` w pętli rozmowy na żywo w `Terminal.jsx`.
+- [+] Dodano: Dedykowany panel wyboru głosów Microsoft Edge Neural w `modules/pages/SettingsPage.jsx`.
+- [+] Dodano: Zestaw testów weryfikujących warianty cichej mowy w `tests/wakeword.test.js` (72/72 PASS).
+- [*] Zmodyfikowano: `package.json` – dodano `msedge-tts` oraz podniesiono wersję do `2.18.0`.
+- [*] Zmodyfikowano: Zaktualizowano `scripts/sync_bez_firebase.js`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.17.0 — 2026-09-14
 **Typ:** MINOR  

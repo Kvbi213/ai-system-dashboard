@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.17.0 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.18.0 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE)  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Global Voice Assistant "Hej Omni" & Native In-Chat Live Voice Bar, Multi-Engine Neural TTS ElevenLabs / OpenAI / Web Neural, Silent Warm Audio Stream & Acoustic Feedback Prevention, Cloud-First Firestore Sync, Bidirectional Pushbullet & AI Expense Tracking, Real-Time SSE Telemetry, Theme Toggle Dark/Light, React Testing Library + JSDOM Suite, Toast Notification Hub, Network Online/Offline Guard, Automated Testing Suite Vitest 71/71 PASS, CSV & PDF Export Engine, Dual CI/CD Pipelines main.yml & ci.yml, Deterministic Chat Purge, Dynamic 0% Budgeting & Dual-Mode Donut Allocation, Calendar Management, Warsaw Timezone AI Engine, Multi-Cloud OSINT Serverless, Vercel Serverless & Firebase Hosting)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Global Voice Assistant "Hej Omni" & Native In-Chat Live Voice Bar, Microsoft Edge Cognitive Neural TTS Marek / Zofia Studio & Multi-Engine Neural, Whisper-Sensitive Wake Word Detection, Cloud-First Firestore Sync, Bidirectional Pushbullet & AI Expense Tracking, Real-Time SSE Telemetry, Theme Toggle Dark/Light, React Testing Library + JSDOM Suite, Toast Notification Hub, Network Online/Offline Guard, Automated Testing Suite Vitest 72/72 PASS, CSV & PDF Export Engine, Dual CI/CD Pipelines main.yml & ci.yml, Deterministic Chat Purge, Dynamic 0% Budgeting & Dual-Mode Donut Allocation, Calendar Management, Warsaw Timezone AI Engine, Multi-Cloud OSINT Serverless, Vercel Serverless & Firebase Hosting)
 
 ---
 
@@ -69,8 +69,8 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   ├── osint.js               ← Narzędzia rozpoznania OSINT i klasyfikator celów.
 │   │
 │   ├── /services/             ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
-│   │   ├── wakeWordService.js ← Serwis detekcji słowa wybudzającego "Hej Omni" i zarządzania Web Speech API.
-│   │   ├── ttsService.js      ← Wielosilnikowa synteza mowy (ElevenLabs, OpenAI TTS, Web Neural Fallback).
+│   │   ├── wakeWordService.js ← Serwis detekcji słowa wybudzającego "Hej Omni" (akustyczna matryca cichej mowy, maxAlternatives=5).
+│   │   ├── ttsService.js      ← Wielosilnikowa synteza mowy (Microsoft Edge Neural Marek/Zofia, ElevenLabs, OpenAI TTS, Web Speech).
 │   │   ├── pushbulletClassifier.js ← Kognitywny klasyfikator wydatków 50/30/20 i deduplikator powiadomień.
 │   │   ├── cloudSync.js       ← Dwukierunkowa subskrypcja 8 kolekcji Firestore z auto-inicjalizacją i cloud purge czatu.
 │   │   ├── clientAiDispatcher.js ← Autonomiczny silnik zapytań LLM (openai/gpt-oss-120b) przez Vercel Gateway.

@@ -40,8 +40,20 @@ describe('Wake Word Service ("Hej Omni")', () => {
       expect(isWakeWord('hey omi')).toBe(true);
     });
 
+    it('powinien wykrywać fonetyczne warianty cichej mowy w j. polskim (np. "hej oni", "hej o mnie")', () => {
+      expect(isWakeWord('hej oni')).toBe(true);
+      expect(isWakeWord('ej oni')).toBe(true);
+      expect(isWakeWord('hej o mnie')).toBe(true);
+      expect(isWakeWord('ej o mnie')).toBe(true);
+      expect(isWakeWord('hej on mi')).toBe(true);
+      expect(isWakeWord('omni')).toBe(true);
+      expect(isWakeWord('omnie')).toBe(true);
+    });
+
     it('powinien wykrywać wywołanie "omni" z pytaniem w jednym zdaniu', () => {
       expect(isWakeWord('hej omni jaka jest dzisiaj pogoda?')).toBe(true);
+      expect(isWakeWord('hej o mnie jaka jest pogoda?')).toBe(true);
+      expect(isWakeWord('hej oni ile mam zadan')).toBe(true);
       expect(isWakeWord('hej omni, sprawdź plan lekcji')).toBe(true);
       expect(isWakeWord('omni, pokaż finanse')).toBe(true);
     });

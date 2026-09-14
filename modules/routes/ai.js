@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { processUserIntent, MODEL_FALLBACK_CHAIN, transcribeAudio } from '../agent.js';
 import { logError } from '../scheduler.js';
 import { apiLimiter } from './middleware.js';
+import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,7 +49,7 @@ router.post('/voice/transcribe', apiLimiter, async (req, res) => {
 });
 
 router.post('/voice/tts', async (req, res) => {
-  const { engine, text, voiceId, apiKey } = req.body;
+  const { engine = 'edge', text, voiceId, apiKey } = req.body;
   if (!text || typeof text !== 'string') {
     return res.status(400).json({ error: 'Brak tekstu do syntezy' });
   }
@@ -57,6 +58,31 @@ router.post('/voice/tts', async (req, res) => {
   const safeText = text.substring(0, 4000);
 
   try {
+    // 1. SILNIK MICROSOFT EDGE NEURAL (DARMOWY / STUDIO QUALITY)
+    if (engine === 'edge' || !engine) {
+      const targetVoice = voiceId || 'pl-PL-MarekNeural';
+      const tts = new MsEdgeTTS();
+      await tts.setMetadata(targetVoice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+      const { audioStream } = tts.toStream(safeText);
+
+      const chunks = [];
+      audioStream.on('data', chunk => chunks.push(chunk));
+      audioStream.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.setHeader('Content-Length', buffer.length);
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        res.send(buffer);
+      });
+      audioStream.on('error', (err) => {
+        logError('POST /api/voice/tts (EdgeTTS)', err);
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'Błąd generowania głosu Edge TTS' });
+        }
+      });
+      return;
+    }
+
     if (engine === 'elevenlabs') {
       const key = apiKey || process.env.ELEVENLABS_API_KEY;
       if (!key) {

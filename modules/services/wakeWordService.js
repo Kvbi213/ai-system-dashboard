@@ -4,11 +4,17 @@
  * detekcję słowa wybudzającego oraz bezkolizyjne zarządzanie Web Speech API.
  */
 
-// Wzorce słowa wybudzającego (wielkość liter i polskie znaki ignorowane)
+const GREETINGS = '(?:hej|hey|ej|halo|ok|okej|siema|cześć|czesc|witaj|yo|joł)';
+const TARGETS = '(?:omni|omnia|omnik|omnie|omnis|oni|o\\s+mnie|on\\s+mi|omi|ommi|olmi|obni|ovni|homi|tomi|tommy|pomnik)';
+
+// Wzorce słowa wybudzającego (uwzględniające specyfikę fonetyczną Google Web Speech API w j. polskim)
 const WAKE_WORD_PATTERNS = [
-  /(?:^|\s)(?:hej|hey|halo|ok|okej|siema|cześć|witaj)\s+omni(?:dash|a)?(?:\s|$|[!?,.])/i,
-  /(?:^|\s)(?:hej|hey)\s+omi(?:\s|$|[!?,.])/i,
-  /(?:^|\s)omni(?:dash)?(?:\s|$|[!?,.])/i
+  // Powitanie + cel fonetyczny (np. "hej omni", "hej oni", "hej o mnie", "ej o mnie", "cześć omni")
+  new RegExp(`(?:^|\\s)${GREETINGS}\\s+${TARGETS}(?:dash|a)?(?:\\s|$|[!?,.])`, 'i'),
+  // Samodzielne słowo o wysokiej pewności (np. "omni", "omnie", "omnia", "omnik", "omnidash")
+  /(?:^|\s)omni(?:dash|a|k|e|s)?(?:\s|$|[!?,.])/i,
+  // Złożenia dwuwyrazowe fonetyczne (np. "ej omni", "hej omi")
+  /(?:^|\s)(?:hej|hey|ej)\s+(?:omi|ommi|homi|tomi|pomnik)(?:\s|$|[!?,.])/i
 ];
 
 /**
@@ -41,12 +47,12 @@ export function isWakeWord(transcript) {
 export function extractWakeWordPayload(transcript) {
   if (!transcript || typeof transcript !== 'string') return '';
   const clean = transcript.trim();
+  if (!isWakeWord(clean)) return '';
 
-  // Usuwanie prefiksu wybudzającego wraz ze znakami interpunkcyjnymi
-  const match = clean.match(/^(?:hej|hey|halo|ok|okej|siema|cześć|witaj)?\s*omni(?:dash|a)?\s*[!?,.:;\-_]*\s*(.*)$/i);
+  const pattern = new RegExp(`^(?:${GREETINGS})?\\s*(?:${TARGETS})(?:dash|a)?\\s*[!?,.:;\\-_]*\\s*(.*)$`, 'i');
+  const match = clean.match(pattern);
   if (match && match[1]) {
-    const payload = match[1].replace(/^[!?,.:;\-_]+\s*/, '').trim();
-    return payload;
+    return match[1].replace(/^[!?,.:;\-_]+\s*/, '').trim();
   }
   return '';
 }
@@ -136,8 +142,9 @@ class WakeWordService {
       this.micStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
+          noiseSuppression: false, // Wyłączenie agresywnej bramki szumów – pozwala wychwycić cichą mowę bez krzyku
+          autoGainControl: true,
+          channelCount: 1
         }
       });
     } catch {
@@ -169,6 +176,7 @@ class WakeWordService {
       this.recognition.lang = langMap[systemLang] || 'pl-PL';
       this.recognition.continuous = true;
       this.recognition.interimResults = true;
+      this.recognition.maxAlternatives = 5;
 
       this.recognition.onstart = () => {
         this.isStarting = false;
@@ -183,12 +191,14 @@ class WakeWordService {
 
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const result = event.results[i];
-          const transcript = result[0]?.transcript || '';
-
-          if (isWakeWord(transcript)) {
-            const payload = extractWakeWordPayload(transcript);
-            this.handleWakeWordDetected(transcript, payload);
-            break;
+          // Sprawdzanie wszystkich alternatyw transkrypcji zwróconych przez silnik mowy
+          for (let a = 0; a < result.length; a++) {
+            const transcript = result[a]?.transcript || '';
+            if (isWakeWord(transcript)) {
+              const payload = extractWakeWordPayload(transcript);
+              this.handleWakeWordDetected(transcript, payload);
+              return;
+            }
           }
         }
       };

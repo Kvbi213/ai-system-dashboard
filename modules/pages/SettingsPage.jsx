@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
 import { initializeAllFirestoreCollections, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
 import { wakeWordService } from '../services/wakeWordService';
-import { ttsService, ELEVENLABS_DEFAULT_VOICES, OPENAI_DEFAULT_VOICES } from '../services/ttsService';
+import { ttsService, EDGE_DEFAULT_VOICES, ELEVENLABS_DEFAULT_VOICES, OPENAI_DEFAULT_VOICES } from '../services/ttsService';
 
 const Toggle = ({ value, onChange }) => (
   <button
@@ -177,7 +177,11 @@ const SettingsPage = () => {
   const [clockSeconds, setClockSeconds] = useState(false);
 
   // Zaawansowany TTS
-  const [ttsEngine, setTtsEngine] = useState(() => localStorage.getItem('system_tts_engine') || 'web');
+  const [ttsEngine, setTtsEngine] = useState(() => {
+    const stored = localStorage.getItem('system_tts_engine');
+    return (!stored || stored === 'web') ? 'edge' : stored;
+  });
+  const [edgeVoiceId, setEdgeVoiceId] = useState(() => localStorage.getItem('system_edge_voice_id') || EDGE_DEFAULT_VOICES[0].id);
   const [elevenLabsKey, setElevenLabsKey] = useState(() => localStorage.getItem('system_elevenlabs_api_key') || '');
   const [openAiTtsKey, setOpenAiTtsKey] = useState(() => localStorage.getItem('system_openai_tts_api_key') || '');
   const [elevenVoiceId, setElevenVoiceId] = useState(() => localStorage.getItem('system_elevenlabs_voice_id') || ELEVENLABS_DEFAULT_VOICES[0].id);
@@ -274,6 +278,11 @@ const SettingsPage = () => {
     setTtsEngine(val);
     localStorage.setItem('system_tts_engine', val);
     ttsService.setEngine(val);
+  };
+
+  const updateEdgeVoiceId = (val) => {
+    setEdgeVoiceId(val);
+    localStorage.setItem('system_edge_voice_id', val);
   };
 
   const updateElevenLabsKey = (val) => {
@@ -1053,7 +1062,23 @@ const SettingsPage = () => {
                   </div>
                   <p className="text-xs text-textMuted mb-3">Wybierz dostawcę realistycznej syntezy mowy dla odpowiedzi asystenta.</p>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateTtsEngine('edge')}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        ttsEngine === 'edge'
+                          ? 'border-accentPrimary bg-accentPrimary/15 shadow-md shadow-accentPrimary/10'
+                          : 'border-border bg-surface/60 hover:bg-white/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs font-mono text-textPrimary">Edge Neural</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-accentPrimary/20 text-accentPrimary font-mono font-bold">POLECANY</span>
+                      </div>
+                      <p className="text-[11px] text-textMuted mt-1">Realistyczne głosy Marek & Zofia bez żadnego klucza API.</p>
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => updateTtsEngine('elevenlabs')}
@@ -1067,7 +1092,7 @@ const SettingsPage = () => {
                         <span className="font-bold text-xs font-mono text-textPrimary">ElevenLabs</span>
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono font-bold">HI-FI</span>
                       </div>
-                      <p className="text-[11px] text-textMuted mt-1">Najbardziej naturalne, ludzkie głosy AI (Multilingual v2).</p>
+                      <p className="text-[11px] text-textMuted mt-1">Własny klucz API (Adam, Antoni, Rachel, Nicole).</p>
                     </button>
 
                     <button
@@ -1083,7 +1108,7 @@ const SettingsPage = () => {
                         <span className="font-bold text-xs font-mono text-textPrimary">OpenAI TTS</span>
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 font-mono font-bold">STUDIO</span>
                       </div>
-                      <p className="text-[11px] text-textMuted mt-1">Czyste, studyjne głosy tts-1 (Onyx, Alloy, Nova, Echo).</p>
+                      <p className="text-[11px] text-textMuted mt-1">Własny klucz API (Onyx, Alloy, Nova, Echo).</p>
                     </button>
 
                     <button
@@ -1096,13 +1121,46 @@ const SettingsPage = () => {
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs font-mono text-textPrimary">Web Neural</span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 font-mono font-bold">DARMOWY</span>
+                        <span className="font-bold text-xs font-mono text-textPrimary">Web Speech</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 font-mono font-bold">OFFLINE</span>
                       </div>
-                      <p className="text-[11px] text-textMuted mt-1">Przeglądarkowe głosy Natural Microsoft / Google bez klucza API.</p>
+                      <p className="text-[11px] text-textMuted mt-1">Lokalny syntezator wbudowany w przeglądarkę.</p>
                     </button>
                   </div>
                 </div>
+
+                {/* EDGE NEURAL CONFIG */}
+                {ttsEngine === 'edge' && (
+                  <div className="p-4 rounded-xl border border-accentPrimary/40 bg-accentPrimary/5 space-y-3 animate-fade-in">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-accentPrimary" />
+                        <span className="text-xs font-bold font-mono text-textPrimary">Microsoft Edge Cognitive Neural API</span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30 font-bold">
+                        BRAK KLUCZA API (DARMOWY)
+                      </span>
+                    </div>
+                    <p className="text-xs text-textMuted">
+                      Hiper-realistyczna, płynna synteza mowy w jakości studyjnej (24kHz MP3). Głosy brzmią w 100% naturalnie bez wymogu kluczy API.
+                    </p>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-textPrimary font-sans mb-1.5">
+                        Wybór Głosu (Język Polski & Angielski)
+                      </label>
+                      <select
+                        value={edgeVoiceId}
+                        onChange={(e) => updateEdgeVoiceId(e.target.value)}
+                        className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-xs font-mono text-textPrimary focus:outline-none focus:border-accentPrimary"
+                      >
+                        {EDGE_DEFAULT_VOICES.map(v => (
+                          <option key={v.id} value={v.id}>{v.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
 
                 {/* ELEVENLABS CONFIG */}
                 {ttsEngine === 'elevenlabs' && (

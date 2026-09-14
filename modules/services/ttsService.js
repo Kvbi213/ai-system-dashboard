@@ -6,6 +6,14 @@
 
 import { cleanTextForSpeech } from './wakeWordService.js';
 
+export const EDGE_DEFAULT_VOICES = [
+  { id: 'pl-PL-MarekNeural', name: 'Marek (Męski - Studio Neural / Naturalny)' },
+  { id: 'pl-PL-ZofiaNeural', name: 'Zofia (Damski - Studio Neural / Ciepły)' },
+  { id: 'pl-PL-AgnieszkaNeural', name: 'Agnieszka (Damski - Naturalny)' },
+  { id: 'en-US-ChristopherNeural', name: 'Christopher (Męski - Studio US English)' },
+  { id: 'en-US-JennyNeural', name: 'Jenny (Damski - Studio US English)' }
+];
+
 export const ELEVENLABS_DEFAULT_VOICES = [
   { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam (Męski - Głęboki/Narracyjny)' },
   { id: 'ErXwobaYiN019PkySvjV', name: 'Antoni (Męski - Spokojny/Ciepły)' },
@@ -38,8 +46,10 @@ class TTSService {
   }
 
   getEngine() {
-    if (typeof localStorage === 'undefined') return 'web';
-    return localStorage.getItem('system_tts_engine') || 'web'; // 'elevenlabs' | 'openai' | 'web'
+    if (typeof localStorage === 'undefined') return 'edge';
+    const stored = localStorage.getItem('system_tts_engine');
+    if (!stored || stored === 'web') return 'edge'; // Domyślnie ultra-realistyczny Microsoft Edge Neural
+    return stored; // 'edge' | 'elevenlabs' | 'openai' | 'web'
   }
 
   setEngine(engine) {
@@ -60,6 +70,9 @@ class TTSService {
   getVoiceId() {
     if (typeof localStorage === 'undefined') return '';
     const engine = this.getEngine();
+    if (engine === 'edge') {
+      return localStorage.getItem('system_edge_voice_id') || EDGE_DEFAULT_VOICES[0].id;
+    }
     if (engine === 'elevenlabs') {
       return localStorage.getItem('system_elevenlabs_voice_id') || ELEVENLABS_DEFAULT_VOICES[0].id;
     }
@@ -116,7 +129,18 @@ class TTSService {
 
     const engine = this.getEngine();
 
-    // 1. SILNIK ELEVENLABS
+    // 1. SILNIK MICROSOFT EDGE NEURAL (DOMYŚLNY / DARMOWY / STUDIO QUALITY)
+    if (engine === 'edge') {
+      const voiceId = this.getVoiceId();
+      try {
+        await this.speakWithEdgeTTS(clean, voiceId, { onStart, onEnd, onError });
+        return;
+      } catch (err) {
+        console.warn('[TTSService] Błąd Edge TTS, przejście do silnika rezerwowego Web Speech:', err.message);
+      }
+    }
+
+    // 2. SILNIK ELEVENLABS
     if (engine === 'elevenlabs') {
       const apiKey = this.getElevenLabsKey();
       const voiceId = this.getVoiceId();
@@ -129,7 +153,7 @@ class TTSService {
       }
     }
 
-    // 2. SILNIK OPENAI TTS
+    // 3. SILNIK OPENAI TTS
     if (engine === 'openai') {
       const apiKey = this.getOpenAiKey();
       const voiceId = this.getVoiceId();
@@ -142,7 +166,7 @@ class TTSService {
       }
     }
 
-    // 3. SILNIK WEB NEURAL (DOMYŚLNY / REZERWOWY)
+    // 4. SILNIK WEB SPEECH API (AWARYJNY FALLBACK)
     this.speakWithWebSpeech(clean, { onStart, onEnd, onError });
   }
 
@@ -250,6 +274,33 @@ class TTSService {
 
     if (!audioBlob) {
       throw new Error('Brak klucza API OpenAI lub niepowodzenie żądania');
+    }
+
+    await this.playAudioBlob(audioBlob, { onStart, onEnd, onError });
+  }
+
+  /**
+   * Synteza za pomocą Microsoft Edge Neural API (Zero API Key, Studio Quality)
+   */
+  async speakWithEdgeTTS(text, voiceId, { onStart, onEnd, onError }) {
+    const targetVoice = voiceId || EDGE_DEFAULT_VOICES[0].id;
+    const res = await fetch('/api/voice/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        engine: 'edge',
+        text,
+        voiceId: targetVoice
+      })
+    });
+
+    if (!res.ok) {
+      throw new Error(`Błąd Edge TTS (status ${res.status})`);
+    }
+
+    const audioBlob = await res.blob();
+    if (!audioBlob || audioBlob.size === 0) {
+      throw new Error('Pusty strumień audio z Edge TTS');
     }
 
     await this.playAudioBlob(audioBlob, { onStart, onEnd, onError });

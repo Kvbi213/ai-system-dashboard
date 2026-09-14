@@ -417,6 +417,8 @@ const Terminal = () => {
   const isSpeakingRef = useRef(false);
   const isListeningRef = useRef(false);
   const isProcessingSpeechRef = useRef(false);
+  const liveTranscriptRef = useRef('');
+  const lastSpeechSentRef = useRef('');
   const liveRecognitionRef = useRef(null);
   const restartTimeoutRef = useRef(null);
 
@@ -486,6 +488,7 @@ const Terminal = () => {
     recognition.lang = langMap[systemLang] || 'pl-PL';
     recognition.continuous = false;
     recognition.interimResults = true;
+    recognition.maxAlternatives = 5;
 
     recognition.onstart = () => {
       isListeningRef.current = true;
@@ -496,7 +499,7 @@ const Terminal = () => {
       let interim = '';
       let final = '';
       for (let i = 0; i < event.results.length; i++) {
-        const text = event.results[i][0].transcript;
+        const text = event.results[i][0]?.transcript || '';
         if (event.results[i].isFinal) {
           final += text;
         } else {
@@ -504,12 +507,14 @@ const Terminal = () => {
         }
       }
       const currentSpeech = (final || interim).trim();
+      liveTranscriptRef.current = currentSpeech;
       setLiveTranscript(currentSpeech);
 
       if (final.trim()) {
         try { recognition.stop(); } catch {}
         isListeningRef.current = false;
         setIsListening(false);
+        lastSpeechSentRef.current = final.trim();
         handleLiveUserSpeech(final.trim());
       }
     };
@@ -530,6 +535,17 @@ const Terminal = () => {
     recognition.onend = () => {
       isListeningRef.current = false;
       setIsListening(false);
+
+      // Zabezpieczenie dla cichej mowy: jeśli użytkownik mówił cicho i przeglądarka zakończyła nasłuch na interim bez isFinal
+      const pendingSpeech = liveTranscriptRef.current ? liveTranscriptRef.current.trim() : '';
+      if (pendingSpeech && pendingSpeech !== lastSpeechSentRef.current && isLiveModeRef.current && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
+        lastSpeechSentRef.current = pendingSpeech;
+        liveTranscriptRef.current = '';
+        setLiveTranscript('');
+        handleLiveUserSpeech(pendingSpeech);
+        return;
+      }
+
       if (isLiveModeRef.current && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
         if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
         restartTimeoutRef.current = setTimeout(() => {
