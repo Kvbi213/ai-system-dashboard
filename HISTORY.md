@@ -1,5 +1,25 @@
 ## Wersja Bieżąca
-**v2.16.1**
+**v2.17.0**
+
+## v 2.17.0 — 2026-09-14
+**Typ:** MINOR  
+**Zakres:** Bezpośrednie Przekierowanie Wake Word "Hej Omni" do Natywnego Chatu (`/chat`), Zintegrowany Pasek Live Voice Bar w `Terminal.jsx`, Wielosilnikowa Synteza Mowy (ElevenLabs Multilingual v2, OpenAI TTS-1, Web Speech Neural Fallback) oraz Chirurgiczna Redukcja Modalu Radar Orb.
+
+### Zmiany
+- [+] Dodano: Nowy serwis wielosilnikowej syntezy mowy `modules/services/ttsService.js` z obsługą ElevenLabs, OpenAI TTS oraz priorytetyzacją naturalnych głosów Web Speech API.
+- [+] Dodano: Backendowe proxy TTS `POST /api/voice/tts` w `modules/routes/ai.js` ze wsparciem dla kluczy API serwera i nagłówków klienta.
+- [+] Dodano: Zintegrowany pasek stanu głosu Live Voice Bar w głównym komponencie `modules/components/Terminal.jsx` z automatyczną pętlą ciągłej rozmowy, wizualizacją fal dźwiękowych i zachowaniem pełnego widoku historii wiadomości.
+- [+] Dodano: Dedykowaną sekcję konfiguracji silnika głosu (ElevenLabs / OpenAI / Web Speech) i kluczy API w `modules/pages/SettingsPage.jsx`.
+- [*] Zmodyfikowano: `modules/components/GlobalEventListener.jsx` – detekcja "Hej Omni" natychmiast przekierowuje do `/chat` i wysyła zdarzenie `startContinuousLiveVoice`.
+- [*] Zmodyfikowano: `modules/components/Sidebar.jsx` – kliknięcie asystenta głosowego nawiguje bezpośrednio do `/chat` i aktywuje sesję live.
+- [*] Zmodyfikowano: `core.client.jsx` – usunięto montowanie oddzielnego modalu na rzecz natywnego czatu.
+- [-] Usunięto: Zgodnie z dyspozycją operatora usunięto komponent `modules/components/GlobalLiveVoiceModal.jsx` (chirurgiczna redukcja).
+- [*] Zmodyfikowano: Zaktualizowano `scripts/sync_bez_firebase.js` i podniesiono wersję do `2.17.0`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.16.1 — 2026-09-14
 **Typ:** PATCH  

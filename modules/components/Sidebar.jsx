@@ -112,6 +112,13 @@ const Sidebar = () => {
     return () => window.removeEventListener('visibleNavChanged', handleVisibleNavChanged);
   }, []);
 
+  const handleOpenVoiceChat = () => {
+    navigate('/chat');
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('startContinuousLiveVoice', { detail: { payload: '' } }));
+    }, 100);
+  };
+
   const navItems = [
     { name: 'Pulpit', path: '/', icon: <LayoutDashboard className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Ekran główny' },
     { name: 'Asystent AI', path: '/chat', icon: <MessageSquare className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Konwersacja LLM' },
@@ -208,7 +215,7 @@ const Sidebar = () => {
 
           <button
             type="button"
-            onClick={() => window.dispatchEvent(new CustomEvent('openLiveVoiceModal'))}
+            onClick={handleOpenVoiceChat}
             className={`w-9 h-9 rounded-lg border flex items-center justify-center transition-colors active:scale-95 relative ${
               isWakeWordActive
                 ? 'bg-accentPrimary/15 border-accentPrimary/50 text-accentPrimary shadow-[0_0_10px_rgba(var(--color-accent-primary),0.2)]'
@@ -493,7 +500,7 @@ const Sidebar = () => {
         <div className={`w-full ${isCollapsed ? 'px-2 justify-center' : 'px-6'} mb-4 transition-all`}>
           <button
             type="button"
-            onClick={() => window.dispatchEvent(new CustomEvent('openLiveVoiceModal'))}
+            onClick={handleOpenVoiceChat}
             className={`flex items-center gap-3 rounded-xl transition-all border ${
               isWakeWordActive
                 ? 'bg-accentPrimary/10 border-accentPrimary/40 text-accentPrimary hover:bg-accentPrimary/20 shadow-[0_0_12px_rgba(var(--color-accent-primary),0.15)]'

@@ -47,6 +47,86 @@ router.post('/voice/transcribe', apiLimiter, async (req, res) => {
   }
 });
 
+router.post('/voice/tts', async (req, res) => {
+  const { engine, text, voiceId, apiKey } = req.body;
+  if (!text || typeof text !== 'string') {
+    return res.status(400).json({ error: 'Brak tekstu do syntezy' });
+  }
+
+  // Sanityzacja długości wejścia
+  const safeText = text.substring(0, 4000);
+
+  try {
+    if (engine === 'elevenlabs') {
+      const key = apiKey || process.env.ELEVENLABS_API_KEY;
+      if (!key) {
+        return res.status(400).json({ error: 'Brak klucza API ElevenLabs' });
+      }
+
+      const targetVoice = voiceId || 'pNInz6obpgDQGcFmaJgB';
+      const elRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${targetVoice}`, {
+        method: 'POST',
+        headers: {
+          'xi-api-key': key,
+          'Content-Type': 'application/json',
+          'Accept': 'audio/mpeg'
+        },
+        body: JSON.stringify({
+          text: safeText,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.8
+          }
+        })
+      });
+
+      if (!elRes.ok) {
+        const errText = await elRes.text();
+        return res.status(elRes.status).json({ error: `Błąd ElevenLabs API: ${errText}` });
+      }
+
+      res.setHeader('Content-Type', 'audio/mpeg');
+      const arrayBuffer = await elRes.arrayBuffer();
+      return res.send(Buffer.from(arrayBuffer));
+    }
+
+    if (engine === 'openai') {
+      const key = apiKey || process.env.OPENAI_API_KEY;
+      if (!key) {
+        return res.status(400).json({ error: 'Brak klucza API OpenAI' });
+      }
+
+      const oaRes = await fetch('https://api.openai.com/v1/audio/speech', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${key}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'tts-1',
+          input: safeText,
+          voice: voiceId || 'onyx'
+        })
+      });
+
+      if (!oaRes.ok) {
+        const errText = await oaRes.text();
+        return res.status(oaRes.status).json({ error: `Błąd OpenAI TTS: ${errText}` });
+      }
+
+      res.setHeader('Content-Type', 'audio/mpeg');
+      const arrayBuffer = await oaRes.arrayBuffer();
+      return res.send(Buffer.from(arrayBuffer));
+    }
+
+    return res.status(400).json({ error: 'Nieobsługiwany silnik syntezy TTS' });
+  } catch (err) {
+    logError('POST /api/voice/tts', err);
+    return res.status(500).json({ error: 'Wystąpił błąd podczas syntezy mowy' });
+  }
+});
+
 router.get('/models/status', async (req, res) => {
   const start = performance.now();
   try {

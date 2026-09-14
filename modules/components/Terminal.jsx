@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Terminal as TerminalIcon, Send, Code, BrainCircuit, Lightbulb, X, Mic, Loader2, Copy, Check, Radio, User, Sparkles, Volume2, VolumeX, ArrowDown } from 'lucide-react';
+import { Terminal as TerminalIcon, Send, Code, BrainCircuit, Lightbulb, X, Mic, Loader2, Copy, Check, Radio, User, Sparkles, Volume2, VolumeX, ArrowDown, StopCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -16,6 +16,8 @@ import {
   CalendarChatWidget 
 } from './ChatInlineWidgets';
 import { useChatContext } from '../context/ChatContext';
+import { ttsService } from '../services/ttsService';
+import { wakeWordService } from '../services/wakeWordService';
 
 const QUICK_PROMPTS = [
   { label: '📋 Zadania To-Do', text: 'witam serdecznie co mamy dziś w todo?' },
@@ -73,35 +75,22 @@ const ChatMessage = ({ msg, mode = 'worker' }) => {
   };
 
   const toggleSpeech = () => {
-    if (!('speechSynthesis' in window)) return;
     if (isSpeaking) {
-      window.speechSynthesis.cancel();
+      ttsService.stop();
       setIsSpeaking(false);
       return;
     }
-    window.speechSynthesis.cancel();
-    const clean = (msg.content || '')
-      .replace(/(?:\*\*|\*|`|\s)*\[(?:\*\*|\*|`|\s)*ACTION\s*:\s*[A-Za-z_]+(?:\*\*|\*|`|\s)*[^\]]*\](?:\*\*|\*|`|\s)*/gi, '')
-      .replace(new RegExp('\\|[\\s\\-|:]+\\|', 'g'), ' ')
-      .replace(/\|/g, ', ')
-      .replace(/[*_~`#>-]/g, ' ')
-      .replace(/\[(.*?)\]\(.*?\)/g, '$1')
-      .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.lang = 'pl-PL';
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    setIsSpeaking(true);
-    window.speechSynthesis.speak(utterance);
+    ttsService.speak(msg.content || '', {
+      onStart: () => setIsSpeaking(true),
+      onEnd: () => setIsSpeaking(false),
+      onError: () => setIsSpeaking(false)
+    });
   };
 
   useEffect(() => {
     return () => {
-      if (isSpeaking && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
+      if (isSpeaking) {
+        ttsService.stop();
       }
     };
   }, [isSpeaking]);
@@ -421,142 +410,280 @@ const Terminal = () => {
   const [isLiveMode, setIsLiveMode] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [liveModeWidgets, setLiveModeWidgets] = useState([]);
-  const [liveModeSummary, setLiveModeSummary] = useState('');
-  const liveRecognitionRef = useRef(null);
+  const [isProcessingSpeech, setIsProcessingSpeech] = useState(false);
+  const [liveTranscript, setLiveTranscript] = useState('');
+
   const isLiveModeRef = useRef(false);
+  const isSpeakingRef = useRef(false);
+  const isListeningRef = useRef(false);
+  const isProcessingSpeechRef = useRef(false);
+  const liveRecognitionRef = useRef(null);
+  const restartTimeoutRef = useRef(null);
 
-  useEffect(() => {
-    isLiveModeRef.current = isLiveMode;
-    if (!isLiveMode) {
-      setLiveModeWidgets([]);
-      setLiveModeSummary('');
-      setIsSpeaking(false);
-      setIsListening(false);
+  const EXIT_PHRASES = [
+    'stop', 'koniec', 'dziękuję', 'dziekuje', 'dzięki', 'dzieki',
+    'zamknij', 'to wszystko', 'anuluj', 'wyłącz', 'do widzenia', 'nara'
+  ];
+
+  const stopLiveMode = (sayGoodbye = false) => {
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
     }
-  }, [isLiveMode]);
+    if (liveRecognitionRef.current) {
+      try {
+        liveRecognitionRef.current.onstart = null;
+        liveRecognitionRef.current.onresult = null;
+        liveRecognitionRef.current.onerror = null;
+        liveRecognitionRef.current.onend = null;
+        liveRecognitionRef.current.abort();
+      } catch {}
+      liveRecognitionRef.current = null;
+    }
+    ttsService.stop();
+    wakeWordService.setAiSpeaking(false);
+    isLiveModeRef.current = false;
+    isSpeakingRef.current = false;
+    isListeningRef.current = false;
+    isProcessingSpeechRef.current = false;
+    setIsLiveMode(false);
+    setIsSpeaking(false);
+    setIsListening(false);
+    setIsProcessingSpeech(false);
+    setLiveTranscript('');
 
-  // Pobierz głosy jak najszybciej
-  useEffect(() => {
-    window.speechSynthesis.getVoices();
-    window.speechSynthesis.onvoiceschanged = () => {
-      window.speechSynthesis.getVoices();
-    };
-  }, []);
+    if (sayGoodbye) {
+      ttsService.speak('Do usłyszenia!', {
+        onEnd: () => wakeWordService.resume(),
+        onError: () => wakeWordService.resume()
+      });
+    } else {
+      wakeWordService.resume();
+    }
+  };
 
-  const startLiveConversation = () => {
-    if (!('webkitSpeechRecognition' in window)) {
-      alert(t("termNoSpeech", "Twoja przeglądarka nie obsługuje SpeechRecognition."));
-      setIsLiveMode(false);
+  const startLiveListeningLoop = () => {
+    if (!isLiveModeRef.current || isSpeakingRef.current || isProcessingSpeechRef.current) return;
+    if (typeof window === 'undefined' || !('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
       return;
     }
+
+    if (liveRecognitionRef.current) {
+      try {
+        liveRecognitionRef.current.onstart = null;
+        liveRecognitionRef.current.onresult = null;
+        liveRecognitionRef.current.onerror = null;
+        liveRecognitionRef.current.onend = null;
+        liveRecognitionRef.current.abort();
+      } catch {}
+      liveRecognitionRef.current = null;
+    }
+
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     const systemLang = localStorage.getItem('system_language') || 'pl';
     const langMap = { pl: 'pl-PL', en: 'en-US', uk: 'uk-UA', zh: 'zh-CN' };
-    const speechLang = langMap[systemLang] || 'pl-PL';
-
-    recognition.lang = speechLang;
+    recognition.lang = langMap[systemLang] || 'pl-PL';
     recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.interimResults = true;
 
     recognition.onstart = () => {
+      isListeningRef.current = true;
       setIsListening(true);
     };
 
-    recognition.onresult = async (event) => {
-      const transcript = event.results[0][0].transcript;
-      if (!transcript.trim()) {
-         if (isLiveModeRef.current && !isSpeaking) recognition.start();
-         return;
+    recognition.onresult = (event) => {
+      let interim = '';
+      let final = '';
+      for (let i = 0; i < event.results.length; i++) {
+        const text = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          final += text;
+        } else {
+          interim += text;
+        }
       }
-      
-      setIsListening(false);
-      const aiResponseObj = await sendCommand(transcript);
-      if (aiResponseObj && isLiveModeRef.current) {
-         let rawText = typeof aiResponseObj === 'string' ? aiResponseObj : aiResponseObj.content;
-         const widgets = typeof aiResponseObj === 'object' ? (aiResponseObj.widgets || []) : [];
-         
-         // Funkcja czyszcząca tekst z Markdownu i emotikon specjalnie dla TTS
-         const cleanTextForSpeech = (str) => {
-             return str
-                 // Usuwanie znaków formatowania Markdown
-                 .replace(/[*_~`#>-]/g, ' ')
-                 // Usuwanie linków i obrazków markdown np. [tekst](url) -> tekst
-                 .replace(/\[(.*?)\]\(.*?\)/g, '$1')
-                 // Usuwanie emotikon (nowoczesny regex)
-                 .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '')
-                 // Redukcja wielokrotnych spacji do pojedynczych
-                 .replace(/\s+/g, ' ')
-                 .trim();
-         };
-         
-         const textToSpeak = cleanTextForSpeech(rawText);
-         
-         setLiveModeSummary(rawText);
-         setLiveModeWidgets(widgets);
-         
-         window.speechSynthesis.cancel();
-         const utterance = new SpeechSynthesisUtterance(textToSpeak);
-         utterance.lang = speechLang;
-         
-         const voices = window.speechSynthesis.getVoices();
-         const voicePref = localStorage.getItem('system_voice_pref') || 'paulina';
-         const voiceRate = parseFloat(localStorage.getItem('system_voice_rate')) || 1.8;
-         
-         let selectedVoice;
-         const shortLang = systemLang;
-         
-         if (shortLang === 'pl') {
-           if (voicePref === 'female' || voicePref === 'paulina') {
-              selectedVoice = voices.find(v => v.name.toLowerCase().includes('paulina') || v.name.toLowerCase().includes('zofia')) || voices.find(v => v.lang.includes('pl') && !v.name.toLowerCase().includes('male') && !v.name.toLowerCase().includes('marek'));
-           } else {
-              selectedVoice = voices.find(v => v.name.toLowerCase().includes('marek') || v.name.toLowerCase().includes('adam')) || voices.find(v => v.lang.includes('pl') && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('mężczyzna')));
-           }
-         }
-         
-         if (!selectedVoice) selectedVoice = voices.find(v => v.lang.includes(shortLang));
-         if (selectedVoice) utterance.voice = selectedVoice;
-         
-         utterance.pitch = 1.15;
-         utterance.rate = voiceRate;
+      const currentSpeech = (final || interim).trim();
+      setLiveTranscript(currentSpeech);
 
-         utterance.onstart = () => setIsSpeaking(true);
-         utterance.onend = () => {
-           setIsSpeaking(false);
-           if (isLiveModeRef.current) {
-             try { liveRecognitionRef.current.start(); } catch(e){}
-           }
-         };
-         window.speechSynthesis.speak(utterance);
-      } else {
-         if (isLiveModeRef.current && !isSpeaking) {
-             try { liveRecognitionRef.current.start(); } catch(e){}
-         }
+      if (final.trim()) {
+        try { recognition.stop(); } catch {}
+        isListeningRef.current = false;
+        setIsListening(false);
+        handleLiveUserSpeech(final.trim());
       }
     };
 
     recognition.onerror = (e) => {
-      console.error('Speech recognition error', e.error);
+      isListeningRef.current = false;
       setIsListening(false);
-      if (isLiveModeRef.current && e.error !== 'aborted' && !isSpeaking) {
-         setTimeout(() => {
-            try { liveRecognitionRef.current.start(); } catch(e){}
-         }, 1000);
+      if (isLiveModeRef.current && e.error !== 'aborted' && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
+        if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+        restartTimeoutRef.current = setTimeout(() => {
+          if (isLiveModeRef.current && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
+            startLiveListeningLoop();
+          }
+        }, 500);
       }
     };
-    
+
     recognition.onend = () => {
-       setIsListening(false);
+      isListeningRef.current = false;
+      setIsListening(false);
+      if (isLiveModeRef.current && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
+        if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+        restartTimeoutRef.current = setTimeout(() => {
+          if (isLiveModeRef.current && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
+            try { recognition.start(); } catch {}
+          }
+        }, 400);
+      }
     };
 
     liveRecognitionRef.current = recognition;
-    try { recognition.start(); } catch(e){}
+    try {
+      recognition.start();
+    } catch {}
+  };
+
+  const handleLiveUserSpeech = async (userText) => {
+    if (!userText || !userText.trim()) return;
+
+    // Sprawdzenie słów kluczowych zakończenia rozmowy
+    const lower = userText.toLowerCase().trim();
+    const isExit = EXIT_PHRASES.some(phrase => lower === phrase || lower.startsWith(phrase + ' '));
+    if (isExit) {
+      stopLiveMode(true);
+      return;
+    }
+
+    isProcessingSpeechRef.current = true;
+    setIsProcessingSpeech(true);
+
+    try {
+      const responseObj = await sendCommand(userText);
+      const text = typeof responseObj === 'string' ? responseObj : (responseObj?.content || '');
+
+      isProcessingSpeechRef.current = false;
+      setIsProcessingSpeech(false);
+
+      // Odtwarzanie odpowiedzi głosowej
+      isSpeakingRef.current = true;
+      setIsSpeaking(true);
+      wakeWordService.setAiSpeaking(true);
+
+      ttsService.speak(text, {
+        onStart: () => {
+          isSpeakingRef.current = true;
+          setIsSpeaking(true);
+        },
+        onEnd: () => {
+          isSpeakingRef.current = false;
+          setIsSpeaking(false);
+          wakeWordService.setAiSpeaking(false);
+          setLiveTranscript('');
+          if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+          restartTimeoutRef.current = setTimeout(() => {
+            if (isLiveModeRef.current) {
+              startLiveListeningLoop();
+            }
+          }, 400);
+        },
+        onError: () => {
+          isSpeakingRef.current = false;
+          setIsSpeaking(false);
+          wakeWordService.setAiSpeaking(false);
+          if (isLiveModeRef.current) {
+            startLiveListeningLoop();
+          }
+        }
+      });
+    } catch (err) {
+      console.error('[Terminal LiveVoice] Błąd zapytania:', err);
+      isProcessingSpeechRef.current = false;
+      setIsProcessingSpeech(false);
+      ttsService.speak('Przepraszam, wystąpił błąd podczas przetwarzania zapytania.', {
+        onEnd: () => {
+          if (isLiveModeRef.current) startLiveListeningLoop();
+        }
+      });
+    }
+  };
+
+  const enterLiveMode = (initialPayload = '') => {
+    wakeWordService.pause();
+    setIsLiveMode(true);
+    isLiveModeRef.current = true;
+    setLiveTranscript(initialPayload || '');
+
+    if (initialPayload && initialPayload.trim()) {
+      handleLiveUserSpeech(initialPayload.trim());
+    } else {
+      const greeting = mode === 'mentor' 
+        ? 'Słucham. W czym mogę pomóc?' 
+        : 'Cześć! W czym mogę pomóc?';
+      
+      isSpeakingRef.current = true;
+      setIsSpeaking(true);
+      wakeWordService.setAiSpeaking(true);
+
+      ttsService.speak(greeting, {
+        onStart: () => {
+          isSpeakingRef.current = true;
+          setIsSpeaking(true);
+        },
+        onEnd: () => {
+          isSpeakingRef.current = false;
+          setIsSpeaking(false);
+          wakeWordService.setAiSpeaking(false);
+          if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+          restartTimeoutRef.current = setTimeout(() => {
+            if (isLiveModeRef.current) {
+              startLiveListeningLoop();
+            }
+          }, 400);
+        },
+        onError: () => {
+          isSpeakingRef.current = false;
+          setIsSpeaking(false);
+          wakeWordService.setAiSpeaking(false);
+          if (isLiveModeRef.current) {
+            startLiveListeningLoop();
+          }
+        }
+      });
+    }
   };
 
   const toggleLiveMode = () => {
-    window.dispatchEvent(new CustomEvent('openLiveVoiceModal'));
+    if (isLiveMode) {
+      stopLiveMode(false);
+    } else {
+      enterLiveMode('');
+    }
   };
+
+  useEffect(() => {
+    const handleStartContinuous = (e) => {
+      const payload = e.detail?.payload || '';
+      enterLiveMode(payload);
+    };
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isLiveModeRef.current) {
+        stopLiveMode(false);
+      }
+    };
+
+    window.addEventListener('startContinuousLiveVoice', handleStartContinuous);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('startContinuousLiveVoice', handleStartContinuous);
+      window.removeEventListener('keydown', handleKeyDown);
+      stopLiveMode(false);
+    };
+  }, [mode]);
 
 
   const messages = mode === 'worker' ? workerMessages : mentorMessages;
@@ -667,68 +794,74 @@ const Terminal = () => {
         )}
       </div>
 
-      {isLiveMode ? (
-        <div className="flex-1 flex flex-col items-center justify-center relative bg-background/50 backdrop-blur-sm rounded-xl mb-4 overflow-hidden animate-fade-in">
-          
-          <div className={`transition-all duration-700 ease-in-out flex flex-col items-center ${liveModeWidgets.length > 0 || liveModeSummary ? 'absolute top-6 scale-75' : 'absolute top-1/2 -translate-y-1/2 scale-150'}`}>
-            <div 
-              className={`w-32 h-32 rounded-full flex items-center justify-center transition-all duration-300 relative ${isSpeaking ? 'scale-110 shadow-[0_0_50px_rgba(var(--color-accent-primary),0.8)] bg-accentPrimary/20' : (isListening ? 'scale-100 shadow-[0_0_20px_rgba(var(--color-accent-primary),0.4)] bg-accentPrimary/5' : 'scale-90 opacity-50 bg-transparent border border-accentPrimary/30')}`}
+      {/* LIVE VOICE BAR - Tryb Ciągłej Rozmowy */}
+      {isLiveMode && (
+        <div className="mb-3 p-3 sm:p-3.5 rounded-2xl bg-gradient-to-r from-accentPrimary/15 via-surface/95 to-accentPrimary/5 border border-accentPrimary/40 shadow-lg shadow-accentPrimary/5 flex items-center justify-between gap-3 animate-fade-in shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="relative flex items-center justify-center w-8 h-8 rounded-xl bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/40 shrink-0">
+              {isSpeaking ? (
+                <Volume2 className="w-4 h-4 animate-bounce" />
+              ) : isProcessingSpeech ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Mic className="w-4 h-4 animate-pulse" />
+              )}
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-accentPrimary animate-ping" />
+            </div>
+
+            <div className="min-w-0 flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs font-bold text-accentPrimary tracking-wider uppercase">
+                  {isSpeaking 
+                    ? (mode === 'mentor' ? 'OMNI MIND // MÓWI...' : 'OMNI EXEC // MÓWI...') 
+                    : isProcessingSpeech 
+                      ? (mode === 'mentor' ? 'OMNI MIND // ANALIZUJE...' : 'OMNI EXEC // PRZETWARZA...') 
+                      : (mode === 'mentor' ? 'OMNI MIND // SŁUCHA...' : 'OMNI EXEC // SŁUCHA...')}
+                </span>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/40 font-semibold">
+                  TRYB CIĄGŁY
+                </span>
+              </div>
+              <p className="text-xs text-textMuted truncate italic font-mono mt-0.5">
+                {liveTranscript 
+                  ? `"${liveTranscript}"` 
+                  : isSpeaking 
+                    ? 'Odtwarzanie odpowiedzi głosowej...' 
+                    : 'Mów do mikrofonu (powiedz "dziękuję" lub "stop" aby zakończyć)...'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => stopLiveMode(true)}
+              className="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 text-xs font-mono font-semibold flex items-center gap-1.5 transition-all active:scale-95"
+              title="Zakończ rozmowę (Esc)"
             >
-               <div className={`w-20 h-20 rounded-full bg-accentPrimary transition-all duration-300 ${isSpeaking ? 'animate-pulse opacity-80' : 'opacity-20'}`}></div>
-               <div className={`absolute inset-0 rounded-full border-2 border-accentPrimary transition-all duration-[3000ms] ${isListening ? 'animate-spin opacity-50' : 'opacity-10'}`} style={{ borderStyle: 'dashed' }}></div>
-            </div>
-            <div className="mt-4 font-mono text-sm tracking-widest text-accentPrimary opacity-80">
-              {isSpeaking ? t('termJarvisSpeaks', 'OMNI // MÓWI') : (isListening ? t('termJarvisListens', 'OMNI // NASŁUCHUJE') : t('termJarvisWaits', 'OMNI // OCZEKUJE'))}
-            </div>
+              <StopCircle className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Zakończ</span>
+            </button>
           </div>
-
-          <div className={`absolute bottom-4 left-4 right-4 transition-all duration-700 flex flex-col gap-4 overflow-y-auto custom-scrollbar h-[calc(100%-12rem)] ${liveModeWidgets.length > 0 || liveModeSummary ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20 pointer-events-none'}`}>
-            
-            {liveModeSummary && (
-              <div className="glass-panel p-4 rounded-xl text-center text-textPrimary text-lg font-mono">
-                <ReactMarkdown
-                  components={{
-                    p: ({node, ...props}) => <span {...props} />,
-                    strong: ({node, ...props}) => <strong className="font-bold text-accentPrimary" {...props} />,
-                    em: ({node, ...props}) => <em className="italic text-accentSecondary" {...props} />
-                  }}
-                >
-                  {liveModeSummary}
-                </ReactMarkdown>
-              </div>
-            )}
-            
-            {liveModeWidgets.length > 0 && (
-              <div className="flex flex-wrap gap-4 items-start justify-center">
-                {liveModeWidgets.includes('weather') && <div className="glass-panel p-4 rounded-xl"><WeatherWidget /></div>}
-                {liveModeWidgets.includes('system') && <div className="w-full sm:w-[320px] h-[340px]"><SystemMonitor /></div>}
-                {liveModeWidgets.includes('notifications') && <div className="glass-panel p-2 rounded-xl w-full sm:w-[320px] h-[340px]"><NotificationsWidget /></div>}
-                {liveModeWidgets.includes('news') && <div className="w-full sm:w-[450px] h-[340px]"><ITNewsTicker selectedCategories={newsCategories} /></div>}
-                {liveModeWidgets.includes('tasks') && <div className="w-full sm:w-[350px] h-[340px]"><TodoList /></div>}
-                {liveModeWidgets.includes('models') && <div className="w-full sm:w-[450px] h-[340px]"><ModelWidget /></div>}
-              </div>
-            )}
-          </div>
-
-        </div>
-      ) : (
-        <div 
-          ref={messagesContainerRef}
-          onScroll={handleScroll}
-          className="flex-1 overflow-y-auto space-y-3 font-sans text-sm mb-3 custom-scrollbar pr-2 relative"
-        >
-          {messages.map((msg, i) => (
-            <ChatMessage key={msg.id || (msg.timestamp ? `${msg.role}_${msg.timestamp}` : `msg_${i}`)} msg={msg} mode={mode} />
-          ))}
-          {isProcessing && (
-            <div className="flex items-center gap-2.5 text-textMuted font-sans p-3 glass-panel rounded-xl max-w-fit border border-border/50 animate-pulse">
-              <Loader2 className="w-4 h-4 animate-spin text-accentPrimary" />
-              <span className="text-xs font-mono">{mode === 'mentor' ? 'OMNI MIND analizuje zapytanie...' : 'OMNI EXEC przetwarza odpowiedź...'}</span>
-            </div>
-          )}
-          <div ref={endOfMessagesRef} />
         </div>
       )}
+
+      <div 
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto space-y-3 font-sans text-sm mb-3 custom-scrollbar pr-2 relative"
+      >
+        {messages.map((msg, i) => (
+          <ChatMessage key={msg.id || (msg.timestamp ? `${msg.role}_${msg.timestamp}` : `msg_${i}`)} msg={msg} mode={mode} />
+        ))}
+        {isProcessing && (
+          <div className="flex items-center gap-2.5 text-textMuted font-sans p-3 glass-panel rounded-xl max-w-fit border border-border/50 animate-pulse">
+            <Loader2 className="w-4 h-4 animate-spin text-accentPrimary" />
+            <span className="text-xs font-mono">{mode === 'mentor' ? 'OMNI MIND analizuje zapytanie...' : 'OMNI EXEC przetwarza odpowiedź...'}</span>
+          </div>
+        )}
+        <div ref={endOfMessagesRef} />
+      </div>
 
       {/* Floating Scroll to Bottom button */}
       {showScrollBottom && (

@@ -100,8 +100,10 @@ const filesToSync = [
   'docs/versions/v2.14.0.md',
   'docs/versions/v2.15.0.md',
   'docs/versions/v2.16.0.md',
+  'docs/versions/v2.16.1.md',
+  'docs/versions/v2.17.0.md',
   'modules/services/wakeWordService.js',
-  'modules/components/GlobalLiveVoiceModal.jsx',
+  'modules/services/ttsService.js',
   'tests/wakeword.test.js'
 ];
 

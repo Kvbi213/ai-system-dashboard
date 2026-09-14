@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
   Settings, Shield, Bell, HardDrive, Cpu, Palette, Sun, Moon, Rss, Zap, Lock, Check, 
   LayoutGrid, Mic, Volume2, Globe, Sparkles, Cloud, Database, BrainCircuit, Activity,
   Compass, LayoutDashboard, MessageSquare, GraduationCap, Crosshair, CalendarDays,
-  Wallet, Dumbbell, Server, Sliders, Download, Upload, RotateCcw, Bot, CheckCircle2
+  Wallet, Dumbbell, Server, Sliders, Download, Upload, RotateCcw, Bot, CheckCircle2, Eye, EyeOff
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
 import { initializeAllFirestoreCollections, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
 import { wakeWordService } from '../services/wakeWordService';
+import { ttsService, ELEVENLABS_DEFAULT_VOICES, OPENAI_DEFAULT_VOICES } from '../services/ttsService';
 
 const Toggle = ({ value, onChange }) => (
   <button
@@ -165,6 +167,7 @@ const SettingsPage = () => {
   const [gatewayStatus, setGatewayStatus] = useState(null);
 
   // New settings states
+  const navigate = useNavigate();
   const [visibleNav, setVisibleNav] = useState(DEFAULT_VISIBLE_NAV);
   const [defaultModel, setDefaultModel] = useState('openai/gpt-oss-120b');
   const [glassmorphism, setGlassmorphism] = useState(true);
@@ -172,6 +175,16 @@ const SettingsPage = () => {
   const [compactUi, setCompactUi] = useState(false);
   const [clock24h, setClock24h] = useState(true);
   const [clockSeconds, setClockSeconds] = useState(false);
+
+  // Zaawansowany TTS
+  const [ttsEngine, setTtsEngine] = useState(() => localStorage.getItem('system_tts_engine') || 'web');
+  const [elevenLabsKey, setElevenLabsKey] = useState(() => localStorage.getItem('system_elevenlabs_api_key') || '');
+  const [openAiTtsKey, setOpenAiTtsKey] = useState(() => localStorage.getItem('system_openai_tts_api_key') || '');
+  const [elevenVoiceId, setElevenVoiceId] = useState(() => localStorage.getItem('system_elevenlabs_voice_id') || ELEVENLABS_DEFAULT_VOICES[0].id);
+  const [openAiVoiceId, setOpenAiVoiceId] = useState(() => localStorage.getItem('system_openai_voice_id') || 'onyx');
+  const [showElevenKey, setShowElevenKey] = useState(false);
+  const [showOpenAiKey, setShowOpenAiKey] = useState(false);
+  const [isTestingVoice, setIsTestingVoice] = useState(false);
 
   useEffect(() => {
     if (isCloudEnvironment()) {
@@ -257,6 +270,32 @@ const SettingsPage = () => {
     localStorage.setItem('system_voice_rate', val);
   };
 
+  const updateTtsEngine = (val) => {
+    setTtsEngine(val);
+    localStorage.setItem('system_tts_engine', val);
+    ttsService.setEngine(val);
+  };
+
+  const updateElevenLabsKey = (val) => {
+    setElevenLabsKey(val);
+    localStorage.setItem('system_elevenlabs_api_key', val);
+  };
+
+  const updateOpenAiTtsKey = (val) => {
+    setOpenAiTtsKey(val);
+    localStorage.setItem('system_openai_tts_api_key', val);
+  };
+
+  const updateElevenVoiceId = (val) => {
+    setElevenVoiceId(val);
+    localStorage.setItem('system_elevenlabs_voice_id', val);
+  };
+
+  const updateOpenAiVoiceId = (val) => {
+    setOpenAiVoiceId(val);
+    localStorage.setItem('system_openai_voice_id', val);
+  };
+
   const [wakeWordEnabled, setWakeWordEnabled] = useState(() => {
     return typeof window !== 'undefined' && localStorage.getItem('system_wake_word_enabled') !== 'false';
   });
@@ -266,24 +305,25 @@ const SettingsPage = () => {
     wakeWordService.setEnabled(val);
   };
 
-  const testVoice = () => {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(t("testVoiceText", "Testuję ustawienia głosu. Mam nadzieję, że brzmię dobrze."));
-    utterance.lang = 'pl-PL';
-    utterance.rate = voiceRate;
-    
-    const voices = window.speechSynthesis.getVoices();
-    let selectedVoice;
-    if (voicePref === 'female' || voicePref === 'paulina') {
-       selectedVoice = voices.find(v => v.name.toLowerCase().includes('paulina') || v.name.toLowerCase().includes('zofia')) || voices.find(v => v.lang.includes('pl') && !v.name.toLowerCase().includes('male') && !v.name.toLowerCase().includes('marek'));
-    } else {
-       selectedVoice = voices.find(v => v.name.toLowerCase().includes('marek') || v.name.toLowerCase().includes('adam')) || voices.find(v => v.lang.includes('pl') && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('mężczyzna')));
+  const testVoice = async () => {
+    if (isTestingVoice) {
+      ttsService.stop();
+      setIsTestingVoice(false);
+      return;
     }
-    
-    if (!selectedVoice) selectedVoice = voices.find(v => v.lang.includes('pl'));
-    if (selectedVoice) utterance.voice = selectedVoice;
-    
-    window.speechSynthesis.speak(utterance);
+    setIsTestingVoice(true);
+    await ttsService.speak("Testuję ustawienia zaawansowanej syntezy mowy. Mam nadzieję, że mój głos brzmi naturalnie i wyraźnie.", {
+      onStart: () => setIsTestingVoice(true),
+      onEnd: () => setIsTestingVoice(false),
+      onError: () => setIsTestingVoice(false)
+    });
+  };
+
+  const handleTestLiveConversation = () => {
+    navigate('/chat');
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('startContinuousLiveVoice', { detail: { payload: '' } }));
+    }, 120);
   };
 
   const updateSysPrefs = (key, value) => {
@@ -993,41 +1033,193 @@ const SettingsPage = () => {
               </div>
             </section>
 
-            {/* --- GŁOS AI --- */}
+            {/* --- GŁOS AI & SYNTEZA TTS --- */}
             <section className="glass-panel p-5 rounded-xl border border-border">
-              <SectionHeader icon={Mic} title={t("voiceAssistantTitle", "Asystent Głosowy (Synteza TTS)")} />
+              <SectionHeader icon={Mic} title="Asystent Głosowy (Zaawansowana Synteza TTS)" />
               <div className="space-y-4">
-                <div className="p-4 rounded-xl border border-border/50 bg-black/20">
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="font-semibold text-textPrimary font-sans text-sm">{t("voiceSelectLabel", "Wybór Głosu")}</p>
-                    <button type="button" onClick={testVoice} className="text-xs bg-accentPrimary/20 text-accentPrimary px-3 py-1.5 rounded-lg hover:bg-accentPrimary/40 flex items-center gap-1 transition-colors">Testuj głos <Volume2 className="w-3.5 h-3.5" /></button>
-                  </div>
-                  <p className="text-xs text-textMuted mb-3">{t("voiceSelectDesc", "Wybierz profil głosu asystenta.")}</p>
-                  <select 
-                    value={voicePref === 'paulina' ? 'female' : voicePref} 
-                    onChange={(e) => updateVoicePref(e.target.value)}
-                    className="w-full bg-surface border border-border rounded-lg px-3 py-2.5 text-sm font-mono text-textPrimary focus:outline-none focus:border-accentPrimary"
-                  >
-                    <option value="female">{t("voiceFemale", "Głos Damski (Paulina/Zofia)")}</option>
-                    <option value="male">{t("voiceMale", "Głos Męski (Marek/Adam)")}</option>
-                  </select>
-                </div>
                 
+                {/* WYBÓR SILNIKA TTS */}
                 <div className="p-4 rounded-xl border border-border/50 bg-black/20">
                   <div className="flex justify-between items-center mb-2">
-                    <p className="font-semibold text-textPrimary font-sans text-sm">{t("voiceRateLabel", "Prędkość mowy (Rate):")} {voiceRate.toFixed(1)}x</p>
-                    <button type="button" onClick={testVoice} className="text-xs bg-accentPrimary/20 text-accentPrimary px-3 py-1.5 rounded-lg hover:bg-accentPrimary/40 flex items-center gap-1 transition-colors">Testuj prędkość <Volume2 className="w-3.5 h-3.5" /></button>
+                    <p className="font-semibold text-textPrimary font-sans text-sm">Silnik Syntezy Mowy (TTS Engine)</p>
+                    <button 
+                      type="button" 
+                      onClick={testVoice} 
+                      disabled={isTestingVoice}
+                      className="text-xs bg-accentPrimary/20 text-accentPrimary px-3 py-1.5 rounded-lg hover:bg-accentPrimary/40 flex items-center gap-1 transition-colors disabled:opacity-50"
+                    >
+                      {isTestingVoice ? 'Odtwarzanie...' : 'Testuj głos'} <Volume2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                  <p className="text-xs text-textMuted mb-4">{t("voiceRateDesc", "Dostosuj szybkość, z jaką agent odczytuje odpowiedzi.")}</p>
-                  <input 
-                    type="range" 
-                    min="0.5" max="2.0" step="0.1" 
-                    value={voiceRate} 
-                    onChange={(e) => updateVoiceRate(parseFloat(e.target.value))}
-                    className="w-full accent-accentPrimary h-2 rounded-lg appearance-none bg-surface border border-border" 
-                  />
+                  <p className="text-xs text-textMuted mb-3">Wybierz dostawcę realistycznej syntezy mowy dla odpowiedzi asystenta.</p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateTtsEngine('elevenlabs')}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        ttsEngine === 'elevenlabs'
+                          ? 'border-accentPrimary bg-accentPrimary/15 shadow-md shadow-accentPrimary/10'
+                          : 'border-border bg-surface/60 hover:bg-white/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs font-mono text-textPrimary">ElevenLabs</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono font-bold">HI-FI</span>
+                      </div>
+                      <p className="text-[11px] text-textMuted mt-1">Najbardziej naturalne, ludzkie głosy AI (Multilingual v2).</p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => updateTtsEngine('openai')}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        ttsEngine === 'openai'
+                          ? 'border-accentPrimary bg-accentPrimary/15 shadow-md shadow-accentPrimary/10'
+                          : 'border-border bg-surface/60 hover:bg-white/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs font-mono text-textPrimary">OpenAI TTS</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 font-mono font-bold">STUDIO</span>
+                      </div>
+                      <p className="text-[11px] text-textMuted mt-1">Czyste, studyjne głosy tts-1 (Onyx, Alloy, Nova, Echo).</p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => updateTtsEngine('web')}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        ttsEngine === 'web'
+                          ? 'border-accentPrimary bg-accentPrimary/15 shadow-md shadow-accentPrimary/10'
+                          : 'border-border bg-surface/60 hover:bg-white/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs font-mono text-textPrimary">Web Neural</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 font-mono font-bold">DARMOWY</span>
+                      </div>
+                      <p className="text-[11px] text-textMuted mt-1">Przeglądarkowe głosy Natural Microsoft / Google bez klucza API.</p>
+                    </button>
+                  </div>
                 </div>
 
+                {/* ELEVENLABS CONFIG */}
+                {ttsEngine === 'elevenlabs' && (
+                  <div className="p-4 rounded-xl border border-accentPrimary/30 bg-accentPrimary/5 space-y-3 animate-fade-in">
+                    <div>
+                      <label className="block text-xs font-semibold text-textPrimary font-sans mb-1.5">
+                        Klucz API ElevenLabs
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showElevenKey ? 'text' : 'password'}
+                          value={elevenLabsKey}
+                          onChange={(e) => updateElevenLabsKey(e.target.value)}
+                          placeholder="xi-api-key (np. 8f4e2... lub zdefiniuj ELEVENLABS_API_KEY w .env)"
+                          className="w-full bg-surface border border-border rounded-lg pl-3 pr-10 py-2 text-xs font-mono text-textPrimary placeholder:text-textMuted focus:outline-none focus:border-accentPrimary"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowElevenKey(!showElevenKey)}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-textMuted hover:text-textPrimary"
+                        >
+                          {showElevenKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-textMuted mt-1">
+                        Klucz jest zapisywany lokalnie lub pobierany z serwera. Jeśli brak klucza, system automatycznie używa silnika Web Neural.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-textPrimary font-sans mb-1.5">
+                        Profil Głosu ElevenLabs (Język Polski & Multilingual)
+                      </label>
+                      <select
+                        value={elevenVoiceId}
+                        onChange={(e) => updateElevenVoiceId(e.target.value)}
+                        className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-xs font-mono text-textPrimary focus:outline-none focus:border-accentPrimary"
+                      >
+                        {ELEVENLABS_DEFAULT_VOICES.map(v => (
+                          <option key={v.id} value={v.id}>{v.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* OPENAI TTS CONFIG */}
+                {ttsEngine === 'openai' && (
+                  <div className="p-4 rounded-xl border border-accentPrimary/30 bg-accentPrimary/5 space-y-3 animate-fade-in">
+                    <div>
+                      <label className="block text-xs font-semibold text-textPrimary font-sans mb-1.5">
+                        Klucz API OpenAI
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showOpenAiKey ? 'text' : 'password'}
+                          value={openAiTtsKey}
+                          onChange={(e) => updateOpenAiTtsKey(e.target.value)}
+                          placeholder="sk-... (lub zdefiniuj OPENAI_API_KEY w .env)"
+                          className="w-full bg-surface border border-border rounded-lg pl-3 pr-10 py-2 text-xs font-mono text-textPrimary placeholder:text-textMuted focus:outline-none focus:border-accentPrimary"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowOpenAiKey(!showOpenAiKey)}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-textMuted hover:text-textPrimary"
+                        >
+                          {showOpenAiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-textPrimary font-sans mb-1.5">
+                        Profil Głosu OpenAI
+                      </label>
+                      <select
+                        value={openAiVoiceId}
+                        onChange={(e) => updateOpenAiVoiceId(e.target.value)}
+                        className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-xs font-mono text-textPrimary focus:outline-none focus:border-accentPrimary"
+                      >
+                        {OPENAI_DEFAULT_VOICES.map(v => (
+                          <option key={v.id} value={v.id}>{v.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* WEB NEURAL CONFIG */}
+                {ttsEngine === 'web' && (
+                  <div className="p-4 rounded-xl border border-border/50 bg-black/20 space-y-3">
+                    <div>
+                      <p className="font-semibold text-textPrimary font-sans text-sm mb-1.5">Wybór Profilu Głosu Przeglądarki</p>
+                      <select 
+                        value={voicePref === 'paulina' ? 'female' : voicePref} 
+                        onChange={(e) => updateVoicePref(e.target.value)}
+                        className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-xs font-mono text-textPrimary focus:outline-none focus:border-accentPrimary"
+                      >
+                        <option value="female">Głos Damski (Paulina / Zofia Online Natural)</option>
+                        <option value="male">Głos Męski (Marek / Adam Online Natural)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <p className="font-semibold text-textPrimary font-sans text-sm mb-1">Prędkość mowy (Rate): {voiceRate.toFixed(1)}x</p>
+                      <input 
+                        type="range" 
+                        min="0.5" max="2.0" step="0.1" 
+                        value={voiceRate} 
+                        onChange={(e) => updateVoiceRate(parseFloat(e.target.value))}
+                        className="w-full accent-accentPrimary h-2 rounded-lg appearance-none bg-surface border border-border" 
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* NASŁUCH W TLE I PRZEJŚCIE DO CZATU */}
                 <div className="p-4 rounded-xl border border-accentPrimary/40 bg-accentPrimary/5">
                   <div className="flex items-center justify-between">
                     <div>
@@ -1038,20 +1230,20 @@ const SettingsPage = () => {
                         </span>
                       </div>
                       <p className="text-xs text-textMuted mt-1">
-                        Gdy strona jest otwarta, mikrofon nasłuchuje w tle. Po wypowiedzeniu "Hej Omni" asystent natychmiast pyta w czym pomóc i uruchamia tryb ciągłej rozmowy.
+                        Gdy strona jest otwarta, mikrofon nasłuchuje w tle. Po wypowiedzeniu "Hej Omni" aplikacja natychmiast przenosi Cię do czatu i aktywuje tryb ciągłej rozmowy z odpowiedzią głosową.
                       </p>
                     </div>
                     <Toggle value={wakeWordEnabled} onChange={updateWakeWord} />
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
-                    <span className="text-xs text-textMuted font-mono">Test interakcji głosowej:</span>
+                    <span className="text-xs text-textMuted font-mono">Test interakcji w czacie:</span>
                     <button
                       type="button"
-                      onClick={() => window.dispatchEvent(new CustomEvent('openLiveVoiceModal'))}
+                      onClick={handleTestLiveConversation}
                       className="px-3 py-1.5 rounded-lg bg-accentPrimary/20 text-accentPrimary hover:bg-accentPrimary/30 border border-accentPrimary/40 text-xs font-mono font-bold flex items-center gap-1.5 transition-colors"
                     >
-                      <Mic className="w-3.5 h-3.5" /> Uruchom tryb ciągłej rozmowy
+                      <Mic className="w-3.5 h-3.5" /> Przejdź do czatu na żywo
                     </button>
                   </div>
                 </div>
