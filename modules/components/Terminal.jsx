@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Terminal as TerminalIcon, Send, Code, BrainCircuit, Lightbulb, X, Mic, Loader2, Copy, Check, Radio, User, Sparkles, Volume2, VolumeX, ArrowDown, StopCircle } from 'lucide-react';
+import { Terminal as TerminalIcon, Send, Code, BrainCircuit, Lightbulb, X, Mic, MicOff, Loader2, Copy, Check, Radio, User, Sparkles, Volume2, VolumeX, ArrowDown, StopCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -17,7 +17,7 @@ import {
 } from './ChatInlineWidgets';
 import { useChatContext } from '../context/ChatContext';
 import { ttsService } from '../services/ttsService';
-import { wakeWordService } from '../services/wakeWordService';
+import { wakeWordService, isAcousticEcho } from '../services/wakeWordService';
 
 const QUICK_PROMPTS = [
   { label: '📋 Zadania To-Do', text: 'witam serdecznie co mamy dziś w todo?' },
@@ -78,12 +78,20 @@ const ChatMessage = ({ msg, mode = 'worker' }) => {
     if (isSpeaking) {
       ttsService.stop();
       setIsSpeaking(false);
+      wakeWordService.setAiSpeaking(false);
       return;
     }
+    wakeWordService.setAiSpeaking(true);
     ttsService.speak(msg.content || '', {
       onStart: () => setIsSpeaking(true),
-      onEnd: () => setIsSpeaking(false),
-      onError: () => setIsSpeaking(false)
+      onEnd: () => {
+        setIsSpeaking(false);
+        setTimeout(() => wakeWordService.setAiSpeaking(false), 500);
+      },
+      onError: () => {
+        setIsSpeaking(false);
+        wakeWordService.setAiSpeaking(false);
+      }
     });
   };
 
@@ -417,6 +425,9 @@ const Terminal = () => {
   const isSpeakingRef = useRef(false);
   const isListeningRef = useRef(false);
   const isProcessingSpeechRef = useRef(false);
+  const isAcousticCooldownRef = useRef(false);
+  const lastAiResponseTextRef = useRef('');
+  const aiSpeechEndTimeRef = useRef(0);
   const liveTranscriptRef = useRef('');
   const lastSpeechSentRef = useRef('');
   const liveRecognitionRef = useRef(null);
@@ -449,15 +460,22 @@ const Terminal = () => {
     }
     ttsService.stop();
     wakeWordService.setAiSpeaking(false);
+    wakeWordService.setLiveModeActive(false);
+
     isLiveModeRef.current = false;
     isSpeakingRef.current = false;
     isListeningRef.current = false;
     isProcessingSpeechRef.current = false;
+    isAcousticCooldownRef.current = false;
+    lastAiResponseTextRef.current = '';
+    aiSpeechEndTimeRef.current = 0;
+
     setIsLiveMode(false);
     setIsSpeaking(false);
     setIsListening(false);
     setIsProcessingSpeech(false);
     setLiveTranscript('');
+    liveTranscriptRef.current = '';
 
     if (sayGoodbye) {
       ttsService.speak('Do usłyszenia!', {
@@ -470,7 +488,16 @@ const Terminal = () => {
   };
 
   const startLiveListeningLoop = () => {
-    if (!isLiveModeRef.current || isSpeakingRef.current || isProcessingSpeechRef.current) return;
+    // BLOKADA: Nie uruchamiaj nasłuchu, jeśli asystent mówi, generuje odpowiedź lub trwa wygaszanie pogłosu
+    if (
+      !isLiveModeRef.current ||
+      isSpeakingRef.current ||
+      isProcessingSpeechRef.current ||
+      isAcousticCooldownRef.current ||
+      ttsService.isSpeaking()
+    ) {
+      return;
+    }
     if (typeof window === 'undefined' || !('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
       return;
     }
@@ -496,11 +523,41 @@ const Terminal = () => {
     recognition.maxAlternatives = 5;
 
     recognition.onstart = () => {
+      // Weryfikacja stanu w momencie rzeczywistego uruchomienia mikrofonu przez silnik przeglądarki
+      if (
+        !isLiveModeRef.current ||
+        isSpeakingRef.current ||
+        isProcessingSpeechRef.current ||
+        isAcousticCooldownRef.current ||
+        ttsService.isSpeaking()
+      ) {
+        try { recognition.abort(); } catch {}
+        isListeningRef.current = false;
+        setIsListening(false);
+        return;
+      }
       isListeningRef.current = true;
       setIsListening(true);
     };
 
     recognition.onresult = (event) => {
+      // BRAMKA BEZPIECZEŃSTWA: Całkowite wyciszenie i ignorowanie wejścia jeśli AI mówi lub przetwarza
+      if (
+        !isLiveModeRef.current ||
+        isSpeakingRef.current ||
+        isProcessingSpeechRef.current ||
+        isAcousticCooldownRef.current ||
+        ttsService.isSpeaking()
+      ) {
+        console.log('[LiveVoice 🔇 Muted] Zignorowano dźwięk – mikrofon wyciszony podczas mowy AI');
+        try { recognition.abort(); } catch {}
+        isListeningRef.current = false;
+        setIsListening(false);
+        setLiveTranscript('');
+        liveTranscriptRef.current = '';
+        return;
+      }
+
       let interim = '';
       let final = '';
       for (let i = 0; i < event.results.length; i++) {
@@ -512,13 +569,30 @@ const Terminal = () => {
         }
       }
       const currentSpeech = (final || interim).trim();
+
+      // FILTR ECHA AKUSTYCZNEGO (ACOUSTIC SELF-ECHO REJECTION):
+      // Jeśli przechwycony tekst to fragment odpowiedzi, którą asystent przed chwilą odtworzył przez głośniki
+      if (
+        lastAiResponseTextRef.current &&
+        (Date.now() - aiSpeechEndTimeRef.current < 5000) &&
+        isAcousticEcho(currentSpeech, lastAiResponseTextRef.current)
+      ) {
+        console.warn('[LiveVoice 🛡️ Echo Cancellation] Odrzucono echo z głośników:', currentSpeech);
+        setLiveTranscript('');
+        liveTranscriptRef.current = '';
+        return;
+      }
+
       liveTranscriptRef.current = currentSpeech;
       setLiveTranscript(currentSpeech);
 
       // 1. Zdarzenie ukończenia wypowiedzi przez przeglądarkę
       if (final.trim()) {
-        if (vadTimeoutRef.current) clearTimeout(vadTimeoutRef.current);
-        try { recognition.stop(); } catch {}
+        if (vadTimeoutRef.current) {
+          clearTimeout(vadTimeoutRef.current);
+          vadTimeoutRef.current = null;
+        }
+        try { recognition.abort(); } catch {}
         isListeningRef.current = false;
         setIsListening(false);
         lastSpeechSentRef.current = final.trim();
@@ -527,8 +601,6 @@ const Terminal = () => {
       }
 
       // 2. INTELIGENTNY DETEKTOR PAUZY (VAD) W HAŁASIE:
-      // W hałaśliwym otoczeniu (sala lekcyjna, tło) przeglądarka nigdy nie wyemituje isFinal.
-      // Odliczamy 750ms od ostatniego usłyszanego słowa – jeśli użytkownik zamilkł, natychmiast wysyłamy!
       if (currentSpeech.length >= 2) {
         if (vadTimeoutRef.current) clearTimeout(vadTimeoutRef.current);
         vadTimeoutRef.current = setTimeout(() => {
@@ -538,11 +610,25 @@ const Terminal = () => {
             speechToSend !== lastSpeechSentRef.current &&
             isLiveModeRef.current &&
             !isSpeakingRef.current &&
-            !isProcessingSpeechRef.current
+            !isProcessingSpeechRef.current &&
+            !isAcousticCooldownRef.current &&
+            !ttsService.isSpeaking()
           ) {
+            // Ponowna weryfikacja echa przed wysłaniem
+            if (
+              lastAiResponseTextRef.current &&
+              (Date.now() - aiSpeechEndTimeRef.current < 5000) &&
+              isAcousticEcho(speechToSend, lastAiResponseTextRef.current)
+            ) {
+              console.warn('[LiveVoice 🛡️ VAD Echo Cancel] Odrzucono echo w VAD:', speechToSend);
+              setLiveTranscript('');
+              liveTranscriptRef.current = '';
+              return;
+            }
+
             console.log('[LiveVoice ⚡ VAD Auto-Send on Pause]:', speechToSend);
             if (vadTimeoutRef.current) clearTimeout(vadTimeoutRef.current);
-            try { recognition.stop(); } catch {}
+            try { recognition.abort(); } catch {}
             isListeningRef.current = false;
             setIsListening(false);
             lastSpeechSentRef.current = speechToSend;
@@ -555,10 +641,23 @@ const Terminal = () => {
     recognition.onerror = (e) => {
       isListeningRef.current = false;
       setIsListening(false);
-      if (isLiveModeRef.current && e.error !== 'aborted' && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
+      if (
+        isLiveModeRef.current &&
+        e.error !== 'aborted' &&
+        !isSpeakingRef.current &&
+        !isProcessingSpeechRef.current &&
+        !isAcousticCooldownRef.current &&
+        !ttsService.isSpeaking()
+      ) {
         if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
         restartTimeoutRef.current = setTimeout(() => {
-          if (isLiveModeRef.current && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
+          if (
+            isLiveModeRef.current &&
+            !isSpeakingRef.current &&
+            !isProcessingSpeechRef.current &&
+            !isAcousticCooldownRef.current &&
+            !ttsService.isSpeaking()
+          ) {
             startLiveListeningLoop();
           }
         }, 500);
@@ -569,9 +668,23 @@ const Terminal = () => {
       isListeningRef.current = false;
       setIsListening(false);
 
-      // Zabezpieczenie dla cichej mowy: jeśli użytkownik mówił cicho i przeglądarka zakończyła nasłuch na interim bez isFinal
+      if (
+        !isLiveModeRef.current ||
+        isSpeakingRef.current ||
+        isProcessingSpeechRef.current ||
+        isAcousticCooldownRef.current ||
+        ttsService.isSpeaking()
+      ) {
+        return;
+      }
+
+      // Zabezpieczenie dla cichej mowy
       const pendingSpeech = liveTranscriptRef.current ? liveTranscriptRef.current.trim() : '';
-      if (pendingSpeech && pendingSpeech !== lastSpeechSentRef.current && isLiveModeRef.current && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
+      if (
+        pendingSpeech &&
+        pendingSpeech !== lastSpeechSentRef.current &&
+        !isAcousticEcho(pendingSpeech, lastAiResponseTextRef.current)
+      ) {
         lastSpeechSentRef.current = pendingSpeech;
         liveTranscriptRef.current = '';
         setLiveTranscript('');
@@ -579,14 +692,18 @@ const Terminal = () => {
         return;
       }
 
-      if (isLiveModeRef.current && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
-        if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
-        restartTimeoutRef.current = setTimeout(() => {
-          if (isLiveModeRef.current && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
-            startLiveListeningLoop();
-          }
-        }, 200);
-      }
+      if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = setTimeout(() => {
+        if (
+          isLiveModeRef.current &&
+          !isSpeakingRef.current &&
+          !isProcessingSpeechRef.current &&
+          !isAcousticCooldownRef.current &&
+          !ttsService.isSpeaking()
+        ) {
+          startLiveListeningLoop();
+        }
+      }, 200);
     };
 
     liveRecognitionRef.current = recognition;
@@ -598,6 +715,30 @@ const Terminal = () => {
   const handleLiveUserSpeech = async (userText) => {
     if (!userText || !userText.trim()) return;
 
+    // 1. NATYCHMIASTOWE WYCISZENIE MIKROFONU I PRZERWANIE RECOGNITION
+    if (vadTimeoutRef.current) {
+      clearTimeout(vadTimeoutRef.current);
+      vadTimeoutRef.current = null;
+    }
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
+    }
+    if (liveRecognitionRef.current) {
+      try {
+        liveRecognitionRef.current.onstart = null;
+        liveRecognitionRef.current.onresult = null;
+        liveRecognitionRef.current.onerror = null;
+        liveRecognitionRef.current.onend = null;
+        liveRecognitionRef.current.abort();
+      } catch {}
+      liveRecognitionRef.current = null;
+    }
+    isListeningRef.current = false;
+    setIsListening(false);
+    setLiveTranscript('');
+    liveTranscriptRef.current = '';
+
     // Sprawdzenie słów kluczowych zakończenia rozmowy
     const lower = userText.toLowerCase().trim();
     const isExit = EXIT_PHRASES.some(phrase => lower === phrase || lower.startsWith(phrase + ' '));
@@ -608,15 +749,17 @@ const Terminal = () => {
 
     isProcessingSpeechRef.current = true;
     setIsProcessingSpeech(true);
+    wakeWordService.setAiSpeaking(true);
 
     try {
       const responseObj = await sendCommand(userText);
       const text = typeof responseObj === 'string' ? responseObj : (responseObj?.content || '');
 
+      lastAiResponseTextRef.current = text;
       isProcessingSpeechRef.current = false;
       setIsProcessingSpeech(false);
 
-      // Odtwarzanie odpowiedzi głosowej
+      // Odtwarzanie odpowiedzi głosowej z aktywnym wyciszeniem mikrofonu
       isSpeakingRef.current = true;
       setIsSpeaking(true);
       wakeWordService.setAiSpeaking(true);
@@ -625,34 +768,67 @@ const Terminal = () => {
         onStart: () => {
           isSpeakingRef.current = true;
           setIsSpeaking(true);
+          wakeWordService.setAiSpeaking(true);
+          // Gwarancja braku aktywnego nasłuchu w trakcie mowy asystenta
+          if (liveRecognitionRef.current) {
+            try { liveRecognitionRef.current.abort(); } catch {}
+            liveRecognitionRef.current = null;
+          }
         },
         onEnd: () => {
+          aiSpeechEndTimeRef.current = Date.now();
           isSpeakingRef.current = false;
           setIsSpeaking(false);
+          isAcousticCooldownRef.current = true;
           wakeWordService.setAiSpeaking(false);
           setLiveTranscript('');
+          liveTranscriptRef.current = '';
+
+          // OCHRONA PRZED ECHEM AKUSTYCZNYM (ACOUSTIC TAIL GUARD):
+          // Czekamy 600ms po zakończeniu mowy z głośników na całkowite wygaszenie fali dźwiękowej i pogłosu
           if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
           restartTimeoutRef.current = setTimeout(() => {
-            if (isLiveModeRef.current) {
+            isAcousticCooldownRef.current = false;
+            if (isLiveModeRef.current && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
+              startLiveListeningLoop();
+            }
+          }, 600);
+        },
+        onError: () => {
+          aiSpeechEndTimeRef.current = Date.now();
+          isSpeakingRef.current = false;
+          setIsSpeaking(false);
+          isAcousticCooldownRef.current = false;
+          wakeWordService.setAiSpeaking(false);
+          if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+          restartTimeoutRef.current = setTimeout(() => {
+            if (isLiveModeRef.current && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
               startLiveListeningLoop();
             }
           }, 400);
-        },
-        onError: () => {
-          isSpeakingRef.current = false;
-          setIsSpeaking(false);
-          wakeWordService.setAiSpeaking(false);
-          if (isLiveModeRef.current) {
-            startLiveListeningLoop();
-          }
         }
       });
     } catch (err) {
       console.error('[Terminal LiveVoice] Błąd zapytania:', err);
       isProcessingSpeechRef.current = false;
       setIsProcessingSpeech(false);
+      isSpeakingRef.current = true;
+      setIsSpeaking(true);
       ttsService.speak('Przepraszam, wystąpił błąd podczas przetwarzania zapytania.', {
         onEnd: () => {
+          aiSpeechEndTimeRef.current = Date.now();
+          isSpeakingRef.current = false;
+          setIsSpeaking(false);
+          wakeWordService.setAiSpeaking(false);
+          if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+          restartTimeoutRef.current = setTimeout(() => {
+            if (isLiveModeRef.current) startLiveListeningLoop();
+          }, 500);
+        },
+        onError: () => {
+          isSpeakingRef.current = false;
+          setIsSpeaking(false);
+          wakeWordService.setAiSpeaking(false);
           if (isLiveModeRef.current) startLiveListeningLoop();
         }
       });
@@ -660,6 +836,7 @@ const Terminal = () => {
   };
 
   const enterLiveMode = (initialPayload = '') => {
+    wakeWordService.setLiveModeActive(true);
     wakeWordService.stop();
     setIsLiveMode(true);
     isLiveModeRef.current = true;
@@ -668,7 +845,6 @@ const Terminal = () => {
     if (initialPayload && initialPayload.trim()) {
       handleLiveUserSpeech(initialPayload.trim());
     } else {
-      // Natychmiastowy nasłuch bez opóźnień i bez blokowania mikrofonu przez powitanie
       startLiveListeningLoop();
     }
   };
@@ -812,40 +988,73 @@ const Terminal = () => {
         )}
       </div>
 
-      {/* LIVE VOICE BAR - Tryb Ciągłej Rozmowy */}
+      {/* LIVE VOICE BAR - Tryb Ciągłej Rozmowy z Wyciszeniem Mikrofonu Podczas Mowy AI */}
       {isLiveMode && (
-        <div className="mb-3 p-3 sm:p-3.5 rounded-2xl bg-gradient-to-r from-accentPrimary/15 via-surface/95 to-accentPrimary/5 border border-accentPrimary/40 shadow-lg shadow-accentPrimary/5 flex items-center justify-between gap-3 animate-fade-in shrink-0">
+        <div className={`mb-3 p-3 sm:p-3.5 rounded-2xl border transition-all duration-300 shadow-lg flex items-center justify-between gap-3 animate-fade-in shrink-0 ${
+          isSpeaking 
+            ? 'bg-gradient-to-r from-red-500/15 via-surface/95 to-red-500/5 border-red-500/40 shadow-red-500/10'
+            : isProcessingSpeech
+              ? 'bg-gradient-to-r from-blue-500/15 via-surface/95 to-blue-500/5 border-blue-500/40 shadow-blue-500/10'
+              : 'bg-gradient-to-r from-accentPrimary/15 via-surface/95 to-accentPrimary/5 border-accentPrimary/40 shadow-accentPrimary/5'
+        }`}>
           <div className="flex items-center gap-3 min-w-0">
-            <div className="relative flex items-center justify-center w-8 h-8 rounded-xl bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/40 shrink-0">
+            <div className={`relative flex items-center justify-center w-8 h-8 rounded-xl shrink-0 transition-colors ${
+              isSpeaking
+                ? 'bg-red-500/20 text-red-400 border border-red-500/40'
+                : isProcessingSpeech
+                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
+                  : 'bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/40'
+            }`}>
               {isSpeaking ? (
-                <Volume2 className="w-4 h-4 animate-bounce" />
+                <MicOff className="w-4 h-4 text-red-400 animate-pulse" />
               ) : isProcessingSpeech ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
               ) : (
-                <Mic className="w-4 h-4 animate-pulse" />
+                <Mic className="w-4 h-4 text-accentPrimary animate-pulse" />
               )}
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-accentPrimary animate-ping" />
+              {isSpeaking && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+              )}
+              {!isSpeaking && !isProcessingSpeech && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-accentPrimary animate-ping" />
+              )}
             </div>
 
             <div className="min-w-0 flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-accentPrimary tracking-wider uppercase">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`font-mono text-xs font-bold tracking-wider uppercase ${
+                  isSpeaking ? 'text-red-300' : isProcessingSpeech ? 'text-blue-300' : 'text-accentPrimary'
+                }`}>
                   {isSpeaking 
-                    ? (mode === 'mentor' ? 'OMNI MIND // MÓWI...' : 'OMNI EXEC // MÓWI...') 
+                    ? (mode === 'mentor' ? 'OMNI MIND // ODPOWIADA...' : 'OMNI EXEC // ODPOWIADA...') 
                     : isProcessingSpeech 
                       ? (mode === 'mentor' ? 'OMNI MIND // ANALIZUJE...' : 'OMNI EXEC // PRZETWARZA...') 
                       : (mode === 'mentor' ? 'OMNI MIND // SŁUCHA...' : 'OMNI EXEC // SŁUCHA...')}
                 </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/40 font-semibold">
-                  TRYB CIĄGŁY
-                </span>
+                {isSpeaking && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-500/25 text-red-200 border border-red-500/40 font-bold flex items-center gap-1 animate-pulse">
+                    <MicOff className="w-3 h-3" /> MIKROFON WYCISZONY (AI MÓWI)
+                  </span>
+                )}
+                {isProcessingSpeech && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-200 border border-blue-500/40 font-semibold">
+                    PRZETWARZANIE
+                  </span>
+                )}
+                {!isSpeaking && !isProcessingSpeech && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/40 font-semibold flex items-center gap-1">
+                    <Mic className="w-3 h-3" /> MIKROFON AKTYWNY
+                  </span>
+                )}
               </div>
               <p className="text-xs text-textMuted truncate italic font-mono mt-0.5">
                 {liveTranscript 
                   ? `"${liveTranscript}"` 
                   : isSpeaking 
-                    ? 'Odtwarzanie odpowiedzi głosowej...' 
-                    : 'Mów do mikrofonu (powiedz "dziękuję" lub "stop" aby zakończyć)...'}
+                    ? 'Mikrofon wyciszony, aby asystent nie słyszał samego siebie z głośników...' 
+                    : isProcessingSpeech
+                      ? 'Generowanie odpowiedzi...'
+                      : 'Mów do mikrofonu (powiedz "dziękuję" lub "stop" aby zakończyć)...'}
               </p>
             </div>
           </div>
@@ -856,7 +1065,7 @@ const Terminal = () => {
                 type="button"
                 onClick={() => {
                   if (vadTimeoutRef.current) clearTimeout(vadTimeoutRef.current);
-                  try { liveRecognitionRef.current?.stop(); } catch {}
+                  try { liveRecognitionRef.current?.abort(); } catch {}
                   isListeningRef.current = false;
                   setIsListening(false);
                   const toSend = liveTranscript.trim();

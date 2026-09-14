@@ -14,6 +14,7 @@ export default function VoiceInspectorHUD() {
   const [isFinal, setIsFinal] = useState(false);
   const [speechCount, setSpeechCount] = useState(0);
   const [micVolume, setMicVolume] = useState(0);
+  const [isAiSpeaking, setIsAiSpeaking] = useState(() => Boolean(wakeWordService.isAiSpeaking));
 
   useEffect(() => {
     const handleToggle = (e) => {
@@ -41,16 +42,22 @@ export default function VoiceInspectorHUD() {
       }
     };
 
+    const handleAiSpeaking = (e) => {
+      setIsAiSpeaking(Boolean(e.detail?.isSpeaking));
+    };
+
     window.addEventListener('toggleVoiceInspector', handleToggle);
     window.addEventListener('omniSpeechHeard', handleSpeech);
     window.addEventListener('wakeWordStatusChanged', handleStatus);
     window.addEventListener('omniMicVolume', handleVolume);
+    window.addEventListener('omniAiSpeaking', handleAiSpeaking);
 
     return () => {
       window.removeEventListener('toggleVoiceInspector', handleToggle);
       window.removeEventListener('omniSpeechHeard', handleSpeech);
       window.removeEventListener('wakeWordStatusChanged', handleStatus);
       window.removeEventListener('omniMicVolume', handleVolume);
+      window.removeEventListener('omniAiSpeaking', handleAiSpeaking);
     };
   }, []);
 
@@ -101,8 +108,10 @@ export default function VoiceInspectorHUD() {
           <span className="text-xs font-bold tracking-wider uppercase text-accentPrimary">
             OmniVoice Live HUD
           </span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-textMuted font-mono">
-            {isListening ? 'ONLINE' : 'OFFLINE'}
+          <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+            isAiSpeaking ? 'bg-red-500/20 text-red-300 border border-red-500/40 font-bold animate-pulse' : 'bg-white/10 text-textMuted'
+          }`}>
+            {isAiSpeaking ? '🔇 AI MÓWI' : isListening ? 'ONLINE' : 'OFFLINE'}
           </span>
         </div>
 
@@ -123,15 +132,25 @@ export default function VoiceInspectorHUD() {
       <div className="space-y-2 text-xs">
         <div className="flex items-center justify-between text-[11px] text-textMuted">
           <span>Status mikrofonu:</span>
-          <span className={`font-bold uppercase ${
-            isListening ? 'text-accentPrimary' : isPermDenied ? 'text-red-400' : 'text-amber-400'
+          <span className={`font-bold uppercase flex items-center gap-1 ${
+            isAiSpeaking ? 'text-red-400' : isListening ? 'text-accentPrimary' : isPermDenied ? 'text-red-400' : 'text-amber-400'
           }`}>
-            {isListening ? '● Nasłuchuje (Słucham)' : isPermDenied ? '❌ Zablokowany' : `● ${status}`}
+            {isAiSpeaking ? (
+              <>
+                <MicOff className="w-3.5 h-3.5 animate-pulse" /> 🔇 Wyciszony (AI mówi)
+              </>
+            ) : isListening ? (
+              '● Nasłuchuje (Słucham)'
+            ) : isPermDenied ? (
+              '❌ Zablokowany'
+            ) : (
+              `● ${status}`
+            )}
           </span>
         </div>
 
         {/* PRZYCISK OD RAZU WŁĄCZAJĄCY MIKROFON JEŚLI NIE NASŁUCHUJE */}
-        {!isListening && (
+        {!isListening && !isAiSpeaking && (
           <button
             type="button"
             onClick={async () => {
@@ -155,6 +174,7 @@ export default function VoiceInspectorHUD() {
         {/* WSKAŹNIK POZIOMU AUDIO (VU METER) */}
         <div 
           onClick={async () => {
+            if (isAiSpeaking) return;
             if (window.__OMNI_VOICE__) {
               await window.__OMNI_VOICE__.requestMic();
             } else {
@@ -162,26 +182,28 @@ export default function VoiceInspectorHUD() {
             }
           }}
           className="p-2.5 rounded-xl bg-black/60 border border-white/10 space-y-1.5 cursor-pointer hover:border-accentPrimary/40 transition-colors"
-          title="Kliknij tutaj, aby odblokować i przetestować wejście mikrofonu"
+          title={isAiSpeaking ? "Mikrofon wyciszony podczas mowy asystenta" : "Kliknij tutaj, aby odblokować i przetestować wejście mikrofonu"}
         >
           <div className="flex items-center justify-between text-[10px] font-mono text-textMuted">
             <span className="flex items-center gap-1.5">
-              <Activity className={`w-3.5 h-3.5 ${micVolume > 5 ? 'text-accentPrimary animate-pulse' : 'text-textMuted'}`} />
+              <Activity className={`w-3.5 h-3.5 ${!isAiSpeaking && micVolume > 5 ? 'text-accentPrimary animate-pulse' : 'text-textMuted'}`} />
               Wejście mikrofonu:
             </span>
-            <span className={`font-bold ${micVolume > 35 ? 'text-accentPrimary' : micVolume > 5 ? 'text-amber-300' : 'text-textMuted'}`}>
-              {micVolume > 0 ? `${micVolume}%` : '0% (Cisza)'}
+            <span className={`font-bold ${
+              isAiSpeaking ? 'text-red-400' : micVolume > 35 ? 'text-accentPrimary' : micVolume > 5 ? 'text-amber-300' : 'text-textMuted'
+            }`}>
+              {isAiSpeaking ? '0% (Wyciszony)' : micVolume > 0 ? `${micVolume}%` : '0% (Cisza)'}
             </span>
           </div>
           <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/5">
             <div 
               className={`h-full rounded-full transition-all duration-75 ${
-                micVolume > 40 ? 'bg-accentPrimary shadow-[0_0_8px_rgba(var(--color-accent-primary),0.8)]' : micVolume > 5 ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]' : 'bg-white/20'
+                isAiSpeaking ? 'bg-red-500/40' : micVolume > 40 ? 'bg-accentPrimary shadow-[0_0_8px_rgba(var(--color-accent-primary),0.8)]' : micVolume > 5 ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]' : 'bg-white/20'
               }`}
-              style={{ width: `${Math.max(2, micVolume)}%` }}
+              style={{ width: `${isAiSpeaking ? 2 : Math.max(2, micVolume)}%` }}
             />
           </div>
-          {micVolume === 0 && (
+          {micVolume === 0 && !isAiSpeaking && (
             <p className="text-[9px] text-textMuted/70 text-center">
               💡 Kliknij ten pasek, jeśli wskaźnik nie reaguje na Twój głos
             </p>

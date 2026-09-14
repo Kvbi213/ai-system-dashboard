@@ -3,7 +3,8 @@ import {
   isWakeWord,
   extractWakeWordPayload,
   cleanTextForSpeech,
-  normalizeSpeechText
+  normalizeSpeechText,
+  isAcousticEcho
 } from '../modules/services/wakeWordService.js';
 
 describe('Wake Word Service ("Hej Omni")', () => {
@@ -124,6 +125,34 @@ describe('Wake Word Service ("Hej Omni")', () => {
       expect(output).toContain('jest bezchmurnie');
       expect(output).not.toContain('☀️');
       expect(output).not.toContain('🚀');
+    });
+  });
+
+  describe('isAcousticEcho (Eliminacja echa własnego AI z głośników)', () => {
+    it('powinien wykrywać dokładne fragmenty i podciągi wypowiedzi AI', () => {
+      const aiResponse = 'Witaj! Jestem asystentem Omni. W czym mogę Ci dzisiaj pomóc?';
+      expect(isAcousticEcho('jestem asystentem omni', aiResponse)).toBe(true);
+      expect(isAcousticEcho('w czym mogę ci dzisiaj pomóc', aiResponse)).toBe(true);
+      expect(isAcousticEcho('witaj jestem asystentem', aiResponse)).toBe(true);
+    });
+
+    it('powinien wykrywać echa o wysokim pokryciu słów (>60%)', () => {
+      const aiResponse = 'Dzisiaj w Warszawie jest osiemnaście stopni i słoneczna pogoda.';
+      expect(isAcousticEcho('warszawie osiemnaście stopni słoneczna', aiResponse)).toBe(true);
+    });
+
+    it('nie powinien odrzucać nowego polecenia użytkownika', () => {
+      const aiResponse = 'Witaj! Jestem asystentem Omni. W czym mogę Ci dzisiaj pomóc?';
+      expect(isAcousticEcho('jaka jest dzisiaj pogoda', aiResponse)).toBe(false);
+      expect(isAcousticEcho('dodaj zadanie do zrobienia', aiResponse)).toBe(false);
+      expect(isAcousticEcho('ile mam kasy', aiResponse)).toBe(false);
+      expect(isAcousticEcho('dziękuję to wszystko', aiResponse)).toBe(false);
+    });
+
+    it('powinien ignorować puste wejścia', () => {
+      expect(isAcousticEcho('', 'Tekst AI')).toBe(false);
+      expect(isAcousticEcho('Tekst', '')).toBe(false);
+      expect(isAcousticEcho(null, undefined)).toBe(false);
     });
   });
 });

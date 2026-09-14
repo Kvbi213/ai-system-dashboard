@@ -1,5 +1,25 @@
 ## Wersja Bieżąca
-**v2.18.4**
+**v2.18.5**
+
+## v 2.18.5 — 2026-09-14
+**Typ:** PATCH  
+**Zakres:** Eliminacja Sprzężenia Akustycznego (Acoustic Self-Echo Cancellation), Aktywne Wyciszanie Mikrofonu Podczas Mowy AI, Bufor Wygaszania Pogłosu (Acoustic Tail Guard Cooldown 600ms) oraz Wizualna Sygnalizacja Stanu Wyciszenia w Interfejsie.
+
+### Zmiany
+- [+] Dodano: Algorytm tłumienia echa akustycznego `isAcousticEcho(spokenText, aiText)` w `modules/services/wakeWordService.js`, weryfikujący podciągi i pokrycie leksykalne (>60%) wypowiedzi asystenta i neutralizujący rejestrację dźwięku emitowanego z głośników.
+- [+] Dodano: Bufor wygaszania pogłosu akustycznego (Acoustic Tail Guard Cooldown 600ms) po zakończeniu syntezy mowy `ttsService.speak` w `modules/components/Terminal.jsx`, eliminujący przechwytywanie rewerberacji fali dźwiękowej z pomieszczenia/laptopa.
+- [+] Dodano: Dedykowana sygnalizacja wyciszenia w `LiveVoiceBar` w `Terminal.jsx` z pulsującą czerwoną ikoną `MicOff`, etykietą `[MIKROFON WYCISZONY (AI MÓWI)]` oraz statusem blokady.
+- [+] Dodano: Reakcja widżetu `VoiceInspectorHUD.jsx` na zdarzenie `omniAiSpeaking` – wyświetlanie stanu `🔇 Wyciszony (AI mówi)` oraz wytłumienie wskaźnika poziomu VU do 0%.
+- [+] Dodano: 4 nowe testy jednostkowe w `tests/wakeword.test.js` badające precyzję filtrowania echa i brak fałszywych odrzuceń nowych komend.
+- [*] Zmodyfikowano: Natychmiastowy abort `liveRecognitionRef.current.abort()` i czyszczenie buforów/timerów w `handleLiveUserSpeech` w momencie rozpoczęcia przetwarzania i mówienia.
+- [*] Zmodyfikowano: Zabezpieczenie przed równoległym wznawianiem `wakeWordService` w tle podczas aktywnego trybu ciągłej rozmowy (`setLiveModeActive`).
+- [*] Zmodyfikowano: `package.json` – podniesiono wersję do `2.18.5`.
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.18.5.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.18.4 — 2026-09-14
 **Typ:** PATCH  

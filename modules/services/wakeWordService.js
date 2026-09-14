@@ -99,6 +99,44 @@ export function cleanTextForSpeech(str) {
     .trim();
 }
 
+/**
+ * Sprawdza czy transkrypcja mowy z mikrofonu stanowi echo akustyczne wypowiedzi AI
+ * (zapobiega zapętleniu, w którym asystent odpowiada na własne słowa emitowane przez głośniki).
+ */
+export function isAcousticEcho(spokenText, aiText) {
+  if (!spokenText || !aiText || typeof spokenText !== 'string' || typeof aiText !== 'string') {
+    return false;
+  }
+  const cleanSpoken = spokenText
+    .toLowerCase()
+    .replace(/[.,/#!$%^&*;:{}=\-_`~()?]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const cleanAi = aiText
+    .toLowerCase()
+    .replace(/[.,/#!$%^&*;:{}=\-_`~()?]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (cleanSpoken.length < 3 || cleanAi.length < 3) return false;
+
+  // 1. Bezpośrednie zawieranie (podciąg)
+  if (cleanAi.includes(cleanSpoken)) return true;
+
+  // 2. Jeśli wypowiedź użytkownika to min. 2 słowa i znaczna większość tych słów występuje w tekście AI
+  const spokenWords = cleanSpoken.split(' ').filter(w => w.length >= 2);
+  if (spokenWords.length === 0) return false;
+
+  const aiWordsSet = new Set(cleanAi.split(' ').filter(w => w.length >= 2));
+  const matchedWords = spokenWords.filter(w => aiWordsSet.has(w));
+
+  if (spokenWords.length >= 2 && (matchedWords.length / spokenWords.length) >= 0.6) {
+    return true;
+  }
+
+  return false;
+}
+
 class WakeWordService {
   constructor() {
     this.recognition = null;
@@ -108,6 +146,7 @@ class WakeWordService {
     this.isStopping = false;
     this.isPaused = false;
     this.isAiSpeaking = false;
+    this.isLiveModeActive = false;
     this.consecutiveErrors = 0;
     this.restartTimeout = null;
     this.callbacks = new Set();
@@ -145,12 +184,27 @@ class WakeWordService {
     }
   }
 
+  setLiveModeActive(active) {
+    this.isLiveModeActive = Boolean(active);
+    if (this.isLiveModeActive) {
+      this.pause();
+    } else {
+      if (this.isEnabled() && !this.isAiSpeaking) {
+        this.resume();
+      }
+    }
+  }
+
   setAiSpeaking(isSpeaking) {
     this.isAiSpeaking = Boolean(isSpeaking);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('omniAiSpeaking', { detail: { isSpeaking: this.isAiSpeaking } }));
+    }
     if (this.isAiSpeaking) {
       this.pause();
     } else {
-      if (this.isEnabled()) {
+      // Jeśli jesteśmy w trybie ciągłej rozmowy w Terminalu, nie wznawiaj wakeWordService w tle
+      if (this.isEnabled() && !this.isLiveModeActive) {
         this.resume();
       }
     }
@@ -460,10 +514,10 @@ class WakeWordService {
 
   scheduleRestart(delay = 100) {
     if (this.restartTimeout) clearTimeout(this.restartTimeout);
-    if (!this.isEnabled() || this.isPaused || this.isAiSpeaking) return;
+    if (!this.isEnabled() || this.isPaused || this.isAiSpeaking || this.isLiveModeActive) return;
 
     this.restartTimeout = setTimeout(() => {
-      if (!this.isListening && !this.isStarting && !this.isPaused && this.isEnabled() && !this.isAiSpeaking) {
+      if (!this.isListening && !this.isStarting && !this.isPaused && this.isEnabled() && !this.isAiSpeaking && !this.isLiveModeActive) {
         this.start();
       }
     }, delay);
@@ -506,7 +560,7 @@ class WakeWordService {
       console.log('[OmniVoice] Nasłuch wyłączony w konfiguracji systemowej (system_wake_word_enabled = false).');
       return;
     }
-    if (this.isListening || this.isStarting || this.isAiSpeaking) return;
+    if (this.isListening || this.isStarting || this.isAiSpeaking || this.isLiveModeActive) return;
 
     this.isPaused = false;
     this.isStarting = true;
