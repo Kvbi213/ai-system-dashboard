@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mic, MicOff, AlertCircle, X, Sparkles, RefreshCw, Terminal, CheckCircle2 } from 'lucide-react';
+import { Mic, MicOff, AlertCircle, X, Sparkles, RefreshCw, Terminal, CheckCircle2, Activity } from 'lucide-react';
 import { wakeWordService } from '../services/wakeWordService';
 
 export default function VoiceInspectorHUD() {
@@ -13,6 +13,7 @@ export default function VoiceInspectorHUD() {
   const [latestMatched, setLatestMatched] = useState(false);
   const [isFinal, setIsFinal] = useState(false);
   const [speechCount, setSpeechCount] = useState(0);
+  const [micVolume, setMicVolume] = useState(0);
 
   useEffect(() => {
     const handleToggle = (e) => {
@@ -34,14 +35,22 @@ export default function VoiceInspectorHUD() {
       }
     };
 
+    const handleVolume = (e) => {
+      if (e.detail?.volume !== undefined) {
+        setMicVolume(e.detail.volume);
+      }
+    };
+
     window.addEventListener('toggleVoiceInspector', handleToggle);
     window.addEventListener('omniSpeechHeard', handleSpeech);
     window.addEventListener('wakeWordStatusChanged', handleStatus);
+    window.addEventListener('omniMicVolume', handleVolume);
 
     return () => {
       window.removeEventListener('toggleVoiceInspector', handleToggle);
       window.removeEventListener('omniSpeechHeard', handleSpeech);
       window.removeEventListener('wakeWordStatusChanged', handleStatus);
+      window.removeEventListener('omniMicVolume', handleVolume);
     };
   }, []);
 
@@ -141,6 +150,28 @@ export default function VoiceInspectorHUD() {
           >
             <Mic className="w-4 h-4 animate-pulse" /> WŁĄCZ MIKROFON (KLIKNIJ)
           </button>
+        )}
+
+        {/* WSKAŹNIK POZIOMU AUDIO (VU METER) */}
+        {isListening && (
+          <div className="p-2 rounded-xl bg-black/60 border border-white/10 space-y-1">
+            <div className="flex items-center justify-between text-[10px] font-mono text-textMuted">
+              <span className="flex items-center gap-1">
+                <Activity className="w-3 h-3 text-accentPrimary" /> Poziom wejścia audio:
+              </span>
+              <span className={`font-bold ${micVolume > 40 ? 'text-accentPrimary' : micVolume > 8 ? 'text-amber-300' : 'text-textMuted'}`}>
+                {micVolume > 0 ? `${micVolume}%` : 'Cisza (0%)'}
+              </span>
+            </div>
+            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+              <div 
+                className={`h-full rounded-full transition-all duration-75 ${
+                  micVolume > 50 ? 'bg-amber-400' : micVolume > 8 ? 'bg-accentPrimary' : 'bg-white/20'
+                }`}
+                style={{ width: `${Math.max(2, micVolume)}%` }}
+              />
+            </div>
+          </div>
         )}
 
         {/* PODGLĄD CO MIKROFON SŁYSZY NA ŻYWO */}

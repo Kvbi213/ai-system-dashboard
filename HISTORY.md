@@ -1,5 +1,24 @@
 ## Wersja Bieżąca
-**v2.18.3**
+**v2.18.4**
+
+## v 2.18.4 — 2026-09-14
+**Typ:** PATCH  
+**Zakres:** Ultra-Czuły Nasłuch Cichej Mowy i Szeptu (Matryca Fonetyczna "o mnie" / "omini" / "asystent"), Eliminacja Deadlocka `setAiSpeaking` (Trwałe Uciszenie Asystenta), Wskaźnik Poziomu Wejścia Audio Na Żywo (Live VU Meter) oraz Natychmiastowy Nasłuch w Live Voice Mode.
+
+### Zmiany
+- [+] Dodano: Ultra-szeroka matryca fonetyczna w `modules/services/wakeWordService.js` obsługująca szept i cichą mowę: wykrywanie zwrotów `o mnie`, `omini`, `oni`, `on mi`, `asystent`, `asystencie`, `komputer`, `hejka o mnie`, `hej mommy`, `hej mami` oraz pytań złożonych bez wymogu głośnego krzyczenia w klasie.
+- [+] Dodano: Wskaźnik poziomu audio na żywo (Live VU Meter 0–100%) oparty o `AudioContext` i `AnalyserNode` w `VoiceInspectorHUD.jsx`, zapewniający natychmiastową wizualną informację zwrotną o czułości mikrofonu.
+- [*] Zmodyfikowano: Wyeliminowano krytyczny deadlock w `setAiSpeaking` w `wakeWordService.js`, który powodował trwałe zablokowanie nasłuchu w stanie paused po pierwszej odpowiedzi AI.
+- [*] Zmodyfikowano: Wyłączono programowe tłumienie szumów WebRTC (`noiseSuppression: false`), które w salach lekcyjnych usuwało cichy szept jako szum tła.
+- [*] Zmodyfikowano: W `modules/components/Terminal.jsx` usunięto blokujące powitanie głosowe przy `enterLiveMode` – mikrofon natychmiast rozpoczyna nasłuch bez opóźnień, a próg VAD zredukowano do 650ms.
+- [*] Zmodyfikowano: Rozszerzono zestaw testów jednostkowych w `tests/wakeword.test.js`.
+- [*] Zmodyfikowano: `package.json` – podniesiono wersję do `2.18.4`.
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.18.4.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.18.3 — 2026-09-14
 **Typ:** PATCH  

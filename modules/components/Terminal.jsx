@@ -548,7 +548,7 @@ const Terminal = () => {
             lastSpeechSentRef.current = speechToSend;
             handleLiveUserSpeech(speechToSend);
           }
-        }, 750);
+        }, 650);
       }
     };
 
@@ -668,39 +668,8 @@ const Terminal = () => {
     if (initialPayload && initialPayload.trim()) {
       handleLiveUserSpeech(initialPayload.trim());
     } else {
-      const greeting = mode === 'mentor' 
-        ? 'Słucham. W czym mogę pomóc?' 
-        : 'Cześć! W czym mogę pomóc?';
-      
-      isSpeakingRef.current = true;
-      setIsSpeaking(true);
-      wakeWordService.setAiSpeaking(true);
-
-      ttsService.speak(greeting, {
-        onStart: () => {
-          isSpeakingRef.current = true;
-          setIsSpeaking(true);
-        },
-        onEnd: () => {
-          isSpeakingRef.current = false;
-          setIsSpeaking(false);
-          wakeWordService.setAiSpeaking(false);
-          if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
-          restartTimeoutRef.current = setTimeout(() => {
-            if (isLiveModeRef.current) {
-              startLiveListeningLoop();
-            }
-          }, 400);
-        },
-        onError: () => {
-          isSpeakingRef.current = false;
-          setIsSpeaking(false);
-          wakeWordService.setAiSpeaking(false);
-          if (isLiveModeRef.current) {
-            startLiveListeningLoop();
-          }
-        }
-      });
+      // Natychmiastowy nasłuch bez opóźnień i bez blokowania mikrofonu przez powitanie
+      startLiveListeningLoop();
     }
   };
 

@@ -4,17 +4,21 @@
  * detekcję słowa wybudzającego oraz bezkolizyjne zarządzanie Web Speech API.
  */
 
-const GREETINGS = '(?:hej|hey|ej|halo|ok|okej|siema|cześć|czesc|witaj|yo|joł)';
-const TARGETS = '(?:omni|omnia|omnik|omnie|omnis|oni|o\\s+mnie|on\\s+mi|omi|ommi|olmi|obni|ovni|homi|tomi|tommy|pomnik)';
+const GREETINGS = '(?:hej|hey|ej|halo|ok|okej|siema|siemanko|cześć|czesc|witaj|yo|joł|hejka|słuchaj|sluchaj|mordo|ziom)';
+const TARGETS = '(?:omnidash|asystencie|asystent|komputer|omnik|omnis|omnia|omnie|omini|ommi|omni|oni|on\\s+mi|o\\s+mnie|do\\s+mnie|pomnik|mommy|mami|tomi|tommy|homi|olmi|obni|ovni|omi)';
 
 // Wzorce słowa wybudzającego (uwzględniające specyfikę fonetyczną Google Web Speech API w j. polskim)
 const WAKE_WORD_PATTERNS = [
-  // Powitanie + cel fonetyczny (np. "hej omni", "hej oni", "hej o mnie", "ej o mnie", "cześć omni")
+  // 1. Powitanie + cel fonetyczny (np. "hej omni", "hej oni", "hej o mnie", "ej o mnie", "cześć omni", "hejka o mnie")
   new RegExp(`(?:^|\\s)${GREETINGS}\\s+${TARGETS}(?:dash|a)?(?:\\s|$|[!?,.])`, 'i'),
-  // Samodzielne słowo o wysokiej pewności (np. "omni", "omnie", "omnia", "omnik", "omnidash")
-  /(?:^|\s)omni(?:dash|a|k|e|s)?(?:\s|$|[!?,.])/i,
-  // Złożenia dwuwyrazowe fonetyczne (np. "ej omni", "hej omi")
-  /(?:^|\s)(?:hej|hey|ej)\s+(?:omi|ommi|homi|tomi|pomnik)(?:\s|$|[!?,.])/i
+  // 2. Samodzielne słowo o wysokiej pewności (np. "omni", "omnie", "omnia", "omnik", "omnidash", "omini", "asystent", "komputer")
+  /(?:^|\s)(?:omni|omnidash|omnia|omnik|omnie|omnis|omini|asystent|asystencie|komputer)(?:\s|$|[!?,.])/i,
+  // 3. Złożenia dwuwyrazowe fonetyczne (np. "ej omni", "hej omi", "hej mommy", "hej mami")
+  /(?:^|\s)(?:hej|hey|ej|hejka)\s+(?:omi|ommi|homi|tomi|pomnik|mommy|mami)(?:\s|$|[!?,.])/i,
+  // 4. Fonetyczne substytuty "o mnie" / "on mi" / "oni" na początku wypowiedzi (częsty zapis cichej mowy w Google Speech)
+  /^(?:o\s+mnie|on\s+mi|oni)(?:\s|$|[!?,.])/i,
+  // 5. Złożenia fonetyczne z bezpośrednim pytaniem (np. "o mnie jaka jest pogoda", "omini co tam")
+  /(?:^|\s)(?:o\s+mnie|on\s+mi|oni)\s+(?:jaka|jaki|jak|co|ile|kiedy|gdzie|dlaczego|kto|czy|pokaż|pokaz|zrób|zrob|powiedz|dodaj|otwórz|otworz|wyjaśnij|sprawdź|podsumuj)/i
 ];
 
 /**
@@ -38,7 +42,7 @@ export function isWakeWord(transcript) {
   if (!normalized) return false;
 
   // 1. Zawsze dopasuj, jeśli transkrypcja zawiera "omni" lub jego fonetyczne zbitki
-  if (/(?:^|\s)(?:omni|omnidash|omnia|omnie|omnis|hejomni|ejomni|heyomni)(?:$|\s|[!?,.])/i.test(normalized)) {
+  if (/(?:^|\s)(?:omni|omnidash|omnia|omnie|omnis|hejomni|ejomni|heyomni|omini|asystent|asystencie|komputer)(?:$|\s|[!?,.])/i.test(normalized)) {
     return true;
   }
 
@@ -55,10 +59,19 @@ export function extractWakeWordPayload(transcript) {
   const clean = transcript.trim();
   if (!isWakeWord(clean)) return '';
 
-  const pattern = new RegExp(`^(?:${GREETINGS})?\\s*(?:${TARGETS})(?:dash|a)?\\s*[!?,.:;\\-_]*\\s*(.*)$`, 'i');
-  const match = clean.match(pattern);
-  if (match && match[1]) {
-    return match[1].replace(/^[!?,.:;\-_]+\s*/, '').trim();
+  const prefixPatterns = [
+    new RegExp(`^(?:${GREETINGS})?\\s*(?:${TARGETS})(?:dash|a)?\\s*[!?,.:;\\-_]*\\s*(.*)$`, 'i'),
+    /^(?:omnidash|asystencie|asystent|komputer|omnik|omnis|omnia|omnie|omini|omni)\s*[!?,.:;\-_]*\s*(.*)$/i,
+    /^(?:hejomni|ejomni|heyomni)\s*[!?,.:;\-_]*\s*(.*)$/i,
+    /^(?:o\s+mnie|on\s+mi|oni)\s*[!?,.:;\-_]*\s*(.*)$/i
+  ];
+
+  for (const pat of prefixPatterns) {
+    const m = clean.match(pat);
+    if (m && m[1] !== undefined) {
+      const payload = m[1].replace(/^[!?,.:;\-_]+\s*/, '').trim();
+      return payload;
+    }
   }
   return '';
 }
@@ -102,6 +115,9 @@ class WakeWordService {
     this.status = 'idle'; // 'idle' | 'listening' | 'paused' | 'detected' | 'error' | 'unsupported' | 'permission-denied'
     this.history = [];
     this.hasLoggedStart = false;
+    this.audioContext = null;
+    this.meterAnimFrame = null;
+    this.volumeLevel = 0;
 
     this.initRecognition();
     this.setupDevToolsInspector();
@@ -134,8 +150,8 @@ class WakeWordService {
     if (this.isAiSpeaking) {
       this.pause();
     } else {
-      if (!this.isPaused && this.isEnabled()) {
-        this.scheduleRestart(400);
+      if (this.isEnabled()) {
+        this.resume();
       }
     }
   }
@@ -172,8 +188,8 @@ class WakeWordService {
   }
 
   /**
-   * Ciche podtrzymanie strumienia audio mikrofonu (Warm Stream)
-   * Zapobiega klikom systemowym, powiadomieniom i przełączaniu urządzenia w OS przy restartach Web Speech API
+   * Ciche podtrzymanie strumienia audio mikrofonu (Warm Stream) & Analiza poziomu VU
+   * Wyłączenie tłumienia programowego WebRTC pozwala na wychwycenie cichego szeptu i mowy bez krzyku.
    */
   async acquireSilentAudioStream(forcePrompt = false) {
     if (this.micStream && !forcePrompt) return;
@@ -183,12 +199,13 @@ class WakeWordService {
       this.micStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
-          noiseSuppression: true, // Włączenie redukcji szumów – filtruje hałas tła, klimatyzacji i sali lekcyjnej
-          autoGainControl: true,
+          noiseSuppression: false, // WAŻNE: wyłączenie programowej bramki szumów – zapobiega wyciszaniu szeptu!
+          autoGainControl: true,   // Wzmocnienie cichej mowy
           channelCount: 1
         }
       });
       console.log('%c[OmniVoice 🎤] Strumień mikrofonu podtrzymany pomyślnie.', 'color: #00FF66; font-size: 11px;');
+      this.setupAudioMeter();
     } catch (err) {
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         console.warn('%c[OmniVoice ⚠️] Brak uprawnień do mikrofonu (getUserMedia rejected). Zezwól na dostęp w przeglądarce.', 'color: #FFB800;');
@@ -199,12 +216,64 @@ class WakeWordService {
     }
   }
 
+  setupAudioMeter() {
+    if (!this.micStream || typeof window === 'undefined') return;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!this.audioContext || this.audioContext.state === 'closed') {
+        this.audioContext = new AudioCtx();
+      }
+      if (this.audioContext.state === 'suspended') {
+        this.audioContext.resume().catch(() => {});
+      }
+      const source = this.audioContext.createMediaStreamSource(this.micStream);
+      const analyser = this.audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.4;
+      source.connect(analyser);
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      const updateVolume = () => {
+        if (!this.micStream) {
+          this.volumeLevel = 0;
+          return;
+        }
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          sum += dataArray[i];
+        }
+        const avg = sum / dataArray.length;
+        const normalizedVol = Math.min(100, Math.round((avg / 128) * 100));
+        this.volumeLevel = normalizedVol;
+
+        window.dispatchEvent(new CustomEvent('omniMicVolume', { detail: { volume: normalizedVol } }));
+        this.meterAnimFrame = requestAnimationFrame(updateVolume);
+      };
+      if (this.meterAnimFrame && typeof cancelAnimationFrame !== 'undefined') {
+        cancelAnimationFrame(this.meterAnimFrame);
+      }
+      this.meterAnimFrame = requestAnimationFrame(updateVolume);
+    } catch (e) {
+      console.warn('[OmniVoice] Nie udało się zainicjować miernika VU audio:', e);
+    }
+  }
+
   releaseSilentAudioStream() {
+    if (this.meterAnimFrame && typeof cancelAnimationFrame !== 'undefined') {
+      cancelAnimationFrame(this.meterAnimFrame);
+      this.meterAnimFrame = null;
+    }
     if (this.micStream) {
       try {
         this.micStream.getTracks().forEach(track => track.stop());
       } catch {}
       this.micStream = null;
+    }
+    this.volumeLevel = 0;
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('omniMicVolume', { detail: { volume: 0 } }));
     }
   }
 
@@ -512,6 +581,7 @@ class WakeWordService {
         consecutiveErrors: this.consecutiveErrors,
         language: this.recognition?.lang || 'pl-PL',
         hasMicStream: Boolean(this.micStream),
+        volumeLevel: this.volumeLevel,
         history: [...this.history]
       }),
       history: this.history,
