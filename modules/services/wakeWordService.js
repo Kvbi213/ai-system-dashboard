@@ -147,11 +147,12 @@ class WakeWordService {
     this.isPaused = false;
     this.isAiSpeaking = false;
     this.isLiveModeActive = false;
+    this.isManualMuted = false;
     this.consecutiveErrors = 0;
     this.restartTimeout = null;
     this.callbacks = new Set();
     this.statusListeners = new Set();
-    this.status = 'idle'; // 'idle' | 'listening' | 'paused' | 'detected' | 'error' | 'unsupported' | 'permission-denied'
+    this.status = 'idle'; // 'idle' | 'listening' | 'paused' | 'detected' | 'error' | 'unsupported' | 'permission-denied' | 'muted'
     this.history = [];
     this.hasLoggedStart = false;
     this.audioContext = null;
@@ -184,12 +185,48 @@ class WakeWordService {
     }
   }
 
+  toggleMute() {
+    this.isManualMuted = !this.isManualMuted;
+    if (this.isManualMuted) {
+      this.pause();
+      this.status = 'muted';
+      this.notifyStatus('muted');
+    } else {
+      this.status = 'idle';
+      if (this.isEnabled() && !this.isLiveModeActive && !this.isAiSpeaking) {
+        this.resume();
+      }
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('omniMicMuteChanged', { detail: { isMuted: this.isManualMuted } }));
+    }
+    return this.isManualMuted;
+  }
+
+  setMuted(muted) {
+    this.isManualMuted = Boolean(muted);
+    if (this.isManualMuted) {
+      this.pause();
+      this.status = 'muted';
+      this.notifyStatus('muted');
+    } else {
+      this.status = 'idle';
+      if (this.isEnabled() && !this.isLiveModeActive && !this.isAiSpeaking) {
+        this.resume();
+      }
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('omniMicMuteChanged', { detail: { isMuted: this.isManualMuted } }));
+    }
+    return this.isManualMuted;
+  }
+
   setLiveModeActive(active) {
     this.isLiveModeActive = Boolean(active);
     if (this.isLiveModeActive) {
       this.pause();
     } else {
-      if (this.isEnabled() && !this.isAiSpeaking) {
+      if (this.isEnabled() && !this.isAiSpeaking && !this.isManualMuted) {
         this.resume();
       }
     }
@@ -514,10 +551,10 @@ class WakeWordService {
 
   scheduleRestart(delay = 100) {
     if (this.restartTimeout) clearTimeout(this.restartTimeout);
-    if (!this.isEnabled() || this.isPaused || this.isAiSpeaking || this.isLiveModeActive) return;
+    if (!this.isEnabled() || this.isPaused || this.isAiSpeaking || this.isLiveModeActive || this.isManualMuted) return;
 
     this.restartTimeout = setTimeout(() => {
-      if (!this.isListening && !this.isStarting && !this.isPaused && this.isEnabled() && !this.isAiSpeaking && !this.isLiveModeActive) {
+      if (!this.isListening && !this.isStarting && !this.isPaused && this.isEnabled() && !this.isAiSpeaking && !this.isLiveModeActive && !this.isManualMuted) {
         this.start();
       }
     }, delay);
@@ -560,7 +597,7 @@ class WakeWordService {
       console.log('[OmniVoice] Nasłuch wyłączony w konfiguracji systemowej (system_wake_word_enabled = false).');
       return;
     }
-    if (this.isListening || this.isStarting || this.isAiSpeaking || this.isLiveModeActive) return;
+    if (this.isListening || this.isStarting || this.isAiSpeaking || this.isLiveModeActive || this.isManualMuted) return;
 
     this.isPaused = false;
     this.isStarting = true;
@@ -699,6 +736,8 @@ class WakeWordService {
       resumeAudio: () => this.resumeAudioContext(),
       enable: () => this.setEnabled(true),
       disable: () => this.setEnabled(false),
+      mute: () => this.toggleMute(),
+      isMuted: () => this.isManualMuted,
       showInspector: () => {
         localStorage.setItem('system_voice_debug_visible', 'true');
         window.dispatchEvent(new CustomEvent('toggleVoiceInspector', { detail: { visible: true } }));

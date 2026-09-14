@@ -1,5 +1,26 @@
 ## Wersja Bieżąca
-**v2.18.5**
+**v2.18.6**
+
+## v 2.18.6 — 2026-09-14
+**Typ:** PATCH  
+**Zakres:** Studyjna Synteza Mowy ElevenLabs (API Integration, Polish Multilingual v2, Studio Voices), Manualne Wyciszanie Mikrofonu (Mute/Unmute Toggle w LiveVoiceBar, Chat Toolbarze i VoiceInspectorHUD) oraz Automatyczna Kaskada TTS.
+
+### Zmiany
+- [+] Dodano: Pełna integracja z ElevenLabs Text-to-Speech API (`eleven_multilingual_v2`) w `modules/services/ttsService.js` z obsługą głosów studyjnych: Adam (`pNInz6obpgDQGcFmaJgB`), Antoni (`ErXwobaYiN019PkySvjV`), Rachel (`21m00Tcm4TlvDq8ikWAM`) oraz Sarah (`EXAVITQu4vr4xnSDxMaL`).
+- [+] Dodano: Automatyczna kaskada silników TTS (*multi-tier fallback*): `elevenlabs` -> `edge` (Microsoft Neural) -> `web` (Web Speech API) przy wykryciu klucza w środowisku lub magazynie lokalnym.
+- [+] Dodano: Dedykowany przycisk `[Wycisz] / [Odcisz]` w pasku `LiveVoiceBar` w `modules/components/Terminal.jsx`, natychmiastowo przerywający i wstrzymujący pętlę ciągłego nasłuchu z bursztynowym wyróżnieniem `[WYCISZONY (MANUALNIE)]`.
+- [+] Dodano: Szybki przycisk wyciszania mikrofonu w toolbarze formularza czatu obok trybu ciągłego i dyktafonu w `Terminal.jsx`, sterujący stanem globalnego nasłuchu `wakeWordService`.
+- [+] Dodano: Pełnowymiarowy przycisk `WYCISZ MIKROFON (MUTE)` / `ODCISZ MIKROFON` w widżecie diagnostycznym `VoiceInspectorHUD.jsx`.
+- [+] Dodano: Flaga `isManualMuted`, metody `toggleMute()` / `setMuted()` oraz dystrybucja zdarzenia `omniMicMuteChanged` w `modules/services/wakeWordService.js`.
+- [*] Zmodyfikowano: Konfiguracja `.env` i `.env.example` o parametry `ELEVENLABS_API_KEY` oraz `VITE_ELEVENLABS_API_KEY`.
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` – automatyczne wczytywanie klucza ElevenLabs ze zmiennych środowiskowych i domyślne ustawianie studyjnego silnika TTS.
+- [*] Zmodyfikowano: `package.json` – podniesiono wersję do `2.18.6`.
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.18.6.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.18.5 — 2026-09-14
 **Typ:** PATCH  

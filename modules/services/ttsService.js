@@ -15,11 +15,12 @@ export const EDGE_DEFAULT_VOICES = [
 ];
 
 export const ELEVENLABS_DEFAULT_VOICES = [
-  { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam (Męski - Głęboki/Narracyjny)' },
-  { id: 'ErXwobaYiN019PkySvjV', name: 'Antoni (Męski - Spokojny/Ciepły)' },
+  { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam (Męski - Głęboki Studio / Polski Naturalny)' },
+  { id: 'ErXwobaYiN019PkySvjV', name: 'Antoni (Męski - Spokojny / Polski)' },
   { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel (Damski - Naturalny/Ciepły)' },
-  { id: 'piTKgcLEGmPE4e6mEKli', name: 'Nicole (Damski - Profesjonalny)' },
-  { id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold (Męski - Wyrazisty/Mocny)' }
+  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah (Damski - Profesjonalny Studio)' },
+  { id: 'piTKgcLEGmPE4e6mEKli', name: 'Nicole (Damski - Wyrazisty)' },
+  { id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold (Męski - Mocny)' }
 ];
 
 export const OPENAI_DEFAULT_VOICES = [
@@ -46,10 +47,13 @@ class TTSService {
   }
 
   getEngine() {
-    if (typeof localStorage === 'undefined') return 'edge';
-    const stored = localStorage.getItem('system_tts_engine');
-    if (!stored || stored === 'web') return 'edge'; // Domyślnie ultra-realistyczny Microsoft Edge Neural
-    return stored; // 'edge' | 'elevenlabs' | 'openai' | 'web'
+    if (typeof localStorage !== 'undefined') {
+      const stored = localStorage.getItem('system_tts_engine');
+      if (stored) return stored; // 'elevenlabs' | 'edge' | 'openai' | 'web'
+    }
+    // Domyślnie ElevenLabs jeśli skonfigurowany jest klucz, w przeciwnym razie Microsoft Edge Neural
+    if (this.getElevenLabsKey()) return 'elevenlabs';
+    return 'edge';
   }
 
   setEngine(engine) {
@@ -58,8 +62,14 @@ class TTSService {
   }
 
   getElevenLabsKey() {
-    if (typeof localStorage === 'undefined') return '';
-    return localStorage.getItem('system_elevenlabs_api_key') || '';
+    if (typeof localStorage !== 'undefined') {
+      const stored = localStorage.getItem('system_elevenlabs_api_key');
+      if (stored && stored.trim()) return stored.trim();
+    }
+    const envKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ELEVENLABS_API_KEY) ||
+                   (typeof process !== 'undefined' && process.env?.ELEVENLABS_API_KEY) ||
+                   '';
+    return envKey.trim();
   }
 
   getOpenAiKey() {
@@ -129,18 +139,7 @@ class TTSService {
 
     const engine = this.getEngine();
 
-    // 1. SILNIK MICROSOFT EDGE NEURAL (DOMYŚLNY / DARMOWY / STUDIO QUALITY)
-    if (engine === 'edge') {
-      const voiceId = this.getVoiceId();
-      try {
-        await this.speakWithEdgeTTS(clean, voiceId, { onStart, onEnd, onError });
-        return;
-      } catch (err) {
-        console.warn('[TTSService] Błąd Edge TTS, przejście do silnika rezerwowego Web Speech:', err.message);
-      }
-    }
-
-    // 2. SILNIK ELEVENLABS
+    // 1. SILNIK ELEVENLABS (STUDIO HYPER-REALISTIC QUALITY)
     if (engine === 'elevenlabs') {
       const apiKey = this.getElevenLabsKey();
       const voiceId = this.getVoiceId();
@@ -149,7 +148,24 @@ class TTSService {
         await this.speakWithElevenLabs(clean, apiKey, voiceId, { onStart, onEnd, onError });
         return;
       } catch (err) {
-        console.warn('[TTSService] Błąd ElevenLabs, przejście do silnika rezerwowego Web Neural:', err.message);
+        console.warn('[TTSService] Błąd ElevenLabs, przejście do silnika rezerwowego Edge TTS:', err.message);
+        try {
+          await this.speakWithEdgeTTS(clean, localStorage.getItem('system_edge_voice_id') || 'pl-PL-MarekNeural', { onStart, onEnd, onError });
+          return;
+        } catch (edgeErr) {
+          console.warn('[TTSService] Błąd Edge TTS, przejście do silnika rezerwowego Web Speech:', edgeErr.message);
+        }
+      }
+    }
+
+    // 2. SILNIK MICROSOFT EDGE NEURAL (BEZPŁATNY / STUDIO QUALITY)
+    if (engine === 'edge') {
+      const voiceId = this.getVoiceId();
+      try {
+        await this.speakWithEdgeTTS(clean, voiceId, { onStart, onEnd, onError });
+        return;
+      } catch (err) {
+        console.warn('[TTSService] Błąd Edge TTS, przejście do silnika rezerwowego Web Speech:', err.message);
       }
     }
 

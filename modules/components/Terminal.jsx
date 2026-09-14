@@ -420,12 +420,15 @@ const Terminal = () => {
   const [isListening, setIsListening] = useState(false);
   const [isProcessingSpeech, setIsProcessingSpeech] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState('');
+  const [isManualMuted, setIsManualMuted] = useState(false);
+  const [isGlobalMuted, setIsGlobalMuted] = useState(() => Boolean(wakeWordService.isManualMuted));
 
   const isLiveModeRef = useRef(false);
   const isSpeakingRef = useRef(false);
   const isListeningRef = useRef(false);
   const isProcessingSpeechRef = useRef(false);
   const isAcousticCooldownRef = useRef(false);
+  const isManualMutedRef = useRef(false);
   const lastAiResponseTextRef = useRef('');
   const aiSpeechEndTimeRef = useRef(0);
   const liveTranscriptRef = useRef('');
@@ -438,6 +441,43 @@ const Terminal = () => {
     'stop', 'koniec', 'dziękuję', 'dziekuje', 'dzięki', 'dzieki',
     'zamknij', 'to wszystko', 'anuluj', 'wyłącz', 'do widzenia', 'nara'
   ];
+
+  const toggleMicMute = () => {
+    const nextMuted = !isManualMutedRef.current;
+    isManualMutedRef.current = nextMuted;
+    setIsManualMuted(nextMuted);
+
+    if (nextMuted) {
+      console.log('[Terminal LiveVoice 🔇] Mikrofon wyciszony manualnie przez operatora');
+      if (vadTimeoutRef.current) {
+        clearTimeout(vadTimeoutRef.current);
+        vadTimeoutRef.current = null;
+      }
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
+        restartTimeoutRef.current = null;
+      }
+      if (liveRecognitionRef.current) {
+        try {
+          liveRecognitionRef.current.onstart = null;
+          liveRecognitionRef.current.onresult = null;
+          liveRecognitionRef.current.onerror = null;
+          liveRecognitionRef.current.onend = null;
+          liveRecognitionRef.current.abort();
+        } catch {}
+        liveRecognitionRef.current = null;
+      }
+      isListeningRef.current = false;
+      setIsListening(false);
+      setLiveTranscript('');
+      liveTranscriptRef.current = '';
+    } else {
+      console.log('[Terminal LiveVoice 🎙️] Mikrofon odciszony przez operatora – wznawianie nasłuchu');
+      if (isLiveModeRef.current && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
+        startLiveListeningLoop();
+      }
+    }
+  };
 
   const stopLiveMode = (sayGoodbye = false) => {
     if (vadTimeoutRef.current) {
@@ -467,6 +507,7 @@ const Terminal = () => {
     isListeningRef.current = false;
     isProcessingSpeechRef.current = false;
     isAcousticCooldownRef.current = false;
+    isManualMutedRef.current = false;
     lastAiResponseTextRef.current = '';
     aiSpeechEndTimeRef.current = 0;
 
@@ -474,6 +515,7 @@ const Terminal = () => {
     setIsSpeaking(false);
     setIsListening(false);
     setIsProcessingSpeech(false);
+    setIsManualMuted(false);
     setLiveTranscript('');
     liveTranscriptRef.current = '';
 
@@ -488,9 +530,10 @@ const Terminal = () => {
   };
 
   const startLiveListeningLoop = () => {
-    // BLOKADA: Nie uruchamiaj nasłuchu, jeśli asystent mówi, generuje odpowiedź lub trwa wygaszanie pogłosu
+    // BLOKADA: Nie uruchamiaj nasłuchu, jeśli asystent mówi, generuje odpowiedź, mikrofon jest wyciszony lub trwa wygaszanie pogłosu
     if (
       !isLiveModeRef.current ||
+      isManualMutedRef.current ||
       isSpeakingRef.current ||
       isProcessingSpeechRef.current ||
       isAcousticCooldownRef.current ||
@@ -526,6 +569,7 @@ const Terminal = () => {
       // Weryfikacja stanu w momencie rzeczywistego uruchomienia mikrofonu przez silnik przeglądarki
       if (
         !isLiveModeRef.current ||
+        isManualMutedRef.current ||
         isSpeakingRef.current ||
         isProcessingSpeechRef.current ||
         isAcousticCooldownRef.current ||
@@ -541,15 +585,16 @@ const Terminal = () => {
     };
 
     recognition.onresult = (event) => {
-      // BRAMKA BEZPIECZEŃSTWA: Całkowite wyciszenie i ignorowanie wejścia jeśli AI mówi lub przetwarza
+      // BRAMKA BEZPIECZEŃSTWA: Całkowite wyciszenie i ignorowanie wejścia jeśli AI mówi, przetwarza lub wyciszono mikrofon
       if (
         !isLiveModeRef.current ||
+        isManualMutedRef.current ||
         isSpeakingRef.current ||
         isProcessingSpeechRef.current ||
         isAcousticCooldownRef.current ||
         ttsService.isSpeaking()
       ) {
-        console.log('[LiveVoice 🔇 Muted] Zignorowano dźwięk – mikrofon wyciszony podczas mowy AI');
+        console.log('[LiveVoice 🔇 Muted] Zignorowano dźwięk – mikrofon wyciszony');
         try { recognition.abort(); } catch {}
         isListeningRef.current = false;
         setIsListening(false);
@@ -670,6 +715,7 @@ const Terminal = () => {
 
       if (
         !isLiveModeRef.current ||
+        isManualMutedRef.current ||
         isSpeakingRef.current ||
         isProcessingSpeechRef.current ||
         isAcousticCooldownRef.current ||
@@ -869,12 +915,19 @@ const Terminal = () => {
       }
     };
 
+    const handleMicMuteChanged = (e) => {
+      const muted = Boolean(e.detail?.isMuted);
+      setIsGlobalMuted(muted);
+    };
+
     window.addEventListener('startContinuousLiveVoice', handleStartContinuous);
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('omniMicMuteChanged', handleMicMuteChanged);
 
     return () => {
       window.removeEventListener('startContinuousLiveVoice', handleStartContinuous);
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('omniMicMuteChanged', handleMicMuteChanged);
       stopLiveMode(false);
     };
   }, [mode]);
@@ -991,31 +1044,40 @@ const Terminal = () => {
       {/* LIVE VOICE BAR - Tryb Ciągłej Rozmowy z Wyciszeniem Mikrofonu Podczas Mowy AI */}
       {isLiveMode && (
         <div className={`mb-3 p-3 sm:p-3.5 rounded-2xl border transition-all duration-300 shadow-lg flex items-center justify-between gap-3 animate-fade-in shrink-0 ${
-          isSpeaking 
-            ? 'bg-gradient-to-r from-red-500/15 via-surface/95 to-red-500/5 border-red-500/40 shadow-red-500/10'
-            : isProcessingSpeech
-              ? 'bg-gradient-to-r from-blue-500/15 via-surface/95 to-blue-500/5 border-blue-500/40 shadow-blue-500/10'
-              : 'bg-gradient-to-r from-accentPrimary/15 via-surface/95 to-accentPrimary/5 border-accentPrimary/40 shadow-accentPrimary/5'
+          isManualMuted
+            ? 'bg-gradient-to-r from-amber-500/15 via-surface/95 to-amber-500/5 border-amber-500/40 shadow-amber-500/10'
+            : isSpeaking 
+              ? 'bg-gradient-to-r from-red-500/15 via-surface/95 to-red-500/5 border-red-500/40 shadow-red-500/10'
+              : isProcessingSpeech
+                ? 'bg-gradient-to-r from-blue-500/15 via-surface/95 to-blue-500/5 border-blue-500/40 shadow-blue-500/10'
+                : 'bg-gradient-to-r from-accentPrimary/15 via-surface/95 to-accentPrimary/5 border-accentPrimary/40 shadow-accentPrimary/5'
         }`}>
           <div className="flex items-center gap-3 min-w-0">
             <div className={`relative flex items-center justify-center w-8 h-8 rounded-xl shrink-0 transition-colors ${
-              isSpeaking
-                ? 'bg-red-500/20 text-red-400 border border-red-500/40'
-                : isProcessingSpeech
-                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
-                  : 'bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/40'
+              isManualMuted
+                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                : isSpeaking
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/40'
+                  : isProcessingSpeech
+                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
+                    : 'bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/40'
             }`}>
-              {isSpeaking ? (
+              {isManualMuted ? (
+                <MicOff className="w-4 h-4 text-amber-400" />
+              ) : isSpeaking ? (
                 <MicOff className="w-4 h-4 text-red-400 animate-pulse" />
               ) : isProcessingSpeech ? (
                 <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
               ) : (
                 <Mic className="w-4 h-4 text-accentPrimary animate-pulse" />
               )}
+              {isManualMuted && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500" />
+              )}
               {isSpeaking && (
                 <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
               )}
-              {!isSpeaking && !isProcessingSpeech && (
+              {!isManualMuted && !isSpeaking && !isProcessingSpeech && (
                 <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-accentPrimary animate-ping" />
               )}
             </div>
@@ -1023,44 +1085,53 @@ const Terminal = () => {
             <div className="min-w-0 flex flex-col">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className={`font-mono text-xs font-bold tracking-wider uppercase ${
-                  isSpeaking ? 'text-red-300' : isProcessingSpeech ? 'text-blue-300' : 'text-accentPrimary'
+                  isManualMuted ? 'text-amber-300' : isSpeaking ? 'text-red-300' : isProcessingSpeech ? 'text-blue-300' : 'text-accentPrimary'
                 }`}>
-                  {isSpeaking 
-                    ? (mode === 'mentor' ? 'OMNI MIND // ODPOWIADA...' : 'OMNI EXEC // ODPOWIADA...') 
-                    : isProcessingSpeech 
-                      ? (mode === 'mentor' ? 'OMNI MIND // ANALIZUJE...' : 'OMNI EXEC // PRZETWARZA...') 
-                      : (mode === 'mentor' ? 'OMNI MIND // SŁUCHA...' : 'OMNI EXEC // SŁUCHA...')}
+                  {isManualMuted
+                    ? 'MIKROFON // WYCISZONY'
+                    : isSpeaking 
+                      ? (mode === 'mentor' ? 'OMNI MIND // ODPOWIADA...' : 'OMNI EXEC // ODPOWIADA...') 
+                      : isProcessingSpeech 
+                        ? (mode === 'mentor' ? 'OMNI MIND // ANALIZUJE...' : 'OMNI EXEC // PRZETWARZA...') 
+                        : (mode === 'mentor' ? 'OMNI MIND // SŁUCHA...' : 'OMNI EXEC // SŁUCHA...')}
                 </span>
-                {isSpeaking && (
+                {isManualMuted && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/25 text-amber-200 border border-amber-500/40 font-bold flex items-center gap-1">
+                    <MicOff className="w-3 h-3" /> WYCISZONY (MANUALNIE)
+                  </span>
+                )}
+                {!isManualMuted && isSpeaking && (
                   <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-500/25 text-red-200 border border-red-500/40 font-bold flex items-center gap-1 animate-pulse">
                     <MicOff className="w-3 h-3" /> MIKROFON WYCISZONY (AI MÓWI)
                   </span>
                 )}
-                {isProcessingSpeech && (
+                {!isManualMuted && isProcessingSpeech && (
                   <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-200 border border-blue-500/40 font-semibold">
                     PRZETWARZANIE
                   </span>
                 )}
-                {!isSpeaking && !isProcessingSpeech && (
+                {!isManualMuted && !isSpeaking && !isProcessingSpeech && (
                   <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/40 font-semibold flex items-center gap-1">
                     <Mic className="w-3 h-3" /> MIKROFON AKTYWNY
                   </span>
                 )}
               </div>
               <p className="text-xs text-textMuted truncate italic font-mono mt-0.5">
-                {liveTranscript 
-                  ? `"${liveTranscript}"` 
-                  : isSpeaking 
-                    ? 'Mikrofon wyciszony, aby asystent nie słyszał samego siebie z głośników...' 
-                    : isProcessingSpeech
-                      ? 'Generowanie odpowiedzi...'
-                      : 'Mów do mikrofonu (powiedz "dziękuję" lub "stop" aby zakończyć)...'}
+                {isManualMuted
+                  ? 'Mikrofon wyciszony (kliknij "Odcisz", aby wznowić rozmowę)...'
+                  : liveTranscript 
+                    ? `"${liveTranscript}"` 
+                    : isSpeaking 
+                      ? 'Mikrofon wyciszony, aby asystent nie słyszał samego siebie z głośników...' 
+                      : isProcessingSpeech
+                        ? 'Generowanie odpowiedzi...'
+                        : 'Mów do mikrofonu (powiedz "dziękuję" lub "stop" aby zakończyć)...'}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {liveTranscript && !isSpeaking && !isProcessingSpeech && (
+            {liveTranscript && !isManualMuted && !isSpeaking && !isProcessingSpeech && (
               <button
                 type="button"
                 onClick={() => {
@@ -1079,6 +1150,19 @@ const Terminal = () => {
                 <span>Wyślij</span>
               </button>
             )}
+            <button
+              type="button"
+              onClick={toggleMicMute}
+              className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-semibold flex items-center gap-1.5 transition-all active:scale-95 ${
+                isManualMuted
+                  ? 'bg-amber-500/20 hover:bg-amber-500/30 border-amber-500/50 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
+                  : 'bg-surface hover:bg-surface/80 border-border/80 text-textMuted hover:text-textPrimary'
+              }`}
+              title={isManualMuted ? "Odcisz mikrofon" : "Wycisz mikrofon"}
+            >
+              {isManualMuted ? <Mic className="w-3.5 h-3.5 text-amber-300" /> : <MicOff className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">{isManualMuted ? "Odcisz" : "Wycisz"}</span>
+            </button>
             <button
               type="button"
               onClick={() => stopLiveMode(true)}
@@ -1164,6 +1248,18 @@ const Terminal = () => {
           title={t("termContinuousMode", "Tryb ciągłej rozmowy")}
         >
           <Radio className="w-4 h-4" />
+        </button>
+        <button 
+          type="button" 
+          onClick={() => wakeWordService.toggleMute()}
+          className={`p-1.5 sm:p-2 rounded-full transition-all flex items-center justify-center shrink-0 active:scale-95 ${
+            isGlobalMuted
+              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-[0_0_8px_rgba(245,158,11,0.2)]'
+              : 'text-textMuted hover:text-accentPrimary hover:bg-accentPrimary/10'
+          }`}
+          title={isGlobalMuted ? "Odcisz mikrofon (nasłuch 'Hej Omni')" : "Wycisz mikrofon (zatrzymaj nasłuch 'Hej Omni')"}
+        >
+          {isGlobalMuted ? <MicOff className="w-4 h-4 text-amber-400" /> : <Mic className="w-4 h-4" />}
         </button>
         <button 
           type="button" 

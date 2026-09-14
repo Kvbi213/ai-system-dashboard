@@ -179,10 +179,16 @@ const SettingsPage = () => {
   // Zaawansowany TTS
   const [ttsEngine, setTtsEngine] = useState(() => {
     const stored = localStorage.getItem('system_tts_engine');
-    return (!stored || stored === 'web') ? 'edge' : stored;
+    if (stored) return stored;
+    const envKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ELEVENLABS_API_KEY) || '';
+    const hasKey = localStorage.getItem('system_elevenlabs_api_key') || envKey;
+    return hasKey ? 'elevenlabs' : 'edge';
   });
   const [edgeVoiceId, setEdgeVoiceId] = useState(() => localStorage.getItem('system_edge_voice_id') || EDGE_DEFAULT_VOICES[0].id);
-  const [elevenLabsKey, setElevenLabsKey] = useState(() => localStorage.getItem('system_elevenlabs_api_key') || '');
+  const [elevenLabsKey, setElevenLabsKey] = useState(() => {
+    const envKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ELEVENLABS_API_KEY) || '';
+    return localStorage.getItem('system_elevenlabs_api_key') || envKey;
+  });
   const [openAiTtsKey, setOpenAiTtsKey] = useState(() => localStorage.getItem('system_openai_tts_api_key') || '');
   const [elevenVoiceId, setElevenVoiceId] = useState(() => localStorage.getItem('system_elevenlabs_voice_id') || ELEVENLABS_DEFAULT_VOICES[0].id);
   const [openAiVoiceId, setOpenAiVoiceId] = useState(() => localStorage.getItem('system_openai_voice_id') || 'onyx');

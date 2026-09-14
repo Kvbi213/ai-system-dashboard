@@ -15,6 +15,7 @@ export default function VoiceInspectorHUD() {
   const [speechCount, setSpeechCount] = useState(0);
   const [micVolume, setMicVolume] = useState(0);
   const [isAiSpeaking, setIsAiSpeaking] = useState(() => Boolean(wakeWordService.isAiSpeaking));
+  const [isMuted, setIsMuted] = useState(() => Boolean(wakeWordService.isManualMuted));
 
   useEffect(() => {
     const handleToggle = (e) => {
@@ -46,11 +47,16 @@ export default function VoiceInspectorHUD() {
       setIsAiSpeaking(Boolean(e.detail?.isSpeaking));
     };
 
+    const handleMute = (e) => {
+      setIsMuted(Boolean(e.detail?.isMuted));
+    };
+
     window.addEventListener('toggleVoiceInspector', handleToggle);
     window.addEventListener('omniSpeechHeard', handleSpeech);
     window.addEventListener('wakeWordStatusChanged', handleStatus);
     window.addEventListener('omniMicVolume', handleVolume);
     window.addEventListener('omniAiSpeaking', handleAiSpeaking);
+    window.addEventListener('omniMicMuteChanged', handleMute);
 
     return () => {
       window.removeEventListener('toggleVoiceInspector', handleToggle);
@@ -58,6 +64,7 @@ export default function VoiceInspectorHUD() {
       window.removeEventListener('wakeWordStatusChanged', handleStatus);
       window.removeEventListener('omniMicVolume', handleVolume);
       window.removeEventListener('omniAiSpeaking', handleAiSpeaking);
+      window.removeEventListener('omniMicMuteChanged', handleMute);
     };
   }, []);
 
@@ -133,9 +140,13 @@ export default function VoiceInspectorHUD() {
         <div className="flex items-center justify-between text-[11px] text-textMuted">
           <span>Status mikrofonu:</span>
           <span className={`font-bold uppercase flex items-center gap-1 ${
-            isAiSpeaking ? 'text-red-400' : isListening ? 'text-accentPrimary' : isPermDenied ? 'text-red-400' : 'text-amber-400'
+            isMuted ? 'text-red-400' : isAiSpeaking ? 'text-amber-400' : isListening ? 'text-accentPrimary' : isPermDenied ? 'text-red-400' : 'text-amber-400'
           }`}>
-            {isAiSpeaking ? (
+            {isMuted ? (
+              <>
+                <MicOff className="w-3.5 h-3.5 text-red-400 animate-pulse" /> 🔇 Wyciszony (Manualnie)
+              </>
+            ) : isAiSpeaking ? (
               <>
                 <MicOff className="w-3.5 h-3.5 animate-pulse" /> 🔇 Wyciszony (AI mówi)
               </>
@@ -149,8 +160,32 @@ export default function VoiceInspectorHUD() {
           </span>
         </div>
 
-        {/* PRZYCISK OD RAZU WŁĄCZAJĄCY MIKROFON JEŚLI NIE NASŁUCHUJE */}
-        {!isListening && !isAiSpeaking && (
+        {/* GUZIK WYCISZ / ODCISZ MIKROFON */}
+        <button
+          type="button"
+          onClick={() => {
+            wakeWordService.toggleMute();
+          }}
+          className={`w-full py-2 px-3 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 ${
+            isMuted
+              ? 'bg-red-500/20 hover:bg-red-500/30 border-red-500/50 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.25)] animate-pulse'
+              : 'bg-white/5 hover:bg-white/10 border-white/15 text-textPrimary hover:border-accentPrimary/40'
+          }`}
+          title={isMuted ? "Mikrofon jest wyciszony. Kliknij, aby włączyć nasłuch" : "Wycisz mikrofon (Mute)"}
+        >
+          {isMuted ? (
+            <>
+              <MicOff className="w-4 h-4 text-red-400" /> ODCISZ MIKROFON (KLIKNIJ)
+            </>
+          ) : (
+            <>
+              <MicOff className="w-4 h-4 text-textMuted" /> WYCISZ MIKROFON (MUTE)
+            </>
+          )}
+        </button>
+
+        {/* PRZYCISK OD RAZU WŁĄCZAJĄCY MIKROFON JEŚLI NIE NASŁUCHUJE I NIE JEST WYCISZONY */}
+        {!isListening && !isAiSpeaking && !isMuted && (
           <button
             type="button"
             onClick={async () => {
