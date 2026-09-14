@@ -37,6 +37,12 @@ export function isWakeWord(transcript) {
   const normalized = normalizeSpeechText(transcript);
   if (!normalized) return false;
 
+  // 1. Zawsze dopasuj, jeśli transkrypcja zawiera "omni" lub jego fonetyczne zbitki
+  if (/(?:^|\s)(?:omni|omnidash|omnia|omnie|omnis|hejomni|ejomni|heyomni)(?:$|\s|[!?,.])/i.test(normalized)) {
+    return true;
+  }
+
+  // 2. Fonetyczne warianty powitania i celów (w tym "hej oni", "hej o mnie", "ej o mnie", "hej omi" itp.)
   return WAKE_WORD_PATTERNS.some(pattern => pattern.test(normalized));
 }
 

@@ -4,8 +4,8 @@ import { wakeWordService } from '../services/wakeWordService';
 
 export default function VoiceInspectorHUD() {
   const [isVisible, setIsVisible] = useState(() => {
-    if (typeof localStorage === 'undefined') return false;
-    return localStorage.getItem('system_voice_debug_visible') === 'true';
+    if (typeof localStorage === 'undefined') return true;
+    return localStorage.getItem('system_voice_debug_visible') !== 'false';
   });
 
   const [status, setStatus] = useState(() => wakeWordService.status);
@@ -45,15 +45,38 @@ export default function VoiceInspectorHUD() {
     };
   }, []);
 
-  if (!isVisible) return null;
-
   const isListening = status === 'listening';
   const isPermDenied = status === 'permission-denied';
+
+  if (!isVisible) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setIsVisible(true);
+          localStorage.setItem('system_voice_debug_visible', 'true');
+        }}
+        className="fixed bottom-4 right-4 z-50 p-2.5 rounded-full glass-panel border border-accentPrimary/40 bg-black/85 backdrop-blur-md shadow-[0_0_15px_rgba(var(--color-accent-primary),0.3)] text-accentPrimary hover:scale-105 transition-all flex items-center gap-2 font-mono text-xs cursor-pointer"
+        title="Otwórz OmniVoice Live HUD"
+      >
+        <span className="relative flex h-2.5 w-2.5">
+          {isListening && (
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accentPrimary opacity-75" />
+          )}
+          <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+            isListening ? 'bg-accentPrimary' : isPermDenied ? 'bg-red-500' : 'bg-amber-400'
+          }`} />
+        </span>
+        <Mic className={`w-4 h-4 ${isListening ? 'text-accentPrimary' : isPermDenied ? 'text-red-400' : 'text-amber-400'}`} />
+        <span className="hidden sm:inline text-[11px] font-bold">OmniVoice</span>
+      </button>
+    );
+  }
 
   return (
     <aside 
       aria-label="Podgląd stanu nasłuchu OmniVoice"
-      className="fixed bottom-4 right-4 z-50 max-w-sm w-[calc(100vw-2rem)] glass-panel border border-accentPrimary/40 rounded-2xl p-3.5 bg-black/85 backdrop-blur-xl shadow-[0_0_25px_rgba(var(--color-accent-primary),0.25)] text-textPrimary animate-fade-in font-mono"
+      className="fixed bottom-4 right-4 z-50 max-w-sm w-[calc(100vw-2rem)] glass-panel border border-accentPrimary/40 rounded-2xl p-3.5 bg-black/90 backdrop-blur-xl shadow-[0_0_25px_rgba(var(--color-accent-primary),0.25)] text-textPrimary animate-fade-in font-mono"
     >
       {/* NAGŁÓWEK */}
       <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
@@ -70,7 +93,7 @@ export default function VoiceInspectorHUD() {
             OmniVoice Live HUD
           </span>
           <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-textMuted font-mono">
-            DevTools
+            {isListening ? 'ONLINE' : 'OFFLINE'}
           </span>
         </div>
 
@@ -80,8 +103,8 @@ export default function VoiceInspectorHUD() {
             setIsVisible(false);
             localStorage.setItem('system_voice_debug_visible', 'false');
           }}
-          className="text-textMuted hover:text-textPrimary p-1 rounded-lg hover:bg-white/10 transition-colors"
-          title="Zamknij podgląd"
+          className="text-textMuted hover:text-textPrimary p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+          title="Minimalizuj podgląd"
         >
           <X className="w-3.5 h-3.5" />
         </button>
@@ -97,6 +120,28 @@ export default function VoiceInspectorHUD() {
             {isListening ? '● Nasłuchuje (Słucham)' : isPermDenied ? '❌ Zablokowany' : `● ${status}`}
           </span>
         </div>
+
+        {/* PRZYCISK OD RAZU WŁĄCZAJĄCY MIKROFON JEŚLI NIE NASŁUCHUJE */}
+        {!isListening && (
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                if (window.__OMNI_VOICE__) {
+                  await window.__OMNI_VOICE__.requestMic();
+                } else {
+                  await wakeWordService.acquireSilentAudioStream(true);
+                  wakeWordService.start();
+                }
+              } catch (err) {
+                console.error(err);
+              }
+            }}
+            className="w-full py-2 px-3 rounded-xl bg-accentPrimary hover:bg-accentPrimary/90 text-black font-bold text-xs flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(var(--color-accent-primary),0.35)] transition-all cursor-pointer"
+          >
+            <Mic className="w-4 h-4 animate-pulse" /> WŁĄCZ MIKROFON (KLIKNIJ)
+          </button>
+        )}
 
         {/* PODGLĄD CO MIKROFON SŁYSZY NA ŻYWO */}
         <div className="p-2.5 rounded-xl bg-black/50 border border-white/10 min-h-[52px] flex flex-col justify-center">
@@ -116,19 +161,34 @@ export default function VoiceInspectorHUD() {
             </p>
           ) : (
             <p className="text-[11px] text-textMuted/70 italic">
-              (Cisza... powiedz spokojnie "Hej Omni")
+              {isListening ? '(Cisza... powiedz spokojnie "Hej Omni")' : '(Mikrofon nieaktywny – kliknij przycisk powyżej)'}
             </p>
           )}
         </div>
 
         {/* OSTRZEŻENIE O UPRAWNIENIACH */}
         {isPermDenied && (
-          <div className="p-2 rounded-lg bg-red-500/10 border border-red-500/30 text-[11px] text-red-300 flex items-start gap-1.5">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
-            <div>
-              <p className="font-bold">Brak uprawnień do mikrofonu!</p>
-              <p className="text-[10px] opacity-85">Kliknij kłódkę w pasku adresu i zezwól na mikrofon.</p>
+          <div className="p-2.5 rounded-xl bg-red-500/15 border border-red-500/40 text-[11px] text-red-200 space-y-1.5">
+            <div className="flex items-start gap-1.5">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
+              <div>
+                <p className="font-bold text-red-300">Mikrofon jest zablokowany!</p>
+                <p className="text-[10px] text-red-200/80">
+                  Kliknij ikonę kłódki przy adresie strony w przeglądarce i ustaw Mikrofon na <strong>Zezwalaj (Allow)</strong>.
+                </p>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={async () => {
+                if (window.__OMNI_VOICE__) {
+                  await window.__OMNI_VOICE__.requestMic();
+                }
+              }}
+              className="w-full py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white font-bold text-[11px] transition-colors cursor-pointer"
+            >
+              Ponów próbę odblokowania
+            </button>
           </div>
         )}
 
@@ -139,9 +199,11 @@ export default function VoiceInspectorHUD() {
             onClick={() => {
               if (window.__OMNI_VOICE__) {
                 window.__OMNI_VOICE__.testWakeWord('hej omni');
+              } else {
+                wakeWordService.handleWakeWordDetected('hej omni', '');
               }
             }}
-            className="flex-1 py-1.5 px-2 rounded-lg bg-accentPrimary/20 hover:bg-accentPrimary/30 border border-accentPrimary/40 text-accentPrimary font-bold text-[11px] flex items-center justify-center gap-1.5 transition-colors"
+            className="flex-1 py-1.5 px-2 rounded-lg bg-accentPrimary/20 hover:bg-accentPrimary/30 border border-accentPrimary/40 text-accentPrimary font-bold text-[11px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5" /> Test "Hej Omni"
           </button>
@@ -151,9 +213,11 @@ export default function VoiceInspectorHUD() {
             onClick={() => {
               if (window.__OMNI_VOICE__) {
                 window.__OMNI_VOICE__.restart();
+              } else {
+                wakeWordService.start();
               }
             }}
-            className="py-1.5 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-textMuted hover:text-textPrimary text-[11px] flex items-center justify-center gap-1 transition-colors"
+            className="py-1.5 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-textMuted hover:text-textPrimary text-[11px] flex items-center justify-center gap-1 transition-colors cursor-pointer"
             title="Restartuj mikrofon"
           >
             <RefreshCw className="w-3.5 h-3.5" />
