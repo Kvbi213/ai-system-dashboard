@@ -41,6 +41,7 @@ import SetupWizard from './modules/components/SetupWizard';
 import GlobalEventListener from './modules/components/GlobalEventListener';
 import ErrorBoundary from './modules/components/ErrorBoundary';
 import CommandPalette from './modules/components/CommandPalette';
+import GlobalLiveVoiceModal from './modules/components/GlobalLiveVoiceModal';
 
 // Globalny interceptor zabezpieczający przed parsowaniem HTML jako JSON w przypadku braku backendu / hostingu statycznego
 axios.interceptors.response.use(
@@ -246,6 +247,7 @@ const App = () => {
           <OnboardingTour />
           <CommandPalette />
           <ToastContainer />
+          <GlobalLiveVoiceModal />
           
           {/* Nawigacja (Desktop Sidebar + Mobilny Header i Bottom Bar) */}
           <Sidebar />

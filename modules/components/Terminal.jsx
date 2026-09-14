@@ -555,16 +555,7 @@ const Terminal = () => {
   };
 
   const toggleLiveMode = () => {
-    if (isLiveMode) {
-      setIsLiveMode(false);
-      window.speechSynthesis.cancel();
-      if (liveRecognitionRef.current) {
-        liveRecognitionRef.current.abort();
-      }
-    } else {
-      setIsLiveMode(true);
-      startLiveConversation();
-    }
+    window.dispatchEvent(new CustomEvent('openLiveVoiceModal'));
   };
 
 

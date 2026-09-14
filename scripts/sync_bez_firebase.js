@@ -98,7 +98,11 @@ const filesToSync = [
   'docs/versions/v2.12.0.md',
   'docs/versions/v2.13.0.md',
   'docs/versions/v2.14.0.md',
-  'docs/versions/v2.15.0.md'
+  'docs/versions/v2.15.0.md',
+  'docs/versions/v2.16.0.md',
+  'modules/services/wakeWordService.js',
+  'modules/components/GlobalLiveVoiceModal.jsx',
+  'tests/wakeword.test.js'
 ];
 
 filesToSync.forEach(relPath => {

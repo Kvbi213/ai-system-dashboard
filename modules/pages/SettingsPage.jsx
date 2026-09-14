@@ -9,6 +9,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
 import { initializeAllFirestoreCollections, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
+import { wakeWordService } from '../services/wakeWordService';
 
 const Toggle = ({ value, onChange }) => (
   <button
@@ -254,6 +255,15 @@ const SettingsPage = () => {
   const updateVoiceRate = (val) => {
     setVoiceRate(val);
     localStorage.setItem('system_voice_rate', val);
+  };
+
+  const [wakeWordEnabled, setWakeWordEnabled] = useState(() => {
+    return typeof window !== 'undefined' && localStorage.getItem('system_wake_word_enabled') !== 'false';
+  });
+
+  const updateWakeWord = (val) => {
+    setWakeWordEnabled(val);
+    wakeWordService.setEnabled(val);
   };
 
   const testVoice = () => {
@@ -1016,6 +1026,34 @@ const SettingsPage = () => {
                     onChange={(e) => updateVoiceRate(parseFloat(e.target.value))}
                     className="w-full accent-accentPrimary h-2 rounded-lg appearance-none bg-surface border border-border" 
                   />
+                </div>
+
+                <div className="p-4 rounded-xl border border-accentPrimary/40 bg-accentPrimary/5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-textPrimary font-sans text-sm">Ciągły nasłuch "Hej Omni" (Wake Word)</p>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/40 font-bold">
+                          SYSTEM WIDE
+                        </span>
+                      </div>
+                      <p className="text-xs text-textMuted mt-1">
+                        Gdy strona jest otwarta, mikrofon nasłuchuje w tle. Po wypowiedzeniu "Hej Omni" asystent natychmiast pyta w czym pomóc i uruchamia tryb ciągłej rozmowy.
+                      </p>
+                    </div>
+                    <Toggle value={wakeWordEnabled} onChange={updateWakeWord} />
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
+                    <span className="text-xs text-textMuted font-mono">Test interakcji głosowej:</span>
+                    <button
+                      type="button"
+                      onClick={() => window.dispatchEvent(new CustomEvent('openLiveVoiceModal'))}
+                      className="px-3 py-1.5 rounded-lg bg-accentPrimary/20 text-accentPrimary hover:bg-accentPrimary/30 border border-accentPrimary/40 text-xs font-mono font-bold flex items-center gap-1.5 transition-colors"
+                    >
+                      <Mic className="w-3.5 h-3.5" /> Uruchom tryb ciągłej rozmowy
+                    </button>
+                  </div>
                 </div>
               </div>
             </section>

@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, MessageSquare, Search, Settings, ChevronLeft, ChevronRight, 
   LayoutGrid, CalendarDays, BrainCircuit, Crosshair, Wallet, Dumbbell, Globe, 
-  Server, GraduationCap, Menu, X, Palette, Sparkles, Check, Sun, Moon
+  Server, GraduationCap, Menu, X, Palette, Sparkles, Check, Sun, Moon, Mic
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -49,6 +49,20 @@ const Sidebar = () => {
       window.removeEventListener('userNameChanged', handleNameChange);
       window.removeEventListener('themeChanged', handleThemeChange);
     };
+  }, []);
+
+  const [isWakeWordActive, setIsWakeWordActive] = useState(() => {
+    return typeof window !== 'undefined' && localStorage.getItem('system_wake_word_enabled') !== 'false';
+  });
+
+  useEffect(() => {
+    const handleWakeWordStatus = (e) => {
+      if (e.detail?.isEnabled !== undefined) {
+        setIsWakeWordActive(e.detail.isEnabled);
+      }
+    };
+    window.addEventListener('wakeWordStatusChanged', handleWakeWordStatus);
+    return () => window.removeEventListener('wakeWordStatusChanged', handleWakeWordStatus);
   }, []);
 
   // Globalny skrót Ctrl+K
@@ -194,12 +208,30 @@ const Sidebar = () => {
 
           <button
             type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('openLiveVoiceModal'))}
+            className={`w-9 h-9 rounded-lg border flex items-center justify-center transition-colors active:scale-95 relative ${
+              isWakeWordActive
+                ? 'bg-accentPrimary/15 border-accentPrimary/50 text-accentPrimary shadow-[0_0_10px_rgba(var(--color-accent-primary),0.2)]'
+                : 'bg-surface border-border text-textMuted hover:text-textPrimary'
+            }`}
+            title="Hej Omni // Rozmowa na żywo"
+            aria-label="Hej Omni // Rozmowa na żywo"
+          >
+            <Mic className="w-4 h-4" />
+            {isWakeWordActive && (
+              <span className="w-2 h-2 rounded-full bg-accentPrimary absolute top-1 right-1 animate-ping" />
+            )}
+          </button>
+
+          <button
+            type="button"
             onClick={() => navigate('/search')}
             className="w-9 h-9 rounded-lg bg-surface border border-border flex items-center justify-center text-textMuted hover:text-accentPrimary hover:border-accentPrimary transition-colors active:scale-95"
             title="Szukaj (Ctrl+K)"
           >
             <Search className="w-4 h-4" />
           </button>
+
 
           <button
             type="button"
@@ -453,6 +485,40 @@ const Sidebar = () => {
                   <span className="text-xs">Ctrl K</span>
                 </kbd>
               </>
+            )}
+          </button>
+        </div>
+
+        {/* Przycisk Hej Omni (Asystent Głosowy & Nasłuch) */}
+        <div className={`w-full ${isCollapsed ? 'px-2 justify-center' : 'px-6'} mb-4 transition-all`}>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('openLiveVoiceModal'))}
+            className={`flex items-center gap-3 rounded-xl transition-all border ${
+              isWakeWordActive
+                ? 'bg-accentPrimary/10 border-accentPrimary/40 text-accentPrimary hover:bg-accentPrimary/20 shadow-[0_0_12px_rgba(var(--color-accent-primary),0.15)]'
+                : 'bg-surface border-border text-textMuted hover:text-textPrimary'
+            } ${isCollapsed ? 'w-12 h-12 justify-center' : 'w-full px-3 py-2 text-left'}`}
+            title={isCollapsed ? 'Hej Omni // Rozmowa na żywo' : undefined}
+          >
+            <div className="relative shrink-0 flex items-center justify-center">
+              <Mic className="w-5 h-5" />
+              {isWakeWordActive && (
+                <span className="w-2 h-2 rounded-full bg-accentPrimary absolute -top-1 -right-1 animate-ping" />
+              )}
+            </div>
+            {!isCollapsed && (
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs font-bold truncate">Hej Omni</span>
+                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-accentPrimary/20 text-accentPrimary font-bold">
+                    LIVE
+                  </span>
+                </div>
+                <span className="text-[10px] text-textMuted truncate block">
+                  {isWakeWordActive ? 'Nasłuch aktywny' : 'Kliknij, aby mówić'}
+                </span>
+              </div>
             )}
           </button>
         </div>

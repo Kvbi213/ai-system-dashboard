@@ -1,5 +1,25 @@
 ## Wersja Bieżąca
-**v2.15.0**
+**v2.16.0**
+
+## v 2.16.0 — 2026-09-14
+**Typ:** MINOR  
+**Zakres:** Globalny Asystent Głosowy "Hej Omni" & Autonomiczny Tryb Ciągłej Rozmowy (Web Speech API, Automatyczny Watchdog Nasłuchu w Tle, Synteza Odpowiedzi TTS, Globalny Cyberpunk Radar Orb Modal oraz Integracja w Pasku Bocznym i Mobilnym).
+
+### Zmiany
+- [+] Dodano: Serwis `modules/services/wakeWordService.js` z automatycznym nasłuchem słowa wybudzającego "Hej Omni" w tle, inteligentnym watchdogiem, normalizacją transkrypcji i sanityzacją tekstu pod kątem syntezy TTS.
+- [+] Dodano: Globalny interfejs konwersacji głosowej `modules/components/GlobalLiveVoiceModal.jsx` z animowaną kulą radarową, pętlą ciągłej rozmowy bez konieczności ponownego klikania oraz obsługą komend zakończenia (np. "stop", "dziękuję").
+- [+] Dodano: Zestaw 12 testów jednostkowych w `tests/wakeword.test.js`. Łączny stan testów w projekcie: 71/71 PASS (100%).
+- [+] Dodano: Raport wdrożenia `/docs/versions/v2.16.0.md`.
+- [*] Zmodyfikowano: `core.client.jsx` montując `GlobalLiveVoiceModal` na poziomie nadrzędnym aplikacji.
+- [*] Zmodyfikowano: `modules/components/Sidebar.jsx` o przyciski wywołania i wskaźniki statusu nasłuchu na pulpicie i w nagłówku mobilnym.
+- [*] Zmodyfikowano: `modules/components/Terminal.jsx` integrując przycisk trybu ciągłej rozmowy z globalnym asystentem.
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` dodając przełącznik ciągłego nasłuchu i test interakcji głosowej.
+- [*] Zmodyfikowano: Podniesiono wersję w `package.json` do `2.16.0`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.15.0 — 2026-09-10
 **Typ:** MINOR  

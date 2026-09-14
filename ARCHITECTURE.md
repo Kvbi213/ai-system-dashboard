@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.15.0 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.16.0 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE)  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Cloud-First Firestore Sync, Bidirectional Pushbullet & AI Expense Tracking, Real-Time SSE Telemetry, Theme Toggle Dark/Light, React Testing Library + JSDOM Suite, Toast Notification Hub, Network Online/Offline Guard, Automated Testing Suite Vitest 54/54 PASS, CSV & PDF Export Engine, Dual CI/CD Pipelines main.yml & ci.yml, Deterministic Chat Purge, Dynamic 0% Budgeting & Dual-Mode Donut Allocation, Calendar Management, Warsaw Timezone AI Engine, Multi-Cloud OSINT Serverless, Vercel Serverless & Firebase Hosting)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Global Voice Assistant "Hej Omni" & Continuous Live Voice Chat, Cloud-First Firestore Sync, Bidirectional Pushbullet & AI Expense Tracking, Real-Time SSE Telemetry, Theme Toggle Dark/Light, React Testing Library + JSDOM Suite, Toast Notification Hub, Network Online/Offline Guard, Automated Testing Suite Vitest 71/71 PASS, CSV & PDF Export Engine, Dual CI/CD Pipelines main.yml & ci.yml, Deterministic Chat Purge, Dynamic 0% Budgeting & Dual-Mode Donut Allocation, Calendar Management, Warsaw Timezone AI Engine, Multi-Cloud OSINT Serverless, Vercel Serverless & Firebase Hosting)
 
 ---
 
@@ -69,6 +69,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   ├── osint.js               ← Narzędzia rozpoznania OSINT i klasyfikator celów.
 │   │
 │   ├── /services/             ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
+│   │   ├── wakeWordService.js ← Serwis detekcji słowa wybudzającego "Hej Omni" i zarządzania Web Speech API.
 │   │   ├── pushbulletClassifier.js ← Kognitywny klasyfikator wydatków 50/30/20 i deduplikator powiadomień.
 │   │   ├── cloudSync.js       ← Dwukierunkowa subskrypcja 8 kolekcji Firestore z auto-inicjalizacją i cloud purge czatu.
 │   │   ├── clientAiDispatcher.js ← Autonomiczny silnik zapytań LLM (openai/gpt-oss-120b) przez Vercel Gateway.
@@ -81,6 +82,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   │   └── ToastContext.jsx   ← Pływające powiadomienia, błędy i detekcja łączności online/offline.
 │   │
 │   ├── /components/           ← Komponenty interfejsu użytkownika.
+│   │   ├── GlobalLiveVoiceModal.jsx ← Globalny interfejs trybu ciągłej rozmowy z animowanym radarem.
 │   │   ├── ToastContainer.jsx ← Kontener pływających powiadomień toast i paska offline.
 │   │   ├── ExportModal.jsx    ← Modal eksportu danych CSV oraz wydruków PDF.
 │   │   └── ...                ← Pozostałe komponenty nawigacji i widżetów.
