@@ -183,7 +183,7 @@ class WakeWordService {
       this.micStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
-          noiseSuppression: false, // Wyłączenie agresywnej bramki szumów – pozwala wychwycić cichą mowę bez krzyku
+          noiseSuppression: true, // Włączenie redukcji szumów – filtruje hałas tła, klimatyzacji i sali lekcyjnej
           autoGainControl: true,
           channelCount: 1
         }
@@ -213,6 +213,17 @@ class WakeWordService {
       this.status = 'unsupported';
       console.warn('%c[OmniVoice ⚠️] Ta przeglądarka nie obsługuje SpeechRecognition (użyj Chrome, Edge lub Opery).', 'color: #FF3366;');
       return;
+    }
+
+    if (this.recognition) {
+      try {
+        this.recognition.onstart = null;
+        this.recognition.onresult = null;
+        this.recognition.onerror = null;
+        this.recognition.onend = null;
+        this.recognition.abort();
+      } catch {}
+      this.recognition = null;
     }
 
     try {
@@ -327,6 +338,9 @@ class WakeWordService {
       this.recognition.onend = () => {
         this.isListening = false;
         this.isStarting = false;
+        // W Chromium/Chrome zakończona instancja SpeechRecognition nie nadaje się do ponownego start(),
+        // więc zwalniamy referencję, by kolejna próba stworzyła świeżą instancję
+        this.recognition = null;
 
         if (!this.isPaused && this.isEnabled() && !this.isAiSpeaking) {
           this.scheduleRestart(100);
@@ -397,13 +411,21 @@ class WakeWordService {
     // Ciche podtrzymanie mikrofonu w tle
     this.acquireSilentAudioStream().catch(() => {});
 
+    if (!this.recognition) {
+      this.initRecognition();
+    }
+
     try {
       this.recognition?.start();
     } catch (err) {
       this.isStarting = false;
       if (err?.name === 'InvalidStateError') {
-        // Obiekt rozpoznawania był już w stanie startowania/aktywnym
-        this.isListening = true;
+        try {
+          this.initRecognition();
+          this.recognition?.start();
+        } catch {
+          this.scheduleRestart(500);
+        }
       } else {
         this.scheduleRestart(500);
       }
@@ -434,6 +456,8 @@ class WakeWordService {
       this.recognition?.abort();
     } catch {}
 
+    // Zwalniamy strumień mikrofonu, aby nie blokować urządzeń audio dla innych komponentów
+    this.releaseSilentAudioStream();
     this.status = 'paused';
     this.notifyStatus('paused');
   }
@@ -442,6 +466,7 @@ class WakeWordService {
     if (!this.isEnabled()) return;
     this.isPaused = false;
     this.isStarting = false;
+    this.acquireSilentAudioStream().catch(() => {});
     this.scheduleRestart(200);
   }
 

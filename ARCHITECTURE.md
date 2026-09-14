@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.18.2 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.18.3 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE)  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Global Voice Assistant "Hej Omni" & Native In-Chat Live Voice Bar, DevTools Diagnostic Hub window.__OMNI_VOICE__, VoiceInspectorHUD Live Badge, Microsoft Edge Cognitive Neural TTS Marek / Zofia Studio & Multi-Engine Neural, Whisper-Sensitive Wake Word Detection, Cloud-First Firestore Sync, Bidirectional Pushbullet & AI Expense Tracking, Real-Time SSE Telemetry, Theme Toggle Dark/Light, React Testing Library + JSDOM Suite, Toast Notification Hub, Network Online/Offline Guard, Automated Testing Suite Vitest 72/72 PASS, CSV & PDF Export Engine, Dual CI/CD Pipelines main.yml & ci.yml, Deterministic Chat Purge, Dynamic 0% Budgeting & Dual-Mode Donut Allocation, Calendar Management, Warsaw Timezone AI Engine, Multi-Cloud OSINT Serverless, Vercel Serverless & Firebase Hosting)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Global Voice Assistant "Hej Omni" & Native In-Chat Live Voice Bar, Intelligent VAD Pause Debounce 750ms & Audio Hardware Lock Prevention, DevTools Diagnostic Hub window.__OMNI_VOICE__, VoiceInspectorHUD Live Badge, Microsoft Edge Cognitive Neural TTS Marek / Zofia Studio & Multi-Engine Neural, Whisper-Sensitive Wake Word Detection, Cloud-First Firestore Sync, Bidirectional Pushbullet & AI Expense Tracking, Real-Time SSE Telemetry, Theme Toggle Dark/Light, React Testing Library + JSDOM Suite, Toast Notification Hub, Network Online/Offline Guard, Automated Testing Suite Vitest 72/72 PASS, CSV & PDF Export Engine, Dual CI/CD Pipelines main.yml & ci.yml, Deterministic Chat Purge, Dynamic 0% Budgeting & Dual-Mode Donut Allocation, Calendar Management, Warsaw Timezone AI Engine, Multi-Cloud OSINT Serverless, Vercel Serverless & Firebase Hosting)
 
 ---
 

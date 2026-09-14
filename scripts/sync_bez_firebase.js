@@ -105,6 +105,7 @@ const filesToSync = [
   'docs/versions/v2.18.0.md',
   'docs/versions/v2.18.1.md',
   'docs/versions/v2.18.2.md',
+  'docs/versions/v2.18.3.md',
   'index.html',
   'firebase.json',
   'modules/pages/LockScreen.jsx',

@@ -421,6 +421,7 @@ const Terminal = () => {
   const lastSpeechSentRef = useRef('');
   const liveRecognitionRef = useRef(null);
   const restartTimeoutRef = useRef(null);
+  const vadTimeoutRef = useRef(null);
 
   const EXIT_PHRASES = [
     'stop', 'koniec', 'dziękuję', 'dziekuje', 'dzięki', 'dzieki',
@@ -428,6 +429,10 @@ const Terminal = () => {
   ];
 
   const stopLiveMode = (sayGoodbye = false) => {
+    if (vadTimeoutRef.current) {
+      clearTimeout(vadTimeoutRef.current);
+      vadTimeoutRef.current = null;
+    }
     if (restartTimeoutRef.current) {
       clearTimeout(restartTimeoutRef.current);
       restartTimeoutRef.current = null;
@@ -456,11 +461,11 @@ const Terminal = () => {
 
     if (sayGoodbye) {
       ttsService.speak('Do usłyszenia!', {
-        onEnd: () => wakeWordService.resume(),
-        onError: () => wakeWordService.resume()
+        onEnd: () => wakeWordService.start(),
+        onError: () => wakeWordService.start()
       });
     } else {
-      wakeWordService.resume();
+      wakeWordService.start();
     }
   };
 
@@ -510,12 +515,40 @@ const Terminal = () => {
       liveTranscriptRef.current = currentSpeech;
       setLiveTranscript(currentSpeech);
 
+      // 1. Zdarzenie ukończenia wypowiedzi przez przeglądarkę
       if (final.trim()) {
+        if (vadTimeoutRef.current) clearTimeout(vadTimeoutRef.current);
         try { recognition.stop(); } catch {}
         isListeningRef.current = false;
         setIsListening(false);
         lastSpeechSentRef.current = final.trim();
         handleLiveUserSpeech(final.trim());
+        return;
+      }
+
+      // 2. INTELIGENTNY DETEKTOR PAUZY (VAD) W HAŁASIE:
+      // W hałaśliwym otoczeniu (sala lekcyjna, tło) przeglądarka nigdy nie wyemituje isFinal.
+      // Odliczamy 750ms od ostatniego usłyszanego słowa – jeśli użytkownik zamilkł, natychmiast wysyłamy!
+      if (currentSpeech.length >= 2) {
+        if (vadTimeoutRef.current) clearTimeout(vadTimeoutRef.current);
+        vadTimeoutRef.current = setTimeout(() => {
+          const speechToSend = liveTranscriptRef.current ? liveTranscriptRef.current.trim() : '';
+          if (
+            speechToSend &&
+            speechToSend !== lastSpeechSentRef.current &&
+            isLiveModeRef.current &&
+            !isSpeakingRef.current &&
+            !isProcessingSpeechRef.current
+          ) {
+            console.log('[LiveVoice ⚡ VAD Auto-Send on Pause]:', speechToSend);
+            if (vadTimeoutRef.current) clearTimeout(vadTimeoutRef.current);
+            try { recognition.stop(); } catch {}
+            isListeningRef.current = false;
+            setIsListening(false);
+            lastSpeechSentRef.current = speechToSend;
+            handleLiveUserSpeech(speechToSend);
+          }
+        }, 750);
       }
     };
 
@@ -550,9 +583,9 @@ const Terminal = () => {
         if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
         restartTimeoutRef.current = setTimeout(() => {
           if (isLiveModeRef.current && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
-            try { recognition.start(); } catch {}
+            startLiveListeningLoop();
           }
-        }, 400);
+        }, 200);
       }
     };
 
@@ -627,7 +660,7 @@ const Terminal = () => {
   };
 
   const enterLiveMode = (initialPayload = '') => {
-    wakeWordService.pause();
+    wakeWordService.stop();
     setIsLiveMode(true);
     isLiveModeRef.current = true;
     setLiveTranscript(initialPayload || '');
@@ -849,6 +882,25 @@ const Terminal = () => {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {liveTranscript && !isSpeaking && !isProcessingSpeech && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (vadTimeoutRef.current) clearTimeout(vadTimeoutRef.current);
+                  try { liveRecognitionRef.current?.stop(); } catch {}
+                  isListeningRef.current = false;
+                  setIsListening(false);
+                  const toSend = liveTranscript.trim();
+                  lastSpeechSentRef.current = toSend;
+                  handleLiveUserSpeech(toSend);
+                }}
+                className="px-3 py-1.5 rounded-xl bg-accentPrimary hover:bg-accentPrimary/90 text-black text-xs font-mono font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-[0_0_15px_rgba(var(--color-accent-primary),0.3)]"
+                title="Wyślij zarejestrowaną mowę natychmiast"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>Wyślij</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => stopLiveMode(true)}
