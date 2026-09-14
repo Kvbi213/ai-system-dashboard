@@ -108,7 +108,7 @@ const LockScreen = ({ onUnlock }) => {
       {/* Tło - płynne animacje */}
       <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-accentPrimary/10 rounded-full blur-[140px] mix-blend-screen animate-pulse-slow pointer-events-none transition-colors duration-1000"></div>
       <div className="absolute bottom-0 right-1/4 w-[700px] h-[700px] bg-accentSecondary/10 rounded-full blur-[160px] mix-blend-screen opacity-30 animate-pulse-slow pointer-events-none transition-colors duration-1000" style={{ animationDelay: '2s' }}></div>
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(#ffffff08_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
 
       <div className="bg-surface/80 backdrop-blur-3xl border border-border rounded-3xl p-6 sm:p-8 max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center relative z-10 animate-fade-in-up max-h-[95dvh] overflow-y-auto custom-scrollbar">
         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-accentPrimary/10 flex items-center justify-center mb-4 sm:mb-6 shadow-[0_0_20px_rgba(var(--color-accent-primary),0.2)] shrink-0">

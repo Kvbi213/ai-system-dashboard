@@ -467,9 +467,9 @@ class WakeWordService {
   }
 
   setupDevToolsInspector() {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' && typeof globalThis === 'undefined') return;
 
-    window.__OMNI_VOICE__ = {
+    const hub = {
       getStatus: () => this.status,
       getState: () => ({
         status: this.status,
@@ -535,6 +535,15 @@ class WakeWordService {
       }
     };
 
+    if (typeof window !== 'undefined') {
+      window.__OMNI_VOICE__ = hub;
+    }
+    if (typeof globalThis !== 'undefined') {
+      globalThis.__OMNI_VOICE__ = hub;
+    }
+
+    this.devToolsHub = hub;
+
     setTimeout(() => {
       console.log(
         '%c[OmniVoice 🎙️ DevTools Active] %cPodgląd asystenta głosowego zainicjalizowany.\nWpisz %cwindow.__OMNI_VOICE__.help()%c w konsoli, aby sprawdzić diagnostykę lub przetestować mikrofon.',
@@ -548,4 +557,10 @@ class WakeWordService {
 }
 
 export const wakeWordService = new WakeWordService();
+if (typeof window !== 'undefined') {
+  window.__OMNI_VOICE__ = window.__OMNI_VOICE__ || wakeWordService.devToolsHub;
+}
+if (typeof globalThis !== 'undefined') {
+  globalThis.__OMNI_VOICE__ = globalThis.__OMNI_VOICE__ || wakeWordService.devToolsHub;
+}
 export default wakeWordService;

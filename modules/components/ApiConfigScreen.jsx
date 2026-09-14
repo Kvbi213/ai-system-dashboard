@@ -34,7 +34,7 @@ const ApiConfigScreen = ({ missingKeys, onConfigured }) => {
       {/* Dynamic Background Elements */}
       <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-accentPrimary/10 rounded-full blur-[140px] mix-blend-screen animate-pulse-slow"></div>
       <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-accentSecondary/10 rounded-full blur-[160px] mix-blend-screen opacity-40 animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(#ffffff08_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
       
       <div className="relative w-full max-w-2xl px-6 z-10 animate-fade-in-up">
         

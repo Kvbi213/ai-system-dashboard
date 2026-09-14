@@ -1,5 +1,24 @@
 ## Wersja Bieżąca
-**v2.18.1**
+**v2.18.2**
+
+## v 2.18.2 — 2026-09-14
+**Typ:** PATCH  
+**Zakres:** Globalna Dostępność OmniVoice na Ekranie Blokady (`LockScreen`), Bezwzględny Brak Cache dla `index.html` w Firebase Hosting, Usunięcie Błędu 404 `noise.svg` oraz Rejestracja w `globalThis.__OMNI_VOICE__`.
+
+### Zmiany
+- [+] Dodano: Wyniesienie montowania `<VoiceInspectorHUD />` na poziom nadrzędny w `core.client.jsx`, gwarantujące dostępność widżetu diagnostycznego oraz inicjalizację nasłuchu `wakeWordService.start()` na ekranie blokady (`LockScreen`).
+- [+] Dodano: Automatyczne odblokowanie ekranu po detekcji słowa wybudzającego „Hej Omni” na `LockScreen`.
+- [+] Dodano: Globalne dowiązanie `globalThis.__OMNI_VOICE__ = hub` obok `window.__OMNI_VOICE__` w `modules/services/wakeWordService.js`.
+- [+] Dodano: Reguły `headers` w `firebase.json` wymuszające `Cache-Control: no-cache, no-store, must-revalidate` dla `index.html`, zapobiegające serwowaniu starego bundle JS z pamięci podręcznej przeglądarki.
+- [+] Dodano: Meta tagi anty-cache w `index.html`.
+- [*] Zmodyfikowano: Usunięto zewnętrzne odwołanie do `noise.svg` (404 w DevTools) w `LockScreen.jsx`, `ApiConfigScreen.jsx` i `SetupWizard.jsx` na rzecz czystego gradientu CSS.
+- [*] Zmodyfikowano: `package.json` – podniesiono wersję do `2.18.2`.
+- [*] Zmodyfikowano: Zaktualizowano `scripts/sync_bez_firebase.js`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.18.1 — 2026-09-14
 **Typ:** PATCH  

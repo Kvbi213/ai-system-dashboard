@@ -304,7 +304,7 @@ const SetupWizard = ({ onComplete }) => {
       {/* Tło - płynne animacje */}
       <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-accentPrimary/10 rounded-full blur-[140px] mix-blend-screen animate-pulse-slow pointer-events-none transition-colors duration-1000"></div>
       <div className="absolute bottom-0 right-1/4 w-[700px] h-[700px] rounded-full blur-[160px] mix-blend-screen opacity-30 animate-pulse-slow pointer-events-none transition-colors duration-1000" style={{ backgroundColor: accent.hex, animationDelay: '2s' }}></div>
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(#ffffff08_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
 
       {/* Kolorowy glow z tyłu oparty na wybranym akcencie */}
       <div className="absolute inset-0 pointer-events-none opacity-20 transition-colors duration-1000" style={{ background: `radial-gradient(circle at center, ${accent.hex}, transparent 70%)` }} />

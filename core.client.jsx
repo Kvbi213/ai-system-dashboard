@@ -36,6 +36,7 @@ import { ChatProvider } from './modules/context/ChatContext';
 import { ToastProvider } from './modules/context/ToastContext';
 import ToastContainer from './modules/components/ToastContainer';
 import VoiceInspectorHUD from './modules/components/VoiceInspectorHUD';
+import { wakeWordService } from './modules/services/wakeWordService';
 import ApiConfigScreen from './modules/components/ApiConfigScreen';
 import OnboardingTour from './modules/components/OnboardingTour';
 import SetupWizard from './modules/components/SetupWizard';
@@ -205,6 +206,19 @@ const App = () => {
     };
   }, [isAuthenticated]);
 
+  // Inicjalizacja nasłuchu słowa wybudzającego od startu aplikacji (w tym na ekranie blokady)
+  useEffect(() => {
+    wakeWordService.start();
+
+    const handleWakeOnLock = () => {
+      if (!isAuthenticated) {
+        handleUnlock();
+      }
+    };
+    window.addEventListener('wakeWordDetected', handleWakeOnLock);
+    return () => window.removeEventListener('wakeWordDetected', handleWakeOnLock);
+  }, [isAuthenticated]);
+
   if (isVerifying) {
     return (
       <div className="h-[100dvh] w-full flex flex-col items-center justify-center bg-[#0A0B0E] text-textPrimary font-mono">
@@ -228,54 +242,62 @@ const App = () => {
     }
   };
 
-  if (!isAuthenticated) return <LockScreen onUnlock={handleUnlock} />;
+  const renderContent = () => {
+    if (!isAuthenticated) return <LockScreen onUnlock={handleUnlock} />;
 
-  if (!setupCompleted) {
-    return <SetupWizard onComplete={() => setSetupCompleted(true)} />;
-  }
+    if (!setupCompleted) {
+      return <SetupWizard onComplete={() => setSetupCompleted(true)} />;
+    }
 
-  if (missingKeys.length > 0) {
-    return <ApiConfigScreen missingKeys={missingKeys} onConfigured={() => setMissingKeys([])} />;
-  }
+    if (missingKeys.length > 0) {
+      return <ApiConfigScreen missingKeys={missingKeys} onConfigured={() => setMissingKeys([])} />;
+    }
+
+    return (
+      <ChatProvider>
+        <BrowserRouter>
+          <GlobalEventListener />
+          <div className="h-[100dvh] w-full bg-background overflow-hidden flex flex-col md:flex-row font-sans text-textPrimary relative">
+            
+            <OnboardingTour />
+            <CommandPalette />
+            <ToastContainer />
+            
+            {/* Nawigacja (Desktop Sidebar + Mobilny Header i Bottom Bar) */}
+            <Sidebar />
+
+            {/* Główny obszar zawartości (Router) */}
+            <div className="flex-1 h-full p-2.5 sm:p-4 md:p-8 overflow-hidden min-w-0 flex flex-col pb-20 md:pb-0">
+              <React.Suspense fallback={<PageFallback />}>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/chat" element={<ChatPage />} />
+                  <Route path="/search" element={<SearchPage />} />
+                  <Route path="/osint" element={<OSINTPage />} />
+                  <Route path="/calendar" element={<CalendarPage />} />
+                  <Route path="/timetable" element={<TimetablePage />} />
+                  <Route path="/finances" element={<FinancePage />} />
+                  <Route path="/workouts" element={<WorkoutsPage />} />
+                  <Route path="/widgets" element={<WidgetsPage />} />
+                  <Route path="/memory" element={<MemoryPage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/server" element={<ServerPage />} />
+                  <Route path="/browser" element={<BrowserPage />} />
+                </Routes>
+              </React.Suspense>
+            </div>
+
+          </div>
+        </BrowserRouter>
+      </ChatProvider>
+    );
+  };
 
   return (
-    <ChatProvider>
-      <BrowserRouter>
-        <GlobalEventListener />
-        <div className="h-[100dvh] w-full bg-background overflow-hidden flex flex-col md:flex-row font-sans text-textPrimary relative">
-          
-          <OnboardingTour />
-          <CommandPalette />
-          <ToastContainer />
-          <VoiceInspectorHUD />
-          
-          {/* Nawigacja (Desktop Sidebar + Mobilny Header i Bottom Bar) */}
-          <Sidebar />
-
-          {/* Główny obszar zawartości (Router) */}
-          <div className="flex-1 h-full p-2.5 sm:p-4 md:p-8 overflow-hidden min-w-0 flex flex-col pb-20 md:pb-0">
-            <React.Suspense fallback={<PageFallback />}>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/chat" element={<ChatPage />} />
-                <Route path="/search" element={<SearchPage />} />
-                <Route path="/osint" element={<OSINTPage />} />
-                <Route path="/calendar" element={<CalendarPage />} />
-                <Route path="/timetable" element={<TimetablePage />} />
-                <Route path="/finances" element={<FinancePage />} />
-                <Route path="/workouts" element={<WorkoutsPage />} />
-                <Route path="/widgets" element={<WidgetsPage />} />
-                <Route path="/memory" element={<MemoryPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/server" element={<ServerPage />} />
-                <Route path="/browser" element={<BrowserPage />} />
-              </Routes>
-            </React.Suspense>
-          </div>
-
-        </div>
-      </BrowserRouter>
-    </ChatProvider>
+    <>
+      <VoiceInspectorHUD />
+      {renderContent()}
+    </>
   );
 };
 
