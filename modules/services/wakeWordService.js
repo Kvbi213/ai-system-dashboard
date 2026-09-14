@@ -94,8 +94,11 @@ class WakeWordService {
     this.callbacks = new Set();
     this.statusListeners = new Set();
     this.status = 'idle'; // 'idle' | 'listening' | 'paused' | 'detected' | 'error' | 'unsupported' | 'permission-denied'
+    this.history = [];
+    this.hasLoggedStart = false;
 
     this.initRecognition();
+    this.setupDevToolsInspector();
   }
 
   isSupported() {
@@ -112,6 +115,7 @@ class WakeWordService {
     if (typeof window === 'undefined') return;
     localStorage.setItem('system_wake_word_enabled', enabled ? 'true' : 'false');
     this.notifyStatus(enabled ? (this.isListening ? 'listening' : 'idle') : 'disabled');
+    console.log(`%c[OmniVoice ⚙️] Nasłuch w tle: ${enabled ? 'WŁĄCZONY' : 'WYŁĄCZONY'}`, 'color: #38BDF8; font-weight: bold;');
     if (enabled) {
       this.start();
     } else {
@@ -125,17 +129,48 @@ class WakeWordService {
       this.pause();
     } else {
       if (!this.isPaused && this.isEnabled()) {
-        this.scheduleRestart(600);
+        this.scheduleRestart(400);
       }
     }
+  }
+
+  recordTranscript(text, matched, isFinal) {
+    const entry = {
+      timestamp: new Date().toLocaleTimeString('pl-PL'),
+      text,
+      matched,
+      isFinal
+    };
+    this.history.unshift(entry);
+    if (this.history.length > 25) this.history.pop();
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('omniSpeechHeard', { detail: entry }));
+    }
+  }
+
+  attachAutoRecoveryOnUserInteraction() {
+    if (typeof window === 'undefined') return;
+    const onUserInteract = () => {
+      window.removeEventListener('click', onUserInteract);
+      window.removeEventListener('keydown', onUserInteract);
+      window.removeEventListener('pointerdown', onUserInteract);
+      console.log('%c[OmniVoice 🔄] Wykryto interakcję użytkownika – ponowna próba aktywacji mikrofonu...', 'color: #00FF66;');
+      if (!this.isListening && !this.isPaused && this.isEnabled()) {
+        this.start();
+      }
+    };
+    window.addEventListener('click', onUserInteract, { once: true });
+    window.addEventListener('keydown', onUserInteract, { once: true });
+    window.addEventListener('pointerdown', onUserInteract, { once: true });
   }
 
   /**
    * Ciche podtrzymanie strumienia audio mikrofonu (Warm Stream)
    * Zapobiega klikom systemowym, powiadomieniom i przełączaniu urządzenia w OS przy restartach Web Speech API
    */
-  async acquireSilentAudioStream() {
-    if (this.micStream) return;
+  async acquireSilentAudioStream(forcePrompt = false) {
+    if (this.micStream && !forcePrompt) return;
     if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) return;
 
     try {
@@ -147,8 +182,14 @@ class WakeWordService {
           channelCount: 1
         }
       });
-    } catch {
-      // Cichy fallback – jeśli użytkownik jeszcze nie kliknął uprawnień
+      console.log('%c[OmniVoice 🎤] Strumień mikrofonu podtrzymany pomyślnie.', 'color: #00FF66; font-size: 11px;');
+    } catch (err) {
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        console.warn('%c[OmniVoice ⚠️] Brak uprawnień do mikrofonu (getUserMedia rejected). Zezwól na dostęp w przeglądarce.', 'color: #FFB800;');
+        this.status = 'permission-denied';
+        this.notifyStatus('permission-denied');
+        this.attachAutoRecoveryOnUserInteraction();
+      }
     }
   }
 
@@ -164,6 +205,7 @@ class WakeWordService {
   initRecognition() {
     if (!this.isSupported()) {
       this.status = 'unsupported';
+      console.warn('%c[OmniVoice ⚠️] Ta przeglądarka nie obsługuje SpeechRecognition (użyj Chrome, Edge lub Opery).', 'color: #FF3366;');
       return;
     }
 
@@ -184,6 +226,13 @@ class WakeWordService {
         this.consecutiveErrors = 0;
         this.status = 'listening';
         this.notifyStatus('listening');
+        if (!this.hasLoggedStart) {
+          console.log(
+            '%c[OmniVoice 🎙️] NASŁUCH AKTYWNY! Mikrofon nasłuchuje w tle. Powiedz "Hej Omni", aby wywołać asystenta.',
+            'color: #00FF66; font-weight: bold; font-size: 11px;'
+          );
+          this.hasLoggedStart = true;
+        }
       };
 
       this.recognition.onresult = (event) => {
@@ -191,10 +240,25 @@ class WakeWordService {
 
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const result = event.results[i];
-          // Sprawdzanie wszystkich alternatyw transkrypcji zwróconych przez silnik mowy
+          const isFinal = Boolean(result.isFinal);
+
           for (let a = 0; a < result.length; a++) {
             const transcript = result[a]?.transcript || '';
-            if (isWakeWord(transcript)) {
+            if (!transcript.trim()) continue;
+
+            const matched = isWakeWord(transcript);
+            this.recordTranscript(transcript, matched, isFinal);
+
+            // Logowanie usłyszanej frazy w DevTools
+            console.log(
+              `%c[OmniVoice 👂] %c"${transcript}" %c${matched ? '🎯 DOPASOWANIE ("Hej Omni")' : ''} %c${isFinal ? '(final)' : '(interim)'}`,
+              'color: #38BDF8; font-weight: bold;',
+              'color: #FFFFFF; font-style: italic;',
+              matched ? 'background: #00FF66; color: #000; font-weight: bold; padding: 1px 4px; border-radius: 2px;' : 'color: #64748B;',
+              'color: #94A3B8; font-size: 10px;'
+            );
+
+            if (matched) {
               const payload = extractWakeWordPayload(transcript);
               this.handleWakeWordDetected(transcript, payload);
               return;
@@ -207,16 +271,50 @@ class WakeWordService {
         this.isStarting = false;
         this.isListening = false;
 
-        // Ciche traktowanie rutynowych zdarzeń przeglądarkowych
-        if (event.error === 'not-allowed') {
-          this.status = 'permission-denied';
-          this.notifyStatus('permission-denied');
+        // 1. Zwykły timeout ciszy w Chrome/Edge – to nie jest błąd krytyczny!
+        if (event.error === 'no-speech') {
+          this.consecutiveErrors = 0;
+          this.scheduleRestart(80);
           return;
         }
 
-        // Zwiększanie odstępu przy powtarzających się błędach (wykładniczy backoff)
+        // 2. Przerwanie wywołane przez pause() lub stop()
+        if (event.error === 'aborted') {
+          this.consecutiveErrors = 0;
+          return;
+        }
+
+        // 3. Brak uprawnień do mikrofonu
+        if (event.error === 'not-allowed') {
+          this.status = 'permission-denied';
+          this.notifyStatus('permission-denied');
+          console.error(
+            '%c[OmniVoice ❌ BRAK UPRAWNIEŃ DO MIKROFONU] %cPrzeglądarka zablokowała mikrofon (not-allowed).\n%cKliknij ikonę kłódki/suwaków w pasku adresu przeglądarki i ustaw Mikrofon na "Zezwalaj" (Allow), a następnie kliknij w dowolnym miejscu na stronie.',
+            'background: #EF4444; color: #fff; font-weight: bold; padding: 2px 6px; border-radius: 2px;',
+            'color: #EF4444; font-weight: bold;',
+            'color: #FBBF24;'
+          );
+          this.attachAutoRecoveryOnUserInteraction();
+          return;
+        }
+
+        // 4. Błąd usługi Google Speech (np. Brave Shields)
+        if (event.error === 'service-not-allowed' || event.error === 'network') {
+          console.error(
+            `%c[OmniVoice ❌ BŁĄD USŁUGI ROZPOZNAWANIA MOWY (${event.error})] %cGoogle Speech API nie odpowiada.\nJeśli używasz przeglądarki Brave, wyłącz tarczę (Brave Shields) dla tej strony, aby zezwolić na serwery rozpoznawania mowy.`,
+            'background: #EF4444; color: #fff; font-weight: bold; padding: 2px 6px; border-radius: 2px;',
+            'color: #EF4444;',
+            'color: #FBBF24;'
+          );
+          this.consecutiveErrors++;
+          const delay = Math.min(2000 * Math.pow(1.3, this.consecutiveErrors), 8000);
+          this.scheduleRestart(delay);
+          return;
+        }
+
+        console.warn(`[OmniVoice ⚠️] Zdarzenie błędu rozpoznawania: ${event.error}`);
         this.consecutiveErrors++;
-        const delay = Math.min(1000 * Math.pow(1.3, this.consecutiveErrors), 6000);
+        const delay = Math.min(1000 * Math.pow(1.3, this.consecutiveErrors), 5000);
         this.scheduleRestart(delay);
       };
 
@@ -225,18 +323,19 @@ class WakeWordService {
         this.isStarting = false;
 
         if (!this.isPaused && this.isEnabled() && !this.isAiSpeaking) {
-          this.scheduleRestart(800);
+          this.scheduleRestart(100);
         } else {
           this.status = this.isPaused ? 'paused' : 'idle';
           this.notifyStatus(this.status);
         }
       };
-    } catch {
+    } catch (err) {
       this.status = 'error';
+      console.error('[OmniVoice ❌] Błąd inicjalizacji SpeechRecognition:', err);
     }
   }
 
-  scheduleRestart(delay = 800) {
+  scheduleRestart(delay = 100) {
     if (this.restartTimeout) clearTimeout(this.restartTimeout);
     if (!this.isEnabled() || this.isPaused || this.isAiSpeaking) return;
 
@@ -248,6 +347,12 @@ class WakeWordService {
   }
 
   handleWakeWordDetected(transcript, payload) {
+    console.log(
+      `%c[OmniVoice 🎯 WYKRYTO SŁOWO WYBUDZAJĄCE!] %c"${transcript}"%c${payload ? ` -> Zapytanie: "${payload}"` : ''} -> Przekierowanie do /chat`,
+      'background: #00FF66; color: #000; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 12px;',
+      'color: #00FF66; font-weight: bold;',
+      'color: #38BDF8;'
+    );
     this.status = 'detected';
     this.notifyStatus('detected');
     this.pause();
@@ -270,7 +375,15 @@ class WakeWordService {
   }
 
   async start() {
-    if (!this.isSupported() || !this.isEnabled() || this.isListening || this.isStarting || this.isAiSpeaking) return;
+    if (!this.isSupported()) {
+      console.warn('[OmniVoice] SpeechRecognition nie jest obsługiwane w tej przeglądarce.');
+      return;
+    }
+    if (!this.isEnabled()) {
+      console.log('[OmniVoice] Nasłuch wyłączony w konfiguracji systemowej (system_wake_word_enabled = false).');
+      return;
+    }
+    if (this.isListening || this.isStarting || this.isAiSpeaking) return;
 
     this.isPaused = false;
     this.isStarting = true;
@@ -286,7 +399,7 @@ class WakeWordService {
         // Obiekt rozpoznawania był już w stanie startowania/aktywnym
         this.isListening = true;
       } else {
-        this.scheduleRestart(1200);
+        this.scheduleRestart(500);
       }
     }
   }
@@ -323,7 +436,7 @@ class WakeWordService {
     if (!this.isEnabled()) return;
     this.isPaused = false;
     this.isStarting = false;
-    this.scheduleRestart(400);
+    this.scheduleRestart(200);
   }
 
   onWakeWord(callback) {
@@ -351,6 +464,86 @@ class WakeWordService {
         detail: { status, isListening: this.isListening, isEnabled: this.isEnabled() }
       }));
     }
+  }
+
+  setupDevToolsInspector() {
+    if (typeof window === 'undefined') return;
+
+    window.__OMNI_VOICE__ = {
+      getStatus: () => this.status,
+      getState: () => ({
+        status: this.status,
+        isListening: this.isListening,
+        isStarting: this.isStarting,
+        isPaused: this.isPaused,
+        isAiSpeaking: this.isAiSpeaking,
+        isEnabled: this.isEnabled(),
+        consecutiveErrors: this.consecutiveErrors,
+        language: this.recognition?.lang || 'pl-PL',
+        hasMicStream: Boolean(this.micStream),
+        history: [...this.history]
+      }),
+      history: this.history,
+      start: () => {
+        console.log('[OmniVoice 🚀] Wymuszone uruchomienie nasłuchu przez DevTools...');
+        return this.start();
+      },
+      stop: () => {
+        console.log('[OmniVoice 🛑] Zatrzymanie nasłuchu przez DevTools...');
+        return this.stop();
+      },
+      restart: () => {
+        console.log('[OmniVoice 🔄] Restartowanie nasłuchu...');
+        this.stop();
+        return this.start();
+      },
+      testWakeWord: (phrase = 'hej omni') => {
+        console.log(`%c[OmniVoice 🧪 Test Wywołania] %cSymulacja wypowiedzenia: "${phrase}"`, 'background: #8B5CF6; color: #fff; font-weight: bold; padding: 2px 6px; border-radius: 2px;', 'color: #C084FC;');
+        this.handleWakeWordDetected(phrase, extractWakeWordPayload(phrase));
+      },
+      requestMic: async () => {
+        console.log('[OmniVoice 🎤] Prośba o dostęp do mikrofonu (getUserMedia)...');
+        await this.acquireSilentAudioStream(true);
+        this.start();
+      },
+      enable: () => this.setEnabled(true),
+      disable: () => this.setEnabled(false),
+      showInspector: () => {
+        localStorage.setItem('system_voice_debug_visible', 'true');
+        window.dispatchEvent(new CustomEvent('toggleVoiceInspector', { detail: { visible: true } }));
+        console.log('[OmniVoice 🔍] Pływający wskaźnik na ekranie został WŁĄCZONY.');
+      },
+      hideInspector: () => {
+        localStorage.setItem('system_voice_debug_visible', 'false');
+        window.dispatchEvent(new CustomEvent('toggleVoiceInspector', { detail: { visible: false } }));
+        console.log('[OmniVoice 🔍] Pływający wskaźnik na ekranie został UKRYTY.');
+      },
+      help: () => {
+        console.log(
+          '%c=== NARZĘDZIA DIAGNOSTYCZNE ASYSTENTA GŁOSOWEGO OMNI ===',
+          'color: #00FF66; font-size: 14px; font-weight: bold; border-bottom: 2px solid #00FF66; padding-bottom: 4px;'
+        );
+        console.table([
+          { Polecenie: '__OMNI_VOICE__.getState()', Opis: 'Zwraca pełny stan obiektu nasłuchu w czasie rzeczywistym' },
+          { Polecenie: '__OMNI_VOICE__.history', Opis: 'Ostatnie transkrypcje usłyszane przez mikrofon' },
+          { Polecenie: '__OMNI_VOICE__.testWakeWord("hej omni")', Opis: 'Symuluje natychmiastowe wywołanie i przejście do czatu' },
+          { Polecenie: '__OMNI_VOICE__.requestMic()', Opis: 'Otwiera okno przeglądarki z prośbą o uprawnienie do mikrofonu' },
+          { Polecenie: '__OMNI_VOICE__.restart()', Opis: 'Wymusza natychmiastowy restart Web Speech API' },
+          { Polecenie: '__OMNI_VOICE__.showInspector()', Opis: 'Pokazuje pływający podgląd nasłuchu na ekranie (Live HUD)' },
+          { Polecenie: '__OMNI_VOICE__.hideInspector()', Opis: 'Chowa pływający podgląd nasłuchu na ekranie' }
+        ]);
+      }
+    };
+
+    setTimeout(() => {
+      console.log(
+        '%c[OmniVoice 🎙️ DevTools Active] %cPodgląd asystenta głosowego zainicjalizowany.\nWpisz %cwindow.__OMNI_VOICE__.help()%c w konsoli, aby sprawdzić diagnostykę lub przetestować mikrofon.',
+        'color: #00FF66; font-weight: bold; font-size: 11px;',
+        'color: #94A3B8;',
+        'color: #38BDF8; font-weight: bold; background: rgba(56, 189, 248, 0.15); padding: 1px 5px; border-radius: 3px;',
+        'color: #94A3B8;'
+      );
+    }, 600);
   }
 }
 

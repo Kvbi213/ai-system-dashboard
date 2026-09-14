@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.18.0 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.18.1 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE)  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Global Voice Assistant "Hej Omni" & Native In-Chat Live Voice Bar, Microsoft Edge Cognitive Neural TTS Marek / Zofia Studio & Multi-Engine Neural, Whisper-Sensitive Wake Word Detection, Cloud-First Firestore Sync, Bidirectional Pushbullet & AI Expense Tracking, Real-Time SSE Telemetry, Theme Toggle Dark/Light, React Testing Library + JSDOM Suite, Toast Notification Hub, Network Online/Offline Guard, Automated Testing Suite Vitest 72/72 PASS, CSV & PDF Export Engine, Dual CI/CD Pipelines main.yml & ci.yml, Deterministic Chat Purge, Dynamic 0% Budgeting & Dual-Mode Donut Allocation, Calendar Management, Warsaw Timezone AI Engine, Multi-Cloud OSINT Serverless, Vercel Serverless & Firebase Hosting)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Desktop, Mobile Native UX, Global Voice Assistant "Hej Omni" & Native In-Chat Live Voice Bar, DevTools Diagnostic Hub window.__OMNI_VOICE__, VoiceInspectorHUD Live Badge, Microsoft Edge Cognitive Neural TTS Marek / Zofia Studio & Multi-Engine Neural, Whisper-Sensitive Wake Word Detection, Cloud-First Firestore Sync, Bidirectional Pushbullet & AI Expense Tracking, Real-Time SSE Telemetry, Theme Toggle Dark/Light, React Testing Library + JSDOM Suite, Toast Notification Hub, Network Online/Offline Guard, Automated Testing Suite Vitest 72/72 PASS, CSV & PDF Export Engine, Dual CI/CD Pipelines main.yml & ci.yml, Deterministic Chat Purge, Dynamic 0% Budgeting & Dual-Mode Donut Allocation, Calendar Management, Warsaw Timezone AI Engine, Multi-Cloud OSINT Serverless, Vercel Serverless & Firebase Hosting)
 
 ---
 
@@ -69,7 +69,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   ├── osint.js               ← Narzędzia rozpoznania OSINT i klasyfikator celów.
 │   │
 │   ├── /services/             ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
-│   │   ├── wakeWordService.js ← Serwis detekcji słowa wybudzającego "Hej Omni" (akustyczna matryca cichej mowy, maxAlternatives=5).
+│   │   ├── wakeWordService.js ← Serwis detekcji słowa wybudzającego "Hej Omni" (akustyczna matryca cichej mowy, maxAlternatives=5, DevTools hub window.__OMNI_VOICE__, no-speech zero backoff).
 │   │   ├── ttsService.js      ← Wielosilnikowa synteza mowy (Microsoft Edge Neural Marek/Zofia, ElevenLabs, OpenAI TTS, Web Speech).
 │   │   ├── pushbulletClassifier.js ← Kognitywny klasyfikator wydatków 50/30/20 i deduplikator powiadomień.
 │   │   ├── cloudSync.js       ← Dwukierunkowa subskrypcja 8 kolekcji Firestore z auto-inicjalizacją i cloud purge czatu.
@@ -82,21 +82,14 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   │   ├── ChatContext.jsx    ← Zarządzanie wiadomościami Workera/Mentora, obsługa komend systemowych (/clear, /purge) i izolacja sesji.
 │   │   └── ToastContext.jsx   ← Pływające powiadomienia, błędy i detekcja łączności online/offline.
 │   │
-│   ├── /components/           ← Komponenty interfejsu użytkownika.
-│   │   ├── ToastContainer.jsx ← Kontener pływających powiadomień toast i paska offline.
-│   │   ├── ExportModal.jsx    ← Modal eksportu danych CSV oraz wydruków PDF.
-│   │   └── ...                ← Pozostałe komponenty nawigacji i widżetów (Live Voice Bar w Terminal.jsx).
-│   │
-│   ├── /routes/             ← Modułowe routery Express:
-│   │   ├── auth.js, system.js, finance.js, ai.js, osint.js, weather.js, news.js, tasks.js, calendar.js, workouts.js, timetable.js, memory.js, phone.js, logs.js, events.js, firebase.js
-│   │   └── middleware.js    ← Middleware zabezpieczające i limitujące zapytania.
-│   │
-│   ├── /components/         ← Reużywalne klocki UI w React.
+│   ├── /components/           ← Reużywalne klocki UI w React.
 │   │   ├── CommandPalette.jsx ← Globalna paleta komend i szybkich akcji (Ctrl + K).
-│   │   ├── Sidebar.jsx      ← Lewy pasek nawigacyjny z zakładką Plan Lekcji (GraduationCap).
-│   │   ├── ErrorBoundary.jsx← Strażnik awarii interfejsu (Crash Guard & Recovery Screen).
-│   │   ├── Terminal.jsx     ← Zaawansowany terminal czatu z Markdown i TTS.
-│   │   ├── TodoList.jsx     ← Interaktywna lista to-do z obsługą priorytetów.
+│   │   ├── VoiceInspectorHUD.jsx ← Pływający widżet diagnostyczny na żywo (status mikrofonu, odsłuch słów, przyciski testowe).
+│   │   ├── Sidebar.jsx        ← Lewy pasek nawigacyjny z zakładką Plan Lekcji (GraduationCap).
+│   │   ├── ToastContainer.jsx ← Kontener pływających powiadomień toast i paska offline.
+│   │   ├── ErrorBoundary.jsx  ← Strażnik awarii interfejsu (Crash Guard & Recovery Screen).
+│   │   ├── Terminal.jsx       ← Zaawansowany terminal czatu z Markdown, Live Voice Bar i TTS.
+│   │   ├── TodoList.jsx       ← Interaktywna lista to-do z obsługą priorytetów.
 │   │   └── ... (pozostałe widżety UI)
 │   │
 │   └── /pages/              ← Konkretne podstrony w React Router.

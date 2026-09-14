@@ -35,6 +35,7 @@ const PageFallback = () => (
 import { ChatProvider } from './modules/context/ChatContext';
 import { ToastProvider } from './modules/context/ToastContext';
 import ToastContainer from './modules/components/ToastContainer';
+import VoiceInspectorHUD from './modules/components/VoiceInspectorHUD';
 import ApiConfigScreen from './modules/components/ApiConfigScreen';
 import OnboardingTour from './modules/components/OnboardingTour';
 import SetupWizard from './modules/components/SetupWizard';
@@ -246,6 +247,7 @@ const App = () => {
           <OnboardingTour />
           <CommandPalette />
           <ToastContainer />
+          <VoiceInspectorHUD />
           
           {/* Nawigacja (Desktop Sidebar + Mobilny Header i Bottom Bar) */}
           <Sidebar />

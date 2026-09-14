@@ -309,9 +309,21 @@ const SettingsPage = () => {
     return typeof window !== 'undefined' && localStorage.getItem('system_wake_word_enabled') !== 'false';
   });
 
+  const [voiceDebugVisible, setVoiceDebugVisible] = useState(() => {
+    return typeof window !== 'undefined' && localStorage.getItem('system_voice_debug_visible') === 'true';
+  });
+
   const updateWakeWord = (val) => {
     setWakeWordEnabled(val);
     wakeWordService.setEnabled(val);
+  };
+
+  const updateVoiceDebugVisible = (val) => {
+    setVoiceDebugVisible(val);
+    localStorage.setItem('system_voice_debug_visible', val ? 'true' : 'false');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('toggleVoiceInspector', { detail: { visible: val } }));
+    }
   };
 
   const testVoice = async () => {
@@ -1295,7 +1307,19 @@ const SettingsPage = () => {
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
-                    <span className="text-xs text-textMuted font-mono">Test interakcji w czacie:</span>
+                    <div>
+                      <p className="font-semibold text-textPrimary font-sans text-xs">Pływający podgląd nasłuchu na ekranie (Live HUD)</p>
+                      <p className="text-[11px] text-textMuted mt-0.5">
+                        Wyświetla widżet z podglądem na żywo tego, co słyszy mikrofon, statusem i przyciskiem testowym "Hej Omni".
+                      </p>
+                    </div>
+                    <Toggle value={voiceDebugVisible} onChange={updateVoiceDebugVisible} />
+                  </div>
+
+                  <div className="mt-3 pt-3 border-t border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="text-[11px] text-textMuted font-mono">
+                      DevTools F12: <code className="text-accentPrimary">window.__OMNI_VOICE__.getState()</code>
+                    </span>
                     <button
                       type="button"
                       onClick={handleTestLiveConversation}

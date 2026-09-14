@@ -1,5 +1,24 @@
 ## Wersja Bieżąca
-**v2.18.0**
+**v2.18.1**
+
+## v 2.18.1 — 2026-09-14
+**Typ:** PATCH  
+**Zakres:** Diagnostyka w Konsoli DevTools (`window.__OMNI_VOICE__`), Eliminacja Przestojów `no-speech` Exponential Backoff, Pływający Komponent Ekranowy `VoiceInspectorHUD` oraz Automatyczne Wznawianie Mikrofonu po Interakcji Użytkownika.
+
+### Zmiany
+- [+] Dodano: Globalny interfejs diagnostyczny `window.__OMNI_VOICE__` w DevTools F12 z metodami `getStatus()`, `getState()`, `history`, `testWakeWord()`, `requestMic()`, `restart()`, `showInspector()`, `hideInspector()`, `help()`.
+- [+] Dodano: Pływający widżet ekranowy `modules/components/VoiceInspectorHUD.jsx` montowany w `core.client.jsx` z podglądem na żywo słyszanej mowy, statusem mikrofonu i przyciskami diagnostycznymi.
+- [+] Dodano: Zdarzenie rozgłoszeniowe `omniSpeechHeard` w `modules/services/wakeWordService.js` przesyłające bieżącą transkrypcję do UI i konsoli.
+- [+] Dodano: Przełącznik widoczności Live HUD oraz informator o konsoli DevTools w `modules/pages/SettingsPage.jsx`.
+- [*] Zmodyfikowano: `modules/services/wakeWordService.js` – naprawiono krytyczny błąd akumulacji opóźnienia wykładniczego przy zdarzeniu `no-speech` w Chromium/Edge; cisza natychmiast restartuje nasłuch w 80ms bez nakładania kary czasowej.
+- [*] Zmodyfikowano: Dodano nasłuchiwacze interakcji (`click`, `keydown`, `pointerdown`) odblokowujące mikrofon w przypadku restrykcji autoplay przeglądarki.
+- [*] Zmodyfikowano: `package.json` – podniesiono wersję do `2.18.1`.
+- [*] Zmodyfikowano: Zaktualizowano `scripts/sync_bez_firebase.js`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.18.0 — 2026-09-14
 **Typ:** MINOR  
