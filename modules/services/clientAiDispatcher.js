@@ -695,7 +695,7 @@ Ostatnie transakcje: ` + actualTxs.slice(0, 10).map(f => `${f.type === 'income' 
         : 'Brak sesji treningowych.';
 
       const systemPrompt = mode === 'mentor'
-        ? `Jesteś J.A.R.V.I.S — inteligentnym mentorem i analitykiem w systemie OmniDash. Rozmawiasz z ${userName}.
+        ? `Jesteś OMNI MIND — inteligentnym mentorem i analitykiem w systemie OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
 
@@ -723,7 +723,7 @@ Treningi:
 ${workoutsSummary}
 Kalendarz:
 ${calendarSummary}`
-        : `Jesteś F.R.I.D.A.Y — inżynieryjnym silnikiem wykonawczym w OmniDash. Rozmawiasz z ${userName}.
+        : `Jesteś OMNI EXEC — inżynieryjnym silnikiem wykonawczym w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
 

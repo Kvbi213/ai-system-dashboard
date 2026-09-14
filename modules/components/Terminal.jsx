@@ -158,7 +158,7 @@ const ChatMessage = ({ msg, mode = 'worker' }) => {
               {mode === 'mentor' ? <BrainCircuit className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />}
             </div>
             <span className="font-mono font-bold text-textPrimary tracking-wide">
-              {mode === 'mentor' ? 'J.A.R.V.I.S' : 'F.R.I.D.A.Y'}
+              {mode === 'mentor' ? 'OMNI MIND' : 'OMNI EXEC'}
             </span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/40 text-accentPrimary/90 border border-accentPrimary/20">
               openai/gpt-oss-120b
@@ -678,7 +678,7 @@ const Terminal = () => {
                <div className={`absolute inset-0 rounded-full border-2 border-accentPrimary transition-all duration-[3000ms] ${isListening ? 'animate-spin opacity-50' : 'opacity-10'}`} style={{ borderStyle: 'dashed' }}></div>
             </div>
             <div className="mt-4 font-mono text-sm tracking-widest text-accentPrimary opacity-80">
-              {isSpeaking ? t('termJarvisSpeaks', 'JARVIS // MÓWI') : (isListening ? t('termJarvisListens', 'JARVIS // NASŁUCHUJE') : t('termJarvisWaits', 'JARVIS // OCZEKUJE'))}
+              {isSpeaking ? t('termJarvisSpeaks', 'OMNI // MÓWI') : (isListening ? t('termJarvisListens', 'OMNI // NASŁUCHUJE') : t('termJarvisWaits', 'OMNI // OCZEKUJE'))}
             </div>
           </div>
 
@@ -723,7 +723,7 @@ const Terminal = () => {
           {isProcessing && (
             <div className="flex items-center gap-2.5 text-textMuted font-sans p-3 glass-panel rounded-xl max-w-fit border border-border/50 animate-pulse">
               <Loader2 className="w-4 h-4 animate-spin text-accentPrimary" />
-              <span className="text-xs font-mono">{mode === 'mentor' ? 'J.A.R.V.I.S analizuje zapytanie...' : 'F.R.I.D.A.Y przetwarza odpowiedź...'}</span>
+              <span className="text-xs font-mono">{mode === 'mentor' ? 'OMNI MIND analizuje zapytanie...' : 'OMNI EXEC przetwarza odpowiedź...'}</span>
             </div>
           )}
           <div ref={endOfMessagesRef} />

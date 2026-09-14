@@ -411,7 +411,7 @@ ${allLessonsStr}`.trim();
 
     // Wybór promptu systemowego w zależności od trybu
     const systemPrompt = mode === 'mentor'
-      ? `Jesteś J.A.R.V.I.S — nadrzędnym inteligentnym mentorem, analitykiem strategicznym i powiernikiem użytkownika w systemie OmniDash. Rozmawiasz z ${userName}.
+      ? `Jesteś OMNI MIND — nadrzędnym inteligentnym mentorem, analitykiem strategicznym i powiernikiem użytkownika w systemie OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy (Polska / Warszawa): ${dateStr}, godzina ${timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${dateStr}, godzina ${timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
 
@@ -485,7 +485,7 @@ ${calendarSummary}
 🧠 PAMIĘĆ DŁUGOTERMINOWA (OPERATOR BRAIN):
 ${brainSummary}
 ${liveIntelBlock}`
-      : `Jesteś F.R.I.D.A.Y — wysoko wyspecjalizowanym inżynieryjnym systemem wykonawczym (Core Worker Engine) w OmniDash. Rozmawiasz z ${userName}.
+      : `Jesteś OMNI EXEC — wysoko wyspecjalizowanym inżynieryjnym systemem wykonawczym (Core Worker Engine) w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy (Polska / Warszawa): ${dateStr}, godzina ${timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${dateStr}, godzina ${timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
 

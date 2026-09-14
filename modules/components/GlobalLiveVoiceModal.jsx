@@ -130,7 +130,7 @@ export default function GlobalLiveVoiceModal() {
 
     utterance.onstart = () => {
       setIsSpeaking(true);
-      setStatusMessage(mode === 'mentor' ? 'JARVIS // MÓWI...' : 'F.R.I.D.A.Y // MÓWI...');
+      setStatusMessage(mode === 'mentor' ? 'OMNI MIND // MÓWI...' : 'OMNI EXEC // MÓWI...');
     };
 
     utterance.onend = () => {
@@ -170,7 +170,7 @@ export default function GlobalLiveVoiceModal() {
 
     recognition.onstart = () => {
       setIsListening(true);
-      setStatusMessage(mode === 'mentor' ? 'JARVIS // SŁUCHA...' : 'F.R.I.D.A.Y // SŁUCHA...');
+      setStatusMessage(mode === 'mentor' ? 'OMNI MIND // SŁUCHA...' : 'OMNI EXEC // SŁUCHA...');
     };
 
     recognition.onresult = async (event) => {
@@ -243,7 +243,7 @@ export default function GlobalLiveVoiceModal() {
     }
 
     setIsProcessing(true);
-    setStatusMessage(mode === 'mentor' ? 'JARVIS // ANALIZUJE...' : 'F.R.I.D.A.Y // PRZETWARZA...');
+    setStatusMessage(mode === 'mentor' ? 'OMNI MIND // ANALIZUJE...' : 'OMNI EXEC // PRZETWARZA...');
 
     try {
       const responseObj = await sendCommand(spokenText);
