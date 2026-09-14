@@ -39,6 +39,10 @@ export default function GlobalLiveVoiceModal() {
   const recognitionRef = useRef(null);
   const isAliveRef = useRef(false);
   const isOpenRef = useRef(false);
+  const isSpeakingRef = useRef(false);
+  const isListeningRef = useRef(false);
+  const isProcessingRef = useRef(false);
+  const restartTimeoutRef = useRef(null);
 
   // Inicjalizacja usług w tle przy starcie aplikacji
   useEffect(() => {
@@ -71,34 +75,49 @@ export default function GlobalLiveVoiceModal() {
       cleanupSpeech();
       // Wznów nasłuch słowa wybudzającego w tle po zamknięciu okna
       wakeWordService.resume();
+    } else {
+      // Wstrzymaj nasłuch w tle gdy modal jest aktywny
+      wakeWordService.pause();
     }
   }, [isOpen]);
 
-  const cleanupSpeech = () => {
+  const cleanupSpeech = useCallback(() => {
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
+    }
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
+    wakeWordService.setAiSpeaking(false);
     if (recognitionRef.current) {
       try {
+        recognitionRef.current.onstart = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
         recognitionRef.current.abort();
       } catch {}
       recognitionRef.current = null;
     }
+    isSpeakingRef.current = false;
+    isListeningRef.current = false;
+    isProcessingRef.current = false;
     setIsSpeaking(false);
     setIsListening(false);
     setIsProcessing(false);
-  };
+  }, []);
 
   const speakText = useCallback((text, onEndCallback) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      if (onEndCallback) onEndCallback();
+      if (onEndCallback && isOpenRef.current) onEndCallback();
       return;
     }
 
     window.speechSynthesis.cancel();
     const cleanText = cleanTextForSpeech(text);
     if (!cleanText) {
-      if (onEndCallback) onEndCallback();
+      if (onEndCallback && isOpenRef.current) onEndCallback();
       return;
     }
 
@@ -129,35 +148,51 @@ export default function GlobalLiveVoiceModal() {
     if (selectedVoice) utterance.voice = selectedVoice;
 
     utterance.onstart = () => {
+      isSpeakingRef.current = true;
       setIsSpeaking(true);
+      wakeWordService.setAiSpeaking(true);
       setStatusMessage(mode === 'mentor' ? 'OMNI MIND // MÓWI...' : 'OMNI EXEC // MÓWI...');
     };
 
-    utterance.onend = () => {
+    const handleSpeechFinished = () => {
+      isSpeakingRef.current = false;
       setIsSpeaking(false);
-      if (onEndCallback && isOpenRef.current) {
-        onEndCallback();
-      }
+      wakeWordService.setAiSpeaking(false);
+      // Akustyczny bufor wytłumienia echa głośników przed ponownym włączeniem mikrofonu (400ms)
+      if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = setTimeout(() => {
+        if (onEndCallback && isOpenRef.current) {
+          onEndCallback();
+        }
+      }, 400);
     };
 
-    utterance.onerror = () => {
-      setIsSpeaking(false);
-      if (onEndCallback && isOpenRef.current) {
-        onEndCallback();
-      }
-    };
+    utterance.onend = handleSpeechFinished;
+    utterance.onerror = handleSpeechFinished;
 
+    isSpeakingRef.current = true;
+    setIsSpeaking(true);
+    wakeWordService.setAiSpeaking(true);
     window.speechSynthesis.speak(utterance);
   }, [mode]);
 
   const startListeningLoop = useCallback(() => {
-    if (!isOpenRef.current) return;
+    if (!isOpenRef.current || isSpeakingRef.current || isProcessingRef.current) return;
     if (typeof window === 'undefined' || !('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
       setStatusMessage('Brak obsługi SpeechRecognition w przeglądarce.');
       return;
     }
 
-    cleanupSpeech();
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.onstart = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.abort();
+      } catch {}
+      recognitionRef.current = null;
+    }
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
@@ -169,6 +204,7 @@ export default function GlobalLiveVoiceModal() {
     recognition.interimResults = true;
 
     recognition.onstart = () => {
+      isListeningRef.current = true;
       setIsListening(true);
       setStatusMessage(mode === 'mentor' ? 'OMNI MIND // SŁUCHA...' : 'OMNI EXEC // SŁUCHA...');
     };
@@ -190,17 +226,22 @@ export default function GlobalLiveVoiceModal() {
       setUserTranscript(currentSpeech);
 
       if (final.trim()) {
-        recognition.stop();
+        try {
+          recognition.stop();
+        } catch {}
+        isListeningRef.current = false;
         setIsListening(false);
         handleUserSpokenInput(final.trim());
       }
     };
 
     recognition.onerror = (e) => {
+      isListeningRef.current = false;
       setIsListening(false);
-      if (isOpenRef.current && e.error !== 'aborted') {
-        setTimeout(() => {
-          if (isOpenRef.current && !isSpeaking) {
+      if (isOpenRef.current && e.error !== 'aborted' && !isSpeakingRef.current && !isProcessingRef.current) {
+        if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+        restartTimeoutRef.current = setTimeout(() => {
+          if (isOpenRef.current && !isSpeakingRef.current && !isProcessingRef.current) {
             startListeningLoop();
           }
         }, 600);
@@ -208,16 +249,17 @@ export default function GlobalLiveVoiceModal() {
     };
 
     recognition.onend = () => {
+      isListeningRef.current = false;
       setIsListening(false);
-      if (isOpenRef.current && !isSpeaking && !isProcessing) {
-        // Ponowne uruchomienie nasłuchu jeśli nic nie mówiono
-        setTimeout(() => {
-          if (isOpenRef.current && !isSpeaking && !isProcessing) {
+      if (isOpenRef.current && !isSpeakingRef.current && !isProcessingRef.current) {
+        if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+        restartTimeoutRef.current = setTimeout(() => {
+          if (isOpenRef.current && !isSpeakingRef.current && !isProcessingRef.current) {
             try {
               recognition.start();
             } catch {}
           }
-        }, 500);
+        }, 400);
       }
     };
 
@@ -225,7 +267,7 @@ export default function GlobalLiveVoiceModal() {
     try {
       recognition.start();
     } catch {}
-  }, [mode, isSpeaking, isProcessing]);
+  }, [mode]);
 
   const handleUserSpokenInput = async (spokenText) => {
     if (!spokenText) return;
@@ -242,6 +284,7 @@ export default function GlobalLiveVoiceModal() {
       return;
     }
 
+    isProcessingRef.current = true;
     setIsProcessing(true);
     setStatusMessage(mode === 'mentor' ? 'OMNI MIND // ANALIZUJE...' : 'OMNI EXEC // PRZETWARZA...');
 
@@ -252,6 +295,7 @@ export default function GlobalLiveVoiceModal() {
 
       setAiResponse(text);
       setActiveWidgets(widgets);
+      isProcessingRef.current = false;
       setIsProcessing(false);
 
       // Odtwarzanie odpowiedzi głosowej, a po jej zakończeniu powrót do nasłuchiwania (pętla ciągłej rozmowy)
@@ -263,6 +307,7 @@ export default function GlobalLiveVoiceModal() {
       });
     } catch (err) {
       console.error('[GlobalLiveVoiceModal] Błąd dyspozycji zapytania:', err);
+      isProcessingRef.current = false;
       setIsProcessing(false);
       speakText('Wystąpił błąd podczas przetwarzania zapytania.', () => {
         if (isOpenRef.current) startListeningLoop();
@@ -271,6 +316,7 @@ export default function GlobalLiveVoiceModal() {
   };
 
   const openModalAndStart = (initialPayload = '') => {
+    wakeWordService.pause();
     setIsOpen(true);
     setUserTranscript(initialPayload);
     setAiResponse('');

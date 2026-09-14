@@ -1,7 +1,7 @@
 /**
  * Wake Word Service - Asystent Głosowy "Hej Omni"
- * Odpowiada za ciągły nasłuch mikrofonu w tle, detekcję słowa wybudzającego
- * oraz zarządzanie cyklem życia Web Speech API.
+ * Odpowiada za ciągły, cichy nasłuch mikrofonu w tle (Silent Listening Mode),
+ * detekcję słowa wybudzającego oraz bezkolizyjne zarządzanie Web Speech API.
  */
 
 // Wzorce słowa wybudzającego (wielkość liter i polskie znaki ignorowane)
@@ -77,12 +77,17 @@ export function cleanTextForSpeech(str) {
 class WakeWordService {
   constructor() {
     this.recognition = null;
+    this.micStream = null;
     this.isListening = false;
+    this.isStarting = false;
+    this.isStopping = false;
     this.isPaused = false;
+    this.isAiSpeaking = false;
+    this.consecutiveErrors = 0;
     this.restartTimeout = null;
     this.callbacks = new Set();
     this.statusListeners = new Set();
-    this.status = 'idle'; // 'idle' | 'listening' | 'paused' | 'detected' | 'error' | 'unsupported'
+    this.status = 'idle'; // 'idle' | 'listening' | 'paused' | 'detected' | 'error' | 'unsupported' | 'permission-denied'
 
     this.initRecognition();
   }
@@ -108,78 +113,126 @@ class WakeWordService {
     }
   }
 
+  setAiSpeaking(isSpeaking) {
+    this.isAiSpeaking = Boolean(isSpeaking);
+    if (this.isAiSpeaking) {
+      this.pause();
+    } else {
+      if (!this.isPaused && this.isEnabled()) {
+        this.scheduleRestart(600);
+      }
+    }
+  }
+
+  /**
+   * Ciche podtrzymanie strumienia audio mikrofonu (Warm Stream)
+   * Zapobiega klikom systemowym, powiadomieniom i przełączaniu urządzenia w OS przy restartach Web Speech API
+   */
+  async acquireSilentAudioStream() {
+    if (this.micStream) return;
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) return;
+
+    try {
+      this.micStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+    } catch {
+      // Cichy fallback – jeśli użytkownik jeszcze nie kliknął uprawnień
+    }
+  }
+
+  releaseSilentAudioStream() {
+    if (this.micStream) {
+      try {
+        this.micStream.getTracks().forEach(track => track.stop());
+      } catch {}
+      this.micStream = null;
+    }
+  }
+
   initRecognition() {
     if (!this.isSupported()) {
       this.status = 'unsupported';
       return;
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    this.recognition = new SpeechRecognition();
+    try {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      this.recognition = new SpeechRecognition();
 
-    const systemLang = (typeof localStorage !== 'undefined' && localStorage.getItem('system_language')) || 'pl';
-    const langMap = { pl: 'pl-PL', en: 'en-US', uk: 'uk-UA', zh: 'zh-CN' };
-    this.recognition.lang = langMap[systemLang] || 'pl-PL';
-    this.recognition.continuous = true;
-    this.recognition.interimResults = true;
+      const systemLang = (typeof localStorage !== 'undefined' && localStorage.getItem('system_language')) || 'pl';
+      const langMap = { pl: 'pl-PL', en: 'en-US', uk: 'uk-UA', zh: 'zh-CN' };
+      this.recognition.lang = langMap[systemLang] || 'pl-PL';
+      this.recognition.continuous = true;
+      this.recognition.interimResults = true;
 
-    this.recognition.onstart = () => {
-      this.isListening = true;
-      this.status = 'listening';
-      this.notifyStatus('listening');
-    };
+      this.recognition.onstart = () => {
+        this.isStarting = false;
+        this.isListening = true;
+        this.consecutiveErrors = 0;
+        this.status = 'listening';
+        this.notifyStatus('listening');
+      };
 
-    this.recognition.onresult = (event) => {
-      if (this.isPaused) return;
+      this.recognition.onresult = (event) => {
+        if (this.isPaused || this.isAiSpeaking) return;
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        const transcript = result[0]?.transcript || '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const result = event.results[i];
+          const transcript = result[0]?.transcript || '';
 
-        if (isWakeWord(transcript)) {
-          const payload = extractWakeWordPayload(transcript);
-          this.handleWakeWordDetected(transcript, payload);
-          break;
+          if (isWakeWord(transcript)) {
+            const payload = extractWakeWordPayload(transcript);
+            this.handleWakeWordDetected(transcript, payload);
+            break;
+          }
         }
-      }
-    };
+      };
 
-    this.recognition.onerror = (event) => {
-      // Ignorujemy błędy no-speech i aborted – to normalne cykle w Web Speech API
-      if (event.error !== 'no-speech' && event.error !== 'aborted') {
-        console.warn('[WakeWordService] Błąd rozpoznawania mowy:', event.error);
+      this.recognition.onerror = (event) => {
+        this.isStarting = false;
+        this.isListening = false;
+
+        // Ciche traktowanie rutynowych zdarzeń przeglądarkowych
         if (event.error === 'not-allowed') {
           this.status = 'permission-denied';
           this.notifyStatus('permission-denied');
-          this.isListening = false;
           return;
         }
-      }
-      this.scheduleRestart(800);
-    };
 
-    this.recognition.onend = () => {
-      this.isListening = false;
-      if (!this.isPaused && this.isEnabled()) {
-        this.scheduleRestart(400);
-      } else {
-        this.status = this.isPaused ? 'paused' : 'idle';
-        this.notifyStatus(this.status);
-      }
-    };
+        // Zwiększanie odstępu przy powtarzających się błędach (wykładniczy backoff)
+        this.consecutiveErrors++;
+        const delay = Math.min(1000 * Math.pow(1.3, this.consecutiveErrors), 6000);
+        this.scheduleRestart(delay);
+      };
+
+      this.recognition.onend = () => {
+        this.isListening = false;
+        this.isStarting = false;
+
+        if (!this.isPaused && this.isEnabled() && !this.isAiSpeaking) {
+          this.scheduleRestart(800);
+        } else {
+          this.status = this.isPaused ? 'paused' : 'idle';
+          this.notifyStatus(this.status);
+        }
+      };
+    } catch {
+      this.status = 'error';
+    }
   }
 
-  scheduleRestart(delay = 500) {
+  scheduleRestart(delay = 800) {
     if (this.restartTimeout) clearTimeout(this.restartTimeout);
-    if (!this.isEnabled() || this.isPaused) return;
+    if (!this.isEnabled() || this.isPaused || this.isAiSpeaking) return;
 
     this.restartTimeout = setTimeout(() => {
-      if (!this.isListening && !this.isPaused && this.isEnabled()) {
-        try {
-          this.recognition?.start();
-        } catch {
-          // Już uruchomione lub zajęte
-        }
+      if (!this.isListening && !this.isStarting && !this.isPaused && this.isEnabled() && !this.isAiSpeaking) {
+        this.start();
       }
     }, delay);
   }
@@ -206,37 +259,52 @@ class WakeWordService {
     });
   }
 
-  start() {
-    if (!this.isSupported() || !this.isEnabled() || this.isListening) return;
+  async start() {
+    if (!this.isSupported() || !this.isEnabled() || this.isListening || this.isStarting || this.isAiSpeaking) return;
+
     this.isPaused = false;
+    this.isStarting = true;
+
+    // Ciche podtrzymanie mikrofonu w tle
+    this.acquireSilentAudioStream().catch(() => {});
+
     try {
       this.recognition?.start();
-    } catch {
-      // Bezpieczny fallback
+    } catch (err) {
+      this.isStarting = false;
+      if (err?.name === 'InvalidStateError') {
+        // Obiekt rozpoznawania był już w stanie startowania/aktywnym
+        this.isListening = true;
+      } else {
+        this.scheduleRestart(1200);
+      }
     }
   }
 
   stop() {
     if (this.restartTimeout) clearTimeout(this.restartTimeout);
     this.isPaused = false;
+    this.isStarting = false;
     this.isListening = false;
     this.status = 'idle';
+
     try {
       this.recognition?.abort();
-    } catch {
-      // Ignoruj
-    }
+    } catch {}
+
+    this.releaseSilentAudioStream();
     this.notifyStatus('idle');
   }
 
   pause() {
     this.isPaused = true;
+    this.isStarting = false;
     if (this.restartTimeout) clearTimeout(this.restartTimeout);
+
     try {
       this.recognition?.abort();
-    } catch {
-      // Ignoruj
-    }
+    } catch {}
+
     this.status = 'paused';
     this.notifyStatus('paused');
   }
@@ -244,7 +312,8 @@ class WakeWordService {
   resume() {
     if (!this.isEnabled()) return;
     this.isPaused = false;
-    this.scheduleRestart(200);
+    this.isStarting = false;
+    this.scheduleRestart(400);
   }
 
   onWakeWord(callback) {
