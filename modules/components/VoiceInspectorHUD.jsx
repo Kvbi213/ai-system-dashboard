@@ -153,26 +153,40 @@ export default function VoiceInspectorHUD() {
         )}
 
         {/* WSKAŹNIK POZIOMU AUDIO (VU METER) */}
-        {isListening && (
-          <div className="p-2 rounded-xl bg-black/60 border border-white/10 space-y-1">
-            <div className="flex items-center justify-between text-[10px] font-mono text-textMuted">
-              <span className="flex items-center gap-1">
-                <Activity className="w-3 h-3 text-accentPrimary" /> Poziom wejścia audio:
-              </span>
-              <span className={`font-bold ${micVolume > 40 ? 'text-accentPrimary' : micVolume > 8 ? 'text-amber-300' : 'text-textMuted'}`}>
-                {micVolume > 0 ? `${micVolume}%` : 'Cisza (0%)'}
-              </span>
-            </div>
-            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <div 
-                className={`h-full rounded-full transition-all duration-75 ${
-                  micVolume > 50 ? 'bg-amber-400' : micVolume > 8 ? 'bg-accentPrimary' : 'bg-white/20'
-                }`}
-                style={{ width: `${Math.max(2, micVolume)}%` }}
-              />
-            </div>
+        <div 
+          onClick={async () => {
+            if (window.__OMNI_VOICE__) {
+              await window.__OMNI_VOICE__.requestMic();
+            } else {
+              await wakeWordService.acquireSilentAudioStream(true);
+            }
+          }}
+          className="p-2.5 rounded-xl bg-black/60 border border-white/10 space-y-1.5 cursor-pointer hover:border-accentPrimary/40 transition-colors"
+          title="Kliknij tutaj, aby odblokować i przetestować wejście mikrofonu"
+        >
+          <div className="flex items-center justify-between text-[10px] font-mono text-textMuted">
+            <span className="flex items-center gap-1.5">
+              <Activity className={`w-3.5 h-3.5 ${micVolume > 5 ? 'text-accentPrimary animate-pulse' : 'text-textMuted'}`} />
+              Wejście mikrofonu:
+            </span>
+            <span className={`font-bold ${micVolume > 35 ? 'text-accentPrimary' : micVolume > 5 ? 'text-amber-300' : 'text-textMuted'}`}>
+              {micVolume > 0 ? `${micVolume}%` : '0% (Cisza)'}
+            </span>
           </div>
-        )}
+          <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/5">
+            <div 
+              className={`h-full rounded-full transition-all duration-75 ${
+                micVolume > 40 ? 'bg-accentPrimary shadow-[0_0_8px_rgba(var(--color-accent-primary),0.8)]' : micVolume > 5 ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]' : 'bg-white/20'
+              }`}
+              style={{ width: `${Math.max(2, micVolume)}%` }}
+            />
+          </div>
+          {micVolume === 0 && (
+            <p className="text-[9px] text-textMuted/70 text-center">
+              💡 Kliknij ten pasek, jeśli wskaźnik nie reaguje na Twój głos
+            </p>
+          )}
+        </div>
 
         {/* PODGLĄD CO MIKROFON SŁYSZY NA ŻYWO */}
         <div className="p-2.5 rounded-xl bg-black/50 border border-white/10 min-h-[52px] flex flex-col justify-center">

@@ -216,6 +216,20 @@ class WakeWordService {
     }
   }
 
+  async resumeAudioContext() {
+    try {
+      if (this.audioContext && this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+        console.log('[OmniVoice 🔊] AudioContext odblokowany pomyślnie.');
+      }
+      if (!this.micStream) {
+        await this.acquireSilentAudioStream(true);
+      }
+    } catch (e) {
+      console.warn('[OmniVoice] Błąd wznawiania AudioContext:', e);
+    }
+  }
+
   setupAudioMeter() {
     if (!this.micStream || typeof window === 'undefined') return;
     try {
@@ -224,33 +238,53 @@ class WakeWordService {
       if (!this.audioContext || this.audioContext.state === 'closed') {
         this.audioContext = new AudioCtx();
       }
+
+      // Rejestracja odblokowania AudioContext na pierwsze kliknięcie (zgodnie z Autoplay Policy)
+      const ensureRunning = () => {
+        if (this.audioContext && this.audioContext.state === 'suspended') {
+          this.audioContext.resume().catch(() => {});
+        }
+      };
       if (this.audioContext.state === 'suspended') {
+        window.addEventListener('click', ensureRunning, { once: true });
+        window.addEventListener('pointerdown', ensureRunning, { once: true });
+        window.addEventListener('keydown', ensureRunning, { once: true });
         this.audioContext.resume().catch(() => {});
       }
+
       const source = this.audioContext.createMediaStreamSource(this.micStream);
       const analyser = this.audioContext.createAnalyser();
-      analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.4;
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.3;
       source.connect(analyser);
 
-      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      const dataArray = new Uint8Array(analyser.fftSize);
       const updateVolume = () => {
         if (!this.micStream) {
           this.volumeLevel = 0;
           return;
         }
-        analyser.getByteFrequencyData(dataArray);
-        let sum = 0;
+
+        // Pomiar amplitudy fali w dziedzinie czasu (Time Domain RMS)
+        analyser.getByteTimeDomainData(dataArray);
+        let sumSquares = 0;
         for (let i = 0; i < dataArray.length; i++) {
-          sum += dataArray[i];
+          const deviation = (dataArray[i] - 128) / 128;
+          sumSquares += deviation * deviation;
         }
-        const avg = sum / dataArray.length;
-        const normalizedVol = Math.min(100, Math.round((avg / 128) * 100));
+        const rms = Math.sqrt(sumSquares / dataArray.length);
+
+        // Skalowanie dynamiczne czułe na szept (RMS ~0.008 - 0.25)
+        let normalizedVol = 0;
+        if (rms > 0.005) {
+          normalizedVol = Math.min(100, Math.round(Math.pow(rms * 4.5, 0.75) * 100));
+        }
         this.volumeLevel = normalizedVol;
 
-        window.dispatchEvent(new CustomEvent('omniMicVolume', { detail: { volume: normalizedVol } }));
+        window.dispatchEvent(new CustomEvent('omniMicVolume', { detail: { volume: normalizedVol, rms } }));
         this.meterAnimFrame = requestAnimationFrame(updateVolume);
       };
+
       if (this.meterAnimFrame && typeof cancelAnimationFrame !== 'undefined') {
         cancelAnimationFrame(this.meterAnimFrame);
       }
@@ -604,9 +638,11 @@ class WakeWordService {
       },
       requestMic: async () => {
         console.log('[OmniVoice 🎤] Prośba o dostęp do mikrofonu (getUserMedia)...');
+        await this.resumeAudioContext();
         await this.acquireSilentAudioStream(true);
         this.start();
       },
+      resumeAudio: () => this.resumeAudioContext(),
       enable: () => this.setEnabled(true),
       disable: () => this.setEnabled(false),
       showInspector: () => {
