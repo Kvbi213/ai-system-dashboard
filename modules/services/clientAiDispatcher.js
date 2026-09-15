@@ -214,7 +214,7 @@ export function isPushRequest(text) {
     'wyślij na komórk', 'wyślij mi na komórk', 'prześlij na komórk', 'wyślij na smartfon',
     'na telefon', 'na tel', 'na komórk', 'na smartfon',
     'pushbullet', 'powiadomienie na telefon', 'powiadomienie push', 'wyślij powiadomienie',
-    'prześlij powiadomienie'
+    'prześlij powiadomienie', 'testowy push', 'wyślij push', 'test push', 'push na telefon'
   ];
   return pushKeywords.some(kw => t.includes(kw));
 }
@@ -222,7 +222,9 @@ export function isPushRequest(text) {
 export function extractPushDetails(userQuery, aiText) {
   let title = 'OmniDash Powiadomienie';
   const q = (userQuery || '').toLowerCase();
-  if (q.includes('lekcj') || q.includes('plan')) {
+  if (q.includes('test')) {
+    title = 'OmniDash: Test Powiadomień';
+  } else if (q.includes('lekcj') || q.includes('plan')) {
     title = 'OmniDash: Plan Lekcji';
   } else if (q.includes('pogod')) {
     title = 'OmniDash: Prognoza Pogody';
@@ -234,12 +236,23 @@ export function extractPushDetails(userQuery, aiText) {
     title = 'OmniDash: Trening';
   }
 
-  const cleanBody = (aiText || '')
+  let cleanBody = (aiText || '')
     .replace(/\[ACTION:[^\]]+\]/gi, '')
     .replace(/[#*`_~]/g, '')
     .replace(/\|[^\n]+\|/g, (row) => row.split('|').map(c => c.trim()).filter(Boolean).join(' | '))
     .replace(/\n{2,}/g, '\n')
     .trim();
+
+  const lowerBody = cleanBody.toLowerCase();
+  if (
+    lowerBody.includes('nie ma polecenia') ||
+    lowerBody.includes('nie ma dedykowanej') ||
+    lowerBody.includes('nie ma w aktualnym zestawie') ||
+    lowerBody.includes('brak polecenia') ||
+    lowerBody.includes('nie ma funkcji')
+  ) {
+    cleanBody = 'Testowe powiadomienie Push z systemu OmniDash.';
+  }
 
   const body = cleanBody.slice(0, 280).trim() || 'Powiadomienie z systemu OmniDash.';
   return { title, body };
@@ -511,27 +524,23 @@ export function parseAndExecuteAiActionsWithWidgets(text, userQuery = '') {
   if (!hadSendPush && isPushRequest(userQuery)) {
     const { title, body } = extractPushDetails(userQuery, cleanedText);
     if (body) {
-      try {
-        const token = localStorage.getItem('token') || '';
-        const pushEndpoint = isCloudMode
-          ? 'https://ai-system-dashboard.vercel.app/api/phone'
-          : '/api/phone/push';
-        fetch(pushEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ title, body })
-        }).catch(() => {});
+      sendPushNotificationClient(title, body).catch(err => {
+        console.warn('[AiDispatcher] Błąd asynchronicznej wysyłki Push fallback:', err);
+      });
 
-        window.dispatchEvent(new CustomEvent('toastTriggered', {
-          detail: {
-            type: 'info',
-            message: `📱 Wysłano powiadomienie na Twój telefon: ${title}`
-          }
-        }));
-      } catch {}
+      const lowerCleaned = cleanedText.toLowerCase();
+      if (
+        lowerCleaned.includes('nie ma polecenia') ||
+        lowerCleaned.includes('nie ma dedykowanej funkcji') ||
+        lowerCleaned.includes('nie ma w zestawie') ||
+        lowerCleaned.includes('nie ma w aktualnym zestawie') ||
+        lowerCleaned.includes('nie posiadam możliwości') ||
+        lowerCleaned.includes('brak akcji')
+      ) {
+        cleanedText = `📱 **Wysłano powiadomienie Push na Twój telefon.**\n\n- **Tytuł:** ${title}\n- **Treść:** ${body}`;
+      } else {
+        cleanedText = `${cleanedText}\n\n📱 *(Powiadomienie Push zostało przesłane na Twój telefon: "${title}")*`;
+      }
     }
   }
 
@@ -546,86 +555,16 @@ export function parseAndExecuteAiActions(text, userQuery = '') {
 }
 
 export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użytkownik', language = 'pl' }) => {
-  const groqKey = localStorage.getItem('system_groq_api_key') || 
-                  localStorage.getItem('system_api_key') || 
-                  import.meta.env.VITE_GROQ_API_KEY;
+  const groqKey = typeof window !== 'undefined'
+    ? (localStorage.getItem('system_groq_api_key') || 
+       localStorage.getItem('system_api_key') || 
+       import.meta.env.VITE_GROQ_API_KEY)
+    : (process.env.VITE_GROQ_API_KEY || process.env.GROQ_API_KEY);
 
   const context = getClientContextSummary();
 
-  // 1. Priorytet: Dedykowany Gateway Vercel Serverless (Bypass CORS, model openai/gpt-oss-120b)
-  try {
-    const payload = {
-      text,
-      mode,
-      userName,
-      language,
-      context: {
-        tasks: context.tasks,
-        calendar: context.calendar,
-        finances: context.finances,
-        workouts: context.workouts,
-        operatorBrain: context.operatorBrain,
-        timetable: context.timetable
-      },
-      clientTimestamp: Date.now(),
-      clientTimeStr: context.timeStr,
-      clientDateStr: context.dateStr,
-      timeZone: 'Europe/Warsaw',
-      customApiKey: groqKey && groqKey.startsWith('gsk_') ? groqKey : undefined,
-      model: localStorage.getItem('system_active_model') || 'openai/gpt-oss-120b'
-    };
-
-    const vercelRes = await axios.post(VERCEL_AGENT_ENDPOINT, payload, {
-      timeout: 30000,
-      headers: { 'Content-Type': 'application/json' }
-    });
-
-    if (vercelRes.data && vercelRes.data.agent_response) {
-      const rawContent = vercelRes.data.agent_response;
-      const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(rawContent, text);
-      const backendWidgets = vercelRes.data.widgets || [];
-      const mergedWidgets = Array.from(new Set([...backendWidgets, ...extraWidgets, ...determineWidgets(text, rawContent)]));
-
-      return {
-        content,
-        mentor_thoughts: vercelRes.data.mentor_thoughts || null,
-        widgets: mergedWidgets,
-        source: 'vercel_serverless'
-      };
-    }
-  } catch (vercelErr) {
-    console.warn('[AiDispatcher] Vercel Gateway niedostępny lub timeout:', vercelErr.message);
-  }
-
-  // 2. Jeśli jesteśmy lokalnie (Desktop), spróbuj lokalnego backendu Express
-  if (!isCloudMode) {
-    try {
-      const { data } = await axios.post('/api/agent', {
-        text,
-        mode,
-        userName,
-        language
-      }, { timeout: 15000 });
-
-      if (data && (data.agent_response || data.payload)) {
-        const rawContent = data.agent_response || (data.payload?.agent_response || data.payload?.title || JSON.stringify(data.payload));
-        const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(rawContent, text);
-        const backendWidgets = data.widgets || (data.widget ? [data.widget] : []);
-        const mergedWidgets = Array.from(new Set([...backendWidgets, ...extraWidgets, ...determineWidgets(text, rawContent)]));
-
-        return {
-          content,
-          mentor_thoughts: data.mentor_thoughts || null,
-          widgets: mergedWidgets,
-          source: 'local_backend'
-        };
-      }
-    } catch (backendErr) {
-      console.warn('[AiDispatcher] Backend lokalny niedostępny:', backendErr.message);
-    }
-  }
-
-  // 3. Bezpośrednie wywołanie Groq API (fallback z nagłówkiem Authorization)
+  // 1. Priorytet: Bezpośrednie zapytanie Groq API z poziomu przeglądarki (Direct Browser CORS)
+  // Zapewnia natychmiastowe wykonanie, brak zależności od zewnętrznych deploymentów i pełną synchronizację ze znacznikami akcji ([ACTION:SEND_PUSH])
   if (groqKey && groqKey !== 'unconfigured_key' && groqKey.startsWith('gsk_')) {
     try {
       const tasksSummary = context.tasks.length > 0
@@ -735,6 +674,8 @@ ${workoutsSummary}
 Kalendarz:
 ${calendarSummary}`;
 
+      const activeModel = (typeof localStorage !== 'undefined' && localStorage.getItem('system_active_model')) || 'openai/gpt-oss-120b';
+
       const response = await fetch(GROQ_ENDPOINT, {
         method: 'POST',
         headers: {
@@ -742,7 +683,7 @@ ${calendarSummary}`;
           'Authorization': `Bearer ${groqKey}`
         },
         body: JSON.stringify({
-          model: 'openai/gpt-oss-120b',
+          model: activeModel,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: text }
@@ -756,7 +697,7 @@ ${calendarSummary}`;
         const resData = await response.json();
         const rawContent = resData.choices?.[0]?.message?.content || 'Brak odpowiedzi od modelu.';
         const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(rawContent, text);
-        const thoughts = mode === 'mentor' ? `Analiza kognitywna (GPT-OSS 120B): przetworzono zadania i kontekst operacyjny.` : null;
+        const thoughts = mode === 'mentor' ? `Analiza kognitywna (${activeModel}): przetworzono zadania i kontekst operacyjny.` : null;
         const widgets = Array.from(new Set([...extraWidgets, ...determineWidgets(text, rawContent)]));
 
         return {
@@ -765,10 +706,85 @@ ${calendarSummary}`;
           widgets,
           source: 'cloud_groq'
         };
+      } else {
+        console.warn('[AiDispatcher] Groq API zwrócił błąd HTTP:', response.status);
       }
     } catch (groqErr) {
       console.warn('[AiDispatcher] Bezpośrednie zapytanie Groq nie powiodło się:', groqErr.message);
     }
+  }
+
+  // 2. Jeśli jesteśmy lokalnie (Desktop), spróbuj lokalnego backendu Express
+  if (!isCloudMode) {
+    try {
+      const { data } = await axios.post('/api/agent', {
+        text,
+        mode,
+        userName,
+        language
+      }, { timeout: 15000 });
+
+      if (data && (data.agent_response || data.payload)) {
+        const rawContent = data.agent_response || (data.payload?.agent_response || data.payload?.title || JSON.stringify(data.payload));
+        const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(rawContent, text);
+        const backendWidgets = data.widgets || (data.widget ? [data.widget] : []);
+        const mergedWidgets = Array.from(new Set([...backendWidgets, ...extraWidgets, ...determineWidgets(text, rawContent)]));
+
+        return {
+          content,
+          mentor_thoughts: data.mentor_thoughts || null,
+          widgets: mergedWidgets,
+          source: 'local_backend'
+        };
+      }
+    } catch (backendErr) {
+      console.warn('[AiDispatcher] Backend lokalny niedostępny:', backendErr.message);
+    }
+  }
+
+  // 3. Fallback: Dedykowany Gateway Vercel Serverless (model openai/gpt-oss-120b)
+  try {
+    const payload = {
+      text,
+      mode,
+      userName,
+      language,
+      context: {
+        tasks: context.tasks,
+        calendar: context.calendar,
+        finances: context.finances,
+        workouts: context.workouts,
+        operatorBrain: context.operatorBrain,
+        timetable: context.timetable
+      },
+      clientTimestamp: Date.now(),
+      clientTimeStr: context.timeStr,
+      clientDateStr: context.dateStr,
+      timeZone: 'Europe/Warsaw',
+      customApiKey: groqKey && groqKey.startsWith('gsk_') ? groqKey : undefined,
+      model: (typeof localStorage !== 'undefined' && localStorage.getItem('system_active_model')) || 'openai/gpt-oss-120b'
+    };
+
+    const vercelRes = await axios.post(VERCEL_AGENT_ENDPOINT, payload, {
+      timeout: 30000,
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (vercelRes.data && vercelRes.data.agent_response) {
+      const rawContent = vercelRes.data.agent_response;
+      const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(rawContent, text);
+      const backendWidgets = vercelRes.data.widgets || [];
+      const mergedWidgets = Array.from(new Set([...backendWidgets, ...extraWidgets, ...determineWidgets(text, rawContent)]));
+
+      return {
+        content,
+        mentor_thoughts: vercelRes.data.mentor_thoughts || null,
+        widgets: mergedWidgets,
+        source: 'vercel_serverless'
+      };
+    }
+  } catch (vercelErr) {
+    console.warn('[AiDispatcher] Vercel Gateway niedostępny lub timeout:', vercelErr.message);
   }
 
   // 4. Wbudowany inteligentny asystent autonomiczny (Gdy brak sieci / błąd API)

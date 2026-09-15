@@ -68,7 +68,7 @@ export function isPushRequest(text) {
     'wyślij na komórk', 'wyślij mi na komórk', 'prześlij na komórk', 'wyślij na smartfon',
     'na telefon', 'na tel', 'na komórk', 'na smartfon',
     'pushbullet', 'powiadomienie na telefon', 'powiadomienie push', 'wyślij powiadomienie',
-    'prześlij powiadomienie'
+    'prześlij powiadomienie', 'testowy push', 'wyślij push', 'test push', 'push na telefon'
   ];
   return pushKeywords.some(kw => t.includes(kw));
 }
@@ -590,10 +590,20 @@ ${liveIntelBlock}`;
 
     let agent_response = chatCompletion.choices?.[0]?.message?.content || 'Brak odpowiedzi od modelu.';
 
-    // Gwarancja Pushbullet: jeśli użytkownik poprosił o wysyłkę na telefon, a model pominął znacznik akcji
-    if (isPushRequest(incomingText) && !agent_response.includes('[ACTION:SEND_PUSH')) {
-      const { title: pushTitle, body: pushBody } = extractPushDetails(incomingText, agent_response);
-      agent_response = `${agent_response.trim()}\n\n[ACTION:SEND_PUSH title="${pushTitle}" body="${pushBody}"]`;
+    // Gwarancja Pushbullet: jeśli użytkownik poprosił o wysyłkę na telefon, a model pominął znacznik akcji lub halucynuje brak funkcji
+    if (isPushRequest(incomingText)) {
+      if (
+        agent_response.toLowerCase().includes('nie ma polecenia') ||
+        agent_response.toLowerCase().includes('nie ma dedykowanej funkcji') ||
+        agent_response.toLowerCase().includes('nie ma w aktualnym zestawie') ||
+        agent_response.toLowerCase().includes('nie posiadam możliwości')
+      ) {
+        agent_response = 'Wysyłam powiadomienie na Twój telefon.';
+      }
+      if (!agent_response.includes('[ACTION:SEND_PUSH')) {
+        const { title: pushTitle, body: pushBody } = extractPushDetails(incomingText, agent_response);
+        agent_response = `${agent_response.trim()}\n\n[ACTION:SEND_PUSH title="${pushTitle}" body="${pushBody}"]`;
+      }
     }
 
     const mentor_thoughts = mode === 'mentor' 

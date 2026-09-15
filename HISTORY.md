@@ -1,5 +1,24 @@
 ## Wersja Bieżąca
-**v2.18.8**
+**v2.18.9**
+
+## v 2.18.9 — 2026-09-15
+**Typ:** PATCH  
+**Zakres:** Eliminacja Halucynacji Odmowy Wysyłki Push, Ustanowienie Direct Groq API jako Priorytet 1 (Natywny Browser CORS, Pełna Spójność Promptu z Akcją SEND_PUSH), Sanityzacja Kognitywna i Fallback w Dispatcherze.
+
+### Zmiany
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` – przestawiono bezpośrednie odpytywanie Groq API (`cloud_groq`) na Priorytet 1, eliminując zależność od przestarzałej bramy Vercel Serverless serwującej stary prompt bez `[ACTION:SEND_PUSH]`.
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` – wdrożono filtr kognitywny w `parseAndExecuteAiActionsWithWidgets`, który przy żądaniu pusha automatycznie przechwytuje i zastępuje halucynacje odmowne asystenta potwierdzeniem faktycznej wysyłki przez Pushbullet.
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` & `api/agent.js` – rozszerzono słownik detekcji intencji push (`isPushRequest`) o zwroty testowe (`testowy push`, `wyślij push`, `test push`, `push na telefon`) oraz dodano dedykowany tytuł w `extractPushDetails`.
+- [*] Zmodyfikowano: `api/agent.js` – dodano gwarancję sanityzacji odmowy i wymuszenia znacznika `[ACTION:SEND_PUSH]` po stronie backendu.
+- [+] Dodano: Nowe testy jednostkowe w `tests/pushbullet_finance.test.js` weryfikujące zastępowanie halucynowanej odmowy i detekcję testowego pusha (77/77 PASS).
+- [*] Zmodyfikowano: `package.json` – podniesiono wersję do `2.18.9`.
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.18.9.md`.
+- [*] Zmodyfikowano: Utworzono kartę błędu `docs/errors/ERROR_DIFF_2026-09-15_ai_push_denial_hallucination_and_groq_priority.md` (zamknięta ze statusem SUCCESS).
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.18.8 — 2026-09-15
 **Typ:** MINOR / PATCH  

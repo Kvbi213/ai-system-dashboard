@@ -156,6 +156,13 @@ describe('Pushbullet Financial Notification Classifier', () => {
       expect(cleanedText).not.toContain('Skopiuj powyższą tabelę');
       expect(cleanedText).toContain('Matematyka');
     });
+
+    it('powinien przechwycić i zastąpić halucynowaną odmowę wysyłki push, gdy użytkownik prosi o wysyłkę na telefon', () => {
+      const hallucinatedDenial = 'Niestety w aktualnym zestawie dostępnych akcji systemowych nie ma polecenia umożliwiającego wysyłanie push‑powiadomień na telefon.';
+      const { cleanedText } = parseAndExecuteAiActionsWithWidgets(hallucinatedDenial, 'Wyślij Testowy Push na Telefon');
+      expect(cleanedText).toContain('Wysłano powiadomienie Push na Twój telefon');
+      expect(cleanedText).not.toContain('nie ma polecenia');
+    });
   });
 
   describe('Autonomous Push Intent Detection (isPushRequest & extractPushDetails)', () => {
@@ -166,6 +173,8 @@ describe('Pushbullet Financial Notification Classifier', () => {
       expect(isPushRequest('sprawdź pogodę i wyślij powiadomienie push')).toBe(true);
       expect(isPushRequest('wyślij na smartfon')).toBe(true);
       expect(isPushRequest('czy możesz to przesłać na komórkę?')).toBe(true);
+      expect(isPushRequest('Wyślij Testowy Push na Telefon')).toBe(true);
+      expect(isPushRequest('testowy push')).toBe(true);
     });
 
     it('powinien zwracać false dla zapytań bez intencji push', () => {
