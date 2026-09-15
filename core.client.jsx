@@ -11,18 +11,53 @@ import Dashboard from './modules/pages/Dashboard';
 import ChatPage from './modules/pages/ChatPage';
 import LockScreen from './modules/pages/LockScreen';
 
-// Code-splitting (Dynamic imports) dla podstron funkcyjnych w celu redukcji początkowego bundle JS
-const SearchPage = React.lazy(() => import('./modules/pages/SearchPage'));
-const SettingsPage = React.lazy(() => import('./modules/pages/SettingsPage'));
-const WidgetsPage = React.lazy(() => import('./modules/pages/WidgetsPage'));
-const CalendarPage = React.lazy(() => import('./modules/pages/CalendarPage'));
-const FinancePage = React.lazy(() => import('./modules/pages/FinancePage'));
-const WorkoutsPage = React.lazy(() => import('./modules/pages/WorkoutsPage'));
-const TimetablePage = React.lazy(() => import('./modules/pages/TimetablePage'));
-const MemoryPage = React.lazy(() => import('./modules/pages/MemoryPage'));
-const OSINTPage = React.lazy(() => import('./modules/pages/OSINTPage'));
-const ServerPage = React.lazy(() => import('./modules/pages/ServerPage'));
-const BrowserPage = React.lazy(() => import('./modules/pages/BrowserPage'));
+// Bezpieczne ładowanie dynamicznych modułów (Code-Splitting) z auto-recovery po nowym wdrożeniu produkcyjnym
+const lazyWithRetry = (componentImport) =>
+  React.lazy(async () => {
+    try {
+      return await componentImport();
+    } catch (error) {
+      const isChunkError =
+        error?.message?.includes('Failed to fetch dynamically imported module') ||
+        error?.message?.includes('Importing a module script failed') ||
+        error?.name === 'ChunkLoadError';
+
+      const hasReloaded = typeof window !== 'undefined' && window.sessionStorage.getItem('chunk_reload_retry') === 'true';
+
+      if (isChunkError && !hasReloaded && typeof window !== 'undefined') {
+        console.warn('[Vite Dynamic Import] Wykryto nową wersję modułu na serwerze. Automatyczne odświeżenie aplikacji...');
+        window.sessionStorage.setItem('chunk_reload_retry', 'true');
+        window.location.reload();
+        return new Promise(() => {});
+      }
+
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.removeItem('chunk_reload_retry');
+      }
+      throw error;
+    }
+  });
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('vite:preloadError', (event) => {
+    console.warn('[Vite Preload Error] Nieodnaleziony zasób po aktualizacji wersji. Przeładowanie...');
+    event.preventDefault();
+    window.location.reload();
+  });
+}
+
+// Code-splitting (Dynamic imports) dla podstron funkcyjnych z odpornością na wymianę chunków w CDN
+const SearchPage = lazyWithRetry(() => import('./modules/pages/SearchPage'));
+const SettingsPage = lazyWithRetry(() => import('./modules/pages/SettingsPage'));
+const WidgetsPage = lazyWithRetry(() => import('./modules/pages/WidgetsPage'));
+const CalendarPage = lazyWithRetry(() => import('./modules/pages/CalendarPage'));
+const FinancePage = lazyWithRetry(() => import('./modules/pages/FinancePage'));
+const WorkoutsPage = lazyWithRetry(() => import('./modules/pages/WorkoutsPage'));
+const TimetablePage = lazyWithRetry(() => import('./modules/pages/TimetablePage'));
+const MemoryPage = lazyWithRetry(() => import('./modules/pages/MemoryPage'));
+const OSINTPage = lazyWithRetry(() => import('./modules/pages/OSINTPage'));
+const ServerPage = lazyWithRetry(() => import('./modules/pages/ServerPage'));
+const BrowserPage = lazyWithRetry(() => import('./modules/pages/BrowserPage'));
 
 const PageFallback = () => (
   <div className="flex-1 h-full flex items-center justify-center p-8">

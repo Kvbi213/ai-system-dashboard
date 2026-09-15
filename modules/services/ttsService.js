@@ -6,6 +6,15 @@
 
 import { cleanTextForSpeech } from './wakeWordService.js';
 
+const isCloudEnvironment = () => {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname;
+  return host.includes('web.app') || 
+         host.includes('firebaseapp.com') || 
+         host.includes('vercel.app') || 
+         (host !== 'localhost' && host !== '127.0.0.1');
+};
+
 export const EDGE_DEFAULT_VOICES = [
   { id: 'pl-PL-MarekNeural', name: 'Marek (Męski - Studio Neural / Naturalny)' },
   { id: 'pl-PL-ZofiaNeural', name: 'Zofia (Damski - Studio Neural / Ciepły)' },
@@ -129,7 +138,7 @@ class TTSService {
   /**
    * Główna metoda odtwarzająca mowę z automatycznym wyborem silnika i fallbackiem
    */
-  async speak(text, { onStart, onEnd, onError } = {}) {
+  async speak(text, { engine: explicitEngine, voiceId: explicitVoiceId, apiKey: explicitApiKey, onStart, onEnd, onError } = {}) {
     this.stop();
     const clean = cleanTextForSpeech(text);
     if (!clean) {
@@ -137,12 +146,12 @@ class TTSService {
       return;
     }
 
-    const engine = this.getEngine();
+    const engine = explicitEngine || this.getEngine();
 
     // 1. SILNIK ELEVENLABS (STUDIO HYPER-REALISTIC QUALITY)
     if (engine === 'elevenlabs') {
-      const apiKey = this.getElevenLabsKey();
-      const voiceId = this.getVoiceId();
+      const apiKey = explicitApiKey || this.getElevenLabsKey();
+      const voiceId = explicitVoiceId || this.getVoiceId();
 
       try {
         await this.speakWithElevenLabs(clean, apiKey, voiceId, { onStart, onEnd, onError });
@@ -160,7 +169,7 @@ class TTSService {
 
     // 2. SILNIK MICROSOFT EDGE NEURAL (BEZPŁATNY / STUDIO QUALITY)
     if (engine === 'edge') {
-      const voiceId = this.getVoiceId();
+      const voiceId = explicitVoiceId || this.getVoiceId();
       try {
         await this.speakWithEdgeTTS(clean, voiceId, { onStart, onEnd, onError });
         return;
@@ -171,8 +180,8 @@ class TTSService {
 
     // 3. SILNIK OPENAI TTS
     if (engine === 'openai') {
-      const apiKey = this.getOpenAiKey();
-      const voiceId = this.getVoiceId();
+      const apiKey = explicitApiKey || this.getOpenAiKey();
+      const voiceId = explicitVoiceId || this.getVoiceId();
 
       try {
         await this.speakWithOpenAI(clean, apiKey, voiceId, { onStart, onEnd, onError });
@@ -187,56 +196,75 @@ class TTSService {
   }
 
   /**
-   * Synteza za pomocą ElevenLabs API (bezpośrednio lub przez proxy)
+   * Synteza za pomocą ElevenLabs API (bezpośrednio z przeglądarki z fallbackiem na backend proxy)
    */
   async speakWithElevenLabs(text, apiKey, voiceId, { onStart, onEnd, onError }) {
     let audioBlob = null;
+    const targetVoice = voiceId || ELEVENLABS_DEFAULT_VOICES[0].id;
 
-    // Próba odpytania proxy backendowego
-    try {
-      const proxyRes = await fetch('/api/voice/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          engine: 'elevenlabs',
-          text,
-          voiceId: voiceId || ELEVENLABS_DEFAULT_VOICES[0].id,
-          apiKey: apiKey || undefined
-        })
-      });
+    // 1. Bezpośrednie zapytanie z przeglądarki do ElevenLabs API (pełne wsparcie CORS na całym świecie)
+    if (apiKey) {
+      try {
+        const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${targetVoice}`, {
+          method: 'POST',
+          headers: {
+            'xi-api-key': apiKey,
+            'Content-Type': 'application/json',
+            'Accept': 'audio/mpeg'
+          },
+          body: JSON.stringify({
+            text,
+            model_id: 'eleven_multilingual_v2',
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.8
+            }
+          })
+        });
 
-      if (proxyRes.ok) {
-        audioBlob = await proxyRes.blob();
-      }
-    } catch {}
-
-    // Fallback: bezpośrednie zapytanie z klienta (np. w chmurze bez backendu Node)
-    if (!audioBlob && apiKey) {
-      const targetVoice = voiceId || ELEVENLABS_DEFAULT_VOICES[0].id;
-      const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${targetVoice}`, {
-        method: 'POST',
-        headers: {
-          'xi-api-key': apiKey,
-          'Content-Type': 'application/json',
-          'Accept': 'audio/mpeg'
-        },
-        body: JSON.stringify({
-          text,
-          model_id: 'eleven_multilingual_v2',
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.8
+        if (res.ok) {
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('audio') || contentType.includes('mpeg') || contentType.includes('octet-stream')) {
+            audioBlob = await res.blob();
           }
-        })
-      });
-
-      if (!res.ok) {
-        throw new Error(`ElevenLabs API zwróciło status ${res.status}`);
+        } else {
+          const errText = await res.text();
+          console.warn(`[ElevenLabs API] Błąd ${res.status}:`, errText);
+        }
+      } catch (err) {
+        console.warn('[ElevenLabs Direct Fetch] Błąd sieciowy:', err.message);
       }
-      audioBlob = await res.blob();
     }
 
+    // 2. Próba odpytania proxy backendowego (wyłącznie z walidacją MIME audio, odrzucanie text/html)
     if (!audioBlob) {
+      const endpoints = isCloudEnvironment()
+        ? ['https://ai-system-dashboard.vercel.app/api/tts']
+        : ['/api/voice/tts', 'https://ai-system-dashboard.vercel.app/api/tts'];
+
+      for (const endpoint of endpoints) {
+        try {
+          const proxyRes = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              engine: 'elevenlabs',
+              text,
+              voiceId: targetVoice,
+              apiKey: apiKey || undefined
+            })
+          });
+
+          const contentType = proxyRes.headers.get('content-type') || '';
+          if (proxyRes.ok && (contentType.includes('audio') || contentType.includes('mpeg') || contentType.includes('octet-stream'))) {
+            audioBlob = await proxyRes.blob();
+            if (audioBlob && audioBlob.size > 0) break;
+          }
+        } catch {}
+      }
+    }
+
+    if (!audioBlob || audioBlob.size === 0) {
       throw new Error('Brak klucza API ElevenLabs lub niepowodzenie żądania');
     }
 
@@ -248,47 +276,64 @@ class TTSService {
    */
   async speakWithOpenAI(text, apiKey, voiceId, { onStart, onEnd, onError }) {
     let audioBlob = null;
+    const targetVoice = voiceId || 'onyx';
 
-    // Próba odpytania proxy backendowego
-    try {
-      const proxyRes = await fetch('/api/voice/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          engine: 'openai',
-          text,
-          voiceId: voiceId || 'onyx',
-          apiKey: apiKey || undefined
-        })
-      });
+    // 1. Bezpośrednie zapytanie z klienta
+    if (apiKey) {
+      try {
+        const res = await fetch('https://api.openai.com/v1/audio/speech', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'tts-1',
+            input: text,
+            voice: targetVoice
+          })
+        });
 
-      if (proxyRes.ok) {
-        audioBlob = await proxyRes.blob();
+        if (res.ok) {
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('audio') || contentType.includes('mpeg') || contentType.includes('octet-stream')) {
+            audioBlob = await res.blob();
+          }
+        }
+      } catch (err) {
+        console.warn('[OpenAI TTS Direct Fetch] Błąd:', err.message);
       }
-    } catch {}
-
-    // Fallback bezpośredni
-    if (!audioBlob && apiKey) {
-      const res = await fetch('https://api.openai.com/v1/audio/speech', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'tts-1',
-          input: text,
-          voice: voiceId || 'onyx'
-        })
-      });
-
-      if (!res.ok) {
-        throw new Error(`OpenAI TTS API zwróciło status ${res.status}`);
-      }
-      audioBlob = await res.blob();
     }
 
+    // 2. Proxy backendowe
     if (!audioBlob) {
+      const endpoints = isCloudEnvironment()
+        ? ['https://ai-system-dashboard.vercel.app/api/tts']
+        : ['/api/voice/tts', 'https://ai-system-dashboard.vercel.app/api/tts'];
+
+      for (const endpoint of endpoints) {
+        try {
+          const proxyRes = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              engine: 'openai',
+              text,
+              voiceId: targetVoice,
+              apiKey: apiKey || undefined
+            })
+          });
+
+          const contentType = proxyRes.headers.get('content-type') || '';
+          if (proxyRes.ok && (contentType.includes('audio') || contentType.includes('mpeg') || contentType.includes('octet-stream'))) {
+            audioBlob = await proxyRes.blob();
+            if (audioBlob && audioBlob.size > 0) break;
+          }
+        } catch {}
+      }
+    }
+
+    if (!audioBlob || audioBlob.size === 0) {
       throw new Error('Brak klucza API OpenAI lub niepowodzenie żądania');
     }
 
@@ -300,21 +345,34 @@ class TTSService {
    */
   async speakWithEdgeTTS(text, voiceId, { onStart, onEnd, onError }) {
     const targetVoice = voiceId || EDGE_DEFAULT_VOICES[0].id;
-    const res = await fetch('/api/voice/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        engine: 'edge',
-        text,
-        voiceId: targetVoice
-      })
-    });
+    let audioBlob = null;
 
-    if (!res.ok) {
-      throw new Error(`Błąd Edge TTS (status ${res.status})`);
+    const endpoints = isCloudEnvironment()
+      ? ['https://ai-system-dashboard.vercel.app/api/tts', '/api/voice/tts']
+      : ['/api/voice/tts', 'https://ai-system-dashboard.vercel.app/api/tts'];
+
+    for (const endpoint of endpoints) {
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            engine: 'edge',
+            text,
+            voiceId: targetVoice
+          })
+        });
+
+        const contentType = res.headers.get('content-type') || '';
+        if (res.ok && (contentType.includes('audio') || contentType.includes('mpeg') || contentType.includes('octet-stream'))) {
+          audioBlob = await res.blob();
+          if (audioBlob && audioBlob.size > 0) break;
+        }
+      } catch (err) {
+        console.debug(`[EdgeTTS] Endpoint ${endpoint} failed:`, err.message);
+      }
     }
 
-    const audioBlob = await res.blob();
     if (!audioBlob || audioBlob.size === 0) {
       throw new Error('Pusty strumień audio z Edge TTS');
     }
@@ -328,6 +386,13 @@ class TTSService {
   playAudioBlob(blob, { onStart, onEnd, onError }) {
     return new Promise((resolve, reject) => {
       try {
+        if (!blob || blob.size === 0 || blob.type === 'text/html') {
+          const err = new Error('Nieprawidłowy strumień audio (odrzucono HTML/pusty blob)');
+          this._isSpeaking = false;
+          if (onError) onError(err);
+          reject(err);
+          return;
+        }
         const url = URL.createObjectURL(blob);
         this.currentBlobUrl = url;
         const audio = new Audio(url);

@@ -1,5 +1,24 @@
 ## Wersja Bieżąca
-**v2.18.6**
+**v2.18.7**
+
+## v 2.18.7 — 2026-09-15
+**Typ:** PATCH  
+**Zakres:** Auto-Recovery Dynamicznych Importów (Vite Preload Guard & ChunkLoadError Auto-Reload), Bezpośrednia Synteza ElevenLabs z Przeglądarki (Eliminacja Fałszywego Proxy HTML), Dynamiczne Próbki Głosowe w Ustawieniach z Identyfikacją Lektora oraz Serverless Endpoint `/api/tts`.
+
+### Zmiany
+- [+] Dodano: Wrapper `lazyWithRetry` w `core.client.jsx` oraz globalny listener `vite:preloadError`, automatycznie odświeżające aplikację w przypadku unieważnienia chunków po nowym wdrożeniu na CDN/Firebase.
+- [+] Dodano: Automatyczna detekcja błędów importu modułów w `modules/components/ErrorBoundary.jsx` (przeładowanie zamiast blokowania ekranu).
+- [+] Dodano: Bezpośrednia synteza mowy w `modules/services/ttsService.js` przez ElevenLabs API z przeglądarki (CORS `*`) z priorytetyzacją klucza klienta i ścisłą walidacją nagłówków MIME audio (`audio/mpeg`).
+- [+] Dodano: Nowy serverless endpoint `api/tts.js` z pełną obsługą CORS na Vercel.
+- [+] Dodano: Personalizowana próbka audio w `testVoice` w `modules/pages/SettingsPage.jsx` informująca głosem o aktualnie testowanym lektorze (Adam, Antoni, Rachel, Sarah, Marek, Zofia).
+- [+] Dodano: Karta błędu `docs/errors/ERROR_DIFF_2026-09-15_dynamic_import_and_tts_voice_switch.md` (zamknięta ze statusem SUCCESS).
+- [*] Zmodyfikowano: `package.json` – podniesiono wersję do `2.18.7`.
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.18.7.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.18.6 — 2026-09-14
 **Typ:** PATCH  

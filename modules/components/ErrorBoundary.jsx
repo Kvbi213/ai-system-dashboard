@@ -8,6 +8,19 @@ class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
+    const isChunkError =
+      error?.message?.includes('Failed to fetch dynamically imported module') ||
+      error?.message?.includes('Importing a module script failed') ||
+      error?.name === 'ChunkLoadError';
+
+    if (isChunkError && typeof window !== 'undefined') {
+      const hasReloaded = window.sessionStorage.getItem('chunk_reload_retry') === 'true';
+      if (!hasReloaded) {
+        window.sessionStorage.setItem('chunk_reload_retry', 'true');
+        window.location.reload();
+        return { hasError: false, error: null };
+      }
+    }
     return { hasError: true, error };
   }
 

@@ -339,7 +339,41 @@ const SettingsPage = () => {
       return;
     }
     setIsTestingVoice(true);
-    await ttsService.speak("Testuję ustawienia zaawansowanej syntezy mowy. Mam nadzieję, że mój głos brzmi naturalnie i wyraźnie.", {
+
+    const activeVoiceId = ttsEngine === 'elevenlabs' 
+      ? elevenVoiceId 
+      : ttsEngine === 'edge' 
+        ? edgeVoiceId 
+        : ttsEngine === 'openai' 
+          ? openAiVoiceId 
+          : voicePref;
+
+    const activeApiKey = ttsEngine === 'elevenlabs'
+      ? (elevenLabsKey || ttsService.getElevenLabsKey())
+      : ttsEngine === 'openai'
+        ? (openAiTtsKey || ttsService.getOpenAiKey())
+        : undefined;
+
+    let voiceLabel = '';
+    if (ttsEngine === 'elevenlabs') {
+      const found = ELEVENLABS_DEFAULT_VOICES.find(v => v.id === activeVoiceId);
+      voiceLabel = found ? found.name.split(' (')[0] : 'ElevenLabs';
+    } else if (ttsEngine === 'edge') {
+      const found = EDGE_DEFAULT_VOICES.find(v => v.id === activeVoiceId);
+      voiceLabel = found ? found.name.split(' (')[0] : 'Edge Neural';
+    } else if (ttsEngine === 'openai') {
+      const found = OPENAI_DEFAULT_VOICES.find(v => v.id === activeVoiceId);
+      voiceLabel = found ? found.name.split(' (')[0] : 'OpenAI';
+    } else {
+      voiceLabel = voicePref === 'male' ? 'Marek' : 'Paulina';
+    }
+
+    const testText = `Cześć! Tutaj ${voiceLabel}. Testuję ustawienia syntezy mowy w systemie OmniDash.`;
+
+    await ttsService.speak(testText, {
+      engine: ttsEngine,
+      voiceId: activeVoiceId,
+      apiKey: activeApiKey,
       onStart: () => setIsTestingVoice(true),
       onEnd: () => setIsTestingVoice(false),
       onError: () => setIsTestingVoice(false)
