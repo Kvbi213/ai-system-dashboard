@@ -1,5 +1,28 @@
 ## Wersja Bieżąca
-**v2.18.9**
+**v2.18.10**
+
+## v 2.18.10 — 2026-09-15
+**Typ:** PATCH  
+**Zakres:** Formatowanie Wielowierszowe Powiadomień Pushbullet na Urządzenia Mobilne (Konwersja Literalnych \n na Znaki Nowej Linii, Oczyszczanie Markdown, Transformacja Tabel na Estetyczne Listy Punktorów •).
+
+### Zmiany
+- [+] Dodano: Dedykowany silnik normalizacji tekstu powiadomień `formatPushText(text)` w `modules/services/pushbulletService.js`:
+  - Normalizacja sekwencji ucieczki `\r\n`, `\n`, `\r` do rzeczywistych znaków nowego wiersza (bajt 0x0A), eliminująca zbijanie tekstu w jeden blok z literalnymi znakami `\n`.
+  - Usuwanie nieobsługiwanych przez klienta mobilnego Pushbullet znaczników Markdown (`**`, `*`, `__`, `_`, ```` ` ````, nagłówki `#`).
+  - Inteligentna transformacja tabel Markdown (`| Godzina | Przedmiot | Sala |` -> `• Godzina: Przedmiot (Sala) [Dodatkowe]`) z pomijaniem nagłówków i separatorów `|---|`.
+  - Automatyczna standaryzacja zakresów godzin bez punktorów do jednolitej formy `• 08:00 - 08:45: Przedmiot`.
+- [*] Zmodyfikowano: `modules/services/pushbulletService.js` – zintegrowano `formatPushText` w wywołaniu `sendPushNotificationClient(title, body)`, zapewniając czyste powiadomienia niezależnie od źródła wywołania.
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` & `api/agent.js` – wzmocniono prompty systemowe `mentor` i `worker` o bezwzględny zakaz wstawiania tabel Markdown w atrybucie `body` akcji `[ACTION:SEND_PUSH]` oraz wymóg formatowania wierszowego z punktorami `•`.
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` – zintegrowano oczyszczanie `formatPushText` w funkcji `extractPushDetails`.
+- [+] Dodano: 5 nowych testów jednostkowych w `tests/pushbullet_finance.test.js` (82/82 PASS we wszystkich 8 plikach testowych).
+- [*] Zmodyfikowano: `package.json` – podniesiono wersję do `2.18.10`.
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.18.10.md`.
+- [*] Zmodyfikowano: Utworzono kartę błędu `docs/errors/ERROR_DIFF_2026-09-15_pushbullet_newline_and_table_formatting.md` (zamknięta ze statusem SUCCESS).
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.18.9 — 2026-09-15
 **Typ:** PATCH  

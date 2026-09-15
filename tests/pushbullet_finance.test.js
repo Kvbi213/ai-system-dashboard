@@ -11,6 +11,7 @@ import {
   isPushRequest,
   extractPushDetails
 } from '../modules/services/clientAiDispatcher.js';
+import { formatPushText } from '../modules/services/pushbulletService.js';
 
 describe('Pushbullet Financial Notification Classifier', () => {
   describe('isFinancialNotification', () => {
@@ -209,6 +210,53 @@ describe('Pushbullet Financial Notification Classifier', () => {
       expect(extractPushDetails('wyślij na telefon moje zadania todo', '1. Kup mleko').title).toBe('OmniDash: Zadania');
       expect(extractPushDetails('wyślij na tel raport finanse i wydatki', 'Suma: 150 PLN').title).toBe('OmniDash: Finanse');
       expect(extractPushDetails('wyślij mi to na telefon', 'Informacja ogólna').title).toBe('OmniDash Powiadomienie');
+    });
+  });
+
+  describe('formatPushText (Formatowanie powiadomień Push)', () => {
+    it('powinien zamieniać dosłowne sekwencje \\n i \\r\\n na rzeczywiste znaki nowej linii', () => {
+      const raw = '08:00 - 08:45: WF\\n08:50 - 09:35: Matematyka\\r\\n09:40 - 10:25: Język Polski';
+      const formatted = formatPushText(raw);
+      expect(formatted).not.toContain('\\n');
+      expect(formatted).not.toContain('\\r');
+      expect(formatted).toContain('\n');
+      expect(formatted.split('\n')).toHaveLength(3);
+    });
+
+    it('powinien usuwać znaczniki Markdown (**pogrubienie**, kursywy, nagłówki)', () => {
+      const raw = '### **Plan Lekcji na Dziś:**\n* Punkt 1: _Ważne_\n`kod testowy`';
+      const formatted = formatPushText(raw);
+      expect(formatted).not.toContain('**');
+      expect(formatted).not.toContain('###');
+      expect(formatted).not.toContain('_');
+      expect(formatted).not.toContain('`');
+      expect(formatted).toContain('Plan Lekcji na Dziś:');
+      expect(formatted).toContain('Punkt 1: Ważne');
+      expect(formatted).toContain('kod testowy');
+    });
+
+    it('powinien przekształcać wiersze tabel Markdown na estetyczne punkty listy', () => {
+      const markdownTable = `| Godzina | Przedmiot | Sala |
+|---|---|---|
+| 08:00 - 08:45 | Wychowanie Fizyczne | Sala 1.16 |
+| 08:50 - 09:35 | Matematyka | Sala 2.04 |`;
+      const formatted = formatPushText(markdownTable);
+      expect(formatted).not.toContain('|');
+      expect(formatted).toContain('• 08:00 - 08:45: Wychowanie Fizyczne (Sala 1.16)');
+      expect(formatted).toContain('• 08:50 - 09:35: Matematyka (Sala 2.04)');
+    });
+
+    it('powinien formatować zakresy godzin bez punktorów dodając estetyczny punktor •', () => {
+      const schedule = '08:00-08:45 WF\n08:50 - 09:35 Matematyka';
+      const formatted = formatPushText(schedule);
+      expect(formatted).toContain('• 08:00 - 08:45: WF');
+      expect(formatted).toContain('• 08:50 - 09:35: Matematyka');
+    });
+
+    it('powinien poprawnie obsługiwać puste wartości', () => {
+      expect(formatPushText('')).toBe('');
+      expect(formatPushText(null)).toBe('');
+      expect(formatPushText(undefined)).toBe('');
     });
   });
 });

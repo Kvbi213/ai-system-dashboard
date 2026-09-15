@@ -37,6 +37,74 @@ export function setPushbulletApiKey(key) {
 }
 
 /**
+ * Formatuje i czyści tekst powiadomienia Push na smartfon:
+ * - Zamienia ciągi znaków "\n" / "\r\n" na rzeczywiste znaki nowej linii (byte 0x0A)
+ * - Czyści znaczniki Markdown (**pogrubienie**, _kursywa_, nagłówki #)
+ * - Konwertuje surowe wiersze tabel Markdown (| ... |) na estetyczne wiersze listy
+ * - Formatuje harmonogram i godziny (np. 08:00 - 08:45) z czytelnym punktorem "•"
+ */
+export function formatPushText(text) {
+  if (!text) return '';
+  let clean = String(text)
+    .replace(/\\r\\n/g, '\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '\n');
+
+  // Usuń formatowanie Markdown nieobsługiwane w powiadomieniach mobilnych
+  clean = clean
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/_([^_]+)_/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '');
+
+  const lines = clean.split('\n').map(l => l.trim()).filter(Boolean);
+  const formatted = [];
+
+  for (const line of lines) {
+    // Pomiń linie separatorów tabel Markdown (|---|---|)
+    if (/^\|[-:\s|]+\|$/.test(line)) continue;
+
+    // Przekształć wiersze tabeli Markdown (| a | b | c |) w estetyczne linie
+    if (line.startsWith('|') && line.endsWith('|')) {
+      const cells = line.split('|').map(c => c.trim()).filter(Boolean);
+      // Pomiń nagłówek tabeli
+      if (cells.some(c => /^(godzina|przedmiot|dzień|termin|data|czas)$/i.test(c))) {
+        continue;
+      }
+      if (cells.length >= 2) {
+        const time = cells[0];
+        const subject = cells[1];
+        const room = cells[2] ? ` (${cells[2]})` : '';
+        const extra = cells.slice(3).join(', ');
+        formatted.push(`• ${time}: ${subject}${room}${extra ? ` [${extra}]` : ''}`);
+        continue;
+      }
+    }
+
+    // Formatuj zakresy godzin (np. 08:00-08:45 Przedmiot)
+    const timeMatch = line.match(/^(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})\s*(.*)$/);
+    if (timeMatch) {
+      const [, start, end, rest] = timeMatch;
+      const cleanRest = rest.replace(/^[-:\s•]+/, '').trim();
+      formatted.push(`• ${start} - ${end}: ${cleanRest}`);
+      continue;
+    }
+
+    // Standardowe elementy listy (- lub *)
+    if (/^[-*+•]\s+/.test(line)) {
+      formatted.push('• ' + line.replace(/^[-*+•]\s+/, '').trim());
+      continue;
+    }
+
+    formatted.push(line);
+  }
+
+  return formatted.join('\n');
+}
+
+/**
  * Wysyła powiadomienie Push bezpośrednio na konto Pushbullet użytkownika
  */
 export async function sendPushNotificationClient(title, body) {
@@ -59,7 +127,8 @@ export async function sendPushNotificationClient(title, body) {
   }
 
   const payloadTitle = (title || 'OmniDash Powiadomienie').trim();
-  const payloadBody = (body || '').trim();
+  const formattedBody = formatPushText(body);
+  const payloadBody = formattedBody.trim();
 
   if (!payloadBody) {
     const errorMsg = 'Pusta treść powiadomienia (body jest wymagane).';

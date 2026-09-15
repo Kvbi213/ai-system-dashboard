@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { saveCloudDocument, deleteCloudDocument } from './cloudSync.js';
-import { sendPushNotificationClient } from './pushbulletService.js';
+import { sendPushNotificationClient, formatPushText } from './pushbulletService.js';
 
 /**
  * Autonomiczny Silnik AI Dyspozytora Klienckiego (Client-Side AI Dispatcher)
@@ -238,9 +238,6 @@ export function extractPushDetails(userQuery, aiText) {
 
   let cleanBody = (aiText || '')
     .replace(/\[ACTION:[^\]]+\]/gi, '')
-    .replace(/[#*`_~]/g, '')
-    .replace(/\|[^\n]+\|/g, (row) => row.split('|').map(c => c.trim()).filter(Boolean).join(' | '))
-    .replace(/\n{2,}/g, '\n')
     .trim();
 
   const lowerBody = cleanBody.toLowerCase();
@@ -254,7 +251,8 @@ export function extractPushDetails(userQuery, aiText) {
     cleanBody = 'Testowe powiadomienie Push z systemu OmniDash.';
   }
 
-  const body = cleanBody.slice(0, 280).trim() || 'Powiadomienie z systemu OmniDash.';
+  const formatted = formatPushText(cleanBody);
+  const body = formatted.slice(0, 500).trim() || 'Powiadomienie z systemu OmniDash.';
   return { title, body };
 }
 
@@ -629,6 +627,12 @@ Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomie
    [ACTION:SEND_PUSH title="Zwięzły Tytuł" body="Treść wiadomości wysyłana na telefon"]
 4. BEZWZGLĘDNY ZAKAZ mówienia, że nie masz połączenia z Pushbullet, że nie masz dostępu do telefonu lub że użytkownik musi to sam konfigurować.
 5. BEZWZGLĘDNY ZAKAZ sugerowania ręcznego kopiowania tekstu („skopiuj powyższą tabelę”)! PO PROSTU ANALIZUJ I WYSYŁAJ!
+6. FORMATOWANIE TREŚCI POWIADOMIENIA NA SMARTFON:
+   - Tytuł (title): Krótki i czytelny (np. "Plan lekcji: Wtorek", "Następna lekcja").
+   - Treść (body): Czytelna lista z punktorem "• " i rzeczywistymi podziałami linii. Każda pozycja w nowej linii, np:
+     • 08:00 - 08:45: PUTKOM (Sala 1.16)
+     • 08:50 - 09:35: PUTKOM (Sala 1.16)
+   - BEZWZGLĘDNY ZAKAZ wklejania tabel Markdown (|---|) do parametru body! Tabel używaj w odpowiedzi tekstowej, a do body daj listę wypunktowaną.
 
 Zasady: Posiadasz bezpośredni dostęp do internetu, bazy danych oraz smartfona użytkownika przez Pushbullet API. Odpowiadaj wyczerpująco, logicznie i wspierająco w języku ${language}.
 BEZWZGLĘDNY ZAKAZ sugerowania użytkownikowi ręcznego kopiowania danych lub wysyłania sobie wiadomości/SMS („skopiuj powyższą tabelę i wyślij do siebie...”). Jeśli dane mają trafić na telefon lub użytkownik chce powiadomienia, wyemituj [ACTION:SEND_PUSH title="..." body="..."]. Nigdy nie twórz sekcji „Co zrobić z tymi informacjami?”. Lekcje są w bazie Timetable, nie proponuj dodawania ich do kalendarza.
@@ -657,6 +661,12 @@ Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomie
    [ACTION:SEND_PUSH title="Zwięzły Tytuł" body="Treść wiadomości wysyłana na telefon"]
 4. BEZWZGLĘDNY ZAKAZ mówienia, że nie masz połączenia z Pushbullet, że nie masz dostępu do telefonu lub że użytkownik musi to sam konfigurować.
 5. BEZWZGLĘDNY ZAKAZ sugerowania ręcznego kopiowania tekstu („skopiuj powyższą tabelę”)! PO PROSTU ANALIZUJ I WYSYŁAJ!
+6. FORMATOWANIE TREŚCI POWIADOMIENIA NA SMARTFON:
+   - Tytuł (title): Krótki i czytelny (np. "Plan lekcji: Wtorek", "Następna lekcja").
+   - Treść (body): Czytelna lista z punktorem "• " i rzeczywistymi podziałami linii. Każda pozycja w nowej linii, np:
+     • 08:00 - 08:45: PUTKOM (Sala 1.16)
+     • 08:50 - 09:35: PUTKOM (Sala 1.16)
+   - BEZWZGLĘDNY ZAKAZ wklejania tabel Markdown (|---|) do parametru body! Tabel używaj w odpowiedzi tekstowej, a do body daj listę wypunktowaną.
 
 Zasady: Posiadasz bezpośredni dostęp do internetu, bazy danych oraz smartfona użytkownika przez Pushbullet API. Odpowiadaj konkretnie, merytorycznie i technicznie w języku ${language}.
 BEZWZGLĘDNY ZAKAZ sugerowania użytkownikowi ręcznego kopiowania danych lub wysyłania sobie wiadomości/SMS („skopiuj powyższą tabelę i wyślij do siebie...”). Jeśli dane mają trafić na telefon lub użytkownik chce powiadomienia, wyemituj [ACTION:SEND_PUSH title="..." body="..."]. Nigdy nie twórz sekcji „Co zrobić z tymi informacjami?”. Lekcje są w bazie Timetable, nie proponuj dodawania ich do kalendarza.

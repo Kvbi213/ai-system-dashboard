@@ -73,10 +73,67 @@ export function isPushRequest(text) {
   return pushKeywords.some(kw => t.includes(kw));
 }
 
+export function formatPushText(text) {
+  if (!text) return '';
+  let clean = String(text)
+    .replace(/\\r\\n/g, '\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '\n');
+
+  clean = clean
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/_([^_]+)_/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '');
+
+  const lines = clean.split('\n').map(l => l.trim()).filter(Boolean);
+  const formatted = [];
+
+  for (const line of lines) {
+    if (/^\|[-:\s|]+\|$/.test(line)) continue;
+
+    if (line.startsWith('|') && line.endsWith('|')) {
+      const cells = line.split('|').map(c => c.trim()).filter(Boolean);
+      if (cells.some(c => /^(godzina|przedmiot|dzień|termin|data|czas)$/i.test(c))) {
+        continue;
+      }
+      if (cells.length >= 2) {
+        const time = cells[0];
+        const subject = cells[1];
+        const room = cells[2] ? ` (${cells[2]})` : '';
+        const extra = cells.slice(3).join(', ');
+        formatted.push(`• ${time}: ${subject}${room}${extra ? ` [${extra}]` : ''}`);
+        continue;
+      }
+    }
+
+    const timeMatch = line.match(/^(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})\s*(.*)$/);
+    if (timeMatch) {
+      const [, start, end, rest] = timeMatch;
+      const cleanRest = rest.replace(/^[-:\s•]+/, '').trim();
+      formatted.push(`• ${start} - ${end}: ${cleanRest}`);
+      continue;
+    }
+
+    if (/^[-*+•]\s+/.test(line)) {
+      formatted.push('• ' + line.replace(/^[-*+•]\s+/, '').trim());
+      continue;
+    }
+
+    formatted.push(line);
+  }
+
+  return formatted.join('\n');
+}
+
 export function extractPushDetails(userQuery, aiText) {
   let title = 'OmniDash Powiadomienie';
   const q = (userQuery || '').toLowerCase();
-  if (q.includes('lekcj') || q.includes('plan')) {
+  if (q.includes('test')) {
+    title = 'OmniDash: Test Powiadomień';
+  } else if (q.includes('lekcj') || q.includes('plan')) {
     title = 'OmniDash: Plan Lekcji';
   } else if (q.includes('pogod')) {
     title = 'OmniDash: Prognoza Pogody';
@@ -88,14 +145,23 @@ export function extractPushDetails(userQuery, aiText) {
     title = 'OmniDash: Trening';
   }
 
-  const cleanBody = (aiText || '')
+  let cleanBody = (aiText || '')
     .replace(/\[ACTION:[^\]]+\]/gi, '')
-    .replace(/[#*`_~]/g, '')
-    .replace(/\|[^\n]+\|/g, (row) => row.split('|').map(c => c.trim()).filter(Boolean).join(' | '))
-    .replace(/\n{2,}/g, '\n')
     .trim();
 
-  const body = cleanBody.slice(0, 280).trim() || 'Powiadomienie z systemu OmniDash.';
+  const lowerBody = cleanBody.toLowerCase();
+  if (
+    lowerBody.includes('nie ma polecenia') ||
+    lowerBody.includes('nie ma dedykowanej') ||
+    lowerBody.includes('nie ma w aktualnym zestawie') ||
+    lowerBody.includes('brak polecenia') ||
+    lowerBody.includes('nie ma funkcji')
+  ) {
+    cleanBody = 'Testowe powiadomienie Push z systemu OmniDash.';
+  }
+
+  const formatted = formatPushText(cleanBody);
+  const body = formatted.slice(0, 500).trim() || 'Powiadomienie z systemu OmniDash.';
   return { title, body };
 }
 
@@ -423,6 +489,12 @@ Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomie
    [ACTION:SEND_PUSH title="Zwięzły Tytuł" body="Treść wiadomości wysyłana na telefon"]
 4. BEZWZGLĘDNY ZAKAZ mówienia, że nie masz połączenia z Pushbullet, że nie masz dostępu do telefonu lub że użytkownik musi to sam konfigurować.
 5. BEZWZGLĘDNY ZAKAZ sugerowania ręcznego kopiowania tekstu („skopiuj powyższą tabelę”)! PO PROSTU ANALIZUJ I WYSYŁAJ!
+6. FORMATOWANIE TREŚCI POWIADOMIENIA NA SMARTFON:
+   - Tytuł (title): Krótki i czytelny (np. "Plan lekcji: Wtorek", "Następna lekcja").
+   - Treść (body): Czytelna lista z punktorem "• " i rzeczywistymi podziałami linii. Każda pozycja w nowej linii, np:
+     • 08:00 - 08:45: PUTKOM (Sala 1.16)
+     • 08:50 - 09:35: PUTKOM (Sala 1.16)
+   - BEZWZGLĘDNY ZAKAZ wklejania tabel Markdown (|---|) do parametru body! Tabel używaj w odpowiedzi tekstowej, a do body daj listę wypunktowaną.
 
 KRYTYCZNE REGUŁY OPERACYJNE:
 1. POSIADASZ BEZPOŚREDNI, AKTYWNY DOSTĘP DO INTERNETU I NAJNOWSZYCH WIADOMOŚCI ZE ŚWIATA PRZEZ WBUDOWANY SILNIK BRAVE SEARCH API.
@@ -497,6 +569,12 @@ Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomie
    [ACTION:SEND_PUSH title="Zwięzły Tytuł" body="Treść wiadomości wysyłana na telefon"]
 4. BEZWZGLĘDNY ZAKAZ mówienia, że nie masz połączenia z Pushbullet, że nie masz dostępu do telefonu lub że użytkownik musi to sam konfigurować.
 5. BEZWZGLĘDNY ZAKAZ sugerowania ręcznego kopiowania tekstu („skopiuj powyższą tabelę”)! PO PROSTU ANALIZUJ I WYSYŁAJ!
+6. FORMATOWANIE TREŚCI POWIADOMIENIA NA SMARTFON:
+   - Tytuł (title): Krótki i czytelny (np. "Plan lekcji: Wtorek", "Następna lekcja").
+   - Treść (body): Czytelna lista z punktorem "• " i rzeczywistymi podziałami linii. Każda pozycja w nowej linii, np:
+     • 08:00 - 08:45: PUTKOM (Sala 1.16)
+     • 08:50 - 09:35: PUTKOM (Sala 1.16)
+   - BEZWZGLĘDNY ZAKAZ wklejania tabel Markdown (|---|) do parametru body! Tabel używaj w odpowiedzi tekstowej, a do body daj listę wypunktowaną.
 
 KRYTYCZNE REGUŁY OPERACYJNE:
 1. POSIADASZ BEZPOŚREDNI, AKTYWNY DOSTĘP DO INTERNETU I NAJNOWSZYCH WIADOMOŚCI ZE ŚWIATA PRZEZ WBUDOWANY SILNIK BRAVE SEARCH API.
