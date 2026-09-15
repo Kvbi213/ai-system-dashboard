@@ -5,13 +5,15 @@ import {
   Settings, Shield, Bell, HardDrive, Cpu, Palette, Sun, Moon, Rss, Zap, Lock, Check, 
   LayoutGrid, Mic, Volume2, Globe, Sparkles, Cloud, Database, BrainCircuit, Activity,
   Compass, LayoutDashboard, MessageSquare, GraduationCap, Crosshair, CalendarDays,
-  Wallet, Dumbbell, Server, Sliders, Download, Upload, RotateCcw, Bot, CheckCircle2, Eye, EyeOff
+  Wallet, Dumbbell, Server, Sliders, Download, Upload, RotateCcw, Bot, CheckCircle2, Eye, EyeOff,
+  Smartphone, Send, AlertTriangle
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
 import { initializeAllFirestoreCollections, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
 import { wakeWordService } from '../services/wakeWordService';
 import { ttsService, EDGE_DEFAULT_VOICES, ELEVENLABS_DEFAULT_VOICES, OPENAI_DEFAULT_VOICES } from '../services/ttsService';
+import { getPushbulletApiKey, setPushbulletApiKey, testPushbulletConnection } from '../services/pushbulletService';
 
 const Toggle = ({ value, onChange }) => (
   <button
@@ -195,6 +197,31 @@ const SettingsPage = () => {
   const [showElevenKey, setShowElevenKey] = useState(false);
   const [showOpenAiKey, setShowOpenAiKey] = useState(false);
   const [isTestingVoice, setIsTestingVoice] = useState(false);
+  const [pushbulletKey, setPushbulletKey] = useState(() => getPushbulletApiKey());
+  const [showPushbulletKey, setShowPushbulletKey] = useState(false);
+  const [isTestingPushbullet, setIsTestingPushbullet] = useState(false);
+  const [pushbulletTestResult, setPushbulletTestResult] = useState(null);
+  const [pushbulletSaved, setPushbulletSaved] = useState(false);
+
+  const handleSavePushbulletKey = (val) => {
+    setPushbulletKey(val);
+    setPushbulletApiKey(val);
+    setPushbulletSaved(true);
+    setTimeout(() => setPushbulletSaved(false), 2500);
+  };
+
+  const handleTestPushbullet = async () => {
+    setIsTestingPushbullet(true);
+    setPushbulletTestResult(null);
+    try {
+      const res = await testPushbulletConnection(pushbulletKey);
+      setPushbulletTestResult(res);
+    } catch (err) {
+      setPushbulletTestResult({ success: false, error: err.message });
+    } finally {
+      setIsTestingPushbullet(false);
+    }
+  };
 
   useEffect(() => {
     if (isCloudEnvironment()) {
@@ -1603,6 +1630,91 @@ const SettingsPage = () => {
                           : `[+] Pomyślnie zsynchronizowano wszystkie kategorie w chmurze!`}
                       </span>
                     )}
+                  </div>
+                </div>
+
+                {/* --- PUSHBULLET INTEGRACJA ZE SMARTFONEM --- */}
+                <div className="p-4 rounded-xl border border-accentPrimary/40 bg-black/30 mt-4 shadow-[0_0_20px_rgba(0,255,102,0.06)]">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Smartphone className="w-5 h-5 text-accentPrimary" />
+                      <p className="font-semibold text-textPrimary font-sans text-sm">Pushbullet (Powiadomienia na Smartfon)</p>
+                    </div>
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border font-bold ${
+                      pushbulletKey 
+                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' 
+                        : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                    }`}>
+                      {pushbulletKey ? 'POŁĄCZENIE DIRECT AKTYWNE' : 'BRAK KLUCZA'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-textMuted leading-relaxed mb-3">
+                    Bezpośrednia integracja z Twoim smartfonem przez Pushbullet API. Asystent AI (Omni Exec / Omni Mind) przesyła powiadomienia, plan lekcji, zadania lub alerty na Twój telefon na polecenie tekstowe lub głosowe.
+                  </p>
+
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="font-mono text-xs text-textMuted flex items-center gap-1.5">
+                          Pushbullet Access Token:
+                        </label>
+                        <a 
+                          href="https://www.pushbullet.com/#settings/account" 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-[11px] text-accentPrimary hover:underline font-mono"
+                        >
+                          Pobierz token z pushbullet.com →
+                        </a>
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <input
+                            type={showPushbulletKey ? "text" : "password"}
+                            value={pushbulletKey}
+                            onChange={(e) => handleSavePushbulletKey(e.target.value)}
+                            placeholder="o.xyz123... (Wklej token Pushbullet)"
+                            className="bg-surface border border-border focus:border-accentPrimary rounded-lg px-3 py-2 text-xs font-mono text-textPrimary w-full outline-none pr-9"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPushbulletKey(!showPushbulletKey)}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-textMuted hover:text-textPrimary"
+                          >
+                            {showPushbulletKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        {pushbulletSaved && (
+                          <span className="flex items-center gap-1 text-xs text-emerald-400 font-mono">
+                            <Check className="w-3.5 h-3.5" /> Zapisano
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center pt-1">
+                      <button
+                        type="button"
+                        onClick={handleTestPushbullet}
+                        disabled={isTestingPushbullet || !pushbulletKey}
+                        className="bg-accentPrimary/20 hover:bg-accentPrimary/30 border border-accentPrimary/50 text-accentPrimary font-bold py-2 px-4 rounded-lg transition-colors text-xs flex items-center gap-2 disabled:opacity-40 font-mono"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        {isTestingPushbullet ? "Wysyłanie testowego push..." : "Wyślij Testowy Push na Telefon"}
+                      </button>
+
+                      {pushbulletTestResult && (
+                        <span className={`text-xs font-mono px-2.5 py-1 rounded-md border ${
+                          pushbulletTestResult.success 
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
+                            : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                        }`}>
+                          {pushbulletTestResult.success 
+                            ? `[+] SUKCES: Wysłano test na konto ${pushbulletTestResult.userName || pushbulletTestResult.userEmail}!` 
+                            : `[!] BŁĄD: ${pushbulletTestResult.error}`}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 

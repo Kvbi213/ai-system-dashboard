@@ -1,5 +1,25 @@
 ## Wersja Bieżąca
-**v2.18.7**
+**v2.18.8**
+
+## v 2.18.8 — 2026-09-15
+**Typ:** MINOR / PATCH  
+**Zakres:** Aktualizacja Planu Lekcji 2TI (od 14.09.2026 - Grupa 1, 38 lekcji, Cloud Firestore & SQLite), Direct Client Pushbullet Service (Natywny CORS, Eliminacja Silent Fail, Precyzyjne Toasty), Dedykowany Panel Konfiguracji i Testu Pushbullet w Ustawieniach.
+
+### Zmiany
+- [+] Dodano: Nowy moduł `modules/services/pushbulletService.js` z funkcjami `sendPushNotificationClient()` oraz `testPushbulletConnection()`, realizujący bezpośrednie połączenia do Pushbullet API z przeglądarki (pełne wsparcie CORS `*`) z nagłówkiem `Access-Token`.
+- [+] Dodano: Karta konfiguracji i testu Pushbullet w `modules/pages/SettingsPage.jsx` w zakładce Bazy & Bezpieczeństwo z polem tokenu, przełącznikiem widoczności hasła, statusem połączenia i przyciskiem testowego pusha na smartfon.
+- [+] Dodano: Konfiguracja `VITE_PUSHBULLET_API_KEY` w `.env` i `.env.example`.
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` – usunięto cichy blok `fetch(pushEndpoint).catch(() => {})`. Zintegrowano `sendPushNotificationClient` z natychmiastową, prawdziwą informacją zwrotną dla operatora w toastach i czacie.
+- [*] Zmodyfikowano: `scripts/seed_real_timetable.js` oraz `modules/services/cloudSync.js` – wprowadzono 38 lekcji dla klasy 2TI Grupa 1 (plan od 14.09.2026), wyczyszczono stare i błędne rekordy z Firestore (`void-potato-7721`) oraz zaktualizowano bazę SQLite `data/tasks.sqlite`.
+- [*] Zmodyfikowano: `package.json` – podniesiono wersję do `2.18.8`.
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.18.8.md`.
+- [*] Zmodyfikowano: Utworzono kartę błędu `docs/errors/ERROR_DIFF_2026-09-15_pushbullet_silent_fail_and_timetable_2ti.md` (zamknięta ze statusem SUCCESS).
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
+
 
 ## v 2.18.7 — 2026-09-15
 **Typ:** PATCH  

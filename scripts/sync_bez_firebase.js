@@ -64,6 +64,7 @@ const filesToSync = [
   'tests/time.test.js',
   'tests/osint.test.js',
   'modules/services/pushbulletClassifier.js',
+  'modules/services/pushbulletService.js',
   'modules/pushbullet.js',
   'modules/routes/phone.js',
   'tests/pushbullet_finance.test.js',

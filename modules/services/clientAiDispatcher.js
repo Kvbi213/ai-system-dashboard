@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { saveCloudDocument, deleteCloudDocument } from './cloudSync.js';
+import { sendPushNotificationClient } from './pushbulletService.js';
 
 /**
  * Autonomiczny Silnik AI Dyspozytora Klienckiego (Client-Side AI Dispatcher)
@@ -488,27 +489,9 @@ export function parseAndExecuteAiActionsWithWidgets(text, userQuery = '') {
         const title = attrs.title || 'OmniDash System';
         const body = attrs.body || '';
         if (body) {
-          try {
-            const token = localStorage.getItem('token') || '';
-            const pushEndpoint = isCloudMode
-              ? 'https://ai-system-dashboard.vercel.app/api/phone'
-              : '/api/phone/push';
-            fetch(pushEndpoint, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify({ title, body })
-            }).catch(() => {});
-
-            window.dispatchEvent(new CustomEvent('toastTriggered', {
-              detail: {
-                type: 'info',
-                message: `📱 Wysłano powiadomienie na Twój telefon: ${title}`
-              }
-            }));
-          } catch {}
+          sendPushNotificationClient(title, body).catch(err => {
+            console.warn('[AiDispatcher] Błąd asynchronicznej wysyłki Push:', err);
+          });
         }
       } else if (actionType === 'NAVIGATE') {
         if (attrs.path) {
@@ -799,30 +782,12 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
   // Obsługa żądania wysyłki na telefon przez Pushbullet
   if (isPushRequest(text)) {
     const { title, body } = extractPushDetails(text, text);
-    try {
-      const token = localStorage.getItem('token') || '';
-      const pushEndpoint = isCloudMode
-        ? 'https://ai-system-dashboard.vercel.app/api/phone'
-        : '/api/phone/push';
-      fetch(pushEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ title, body })
-      }).catch(() => {});
-
-      window.dispatchEvent(new CustomEvent('toastTriggered', {
-        detail: {
-          type: 'info',
-          message: `📱 Wysłano powiadomienie na Twój telefon: ${title}`
-        }
-      }));
-    } catch {}
+    sendPushNotificationClient(title, body).catch(err => {
+      console.warn('[AiDispatcher] Błąd asynchronicznej wysyłki Push:', err);
+    });
 
     return {
-      content: `📱 **Przeanalizowano polecenie i wysłano powiadomienie Push na Twój telefon.**\n\n- **Tytuł:** ${title}\n- **Treść:** ${body}`,
+      content: `📱 **Zainicjowano wysyłkę powiadomienia Push na Twój telefon.**\n\n- **Tytuł:** ${title}\n- **Treść:** ${body}\n\n*Jeśli powiadomienie nie dotrze, upewnij się, że klucz Pushbullet API jest skonfigurowany w Ustawienia -> Zabezpieczenia.*`,
       mentor_thoughts: `Przekazano bezpośrednie powiadomienie na telefon operatora: "${title}".`,
       widgets: []
     };
