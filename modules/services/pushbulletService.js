@@ -37,15 +37,36 @@ export function setPushbulletApiKey(key) {
 }
 
 /**
+ * Słownik skracania i standaryzacji nazw przedmiotów dla czytelności na smartfonach
+ */
+export function cleanSubjectName(s) {
+  if (!s) return '';
+  return s
+    .replace(/pracownia urządzeń techniki komputerowej/gi, 'Pracownia UTK')
+    .replace(/pracownia systemów operacyjnych/gi, 'Pracownia SO')
+    .replace(/wychowanie fizyczne/gi, 'WF')
+    .replace(/zajęcia z wychowawcą/gi, 'Godz. wychowawcza')
+    .replace(/godzina wychowawcza/gi, 'Godz. wychowawcza')
+    .replace(/urządzenia techniki komputerowej/gi, 'Urządzenia TK')
+    .replace(/systemy operacyjne/gi, 'Systemy operacyjne')
+    .replace(/edukacja dla bezpieczeństwa/gi, 'EDB')
+    .replace(/wiedza o społeczeństwie/gi, 'WOS')
+    .trim();
+}
+
+/**
  * Formatuje i czyści tekst powiadomienia Push na smartfon:
- * - Zamienia ciągi znaków "\n" / "\r\n" na rzeczywiste znaki nowej linii (byte 0x0A)
+ * - Bezwzględnie usuwa literalne sekwencje "\n", "\\n", "\r\n" na rzeczywisty znak nowej linii (0x0A)
  * - Czyści znaczniki Markdown (**pogrubienie**, _kursywa_, nagłówki #)
- * - Konwertuje surowe wiersze tabel Markdown (| ... |) na estetyczne wiersze listy
- * - Formatuje harmonogram i godziny (np. 08:00 - 08:45) z czytelnym punktorem "•"
+ * - Standaryzuje harmonogram lekcji: • Godzina [Sala] Przedmiot (Nauczyciel)
+ * - Konwertuje surowe wiersze tabel Markdown na estetyczne punkty listy
  */
 export function formatPushText(text) {
   if (!text) return '';
   let clean = String(text)
+    .replace(/\\+r\\+n/gi, '\n')
+    .replace(/\\+n/gi, '\n')
+    .replace(/\\+r/gi, '\n')
     .replace(/\\r\\n/g, '\n')
     .replace(/\\n/g, '\n')
     .replace(/\\r/g, '\n');
@@ -59,10 +80,13 @@ export function formatPushText(text) {
     .replace(/`([^`]+)`/g, '$1')
     .replace(/^#{1,6}\s+/gm, '');
 
-  const lines = clean.split('\n').map(l => l.trim()).filter(Boolean);
+  const rawLines = clean.split('\n');
   const formatted = [];
 
-  for (const line of lines) {
+  for (const rawLine of rawLines) {
+    const line = rawLine.replace(/^(\\n|\\r|[-•\s])+/gi, '').trim();
+    if (!line) continue;
+
     // Pomiń linie separatorów tabel Markdown (|---|---|)
     if (/^\|[-:\s|]+\|$/.test(line)) continue;
 
@@ -75,20 +99,57 @@ export function formatPushText(text) {
       }
       if (cells.length >= 2) {
         const time = cells[0];
-        const subject = cells[1];
-        const room = cells[2] ? ` (${cells[2]})` : '';
-        const extra = cells.slice(3).join(', ');
-        formatted.push(`• ${time}: ${subject}${room}${extra ? ` [${extra}]` : ''}`);
+        const subject = cleanSubjectName(cells[1]);
+        let room = cells[2] || '';
+        if (room && !room.toLowerCase().startsWith('sala') && room.toLowerCase() !== 'hala') {
+          room = `Sala ${room}`;
+        }
+        const roomPart = room ? ` [${room}]` : '';
+        const teacher = cells[3] ? ` (${cells[3]})` : '';
+        formatted.push(`• ${time}${roomPart} ${subject}${teacher}`);
         continue;
       }
     }
 
-    // Formatuj zakresy godzin (np. 08:00-08:45 Przedmiot)
+    // Formatuj zakresy godzin (np. 08:00-08:45 Przedmiot (Sala, Nauczyciel))
     const timeMatch = line.match(/^(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})\s*(.*)$/);
     if (timeMatch) {
       const [, start, end, rest] = timeMatch;
-      const cleanRest = rest.replace(/^[-:\s•]+/, '').trim();
-      formatted.push(`• ${start} - ${end}: ${cleanRest}`);
+
+      // Wyodrębnij nauczyciela z nawiasów (np. PW w '(Sala 1.16, PW, Laboratorium)')
+      let teacher = '';
+      const parenMatch = rest.match(/\(([^)]+)\)/);
+      if (parenMatch) {
+        const inside = parenMatch[1];
+        const tMatch = inside.match(/(?<![a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ])([A-ZĄĆĘŁŃÓŚŹŻ]{2})(?![a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ])/);
+        if (tMatch && tMatch[1] !== 'WF' && tMatch[1] !== 'SO' && tMatch[1] !== 'TK') {
+          teacher = tMatch[1];
+        }
+      }
+
+      // Wyodrębnij salę
+      let room = '';
+      const roomMatch = rest.match(/\b(sala\s+[0-9a-zA-Z.]+|hala|basen|siłownia)\b/i);
+      if (roomMatch) room = roomMatch[1];
+
+      // Oczyść przedmiot ze zbędnych metadanych (typy zajęć, sala, nawiasy)
+      let subject = cleanSubjectName(rest)
+        .replace(/\([^)]*\)/g, '')
+        .replace(/\b(sala\s+[0-9a-zA-Z.]+|hala|basen|siłownia)\b/gi, '')
+        .replace(/\b(laboratorium|wykład|ćwiczenia|inne|zajęcia)\b/gi, '')
+        .replace(/[-:,•]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      subject = cleanSubjectName(subject);
+
+      if (room && !room.toLowerCase().startsWith('sala') && room.toLowerCase() !== 'hala') {
+        room = `Sala ${room}`;
+      }
+
+      const roomPart = room ? ` [${room}]` : '';
+      const teacherPart = teacher ? ` (${teacher})` : '';
+      formatted.push(`• ${start} - ${end}${roomPart} ${subject}${teacherPart}`);
       continue;
     }
 

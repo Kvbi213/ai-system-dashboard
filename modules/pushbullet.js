@@ -7,6 +7,7 @@ import {
   classifyExpenseWithAi,
   formatExpenseConfirmation
 } from './services/pushbulletClassifier.js';
+import { formatPushText } from './services/pushbulletService.js';
 
 export function startPushbulletListener() {
   const API_KEY = process.env.PUSHBULLET_API_KEY;
@@ -137,6 +138,7 @@ export async function sendPushNotification(title, body) {
   }
 
   try {
+    const formattedBody = formatPushText(body || '');
     const response = await fetch('https://api.pushbullet.com/v2/pushes', {
       method: 'POST',
       headers: {
@@ -146,7 +148,7 @@ export async function sendPushNotification(title, body) {
       body: JSON.stringify({
         type: 'note',
         title: title || 'OmniDash System',
-        body: body || ''
+        body: formattedBody
       })
     });
     const data = await response.json();

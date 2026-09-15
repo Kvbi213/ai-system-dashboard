@@ -73,9 +73,27 @@ export function isPushRequest(text) {
   return pushKeywords.some(kw => t.includes(kw));
 }
 
+export function cleanSubjectName(s) {
+  if (!s) return '';
+  return s
+    .replace(/pracownia urządzeń techniki komputerowej/gi, 'Pracownia UTK')
+    .replace(/pracownia systemów operacyjnych/gi, 'Pracownia SO')
+    .replace(/wychowanie fizyczne/gi, 'WF')
+    .replace(/zajęcia z wychowawcą/gi, 'Godz. wychowawcza')
+    .replace(/godzina wychowawcza/gi, 'Godz. wychowawcza')
+    .replace(/urządzenia techniki komputerowej/gi, 'Urządzenia TK')
+    .replace(/systemy operacyjne/gi, 'Systemy operacyjne')
+    .replace(/edukacja dla bezpieczeństwa/gi, 'EDB')
+    .replace(/wiedza o społeczeństwie/gi, 'WOS')
+    .trim();
+}
+
 export function formatPushText(text) {
   if (!text) return '';
   let clean = String(text)
+    .replace(/\\+r\\+n/gi, '\n')
+    .replace(/\\+n/gi, '\n')
+    .replace(/\\+r/gi, '\n')
     .replace(/\\r\\n/g, '\n')
     .replace(/\\n/g, '\n')
     .replace(/\\r/g, '\n');
@@ -88,10 +106,13 @@ export function formatPushText(text) {
     .replace(/`([^`]+)`/g, '$1')
     .replace(/^#{1,6}\s+/gm, '');
 
-  const lines = clean.split('\n').map(l => l.trim()).filter(Boolean);
+  const rawLines = clean.split('\n');
   const formatted = [];
 
-  for (const line of lines) {
+  for (const rawLine of rawLines) {
+    const line = rawLine.replace(/^(\\n|\\r|[-•\s])+/gi, '').trim();
+    if (!line) continue;
+
     if (/^\|[-:\s|]+\|$/.test(line)) continue;
 
     if (line.startsWith('|') && line.endsWith('|')) {
@@ -101,10 +122,14 @@ export function formatPushText(text) {
       }
       if (cells.length >= 2) {
         const time = cells[0];
-        const subject = cells[1];
-        const room = cells[2] ? ` (${cells[2]})` : '';
-        const extra = cells.slice(3).join(', ');
-        formatted.push(`• ${time}: ${subject}${room}${extra ? ` [${extra}]` : ''}`);
+        const subject = cleanSubjectName(cells[1]);
+        let room = cells[2] || '';
+        if (room && !room.toLowerCase().startsWith('sala') && room.toLowerCase() !== 'hala') {
+          room = `Sala ${room}`;
+        }
+        const roomPart = room ? ` [${room}]` : '';
+        const teacher = cells[3] ? ` (${cells[3]})` : '';
+        formatted.push(`• ${time}${roomPart} ${subject}${teacher}`);
         continue;
       }
     }
@@ -112,8 +137,38 @@ export function formatPushText(text) {
     const timeMatch = line.match(/^(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})\s*(.*)$/);
     if (timeMatch) {
       const [, start, end, rest] = timeMatch;
-      const cleanRest = rest.replace(/^[-:\s•]+/, '').trim();
-      formatted.push(`• ${start} - ${end}: ${cleanRest}`);
+
+      let teacher = '';
+      const parenMatch = rest.match(/\(([^)]+)\)/);
+      if (parenMatch) {
+        const inside = parenMatch[1];
+        const tMatch = inside.match(/(?<![a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ])([A-ZĄĆĘŁŃÓŚŹŻ]{2})(?![a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ])/);
+        if (tMatch && tMatch[1] !== 'WF' && tMatch[1] !== 'SO' && tMatch[1] !== 'TK') {
+          teacher = tMatch[1];
+        }
+      }
+
+      let room = '';
+      const roomMatch = rest.match(/\b(sala\s+[0-9a-zA-Z.]+|hala|basen|siłownia)\b/i);
+      if (roomMatch) room = roomMatch[1];
+
+      let subject = cleanSubjectName(rest)
+        .replace(/\([^)]*\)/g, '')
+        .replace(/\b(sala\s+[0-9a-zA-Z.]+|hala|basen|siłownia)\b/gi, '')
+        .replace(/\b(laboratorium|wykład|ćwiczenia|inne|zajęcia)\b/gi, '')
+        .replace(/[-:,•]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      subject = cleanSubjectName(subject);
+
+      if (room && !room.toLowerCase().startsWith('sala') && room.toLowerCase() !== 'hala') {
+        room = `Sala ${room}`;
+      }
+
+      const roomPart = room ? ` [${room}]` : '';
+      const teacherPart = teacher ? ` (${teacher})` : '';
+      formatted.push(`• ${start} - ${end}${roomPart} ${subject}${teacherPart}`);
       continue;
     }
 
@@ -429,15 +484,30 @@ ${txsList}`
       .sort((a, b) => (a.time_start || '').localeCompare(b.time_start || ''));
 
     const todayStr = todayLessons.length > 0
-      ? todayLessons.map(l => `  * ${l.time_start || '??'} - ${l.time_end || '??'}: ${l.subject} (${l.type || 'Zajęcia'}, sala: ${l.room || 'brak'}, prowadzący: ${l.teacher || 'brak'})`).join('\n')
+      ? todayLessons.map(l => {
+          const s = cleanSubjectName(l.subject);
+          const r = l.room ? `[${l.room}]` : '';
+          const t = l.teacher ? `(${l.teacher})` : '';
+          return `  • ${l.time_start || '??'} - ${l.time_end || '??'} ${r} ${s} ${t}`.trim();
+        }).join('\n')
       : '  Brak zajęć dydaktycznych na dziś.';
 
     const tomorrowStr = tomorrowLessons.length > 0
-      ? tomorrowLessons.map(l => `  * ${l.time_start || '??'} - ${l.time_end || '??'}: ${l.subject} (${l.type || 'Zajęcia'}, sala: ${l.room || 'brak'}, prowadzący: ${l.teacher || 'brak'})`).join('\n')
+      ? tomorrowLessons.map(l => {
+          const s = cleanSubjectName(l.subject);
+          const r = l.room ? `[${l.room}]` : '';
+          const t = l.teacher ? `(${l.teacher})` : '';
+          return `  • ${l.time_start || '??'} - ${l.time_end || '??'} ${r} ${s} ${t}`.trim();
+        }).join('\n')
       : '  Brak zajęć dydaktycznych na jutro.';
 
     const allLessonsStr = timetable.length > 0
-      ? timetable.map(l => `- [${(l.day || '').toUpperCase()}] ${l.time_start || ''}-${l.time_end || ''}: ${l.subject} (sala: ${l.room || '-'}, ${l.teacher || '-'}, typ: ${l.type || 'Wykład'})`).join('\n')
+      ? timetable.map(l => {
+          const s = cleanSubjectName(l.subject);
+          const r = l.room ? `[${l.room}]` : '';
+          const t = l.teacher ? `(${l.teacher})` : '';
+          return `- [${(l.day || '').toUpperCase()}] ${l.time_start || ''}-${l.time_end || ''} ${r} ${s} ${t}`.trim();
+        }).join('\n')
       : 'Brak wpisów w planie lekcji.';
 
     const timetableSummary = `
@@ -571,9 +641,11 @@ Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomie
 5. BEZWZGLĘDNY ZAKAZ sugerowania ręcznego kopiowania tekstu („skopiuj powyższą tabelę”)! PO PROSTU ANALIZUJ I WYSYŁAJ!
 6. FORMATOWANIE TREŚCI POWIADOMIENIA NA SMARTFON:
    - Tytuł (title): Krótki i czytelny (np. "Plan lekcji: Wtorek", "Następna lekcja").
-   - Treść (body): Czytelna lista z punktorem "• " i rzeczywistymi podziałami linii. Każda pozycja w nowej linii, np:
-     • 08:00 - 08:45: PUTKOM (Sala 1.16)
-     • 08:50 - 09:35: PUTKOM (Sala 1.16)
+   - Treść (body): Czytelna lista z punktorem "• " i formatem: • Godzina [Sala] Przedmiot (Nauczyciel). Każda pozycja w nowej linii, np:
+     • 08:00 - 08:45 [Sala 1.16] Pracownia UTK (PW)
+     • 08:50 - 09:35 [Sala 1.16] Pracownia UTK (PW)
+     • 09:40 - 10:25 [Sala 1.16] Godz. wychowawcza (ZJ)
+     • 10:40 - 11:25 [Hala] WF (GŁ)
    - BEZWZGLĘDNY ZAKAZ wklejania tabel Markdown (|---|) do parametru body! Tabel używaj w odpowiedzi tekstowej, a do body daj listę wypunktowaną.
 
 KRYTYCZNE REGUŁY OPERACYJNE:

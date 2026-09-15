@@ -235,22 +235,44 @@ describe('Pushbullet Financial Notification Classifier', () => {
       expect(formatted).toContain('kod testowy');
     });
 
-    it('powinien przekształcać wiersze tabel Markdown na estetyczne punkty listy', () => {
+    it('powinien przekształcać wiersze tabel Markdown na estetyczne punkty listy z wyróżnioną salą i skrótem', () => {
       const markdownTable = `| Godzina | Przedmiot | Sala |
 |---|---|---|
 | 08:00 - 08:45 | Wychowanie Fizyczne | Sala 1.16 |
 | 08:50 - 09:35 | Matematyka | Sala 2.04 |`;
       const formatted = formatPushText(markdownTable);
       expect(formatted).not.toContain('|');
-      expect(formatted).toContain('• 08:00 - 08:45: Wychowanie Fizyczne (Sala 1.16)');
-      expect(formatted).toContain('• 08:50 - 09:35: Matematyka (Sala 2.04)');
+      expect(formatted).toContain('• 08:00 - 08:45 [Sala 1.16] WF');
+      expect(formatted).toContain('• 08:50 - 09:35 [Sala 2.04] Matematyka');
+    });
+
+    it('powinien formatować surowe wpisy planu lekcji z długimi nazwami, wyodrębniać salę, nauczyciela i usuwać zbędne typy zajęć', () => {
+      const rawTimetable = `08:00-08:45 Pracownia urządzeń techniki komputerowej (Sala 1.16, PW, Laboratorium)
+\\n08:50-09:35 Pracownia urządzeń techniki komputerowej (Sala 1.16, PW, Laboratorium)
+\\n09:40-10:25 Zajęcia z wychowawcą (Sala 1.16, ZJ, Inne)
+\\n10:40-11:25 Wychowanie fizyczne (Hala, GŁ, Ćwiczenia)
+\\n12:20-13:05 Pracownia systemów operacyjnych (Sala 1.16, SR, Laboratorium)
+\\n14:05-14:50 Matematyka (Sala 26, ZB, Wykład)`;
+
+      const formatted = formatPushText(rawTimetable);
+      expect(formatted).not.toContain('\\n');
+      expect(formatted).not.toContain('Laboratorium');
+      expect(formatted).not.toContain('Ćwiczenia');
+      expect(formatted).not.toContain('Wykład');
+
+      expect(formatted).toContain('• 08:00 - 08:45 [Sala 1.16] Pracownia UTK (PW)');
+      expect(formatted).toContain('• 08:50 - 09:35 [Sala 1.16] Pracownia UTK (PW)');
+      expect(formatted).toContain('• 09:40 - 10:25 [Sala 1.16] Godz. wychowawcza (ZJ)');
+      expect(formatted).toContain('• 10:40 - 11:25 [Hala] WF (GŁ)');
+      expect(formatted).toContain('• 12:20 - 13:05 [Sala 1.16] Pracownia SO (SR)');
+      expect(formatted).toContain('• 14:05 - 14:50 [Sala 26] Matematyka (ZB)');
     });
 
     it('powinien formatować zakresy godzin bez punktorów dodając estetyczny punktor •', () => {
       const schedule = '08:00-08:45 WF\n08:50 - 09:35 Matematyka';
       const formatted = formatPushText(schedule);
-      expect(formatted).toContain('• 08:00 - 08:45: WF');
-      expect(formatted).toContain('• 08:50 - 09:35: Matematyka');
+      expect(formatted).toContain('• 08:00 - 08:45 WF');
+      expect(formatted).toContain('• 08:50 - 09:35 Matematyka');
     });
 
     it('powinien poprawnie obsługiwać puste wartości', () => {

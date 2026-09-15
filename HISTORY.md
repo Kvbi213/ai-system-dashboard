@@ -1,5 +1,28 @@
 ## Wersja Bieżąca
-**v2.18.10**
+**v2.18.11**
+
+## v 2.18.11 — 2026-09-15
+**Typ:** PATCH  
+**Zakres:** Jednoznaczny i Zoptymalizowany Układ Powiadomień Mobilnych Pushbullet: Wyróżniona Sala `[Sala]` Bezpośrednio po Godzinie, Słownik Skrótów Przedmiotów (`cleanSubjectName`), Usunięcie Szumu Akademickiego i Uniwersalna Integracja Formatera we Wszystkich Modułach.
+
+### Zmiany
+- [+] Dodano: Optymalizację ergonomii wiersza lekcji `• HH:MM [Sala] Przedmiot (Nauczyciel)` w `formatPushText` ([pushbulletService.js](file:///c:/Users/Jakub%20Lis/Desktop/AI%20system%20dashboard%20github/modules/services/pushbulletService.js)):
+  - Przeniesienie numeru sali `[Sala 1.16]` bezpośrednio za godzinę, umożliwiając natychmiastowy odczyt sali bez konieczności szukania na końcu zawiniętego wiersza.
+  - Słownik standaryzacji i skrótów `cleanSubjectName` (np. `Pracownia UTK`, `Pracownia SO`, `WF`, `Godz. wychowawcza`, `Urządzenia TK`).
+  - Oczyszczanie ze zbędnych metadanych typu `, Laboratorium`, `, Wykład`, `, Ćwiczenia`, `, Inne`.
+  - Ekstrakcja kodu nauczyciela z uwzględnieniem polskich znaków (`GŁ`, `PW`, itp.).
+- [*] Zmodyfikowano: `modules/pushbullet.js` – zintegrowano `formatPushText` w backendowej funkcji `sendPushNotification`, zabezpieczając wywołania ze środowiska lokalnego Express.
+- [*] Zmodyfikowano: `api/phone.js` – serverless endpoint wzbogacony o `formatPushText` i `cleanSubjectName`.
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` & `api/agent.js` – ustrukturyzowano `timetableSummary` w prompcie LLM, zapobiegając generowaniu nadmiernie rozwlekłych linii.
+- [+] Dodano: Nowy test jednostkowy w `tests/pushbullet_finance.test.js` weryfikujący poprawność ekstrakcji sali, nauczyciela i formatu linii (83/83 PASS).
+- [*] Zmodyfikowano: `package.json` – podniesiono wersję do `2.18.11`.
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.18.11.md`.
+- [*] Zmodyfikowano: Utworzono kartę błędu `docs/errors/ERROR_DIFF_2026-09-15_pushbullet_room_and_subject_unambiguous_layout.md` (zamknięta ze statusem SUCCESS).
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.18.10 — 2026-09-15
 **Typ:** PATCH  

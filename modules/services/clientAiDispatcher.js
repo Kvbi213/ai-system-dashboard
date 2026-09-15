@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { saveCloudDocument, deleteCloudDocument } from './cloudSync.js';
-import { sendPushNotificationClient, formatPushText } from './pushbulletService.js';
+import { sendPushNotificationClient, formatPushText, cleanSubjectName } from './pushbulletService.js';
 
 /**
  * Autonomiczny Silnik AI Dyspozytora Klienckiego (Client-Side AI Dispatcher)
@@ -607,7 +607,12 @@ Ostatnie transakcje: ` + actualTxs.slice(0, 10).map(f => `${f.type === 'income' 
         : 'Brak transakcji w bazie. Saldo: 0.00 PLN.';
 
       const timetableSummary = (context.timetable || []).length > 0
-        ? context.timetable.map(l => `- [${(l.day || '').toUpperCase()}] ${l.time_start || ''}-${l.time_end || ''}: ${l.subject} (${l.room || 'sala b/d'}, ${l.teacher || 'prowadzący b/d'}, typ: ${l.type || 'Zajęcia'})`).join('\n')
+        ? context.timetable.map(l => {
+            const cleanSubj = cleanSubjectName(l.subject);
+            const roomPart = l.room ? `[${l.room}]` : '';
+            const teacherPart = l.teacher ? `(${l.teacher})` : '';
+            return `- [${(l.day || '').toUpperCase()}] ${l.time_start || ''}-${l.time_end || ''} ${roomPart} ${cleanSubj} ${teacherPart}`.trim();
+          }).join('\n')
         : 'Brak wpisów w planie lekcji.';
 
       const workoutsSummary = (context.workouts || []).length > 0
@@ -629,9 +634,11 @@ Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomie
 5. BEZWZGLĘDNY ZAKAZ sugerowania ręcznego kopiowania tekstu („skopiuj powyższą tabelę”)! PO PROSTU ANALIZUJ I WYSYŁAJ!
 6. FORMATOWANIE TREŚCI POWIADOMIENIA NA SMARTFON:
    - Tytuł (title): Krótki i czytelny (np. "Plan lekcji: Wtorek", "Następna lekcja").
-   - Treść (body): Czytelna lista z punktorem "• " i rzeczywistymi podziałami linii. Każda pozycja w nowej linii, np:
-     • 08:00 - 08:45: PUTKOM (Sala 1.16)
-     • 08:50 - 09:35: PUTKOM (Sala 1.16)
+   - Treść (body): Czytelna lista z punktorem "• " i formatem: • Godzina [Sala] Przedmiot (Nauczyciel). Każda pozycja w nowej linii, np:
+     • 08:00 - 08:45 [Sala 1.16] Pracownia UTK (PW)
+     • 08:50 - 09:35 [Sala 1.16] Pracownia UTK (PW)
+     • 09:40 - 10:25 [Sala 1.16] Godz. wychowawcza (ZJ)
+     • 10:40 - 11:25 [Hala] WF (GŁ)
    - BEZWZGLĘDNY ZAKAZ wklejania tabel Markdown (|---|) do parametru body! Tabel używaj w odpowiedzi tekstowej, a do body daj listę wypunktowaną.
 
 Zasady: Posiadasz bezpośredni dostęp do internetu, bazy danych oraz smartfona użytkownika przez Pushbullet API. Odpowiadaj wyczerpująco, logicznie i wspierająco w języku ${language}.
@@ -649,12 +656,12 @@ Treningi:
 ${workoutsSummary}
 Kalendarz:
 ${calendarSummary}`
-        : `Jesteś OMNI EXEC — inżynieryjnym silnikiem wykonawczym w OmniDash. Rozmawiasz z ${userName}.
+        : `Jesteś OMNI EXEC — wysoko wyspecjalizowanym inżynieryjnym systemem wykonawczym (Core Worker Engine) w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
 
 🚨 KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
-Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomieniu lub Pushbullet (np. „wyślij na telefon”, „wyślij mi to”, „przypomnij na telefonie”, „wyślij powiadomienie”, „chcę to na komórce”, „pushbullet”):
+Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomieniu, przesłaniu na smartfon itp. (np. „wyślij na telefon”, „wyślij mi to”, „przypomnij na telefonie”, „wyślij powiadomienie”, „chcę to na komórce”, „pushbullet”):
 1. PRZEANALIZUJ PYTANIE UŻYTKOWNIKA ORAZ POTRZEBNE DANE Z BAZY (np. następna lekcja, plan lekcji, pogoda, zadania, finanse).
 2. W treści odpowiedzi zwięźle potwierdź, że wysyłasz powiadomienie na telefon.
 3. BEZWZGLĘDNIE, ZAWSZE I BEZ WYJĄTKU na samym końcu odpowiedzi wyemituj znacznik:
@@ -663,9 +670,11 @@ Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomie
 5. BEZWZGLĘDNY ZAKAZ sugerowania ręcznego kopiowania tekstu („skopiuj powyższą tabelę”)! PO PROSTU ANALIZUJ I WYSYŁAJ!
 6. FORMATOWANIE TREŚCI POWIADOMIENIA NA SMARTFON:
    - Tytuł (title): Krótki i czytelny (np. "Plan lekcji: Wtorek", "Następna lekcja").
-   - Treść (body): Czytelna lista z punktorem "• " i rzeczywistymi podziałami linii. Każda pozycja w nowej linii, np:
-     • 08:00 - 08:45: PUTKOM (Sala 1.16)
-     • 08:50 - 09:35: PUTKOM (Sala 1.16)
+   - Treść (body): Czytelna lista z punktorem "• " i formatem: • Godzina [Sala] Przedmiot (Nauczyciel). Każda pozycja w nowej linii, np:
+     • 08:00 - 08:45 [Sala 1.16] Pracownia UTK (PW)
+     • 08:50 - 09:35 [Sala 1.16] Pracownia UTK (PW)
+     • 09:40 - 10:25 [Sala 1.16] Godz. wychowawcza (ZJ)
+     • 10:40 - 11:25 [Hala] WF (GŁ)
    - BEZWZGLĘDNY ZAKAZ wklejania tabel Markdown (|---|) do parametru body! Tabel używaj w odpowiedzi tekstowej, a do body daj listę wypunktowaną.
 
 Zasady: Posiadasz bezpośredni dostęp do internetu, bazy danych oraz smartfona użytkownika przez Pushbullet API. Odpowiadaj konkretnie, merytorycznie i technicznie w języku ${language}.
