@@ -19,6 +19,11 @@ import {
 
 let lastProcessedPushId = null;
 
+export function isOwnSystemNotification(title = '', body = '') {
+  const t = `${title || ''} ${body || ''}`.toLowerCase();
+  return t.includes('omnidash') || t.includes('omniagent') || t.includes('omnidaemon') || t.includes('auto-finanse');
+}
+
 export function startPushbulletListener() {
   const API_KEY = process.env.PUSHBULLET_API_KEY;
 
@@ -49,6 +54,9 @@ export function startPushbulletListener() {
             const latestPush = pushData.pushes?.[0];
             if (latestPush && latestPush.iden !== lastProcessedPushId && latestPush.type === 'note') {
               lastProcessedPushId = latestPush.iden;
+              if (isOwnSystemNotification(latestPush.title, latestPush.body)) {
+                return;
+              }
               const content = `${latestPush.title || ''} ${latestPush.body || ''}`.trim();
               console.log(`[*] PUSHBULLET: Odebrano bezpośrednią notatkę od operatora: "${content}"`);
               
@@ -64,6 +72,9 @@ export function startPushbulletListener() {
                   runFullResearchJob(task).catch(err => console.error('[!] Błąd zadania agenta:', err));
                   return;
                 }
+                // Ogólne zapytanie z telefonu -> konwersacja OmniDaemon ze smartfonem
+                await handleMobileChatQuery(content);
+                return;
               }
             }
           }
@@ -78,6 +89,9 @@ export function startPushbulletListener() {
 
         // Bezpośrednia notatka z konta
         if (pushObj.type === 'note') {
+          if (isOwnSystemNotification(pushObj.title, pushObj.body)) {
+            return;
+          }
           const content = `${pushObj.title || ''} ${pushObj.body || ''}`.trim();
           console.log(`[*] PUSHBULLET: Bezpośrednia notatka push: "${content}"`);
           if (isStatusInquiry(content)) {
@@ -92,6 +106,9 @@ export function startPushbulletListener() {
               runFullResearchJob(task).catch(err => console.error('[!] Błąd zadania agenta:', err));
               return;
             }
+            // Ogólne zapytanie z telefonu -> konwersacja OmniDaemon ze smartfonem
+            await handleMobileChatQuery(content);
+            return;
           }
         }
         
@@ -100,6 +117,10 @@ export function startPushbulletListener() {
           const appName = pushObj.application_name || 'System';
           const title = pushObj.title || 'Brak tytułu';
           const body = pushObj.body || '';
+
+          if (isOwnSystemNotification(title, body)) {
+            return;
+          }
 
           // Reakcja na komendy w powiadomieniach (np. SMS od siebie)
           const mirrorText = `${title} ${body}`.trim();
@@ -228,10 +249,99 @@ export async function sendPushNotification(title, body) {
       })
     });
     const data = await response.json();
+    if (data && data.iden) {
+      lastProcessedPushId = data.iden;
+    }
     return { success: response.ok, iden: data.iden, data };
   } catch (err) {
     console.error('[!] PUSHBULLET: Błąd wysyłania powiadomienia:', err.message);
     return { success: false, error: err.message };
   }
+}
+
+export async function handleMobileChatQuery(content, options = {}) {
+  if (!content || typeof content !== 'string') return null;
+  const userText = content.trim();
+  if (!userText) return null;
+
+  console.log(`[*] PUSHBULLET MOBILE CHAT: Przetwarzanie zapytania ze smartfona: "${userText}"`);
+
+  const nowIso = new Date().toISOString();
+  const userMsgId = `user_pb_${Date.now()}`;
+  const userMsg = {
+    id: userMsgId,
+    role: 'user',
+    content: userText,
+    timestamp: nowIso,
+    chatMode: 'daemon',
+    source: 'pushbullet_mobile'
+  };
+
+  // 1. Zapis wiadomości użytkownika do Cloud Firestore (chat_history)
+  try {
+    const firestoreDb = getFirestoreDb();
+    if (firestoreDb && !options.skipCloudSync) {
+      await firestoreDb.collection('chat_history').doc(userMsgId).set(userMsg);
+    }
+  } catch (fsErr) {
+    console.warn('[!] PUSHBULLET MOBILE CHAT: Błąd zapisu do Firestore:', fsErr.message);
+  }
+
+  // 2. Rozgłoszenie zdarzenia SSE dla frontendu
+  try {
+    broadcastEvent('chat_message_received', userMsg);
+  } catch {}
+
+  // 3. Przetworzenie intencji przez silnik AI (processUserIntent)
+  let aiText = '';
+  if (options.mockAiResponse) {
+    aiText = options.mockAiResponse;
+  } else {
+    try {
+      const { processUserIntent } = await import('./agent.js');
+      const result = await processUserIntent(userText, 'worker', { userName: options.userName || 'Operator' });
+      aiText = result?.agent_response || result?.content || 'Polecenie zrealizowane przez OMNIDAEMON.';
+    } catch (err) {
+      console.error('[!] PUSHBULLET MOBILE CHAT: Błąd silnika AI:', err.message);
+      aiText = `[!] Wystąpił błąd przetwarzania polecenia: ${err.message}`;
+    }
+  }
+
+  const aiMsgId = `ai_pb_${Date.now()}`;
+  const aiMsg = {
+    id: aiMsgId,
+    role: 'ai',
+    content: aiText,
+    timestamp: new Date().toISOString(),
+    chatMode: 'daemon',
+    source: 'omni_daemon'
+  };
+
+  // 4. Zapis odpowiedzi AI do Cloud Firestore (chat_history)
+  try {
+    const firestoreDb = getFirestoreDb();
+    if (firestoreDb && !options.skipCloudSync) {
+      await firestoreDb.collection('chat_history').doc(aiMsgId).set(aiMsg);
+    }
+  } catch (fsErr) {
+    console.warn('[!] PUSHBULLET MOBILE CHAT: Błąd zapisu odpowiedzi do Firestore:', fsErr.message);
+  }
+
+  // 5. Rozgłoszenie zdarzenia SSE dla odpowiedzi AI
+  try {
+    broadcastEvent('chat_message_received', aiMsg);
+  } catch {}
+
+  // 6. BEZWZGLĘDNY WYMÓG: Odesłanie pełnej odpowiedzi na telefon operatora przez Pushbullet
+  console.log(`[+] PUSHBULLET MOBILE CHAT: Odsyłanie odpowiedzi na telefon: "${aiText.substring(0, 80)}..."`);
+  const pushRes = options.mockPush 
+    ? { success: true, iden: 'mock_pb_push_123' } 
+    : await sendPushNotification('OmniDash AI 🤖', aiText);
+
+  return {
+    userMsg,
+    aiMsg,
+    pushRes
+  };
 }
 

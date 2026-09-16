@@ -1,5 +1,26 @@
 ## Wersja Bieżąca
-**v2.19.0**
+**v2.19.1**
+
+## v 2.19.1 — 2026-09-16
+**Typ:** PATCH  
+**Zakres:** Dedykowana Zakładka OMNIDAEMON w Terminalu (`Terminal.jsx`), Zarządzanie Stanem i Historią Chmurową w `ChatContext.jsx`, Dwukierunkowy Czat Smartfonowy Pushbullet z Obowiązkową Odpowiedzią Push (`handleMobileChatQuery`), Ochrona Przed Pętlą Echa Powiadomień (`isOwnSystemNotification`), Dedykowany Prompt Operacyjny OmniDaemon oraz Testy Jednostkowe.
+
+### Zmiany
+- [+] Dodano: Dedykowana zakładka OMNIDAEMON w interfejsie `modules/components/Terminal.jsx` obok trybów WORKER i MENTOR (przycisk `<Bot /> OMNIDAEMON`, dedykowane nagłówki, ikony i komunikaty przetwarzania).
+- [+] Dodano: Obsługa trybu `daemon` w `modules/context/ChatContext.jsx` ze stanem `daemonMessages`, synchronizacją Cloud Firestore (`chat_history` pod `chatMode: 'daemon'`), pamięcią podręczną `system_daemon_history` oraz komendami `/clear`, `/mode daemon`, `/purge`, `/export`.
+- [+] Dodano: Funkcja `handleMobileChatQuery(content)` w `modules/pushbullet.js` – każde zapytanie od operatora ze smartfona jest rejestrowane w historii czatu, przetwarzane przez silnik kognitywny AI i **bezwzględnie odsyłane na telefon przez Pushbullet**.
+- [+] Dodano: Ochrona przed pętlą echa (`isOwnSystemNotification`) w `modules/pushbullet.js` oraz `api/pushbullet-webhook.js` zabezpieczająca przed zapętleniem powiadomień generowanych przez OmniDash.
+- [+] Dodano: Obsługa ogólnych zapytań ze smartfona w chmurze Vercel w `api/pushbullet-webhook.js` z natychmiastową odpowiedzią zwrotną push.
+- [+] Dodano: Dedykowany prompt systemowy OmniDaemon w `modules/services/clientAiDispatcher.js`.
+- [*] Zmodyfikowano: `modules/agent.js` – dodano opcję `dangerouslyAllowBrowser: true` w inicjalizacji Groq.
+- [+] Dodano: 4 nowe testy jednostkowe w `tests/autonomous_agent.test.js` (114/114 PASS).
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.19.1`.
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.19.1.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.19.0 — 2026-09-16
 **Typ:** MINOR  

@@ -3,9 +3,9 @@
 # 🌌 OmniDash AI System Dashboard
 ### Zaawansowany Hybrydowy Hub Dowodzenia Napędzany Sztuczną Inteligencją
 
-[![Version](https://img.shields.io/badge/Wersja-2.13.0-00F0FF?style=for-the-badge&logo=semver&logoColor=black)](https://github.com/Kvbi213/ai-system-dashboard)
+[![Version](https://img.shields.io/badge/Wersja-2.19.1-00F0FF?style=for-the-badge&logo=semver&logoColor=black)](https://github.com/Kvbi213/ai-system-dashboard)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-10B981?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/Kvbi213/ai-system-dashboard/actions)
-[![Tests](https://img.shields.io/badge/Testy-37%2F37%20Passed-10B981?style=for-the-badge&logo=vitest&logoColor=white)](https://github.com/Kvbi213/ai-system-dashboard)
+[![Tests](https://img.shields.io/badge/Testy-114%2F114%20Passed-10B981?style=for-the-badge&logo=vitest&logoColor=white)](https://github.com/Kvbi213/ai-system-dashboard)
 [![React Testing](https://img.shields.io/badge/Testing%20Library-React%20%2B%20JSDOM-E33332?style=for-the-badge&logo=testinglibrary&logoColor=white)](https://testing-library.com/)
 [![Hosting](https://img.shields.io/badge/Hosting-Firebase_Cloud-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](#)
 [![API Gateway](https://img.shields.io/badge/API-Vercel_Serverless-black?style=for-the-badge&logo=vercel&logoColor=white)](#)

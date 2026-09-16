@@ -13,7 +13,10 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || 'unconfigured_key' });
+const groq = new Groq({ 
+  apiKey: process.env.GROQ_API_KEY || 'unconfigured_key',
+  dangerouslyAllowBrowser: true
+});
 
 import { getSystemPrompt, getMentorPrompt } from './ai/prompts.js';
 

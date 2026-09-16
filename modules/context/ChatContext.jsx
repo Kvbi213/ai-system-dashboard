@@ -71,6 +71,35 @@ export const ChatProvider = ({ children }) => {
     }];
   });
 
+  const [daemonMessages, setDaemonMessages] = useState(() => {
+    const ghostMode = localStorage.getItem('system_ghost_mode') === 'true';
+    if (!ghostMode) {
+      try {
+        const clearedDaemon = parseInt(localStorage.getItem('system_chat_cleared_daemon') || '0', 10);
+        const saved = localStorage.getItem('system_daemon_history');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const filtered = parsed.filter(m => {
+              const msgTime = new Date(m.timestamp || m.updated_at || 0).getTime();
+              return !clearedDaemon || msgTime > clearedDaemon;
+            });
+            if (filtered.length > 0) return filtered;
+          }
+        }
+      } catch (e) {
+        console.warn('Nie udało się załadować historii demona:', e);
+      }
+    }
+    return [{ 
+      id: 'welcome_daemon_init',
+      role: 'ai', 
+      content: 'OMNIDAEMON 24/7 ONLINE. Autonomiczny demon aktywny. Odbieram wiadomości z Twojego telefonu przez Pushbullet, prowadzę badania w tle i raportuję stan w czasie rzeczywistym.',
+      timestamp: new Date().toISOString(),
+      chatMode: 'daemon'
+    }];
+  });
+
   const [thoughtsLog, setThoughtsLog] = useState([
     t("chatMentorActive", "System Mentor aktywowany. Oczekiwanie na dane wejściowe..."),
   ]);
@@ -83,6 +112,7 @@ export const ChatProvider = ({ children }) => {
     const unsubscribe = subscribeCollection('chat_history', (cloudMsgs) => {
       const clearedWorker = parseInt(localStorage.getItem('system_chat_cleared_worker') || '0', 10);
       const clearedMentor = parseInt(localStorage.getItem('system_chat_cleared_mentor') || '0', 10);
+      const clearedDaemon = parseInt(localStorage.getItem('system_chat_cleared_daemon') || '0', 10);
 
       const allMsgs = Array.isArray(cloudMsgs) ? cloudMsgs : [];
 
@@ -99,6 +129,13 @@ export const ChatProvider = ({ children }) => {
         if (m.chatMode !== 'mentor') return false;
         const msgTime = new Date(m.timestamp || m.updated_at || 0).getTime();
         return !clearedMentor || msgTime > clearedMentor;
+      });
+
+      // Filtruj wiadomości dla trybu DAEMON nowsze niż znacznik czyszczenia
+      const daemonFromCloud = allMsgs.filter(m => {
+        if (m.chatMode !== 'daemon') return false;
+        const msgTime = new Date(m.timestamp || m.updated_at || 0).getTime();
+        return !clearedDaemon || msgTime > clearedDaemon;
       });
 
       setWorkerMessages(prev => {
@@ -164,6 +201,37 @@ export const ChatProvider = ({ children }) => {
         }
         return merged;
       });
+
+      setDaemonMessages(prev => {
+        const validPrev = prev.filter(m => {
+          const t = new Date(m.timestamp || 0).getTime();
+          return !clearedDaemon || t > clearedDaemon;
+        });
+
+        const map = new Map();
+        validPrev.forEach(m => {
+          const key = m.id || `${m.role}_${m.content}_${m.timestamp}`;
+          map.set(key, m);
+        });
+        daemonFromCloud.forEach(m => {
+          const key = m.id || `${m.role}_${m.content}_${m.timestamp}`;
+          map.set(key, m);
+        });
+
+        const merged = Array.from(map.values());
+        merged.sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
+
+        if (merged.length === 0) {
+          return [{
+            id: `welcome_daemon_${clearedDaemon || 'init'}`,
+            role: 'ai',
+            content: 'OMNIDAEMON 24/7 ONLINE. Autonomiczny demon aktywny. Odbieram wiadomości z Twojego telefonu przez Pushbullet, prowadzę badania w tle i raportuję stan w czasie rzeczywistym.',
+            timestamp: new Date(clearedDaemon || Date.now()).toISOString(),
+            chatMode: 'daemon'
+          }];
+        }
+        return merged;
+      });
     });
 
     const handleChatCleared = (e) => {
@@ -189,6 +257,15 @@ export const ChatProvider = ({ children }) => {
           chatMode: 'mentor'
         }]);
       }
+      if (targetMode === 'daemon' || targetMode === 'all') {
+        setDaemonMessages([{
+          id: `welcome_daemon_${ts}`,
+          role: 'ai',
+          content: 'OMNIDAEMON 24/7 ONLINE. Autonomiczny demon aktywny. Odbieram wiadomości z Twojego telefonu przez Pushbullet, prowadzę badania w tle i raportuję stan w czasie rzeczywistym.',
+          timestamp: iso,
+          chatMode: 'daemon'
+        }]);
+      }
     };
     window.addEventListener('chatCleared', handleChatCleared);
 
@@ -212,6 +289,13 @@ export const ChatProvider = ({ children }) => {
     }
   }, [mentorMessages]);
 
+  useEffect(() => {
+    const ghostMode = localStorage.getItem('system_ghost_mode') === 'true';
+    if (!ghostMode) {
+      localStorage.setItem('system_daemon_history', JSON.stringify(daemonMessages));
+    }
+  }, [daemonMessages]);
+
   const sendCommand = async (inputStr) => {
     if (!inputStr.trim()) return;
     const userText = inputStr.trim();
@@ -222,6 +306,7 @@ export const ChatProvider = ({ children }) => {
       const pushSysMsg = (content) => {
         const sysMsg = { role: 'ai', content, isSystem: true, timestamp: new Date().toISOString() };
         if (mode === 'worker') setWorkerMessages(prev => [...prev, sysMsg]);
+        else if (mode === 'daemon') setDaemonMessages(prev => [...prev, sysMsg]);
         else setMentorMessages(prev => [...prev, sysMsg]);
       };
 
@@ -242,6 +327,19 @@ export const ChatProvider = ({ children }) => {
           localStorage.setItem('system_chat_history', JSON.stringify(welcome));
           window.dispatchEvent(new CustomEvent('chatCleared', { detail: { timestamp: clearTimestamp, mode: 'worker' } }));
           clearChatHistoryCloud('worker').catch(err => console.warn('[ChatContext] Błąd czyszczenia chmury worker:', err));
+        } else if (mode === 'daemon') {
+          localStorage.setItem('system_chat_cleared_daemon', String(clearTimestamp));
+          const welcome = [{ 
+            id: `welcome_daemon_${clearTimestamp}`,
+            role: 'ai', 
+            content: 'OMNIDAEMON 24/7 ONLINE. Autonomiczny demon aktywny. Odbieram wiadomości z Twojego telefonu przez Pushbullet, prowadzę badania w tle i raportuję stan w czasie rzeczywistym.', 
+            timestamp: clearIso,
+            chatMode: 'daemon'
+          }];
+          setDaemonMessages(welcome);
+          localStorage.setItem('system_daemon_history', JSON.stringify(welcome));
+          window.dispatchEvent(new CustomEvent('chatCleared', { detail: { timestamp: clearTimestamp, mode: 'daemon' } }));
+          clearChatHistoryCloud('daemon').catch(err => console.warn('[ChatContext] Błąd czyszczenia chmury daemon:', err));
         } else {
           localStorage.setItem('system_chat_cleared_mentor', String(clearTimestamp));
           const welcome = [{ 
@@ -261,29 +359,31 @@ export const ChatProvider = ({ children }) => {
       }
       
       if (cmd === '/help') {
-        pushSysMsg(t('chatHelpMsg', 'Dostępne polecenia systemowe:\n- /clear - czyści ekran obecnego trybu oraz usuwa historię z chmury.\n- /purge - agresywnie usuwa historię z pamięci podręcznej i chmury dla obu trybów.\n- /mode [worker|mentor] - przełącza tryb sztucznej inteligencji.\n- /export - zapisuje log z rozmową do pliku na dysku twardym.\n- /ping - weryfikuje łączność i opóźnienie do API System.'));
+        pushSysMsg(t('chatHelpMsg', 'Dostępne polecenia systemowe:\n- /clear - czyści ekran obecnego trybu oraz usuwa historię z chmury.\n- /purge - agresywnie usuwa historię z pamięci podręcznej i chmury dla obu trybów.\n- /mode [worker|mentor|daemon] - przełącza tryb sztucznej inteligencji.\n- /export - zapisuje log z rozmową do pliku na dysku twardym.\n- /ping - weryfikuje łączność i opóźnienie do API System.'));
         return;
       }
 
       if (cmd === '/mode') {
         const newMode = args[0];
-        if (newMode === 'worker' || newMode === 'mentor') {
+        if (newMode === 'worker' || newMode === 'mentor' || newMode === 'daemon') {
           setMode(newMode);
           setTimeout(() => {
             if (newMode === 'worker') {
               setWorkerMessages(prev => [...prev, { role: 'ai', content: t('chatSwitchedWorker', '[*] INFO: Przełączono na tryb inżynieryjny (WORKER).'), isSystem: true, timestamp: new Date().toISOString() }]);
+            } else if (newMode === 'daemon') {
+              setDaemonMessages(prev => [...prev, { role: 'ai', content: '[*] INFO: Przełączono na tryb autonomiczny (OMNIDAEMON).', isSystem: true, timestamp: new Date().toISOString() }]);
             } else {
               setMentorMessages(prev => [...prev, { role: 'ai', content: t('chatSwitchedMentor', '[*] INFO: Przełączono na tryb analityczny (MENTOR).'), isSystem: true, timestamp: new Date().toISOString() }]);
             }
           }, 0);
         } else {
-          pushSysMsg(t('chatUnknownMode', '[!] BŁĄD: Nieznany tryb. Użyj: /mode worker lub /mode mentor'));
+          pushSysMsg(t('chatUnknownMode', '[!] BŁĄD: Nieznany tryb. Użyj: /mode worker, /mode mentor lub /mode daemon'));
         }
         return;
       }
 
       if (cmd === '/export') {
-        const msgs = mode === 'worker' ? workerMessages : mentorMessages;
+        const msgs = mode === 'worker' ? workerMessages : (mode === 'daemon' ? daemonMessages : mentorMessages);
         const textToSave = msgs.map(m => `[${m.role.toUpperCase()}]: ${m.content}`).join('\n\n');
         const blob = new Blob([textToSave], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
@@ -301,8 +401,10 @@ export const ChatProvider = ({ children }) => {
 
         localStorage.setItem('system_chat_cleared_worker', String(clearTimestamp));
         localStorage.setItem('system_chat_cleared_mentor', String(clearTimestamp));
+        localStorage.setItem('system_chat_cleared_daemon', String(clearTimestamp));
         localStorage.removeItem('system_chat_history');
         localStorage.removeItem('system_mentor_history');
+        localStorage.removeItem('system_daemon_history');
 
         const workerWelcome = [{ 
           id: `welcome_worker_${clearTimestamp}`,
@@ -318,9 +420,17 @@ export const ChatProvider = ({ children }) => {
           timestamp: clearIso,
           chatMode: 'mentor'
         }];
+        const daemonWelcome = [{ 
+          id: `welcome_daemon_${clearTimestamp}`,
+          role: 'ai', 
+          content: 'OMNIDAEMON 24/7 ONLINE. Autonomiczny demon aktywny. Odbieram wiadomości z Twojego telefonu przez Pushbullet, prowadzę badania w tle i raportuję stan w czasie rzeczywistym.', 
+          timestamp: clearIso,
+          chatMode: 'daemon'
+        }];
 
         setWorkerMessages(workerWelcome);
         setMentorMessages(mentorWelcome);
+        setDaemonMessages(daemonWelcome);
         setThoughtsLog([t("chatPurgeMentor2", "System Mentor uruchomiony (PURGED).")]);
 
         window.dispatchEvent(new CustomEvent('chatCleared', { detail: { timestamp: clearTimestamp, mode: 'all' } }));
@@ -395,6 +505,40 @@ export const ChatProvider = ({ children }) => {
       }
     }
 
+    if (mode === 'daemon') {
+      setDaemonMessages(prev => [...prev, userMsg]);
+      try {
+        const result = await dispatchAiQuery({
+          text: userText,
+          mode: 'daemon',
+          newsCategories,
+          userName,
+          language: systemLanguage
+        });
+
+        const content = result.content || 'Polecenie zrealizowane przez OMNIDAEMON.';
+        const widgets = result.widgets || [];
+        const aiMsgId = (Date.now() + 1).toString();
+        const aiMsg = { id: aiMsgId, role: 'ai', content, widgets, timestamp: new Date().toISOString(), chatMode: 'daemon' };
+
+        setDaemonMessages(prev => [...prev, aiMsg]);
+        if (!ghostMode) {
+          saveCloudDocument('chat_history', aiMsgId, aiMsg);
+        }
+
+        setIsProcessing(false);
+        return { content, widgets };
+      } catch (error) {
+        setDaemonMessages(prev => [...prev, {
+          role: 'ai',
+          content: t('chatTimeout', 'BŁĄD POŁĄCZENIA: ') + (error?.message || 'Nieznany błąd'),
+          timestamp: new Date().toISOString()
+        }]);
+        setIsProcessing(false);
+        return { content: t("chatSorryErr", "Przepraszam, wystąpił błąd połączenia."), widgets: [] };
+      }
+    }
+
     // WORKER MODE
     setWorkerMessages(prev => [...prev, userMsg]);
     try {
@@ -434,6 +578,7 @@ export const ChatProvider = ({ children }) => {
     isProcessing,
     workerMessages, setWorkerMessages,
     mentorMessages, setMentorMessages,
+    daemonMessages, setDaemonMessages,
     thoughtsLog, setThoughtsLog,
     sendCommand
   };

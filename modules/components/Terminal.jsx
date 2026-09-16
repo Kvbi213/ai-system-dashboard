@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Terminal as TerminalIcon, Send, Code, BrainCircuit, Lightbulb, X, Mic, MicOff, Loader2, Copy, Check, Radio, User, Sparkles, Volume2, VolumeX, ArrowDown, StopCircle } from 'lucide-react';
+import { Terminal as TerminalIcon, Send, Code, BrainCircuit, Bot, Lightbulb, X, Mic, MicOff, Loader2, Copy, Check, Radio, User, Sparkles, Volume2, VolumeX, ArrowDown, StopCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -152,10 +152,10 @@ const ChatMessage = ({ msg, mode = 'worker' }) => {
         <div className="flex items-center justify-between w-full mb-1.5 px-1">
           <div className="flex items-center gap-2 text-xs">
             <div className="w-6 h-6 rounded-lg bg-accentPrimary/20 border border-accentPrimary/40 flex items-center justify-center text-accentPrimary shadow-[0_0_10px_rgba(var(--color-accent-primary),0.3)]">
-              {mode === 'mentor' ? <BrainCircuit className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />}
+              {mode === 'mentor' ? <BrainCircuit className="w-3.5 h-3.5" /> : (mode === 'daemon' ? <Bot className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />)}
             </div>
             <span className="font-mono font-bold text-textPrimary tracking-wide">
-              {mode === 'mentor' ? 'OMNI MIND' : 'OMNI EXEC'}
+              {mode === 'mentor' ? 'OMNI MIND' : (mode === 'daemon' ? 'OMNIDAEMON' : 'OMNI EXEC')}
             </span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/40 text-accentPrimary/90 border border-accentPrimary/20">
               openai/gpt-oss-120b
@@ -372,6 +372,7 @@ const Terminal = () => {
     isProcessing,
     workerMessages,
     mentorMessages,
+    daemonMessages,
     thoughtsLog,
     sendCommand
   } = useChatContext();
@@ -933,7 +934,7 @@ const Terminal = () => {
   }, [mode]);
 
 
-  const messages = mode === 'worker' ? workerMessages : mentorMessages;
+  const messages = mode === 'worker' ? workerMessages : (mode === 'daemon' ? daemonMessages : mentorMessages);
 
   const toggleRecording = async () => {
     if (isRecording) {
@@ -1029,6 +1030,12 @@ const Terminal = () => {
           >
             <BrainCircuit className="w-3.5 h-3.5" /> MENTOR
           </button>
+          <button 
+            onClick={() => { setMode('daemon'); setShowThoughts(false); }}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-mono transition-colors ${mode === 'daemon' ? 'bg-accentPrimary text-black font-bold' : 'text-textMuted hover:text-textPrimary'}`}
+          >
+            <Bot className="w-3.5 h-3.5" /> OMNIDAEMON
+          </button>
         </div>
         {mode === 'mentor' && (
           <button 
@@ -1090,10 +1097,10 @@ const Terminal = () => {
                   {isManualMuted
                     ? 'MIKROFON // WYCISZONY'
                     : isSpeaking 
-                      ? (mode === 'mentor' ? 'OMNI MIND // ODPOWIADA...' : 'OMNI EXEC // ODPOWIADA...') 
+                      ? (mode === 'mentor' ? 'OMNI MIND // ODPOWIADA...' : (mode === 'daemon' ? 'OMNIDAEMON // ODPOWIADA...' : 'OMNI EXEC // ODPOWIADA...')) 
                       : isProcessingSpeech 
-                        ? (mode === 'mentor' ? 'OMNI MIND // ANALIZUJE...' : 'OMNI EXEC // PRZETWARZA...') 
-                        : (mode === 'mentor' ? 'OMNI MIND // SŁUCHA...' : 'OMNI EXEC // SŁUCHA...')}
+                        ? (mode === 'mentor' ? 'OMNI MIND // ANALIZUJE...' : (mode === 'daemon' ? 'OMNIDAEMON // ANALIZUJE...' : 'OMNI EXEC // PRZETWARZA...')) 
+                        : (mode === 'mentor' ? 'OMNI MIND // SŁUCHA...' : (mode === 'daemon' ? 'OMNIDAEMON // SŁUCHA...' : 'OMNI EXEC // SŁUCHA...'))}
                 </span>
                 {isManualMuted && (
                   <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/25 text-amber-200 border border-amber-500/40 font-bold flex items-center gap-1">
@@ -1187,7 +1194,7 @@ const Terminal = () => {
         {isProcessing && (
           <div className="flex items-center gap-2.5 text-textMuted font-sans p-3 glass-panel rounded-xl max-w-fit border border-border/50 animate-pulse">
             <Loader2 className="w-4 h-4 animate-spin text-accentPrimary" />
-            <span className="text-xs font-mono">{mode === 'mentor' ? 'OMNI MIND analizuje zapytanie...' : 'OMNI EXEC przetwarza odpowiedź...'}</span>
+            <span className="text-xs font-mono">{mode === 'mentor' ? 'OMNI MIND analizuje zapytanie...' : (mode === 'daemon' ? 'OMNIDAEMON przetwarza zapytanie...' : 'OMNI EXEC przetwarza odpowiedź...')}</span>
           </div>
         )}
         <div ref={endOfMessagesRef} />

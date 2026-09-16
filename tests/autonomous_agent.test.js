@@ -104,4 +104,52 @@ describe('Autonomiczny Agent Ciągły (OmniDaemon 24/7) - Klasyfikatory i Narzę
     });
   });
 
+  describe('6. Ochrona przed Pętlą Echa Powiadomień (isOwnSystemNotification)', () => {
+    it('wykrywa powiadomienia wygenerowane przez system OmniDash', async () => {
+      const { isOwnSystemNotification } = await import('../modules/pushbullet.js');
+      expect(isOwnSystemNotification('OmniDash AI 🤖', 'Raport gotowy')).toBe(true);
+      expect(isOwnSystemNotification('OmniAgent Cloud 🤖', 'Zadanie przyjęte')).toBe(true);
+      expect(isOwnSystemNotification('OmniDaemon 24/7', 'Demon aktywny')).toBe(true);
+      expect(isOwnSystemNotification('OmniDash Auto-Finanse 💳', 'Zapisano wydatek')).toBe(true);
+    });
+
+    it('przepuszcza wiadomości od operatora i aplikacji zewnętrznych', async () => {
+      const { isOwnSystemNotification } = await import('../modules/pushbullet.js');
+      expect(isOwnSystemNotification('Jakub', 'Jaki mam plan lekcji na jutro?')).toBe(false);
+      expect(isOwnSystemNotification('mBank', 'Płatność kartą 45.00 PLN')).toBe(false);
+      expect(isOwnSystemNotification('', 'ile mam dzisiaj zadań?')).toBe(false);
+    });
+  });
+
+  describe('7. Obsługa Zapytań ze Smartfona i Obowiązkowa Odpowiedź Push (OmniDaemon)', () => {
+    it('generuje wiadomości z chatMode: daemon i źródłami mobilnymi', async () => {
+      const { handleMobileChatQuery } = await import('../modules/pushbullet.js');
+      
+      const res = await handleMobileChatQuery('Jaki mam plan lekcji?', {
+        mockAiResponse: 'Plan lekcji na dziś: • 08:00 Matematyka • 09:00 Informatyka',
+        skipCloudSync: true,
+        mockPush: true
+      });
+      expect(res).toBeDefined();
+      expect(res.userMsg).toBeDefined();
+      expect(res.userMsg.chatMode).toBe('daemon');
+      expect(res.userMsg.source).toBe('pushbullet_mobile');
+      expect(res.userMsg.content).toBe('Jaki mam plan lekcji?');
+
+      expect(res.aiMsg).toBeDefined();
+      expect(res.aiMsg.chatMode).toBe('daemon');
+      expect(res.aiMsg.source).toBe('omni_daemon');
+      expect(res.aiMsg.content).toContain('Plan lekcji na dziś');
+      expect(res.pushRes).toBeDefined();
+      expect(res.pushRes.success).toBe(true);
+    });
+
+    it('zwraca null dla pustych lub nieprawidłowych zapytań', async () => {
+      const { handleMobileChatQuery } = await import('../modules/pushbullet.js');
+      expect(await handleMobileChatQuery('')).toBeNull();
+      expect(await handleMobileChatQuery('   ')).toBeNull();
+      expect(await handleMobileChatQuery(null)).toBeNull();
+    });
+  });
+
 });

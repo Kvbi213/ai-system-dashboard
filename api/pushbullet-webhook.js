@@ -74,6 +74,17 @@ export default async function handler(req, res) {
         return res.status(200).json({ received: true, action: 'none' });
       }
 
+      // Ignorowanie notyfikacji własnych generowanych przez system (ochrona przed pętlą)
+      const rawTitle = payload.push?.title || payload.title || '';
+      const rawBody = payload.push?.body || payload.body || '';
+      const isOwnNotification = (rawTitle + ' ' + rawBody).toLowerCase().includes('omnidash') ||
+        (rawTitle + ' ' + rawBody).toLowerCase().includes('omniagent') ||
+        (rawTitle + ' ' + rawBody).toLowerCase().includes('omnidaemon');
+
+      if (isOwnNotification) {
+        return res.status(200).json({ received: true, action: 'ignored_own_notification' });
+      }
+
       // 1. Sprawdzenie zapytania o stan
       if (isStatusInquiry(content)) {
         const msg = `• Stan: Aktywny w chmurze Vercel ☁️\n• Połączenie: Pushbullet Webhook Active\n• Brak zablokowanych procesów.\n• Wyślij "zbadaj [temat]" aby zlecić zadanie.`;
@@ -132,7 +143,39 @@ export default async function handler(req, res) {
         return res.status(200).json({ received: true, action: 'task_executed' });
       }
 
-      return res.status(200).json({ received: true, action: 'processed' });
+      // 4. Ogólne zapytanie ze smartfona na czat (OmniDaemon) - BEZWZGLĘDNY PUSH Z ODPOWIEDZIĄ
+      const groqKey = process.env.GROQ_API_KEY || process.env.VITE_GROQ_API_KEY;
+      let aiResponseText = 'Odebrano wiadomość w chmurze Vercel. OmniDaemon jest aktywny 24/7.';
+
+      if (groqKey) {
+        try {
+          const groq = new Groq({ apiKey: groqKey });
+          const completion = await groq.chat.completions.create({
+            model: 'openai/gpt-oss-120b',
+            messages: [
+              {
+                role: 'system',
+                content: 'Jesteś OMNIDAEMON — autonomicznym asystentem 24/7 w systemie OmniDash. Operator pisze do Ciebie ze smartfona przez Pushbullet. Odpowiadaj konkretnie, profesjonalnie, zwięźle i wyczerpująco w języku polskim. Posiadasz pełną autonomię w chmurze.'
+              },
+              {
+                role: 'user',
+                content: content
+              }
+            ],
+            temperature: 0.4,
+            max_tokens: 1000
+          });
+          aiResponseText = completion.choices?.[0]?.message?.content || aiResponseText;
+        } catch (groqErr) {
+          console.warn('[Vercel Webhook Groq Error]:', groqErr.message);
+          aiResponseText = `[OmniDaemon] Błąd generowania odpowiedzi: ${groqErr.message}`;
+        }
+      }
+
+      // BEZWZGLĘDNE ODESŁANIE ODPOWIEDZI PRZEZ PUSHBULLET
+      await sendServerlessPush(apiKey, 'OmniDash AI 🤖', aiResponseText);
+
+      return res.status(200).json({ received: true, action: 'mobile_chat_replied', response: aiResponseText });
     } catch (err) {
       console.error('[Vercel Webhook Error]:', err);
       return res.status(500).json({ error: err.message });
