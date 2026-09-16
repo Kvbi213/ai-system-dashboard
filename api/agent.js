@@ -842,32 +842,38 @@ ${calendarSummary}
 ${brainSummary}
 ${liveIntelBlock}`;
 
-    const targetModel = model || 'openai/gpt-oss-120b';
-    let chatCompletion;
-    let effectiveModel = targetModel;
+    const candidateModels = [
+      model,
+      'openai/gpt-oss-120b',
+      'openai/gpt-oss-20b',
+      'groq/compound',
+      'qwen/qwen3.8-27b'
+    ].filter(Boolean).filter(m => !m.includes('llama') && m !== 'qwen/qwen3-32b');
 
-    try {
-      chatCompletion = await groq.chat.completions.create({
-        model: targetModel,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: incomingText }
-        ],
-        temperature: mode === 'mentor' ? 0.7 : 0.4,
-        max_tokens: 3500,
-      });
-    } catch (primaryModelErr) {
-      console.warn(`[Vercel Agent] Model ${targetModel} niedostępny, automatyczny fallback:`, primaryModelErr.message);
-      effectiveModel = 'llama-3.3-70b-versatile';
-      chatCompletion = await groq.chat.completions.create({
-        model: effectiveModel,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: incomingText }
-        ],
-        temperature: mode === 'mentor' ? 0.7 : 0.4,
-        max_tokens: 3500,
-      });
+    const uniqueCandidates = [...new Set(candidateModels)];
+    let chatCompletion = null;
+    let effectiveModel = uniqueCandidates[0] || 'openai/gpt-oss-120b';
+
+    for (const candidate of uniqueCandidates) {
+      try {
+        chatCompletion = await groq.chat.completions.create({
+          model: candidate,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: incomingText }
+          ],
+          temperature: mode === 'mentor' ? 0.7 : 0.4,
+          max_tokens: 3500,
+        });
+        effectiveModel = candidate;
+        break;
+      } catch (modelErr) {
+        console.warn(`[Vercel Agent] Model ${candidate} niedostępny/błąd:`, modelErr.message);
+      }
+    }
+
+    if (!chatCompletion) {
+      throw new Error('Żaden ze skonfigurowanych modeli Groq LLM nie odpowiedział pomyślnie.');
     }
 
     let agent_response = chatCompletion.choices?.[0]?.message?.content || 'Brak odpowiedzi od modelu.';

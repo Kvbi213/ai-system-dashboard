@@ -13,8 +13,9 @@ const groq = new Groq({
 
 export const AGENT_MODELS = [
   'openai/gpt-oss-120b',
-  'llama-3.3-70b-versatile',
-  'qwen/qwen3-32b'
+  'openai/gpt-oss-20b',
+  'groq/compound',
+  'qwen/qwen3.8-27b'
 ];
 
 /**

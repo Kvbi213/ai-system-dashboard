@@ -57,13 +57,35 @@ export function isDeepResearchIntent(text) {
   if (isStatusInquiry(text) || isAbortCommand(text)) return false;
   const t = text.trim().toLowerCase();
 
+  // Wzorce regex obsługujące deklinację i synonimy w języku polskim
+  const regexPatterns = [
+    /model[a-ząćęłńóśźż]*\s+(ai|sztucznej\s+inteligencji|llm|językow[a-ząćęłńóśźż]*)/i,
+    /(topow[a-ząćęłńóśźż]*|czołow[a-ząćęłńóśźż]*|najlepsz[a-ząćęłńóśźż]*|wszystk[a-ząćęłńóśźż]*|komercyjn[a-ząćęłńóśźż]*)\s+model[a-ząćęłńóśźż]*/i,
+    /(skan|skanuj|skanowanie|przeskanuj|zeskanuj|dokładny\s+skan)/i,
+    /(badaj|zbadaj|przebadaj|badanie|przebadanie)/i,
+    /(research|deep\s*research)/i,
+    /(zbierz|zbieraj)\s+(informacj[a-ząćęłńóśźż]*|dan[a-ząćęłńóśźż]*|wszystko)/i,
+    /(szukaj|poszukaj|przeszukaj)\s+(w\s+sieci|w\s+internecie|na\s+ich\s+temat|wszystk)/i,
+    /(informuj|powiadamiaj)\s+mnie\s+(na\s+bieżąco|na\s+bierzaco|powiadomieniami|push)/i,
+    /(w\s+pętli|w\s+tle|ciągł[a-ząćęłńóśźż]*\s+badani[a-ząćęłńóśźż]*)/i,
+    /(porównaj|porównanie)\s+model/i,
+    /(plany\s+i\s+roadmapy|roadmap[a-ząćęłńóśźż]*|przyszłość\s+model)/i,
+    /który\s+(z\s+modeli|ma\s+najlepsz)/i
+  ];
+
+  if (regexPatterns.some(rx => rx.test(t))) {
+    return true;
+  }
+
   const triggerPhrases = [
     'zbadaj', 'przebadaj', 'przeszukaj', 'zbierz', 'szukaj', 'znajdź', 'poszukaj',
     'analizuj', 'przeanalizuj', 'szczegółowe dane', 'szczegolowe dane',
     'wszystko o', 'na ich temat wszystkiego', 'który ma najlepszą', 'który z modeli',
-    'porównaj modele', 'modele ai', 'modele sztucznej inteligencji',
+    'porównaj modele', 'modele ai', 'modeli ai', 'modelach ai', 'modelami ai',
+    'modele sztucznej inteligencji', 'modeli sztucznej inteligencji',
     'brave search', 'plany i roadmapy', 'roadmap', 'przyszłość modeli',
-    'zbierz informacje', 'przeszukaj sieć', 'przeszukaj internet', 'research'
+    'zbierz informacje', 'przeszukaj sieć', 'przeszukaj internet', 'research',
+    'skan modeli', 'skan wszystkich', 'dokładny skan'
   ];
 
   return triggerPhrases.some(phrase => t.includes(phrase));

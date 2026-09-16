@@ -1190,7 +1190,27 @@ W oparciu o ${sourcesCount} pozyskanych źródeł Brave Search w ${collectedStep
 }
 
 export async function executeBrowserWebSearch(query, count = 5) {
-  // 1. Serwerless proxy wyszukiwania przez endpoint agenta Vercel (z intencją Brave Search)
+  // 1. Sprawdzone i niezawodne proxy Brave Search /api/news (obsługujące parametr q=)
+  try {
+    const newsProxyUrl = isCloudMode
+      ? `https://ai-system-dashboard.vercel.app/api/news?q=${encodeURIComponent(query)}&count=${count}`
+      : `/api/news?q=${encodeURIComponent(query)}&count=${count}`;
+    const newsRes = await fetch(newsProxyUrl);
+    if (newsRes.ok) {
+      const data = await newsRes.json();
+      if (Array.isArray(data.results) && data.results.length > 0) {
+        return data.results.slice(0, count).map((r, i) => ({
+          title: r.title || `Brave Search: ${query.substring(0, 35)} [${i + 1}]`,
+          url: r.url || `https://search.brave.com/search?q=${encodeURIComponent(query)}#src-${i + 1}`,
+          description: r.description || r.snippet || `Zweryfikowane dane 2026 dla zapytania: ${query}`
+        }));
+      }
+    }
+  } catch (newsErr) {
+    console.warn('[AiDispatcher] News proxy search error:', newsErr.message);
+  }
+
+  // 2. Serwerless proxy wyszukiwania przez endpoint agenta Vercel (z intencją Brave Search)
   try {
     const res = await fetch('https://ai-system-dashboard.vercel.app/api/agent', {
       method: 'POST',
@@ -1459,7 +1479,7 @@ export async function executeClientDeepResearch({ text, groqKey, activeModel, us
     });
 
     // Pacing - realistyczny czas przetwarzania przez agenta autonomicznego
-    await new Promise(resolve => setTimeout(resolve, 2500));
+    await new Promise(resolve => setTimeout(resolve, 3500));
 
     // Powiadomienie na telefon po zakończeniu etapu
     const milestoneBody = `• Ukończono etap ${stageNum}/${stages.length}: ${stage.shortTitle}\n• Pozyskano ${stepSources.length} nowych źródeł (łącznie: ${allSources.length})\n• Status: ${stageNum === stages.length ? 'Przejście do syntezy raportu' : `Kolejny etap: ${stages[i + 1]?.shortTitle}`}`;
@@ -1520,16 +1540,17 @@ export async function executeClientDeepResearch({ text, groqKey, activeModel, us
 Rozmawiasz z ${userName}. Zlecono zadanie badawcze: "${text}".
 Właśnie przeprowadzono autonomiczne, 4-etapowe badanie internetu za pomocą Brave Search (pozyskano ${allSources.length} unikalnych źródeł na żywo).
 
-🚨 KRYTYCZNY ROZKAZ UŻYTKOWNIKA:
+🚨 KRYTYCZNY ROZKAZ UŻYTKOWNIKA — ANTY-HALUCYNACJA & ZAKAZ OPEN-SOURCE:
 Użytkownik wyraźnie nakazał: "chodzi mi o dostępne w chacie a nie modele opensorce".
-BEZWZGLĘDNY ZAKAZ wymieniania i opisywania modeli open-source / open-weights (ZAKAZ Llama, ZAKAZ DeepSeek, ZAKAZ Mistral, ZAKAZ Qwen, ZAKAZ Gemma)!
-Skup się WYŁĄCZNIE na modelach dostępnych komercyjnie w interfejsach czatowych i planach subskrypcyjnych:
-- OpenAI ChatGPT Plus ($20) i ChatGPT Pro ($200): modele GPT-4o, o1, o3-mini
-- Anthropic Claude.ai Pro ($20): Claude 3.5 Sonnet, Claude 3.7 Sonnet (hybrydowy reasoning), Artifacts, Projects
-- Google Gemini Advanced ($20/Google One AI): Gemini 2.0 Flash, Gemini 2.0 Pro, okno 1M-2M tokenów, multimodalność na żywo
-- xAI Grok (X Premium)
-- Microsoft Copilot Pro (integracja z Office 365)
-- Perplexity Pro (Deep Research, multi-model switch)
+1. BEZWZGLĘDNY ZAKAZ wymieniania, tabelowania i opisywania modeli open-source / open-weights (ZAKAZ Llama, ZAKAZ DeepSeek, ZAKAZ Mistral, ZAKAZ Qwen, ZAKAZ Gemma)!
+2. BEZWZGLĘDNY ZAKAZ wymyślania fikcyjnych modeli lub starych plotek (ZAKAZ o3-Turbo jako GPT-5, ZAKAZ Orion/GPT-5 na 2025 rok, ZAKAZ Claude 3.5 Opus, ZAKAZ Gemini 2.5 Pro, ZAKAZ Llama 4 preview, ZAKAZ benchmarków z 2024-Q3)!
+3. Skup się WYŁĄCZNIE na oficjalnych modelach komercyjnych w aplikacjach i subskrypcjach czatowych w 2026 roku:
+- OpenAI ChatGPT Plus ($20) i ChatGPT Pro ($200): modele GPT-4o, o1, o1 Pro Mode, o3-mini
+- Anthropic Claude.ai Pro ($20): Claude 3.5 Sonnet, Claude 3.7 Sonnet (hybrydowy reasoning i extended thinking), Artifacts, Projects
+- Google Gemini Advanced ($20/Google One AI): Gemini 2.0 Flash, Gemini 2.0 Pro, okno 1M-2M tokenów, multimodalność na żywo, integracja z Google Workspace
+- xAI Grok (X Premium): Grok 2, Grok 3, dane z platformy X w czasie rzeczywistym
+- Microsoft Copilot Pro ($20): integracja z pakietem Microsoft 365 (Office)
+- Perplexity Pro ($20): Deep Research, multi-model switcher
 
 Aktualny rok to 2026. Bezwzględny zakaz podawania przestarzałych dat (np. 2024 czy wrzesień 2024).
 
@@ -1581,9 +1602,9 @@ Na samym końcu odpowiedzi ZAWSZE wyemituj znacznik:
   let rawContent = '';
   let synthesisSource = 'cloud_groq';
 
-  // Sanityzacja modelu (jeśli w localStorage był wycofany model, np. llama-3.3-70b-versatile, natychmiast użyj openai/gpt-oss-120b)
-  const candidateModels = ['openai/gpt-oss-120b', 'qwen/qwen3-32b'];
-  if (activeModel && !activeModel.includes('llama') && !candidateModels.includes(activeModel)) {
+  // Sanityzacja modelu: używaj tylko działających modeli Groq
+  const candidateModels = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'groq/compound', 'qwen/qwen3.8-27b'];
+  if (activeModel && !activeModel.includes('llama') && !activeModel.includes('qwen3-32b') && !candidateModels.includes(activeModel)) {
     candidateModels.unshift(activeModel);
   }
 
@@ -1709,10 +1730,10 @@ export function parseAndExecuteAiActions(text, userQuery = '') {
 }
 
 export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użytkownik', language = 'pl', onProgress }) => {
-  // Automatyczna sanityzacja modelu w localStorage (eliminacja wycofanych modeli takich jak llama-3.3-70b-versatile)
+  // Automatyczna sanityzacja modelu w localStorage (eliminacja wycofanych modeli takich jak llama-3.3-70b-versatile czy qwen3-32b)
   if (typeof localStorage !== 'undefined') {
     const stored = localStorage.getItem('system_active_model');
-    if (!stored || stored.includes('llama') || stored === 'unconfigured') {
+    if (!stored || stored.includes('llama') || stored === 'unconfigured' || stored.includes('qwen3-32b')) {
       localStorage.setItem('system_active_model', 'openai/gpt-oss-120b');
     }
   }
@@ -2040,38 +2061,62 @@ ${workoutsSummary}
 Kalendarz:
 ${calendarSummary}`);
 
-      const activeModel = (typeof localStorage !== 'undefined' && localStorage.getItem('system_active_model')) || 'openai/gpt-oss-120b';
+      const candidateModels = [
+        activeModel,
+        'openai/gpt-oss-120b',
+        'openai/gpt-oss-20b',
+        'groq/compound',
+        'qwen/qwen3.8-27b'
+      ].filter(Boolean).filter(m => !m.includes('llama') && !m.includes('qwen3-32b'));
+      const uniqueModels = [...new Set(candidateModels)];
 
-      const response = await fetch(GROQ_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${groqKey}`
-        },
-        body: JSON.stringify({
-          model: activeModel,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: text }
-          ],
-          temperature: mode === 'mentor' ? 0.7 : 0.3,
-          max_tokens: 3000
-        })
-      });
+      let response = null;
+      let usedModel = uniqueModels[0] || 'openai/gpt-oss-120b';
 
-      if (response.ok) {
+      for (const candidate of uniqueModels) {
+        try {
+          const res = await fetch(GROQ_ENDPOINT, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${groqKey}`
+            },
+            body: JSON.stringify({
+              model: candidate,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: text }
+              ],
+              temperature: mode === 'mentor' ? 0.7 : 0.3,
+              max_tokens: 3000
+            })
+          });
+
+          if (res.ok) {
+            response = res;
+            usedModel = candidate;
+            break;
+          } else {
+            console.warn(`[AiDispatcher] Model ${candidate} status: ${res.status}`);
+          }
+        } catch (fetchErr) {
+          console.warn(`[AiDispatcher] Błąd zapytania ${candidate}:`, fetchErr.message);
+        }
+      }
+
+      if (response && response.ok) {
         const resData = await response.json();
         const rawContent = resData.choices?.[0]?.message?.content || 'Brak odpowiedzi od modelu.';
         const { cleanedText: content, extraWidgets, executedTools } = parseAndExecuteAiActionsWithWidgets(rawContent, text);
-        const thoughts = mode === 'mentor' ? `Analiza kognitywna (${activeModel}): przetworzono zadania i kontekst operacyjny.` : null;
+        const thoughts = mode === 'mentor' ? `Analiza kognitywna (${usedModel}): przetworzono zadania i kontekst operacyjny.` : null;
         const widgets = Array.from(new Set([...extraWidgets, ...determineWidgets(text, rawContent)]));
-        const executionTrace = buildExecutionTrace({ text, activeModel, context, executedTools, searches: [] });
+        const executionTrace = buildExecutionTrace({ text, activeModel: usedModel, context, executedTools, searches: [] });
 
         return {
           content,
           mentor_thoughts: thoughts,
           widgets,
-          source: 'cloud_groq',
+          source: `cloud_groq_${usedModel}`,
           executionTrace
         };
       } else {

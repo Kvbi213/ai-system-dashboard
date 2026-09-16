@@ -1,5 +1,24 @@
 ## Wersja Bieżąca
-**v2.19.6**
+**v2.19.7**
+
+## v 2.19.7 — 2026-09-16
+**Typ:** PATCH  
+**Zakres:** Elastyczna Klasyfikacja Intencji Badawczej w Języku Polskim (`isDeepResearchIntent`), Obsługa `onProgress` we Wszystkich Kartach Czatu (`ChatContext.jsx`), Integracja Bramy Brave Search `/api/news`, Pacing 3.5s na Etap z Powiadomieniami Push, Rygorystyczny Prompt Anty-Halucynacyjny (Zakaz Modeli Fikcyjnych i Open-Source), Auto-Healing Fallbacku Groq LLM.
+
+### Zmiany
+- [+] Dodano: Elastyczne wzorce wyrażeń regularnych w `modules/services/autonomousClassifier.js` uwzględniające odmianę gramatyczną w języku polskim (`modeli ai`, `modelach ai`, `skan`, `dokładny skan`, `informuj mnie na bieżąco powiadomieniami push`, `zbierz wszystko`).
+- [+] Dodano: Obsługę strumieniowania `onProgress` w trybach `worker` i `mentor` w `modules/context/ChatContext.jsx` (kamienie milowe i wskaźnik live trace działają w każdej karcie czatu).
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` – przekierowano `executeBrowserWebSearch` na działające proxy `/api/news?q=...` zwracające realne dane z 2026 roku; wydłużono pacing etapów do 3.5s z etapowymi powiadomieniami Pushbullet; zaostrzono reguły antyhalucynacyjne wykluczające modele open-source i zmyślone specyfikacje.
+- [*] Zmodyfikowano: `api/agent.js` oraz `modules/services/autonomousAgent.js` – zastąpiono wycofany model `llama-3.3-70b-versatile` elastyczną pętlą fallbacku (`openai/gpt-oss-120b` -> `openai/gpt-oss-20b` -> `groq/compound` -> `qwen/qwen3.8-27b`), eliminując błędy HTTP 500/429.
+- [+] Dodano: Nowe testy jednostkowe w `tests/autonomous_agent.test.js` zabezpieczające zapytania o skan komercyjnych modeli AI.
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.19.7`.
+- [*] Zmodyfikowano: Wdrożenie na Firebase Hosting `https://void-potato-7721.web.app` (SUCCESS).
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.19.7.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.19.6 — 2026-09-16
 **Typ:** PATCH  

@@ -59,6 +59,8 @@ describe('Autonomiczny Agent Ciągły (OmniDaemon 24/7) - Klasyfikatory i Narzę
       expect(isDeepResearchIntent('daj mi szczegółowe dane każdego z modeli')).toBe(true);
       expect(isDeepResearchIntent('przeszukaj sieć pod kątem nowych modeli LLM')).toBe(true);
       expect(isDeepResearchIntent('porównaj modele sztucznej inteligencji')).toBe(true);
+      expect(isDeepResearchIntent('zacznij dokładny skan wszystkich topowych modeli ai chodzi mi o dostępne w chacie a nie modele opensorce. informuj mnie na bierząco powiadomieniami push')).toBe(true);
+      expect(isDeepResearchIntent('odpowiedział od razu a nie pracował długo niech on działą tak że każe mu zebrać np informacje na temat modeli ai to szuka na ich temat wszystkiego')).toBe(true);
     });
 
     it('odrzuca zapytania o stan i proste polecenia', () => {
