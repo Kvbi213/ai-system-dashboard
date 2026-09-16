@@ -18,11 +18,11 @@ const CURATED_DEFAULT_MODELS = [
     owned_by: 'OpenAI / Groq High-Reasoning'
   },
   {
-    id: 'llama-3.3-70b-versatile',
+    id: 'qwen/qwen3-32b',
     active: true,
     context_window: 131072,
     max_completion_tokens: 8192,
-    owned_by: 'Meta'
+    owned_by: 'Alibaba / Groq'
   },
   {
     id: 'mixtral-8x7b-32768',

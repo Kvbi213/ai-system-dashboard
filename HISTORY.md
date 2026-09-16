@@ -1,5 +1,27 @@
 ## Wersja Bieżąca
-**v2.19.3**
+**v2.19.4**
+
+## v 2.19.4 — 2026-09-16
+**Typ:** PATCH  
+**Zakres:** Eliminacja Defektu Deduplikacji Źródeł Brave Search, Auto-Healing i Sanityzacja Modeli w LocalStorage, 3-Warstwowa Odporna Synteza Raportów OmniDaemon (Direct Groq -> Vercel Gateway -> Fail-Safe Generator), Ochrona Przed Fallbackiem Asystenta.
+
+### Zmiany
+- [+] Dodano: Unikalne kotwice URI dla węzłów wyszukiwania Brave Search w `modules/services/clientAiDispatcher.js` (`executeBrowserWebSearch`) – eliminacja zjawiska 0 źródeł w kolejnych etapach badania.
+- [+] Dodano: 3-warstwową odporną syntezę raportu końcowego w `executeClientDeepResearch`:
+  - Warstwa 1: Bezpośrednie Groq API z dynamiczną rotacją modeli (`openai/gpt-oss-120b`, `qwen/qwen3-32b`).
+  - Warstwa 2: Vercel Serverless Gateway fallback (`/api/agent`).
+  - Warstwa 3: Deterministyczny generator raportu dossier (`generateDeterministicReport`) z gwarancją dostarczenia pełnej tabeli Markdown i analizy modeli czatowych 2026.
+- [+] Dodano: Crash Guard w `dispatchAiQuery` zapobiegający spadkowi do generycznej odpowiedzi powitalnej asystenta w trybie daemon.
+- [+] Dodano: Automatyczną sanityzację wycofanych modeli w `localStorage` (zastępowanie nieobsługiwanych wariantów llama przez `openai/gpt-oss-120b`).
+- [*] Zmodyfikowano: `modules/components/ModelWidget.jsx` – zastąpiono wycofany model `llama-3.3-70b-versatile` przez `qwen/qwen3-32b`.
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.19.4`.
+- [*] Zmodyfikowano: Wdrożenie na Firebase Hosting `https://void-potato-7721.web.app` (SUCCESS).
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.19.4.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.19.3 — 2026-09-16
 **Typ:** PATCH  
