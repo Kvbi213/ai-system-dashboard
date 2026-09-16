@@ -137,6 +137,19 @@ describe('Autonomiczny Agent Ciągły (OmniDaemon 24/7) - Klasyfikatory i Narzę
       expect(res.steps[1].query).toContain('roadmap');
       expect(res.steps[2].query).toContain('context window');
     });
+
+    it('generuje dedykowany komercyjny plan dla zapytań wykluczających modele open-source', () => {
+      const prompt = 'zacznij dokładny skan wszystkich topowych modeli ai chodzi mi o dostępne w chacie a nie modele opensorce. informuj mnie na bierząco powiadomieniami push';
+      const res = generateFallbackPlan(prompt);
+      expect(res).toBeDefined();
+      expect(res.title).toContain('Komercyjnych Modeli AI w Czacie 2026');
+      expect(res.steps.length).toBe(3);
+      expect(res.steps[0].query).toContain('commercial chat AI');
+      expect(res.steps[0].query).not.toContain('DeepSeek');
+      expect(res.steps[0].query).not.toContain('Llama');
+      expect(res.steps[1].query).toContain('Claude 3.7 Sonnet');
+      expect(res.steps[2].query).toContain('subscriptions');
+    });
   });
 
   describe('6. Ochrona przed Pętlą Echa Powiadomień (isOwnSystemNotification)', () => {

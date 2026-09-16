@@ -126,6 +126,19 @@ export function extractTaskFromPhone(text) {
 export function generateFallbackPlan(goal) {
   const clean = (goal || 'Badanie').trim();
   const lower = clean.toLowerCase();
+  const isNoOpenSource = /nie.*(open[- ]?source|opensorce|otwart[a-z]*\s+kod)/i.test(lower) || /dostępne\s+w\s+(chacie|chat)/i.test(lower);
+
+  if (isNoOpenSource && (lower.includes('model') || lower.includes('ai') || lower.includes('llm'))) {
+    return {
+      title: 'Badanie Komercyjnych Modeli AI w Czacie 2026',
+      steps: [
+        { step: 1, query: 'top commercial chat AI models 2026 OpenAI ChatGPT Plus Pro Anthropic Claude Pro Google Gemini Advanced', focus: 'Porównanie komercyjnych modeli w czacie i benchmarki' },
+        { step: 2, query: 'OpenAI ChatGPT o1 o3-mini Claude 3.7 Sonnet Gemini 2.0 Pro chat roadmap 2026', focus: 'Roadmapy, plany rozwoju i przyszłość ekosystemów czatowych' },
+        { step: 3, query: 'commercial AI chat subscriptions pricing limits context window ChatGPT Pro Claude Pro Gemini Advanced 2026', focus: 'Limity wiadomości, subskrypcje, okna kontekstu i możliwości interfejsów' }
+      ]
+    };
+  }
+
   if (lower.includes('model') || lower.includes('ai') || lower.includes('llm')) {
     return {
       title: 'Badanie Modeli AI i Roadmap',

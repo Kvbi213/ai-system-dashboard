@@ -441,6 +441,34 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Brak wymaganego pola text, message lub prompt.' });
     }
 
+    // Obsługa dedykowanego zapytania wyszukiwania (Brave Search Proxy dla przeglądarki)
+    if (mode === 'search' || req.body?.action === 'search') {
+      const q = req.body?.query || incomingText;
+      const count = Number(req.body?.count) || 5;
+      const braveApiKey = process.env.BRAVE_SEARCH_API_KEY || 'BSAFmBe5BK_uBCgM4Qhrj1HHvsGijhh';
+      try {
+        const webUrl = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(q)}&count=${count}`;
+        const webRes = await fetch(webUrl, {
+          headers: {
+            'Accept': 'application/json',
+            'X-Subscription-Token': braveApiKey
+          }
+        });
+        if (webRes.ok) {
+          const webData = await webRes.json();
+          const results = (webData.web?.results || []).map(r => ({
+            title: r.title || 'Brak tytułu',
+            url: r.url,
+            description: r.description || ''
+          }));
+          return res.status(200).json({ results, query: q, count: results.length });
+        }
+      } catch (searchErr) {
+        console.warn('[Agent Search Proxy Error]:', searchErr.message);
+      }
+      return res.status(200).json({ results: [], query: q, count: 0 });
+    }
+
     const apiKey = customApiKey || process.env.GROQ_API_KEY || process.env.VITE_GROQ_API_KEY;
 
     if (!apiKey) {

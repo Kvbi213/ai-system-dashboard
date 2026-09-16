@@ -513,7 +513,22 @@ export const ChatProvider = ({ children }) => {
           mode: 'daemon',
           newsCategories,
           userName,
-          language: systemLanguage
+          language: systemLanguage,
+          onProgress: (milestone) => {
+            const msId = 'ms_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+            const msMsg = {
+              id: msId,
+              role: 'ai',
+              content: milestone.text,
+              timestamp: new Date().toISOString(),
+              chatMode: 'daemon',
+              isMilestone: true
+            };
+            setDaemonMessages(prev => [...prev, msMsg]);
+            if (!ghostMode) {
+              saveCloudDocument('chat_history', msId, msMsg);
+            }
+          }
         });
 
         const content = result.content || 'Polecenie zrealizowane przez OMNIDAEMON.';

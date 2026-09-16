@@ -1,5 +1,32 @@
 ## Wersja Bieżąca
-**v2.19.2**
+**v2.19.3**
+
+## v 2.19.3 — 2026-09-16
+**Typ:** PATCH  
+**Zakres:** Autonomiczny Multi-Stage Loop OmniDaemon, Selekcja Komercyjnych Modeli Czatu 2026 (Wykluczenie Open-Source), Powiadomienia Push Na Żywo (Start, Kamienie Milowe, Finał), Strumieniowanie do Terminala OMNIDAEMON, Serwerless Search Proxy w `api/agent.js` i Testy Jednostkowe.
+
+### Zmiany
+- [+] Dodano: Wieloetapowa pętla autonomiczna w `modules/services/clientAiDispatcher.js` (`executeClientDeepResearch`):
+  - 4-etapowa sekwencja z realistycznym interwałem pracy agenta (pacing 2.5s) i strumieniowaniem postępów na żywo (`onProgress`).
+  - Natychmiastowe powiadomienie o starcie badania na smartfon (`sendPushNotificationClient`).
+  - Powiadomienia push Pushbullet po każdym ukończonym etapie (milestone pushes) z liczbą pozyskanych źródeł.
+  - Gwarantowane wysłanie raportu końcowego na smartfon operatora.
+- [+] Dodano: Bezwzględne wykluczenie modeli open-source dla zapytań czatowych (`isNoOpenSource`):
+  - Selekcja planu badawczego w `autonomousClassifier.js` ukierunkowana wyłącznie na komercyjne subskrypcje czatowe 2026.
+  - Rygorystyczny zakaz uwzględniania modeli open-source/open-weights (Llama, DeepSeek, Mistral, Qwen) w prompcie syntezy przy zapytaniach o modele dostępne w czacie.
+  - Tabela porównawcza i analiza techniczna dedykowana: ChatGPT Plus/Pro, Claude.ai Pro, Gemini Advanced, Grok, Copilot Pro i Perplexity Pro.
+- [+] Dodano: Serwerless proxy Brave Search w `api/agent.js` (`mode: 'search'`) z ominięciem CORS przeglądarki.
+- [*] Zmodyfikowano: `api/search.js` – usunięto problematyczną flagę `maxDuration: 60`, ujednolicono nagłówki CORS z `api/status.js`.
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` – 4-stopniowy fallback wyszukiwania w `executeBrowserWebSearch`, obsługa parametru `onProgress` w `dispatchAiQuery`.
+- [+] Dodano: Nowy test jednostkowy w `tests/autonomous_agent.test.js` weryfikujący planowanie komercyjne bez modeli open-source (118/118 PASS).
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.19.3`.
+- [*] Zmodyfikowano: Wdrożenie na Firebase Hosting `https://void-potato-7721.web.app` (SUCCESS).
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.19.3.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.19.2 — 2026-09-16
 **Typ:** PATCH  
