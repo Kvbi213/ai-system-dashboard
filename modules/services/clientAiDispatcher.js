@@ -1,5 +1,13 @@
 import axios from 'axios';
-import { saveCloudDocument, deleteCloudDocument, INITIAL_FIRESTORE_DATA } from './cloudSync.js';
+import { 
+  saveCloudDocument, 
+  deleteCloudDocument, 
+  clearCloudCollection, 
+  completeAllCloudTasks, 
+  uncompleteCloudTask, 
+  deleteCompletedCloudTasks, 
+  INITIAL_FIRESTORE_DATA 
+} from './cloudSync.js';
 import { sendPushNotificationClient, formatPushText, cleanSubjectName } from './pushbulletService.js';
 
 /**
@@ -27,29 +35,37 @@ const DEFAULT_INITIAL_TASKS = [
 
 export function getClientTasks() {
   try {
-    const rawTasks = localStorage.getItem('cloud_cache_tasks');
-    const rawTodos = localStorage.getItem('cloud_cache_todos');
-    const list1 = rawTasks ? JSON.parse(rawTasks) : [];
-    const list2 = rawTodos ? JSON.parse(rawTodos) : [];
-    const combined = [...(Array.isArray(list1) ? list1 : []), ...(Array.isArray(list2) ? list2 : [])];
-
-    if (combined.length === 0) {
-      return DEFAULT_INITIAL_TASKS;
-    }
-
-    const taskMap = new Map();
-    for (const item of combined) {
-      if (!item) continue;
-      const id = String(item.id || item.title || item.text || Math.random());
-      const title = item.title || item.text || 'Zadanie bez nazwy';
-      const status = item.status || (item.completed ? 'completed' : 'pending');
-      const priority = item.priority || 'MEDIUM';
-      const category = item.category || 'ogólne';
-      if (!taskMap.has(id)) {
-        taskMap.set(id, { ...item, id, title, status, priority, category });
+    const rawTasks = typeof localStorage !== 'undefined' ? localStorage.getItem('cloud_cache_tasks') : null;
+    if (rawTasks !== null) {
+      const list = JSON.parse(rawTasks);
+      if (Array.isArray(list)) {
+        return list.map(item => ({
+          ...item,
+          id: String(item.id || item.title || Math.random()),
+          title: item.title || item.text || 'Zadanie bez nazwy',
+          status: item.status || (item.completed ? 'completed' : 'pending'),
+          priority: item.priority || 'MEDIUM',
+          category: item.category || 'ogólne'
+        }));
       }
     }
-    return Array.from(taskMap.values());
+
+    const rawTodos = typeof localStorage !== 'undefined' ? localStorage.getItem('cloud_cache_todos') : null;
+    if (rawTodos !== null) {
+      const list = JSON.parse(rawTodos);
+      if (Array.isArray(list)) {
+        return list.map(item => ({
+          ...item,
+          id: String(item.id || item.title || Math.random()),
+          title: item.title || item.text || 'Zadanie bez nazwy',
+          status: item.status || (item.completed ? 'completed' : 'pending'),
+          priority: item.priority || 'MEDIUM',
+          category: item.category || 'ogólne'
+        }));
+      }
+    }
+
+    return DEFAULT_INITIAL_TASKS;
   } catch (err) {
     console.warn('[AiDispatcher] Błąd odczytu zadań z cache:', err);
     return DEFAULT_INITIAL_TASKS;
@@ -486,6 +502,9 @@ export function parseAndExecuteAiActionsWithWidgets(text, userQuery = '') {
   let cleanedText = text;
   const extraWidgets = [];
   let hadSendPush = false;
+  let hadClearTasks = false;
+  let hadCompleteAllTasks = false;
+  let hadTaskAction = false;
 
   const actions = parseActionTags(text);
 
@@ -507,35 +526,80 @@ export function parseAndExecuteAiActionsWithWidgets(text, userQuery = '') {
         saveCloudDocument('tasks', id, newTask);
         window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'tasks' } }));
         extraWidgets.push('tasks');
+        hadTaskAction = true;
+      } else if (actionType === 'CLEAR_TASKS' || actionType === 'CLEAR_TODO' || actionType === 'DELETE_ALL_TASKS') {
+        clearCloudCollection('tasks');
+        extraWidgets.push('tasks');
+        hadClearTasks = true;
+        hadTaskAction = true;
+      } else if (actionType === 'COMPLETE_ALL_TASKS') {
+        completeAllCloudTasks();
+        extraWidgets.push('tasks');
+        hadCompleteAllTasks = true;
+        hadTaskAction = true;
+      } else if (actionType === 'DELETE_COMPLETED_TASKS' || actionType === 'CLEAR_COMPLETED_TASKS') {
+        deleteCompletedCloudTasks();
+        extraWidgets.push('tasks');
+        hadTaskAction = true;
+      } else if (actionType === 'UNCOMPLETE_TASK' || actionType === 'RESET_TASK' || actionType === 'PENDING_TASK') {
+        uncompleteCloudTask(attrs.id || attrs.title);
+        extraWidgets.push('tasks');
+        hadTaskAction = true;
       } else if (actionType === 'COMPLETE_TASK') {
-        try {
-          const raw = localStorage.getItem('cloud_cache_tasks');
-          if (raw) {
-            const list = JSON.parse(raw);
-            const query = (attrs.title || attrs.id || '').toLowerCase();
-            const found = list.find(t => t.id === attrs.id || (t.title && t.title.toLowerCase().includes(query)));
-            if (found) {
-              const updated = { ...found, status: 'completed', completed_at: new Date().toISOString() };
-              saveCloudDocument('tasks', found.id, updated);
-              window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'tasks' } }));
-              extraWidgets.push('tasks');
+        const rawTitle = (attrs.title || attrs.id || '').trim();
+        if (/^(all|wszystko|wszystkie|\*)$/i.test(rawTitle)) {
+          completeAllCloudTasks();
+          extraWidgets.push('tasks');
+          hadCompleteAllTasks = true;
+          hadTaskAction = true;
+        } else if (attrs.status === 'pending' || attrs.status === 'uncompleted') {
+          uncompleteCloudTask(rawTitle);
+          extraWidgets.push('tasks');
+          hadTaskAction = true;
+        } else {
+          try {
+            const raw = localStorage.getItem('cloud_cache_tasks');
+            if (raw) {
+              const list = JSON.parse(raw);
+              const query = rawTitle.toLowerCase();
+              const found = list.find(t => String(t.id).toLowerCase() === query || (t.title && t.title.toLowerCase().includes(query)));
+              if (found) {
+                const updated = { ...found, status: 'completed', completed_at: new Date().toISOString() };
+                saveCloudDocument('tasks', found.id, updated);
+                window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'tasks' } }));
+                extraWidgets.push('tasks');
+                hadTaskAction = true;
+              }
             }
-          }
-        } catch {}
+          } catch {}
+        }
       } else if (actionType === 'DELETE_TASK') {
-        try {
-          const raw = localStorage.getItem('cloud_cache_tasks');
-          if (raw) {
-            const list = JSON.parse(raw);
-            const query = (attrs.title || attrs.id || '').toLowerCase();
-            const found = list.find(t => t.id === attrs.id || (t.title && t.title.toLowerCase().includes(query)));
-            if (found) {
-              deleteCloudDocument('tasks', found.id);
-              window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'tasks' } }));
-              extraWidgets.push('tasks');
+        const rawTitle = (attrs.title || attrs.id || '').trim();
+        if (/^(all|wszystko|wszystkie|\*)$/i.test(rawTitle)) {
+          clearCloudCollection('tasks');
+          extraWidgets.push('tasks');
+          hadClearTasks = true;
+          hadTaskAction = true;
+        } else if (attrs.status === 'completed') {
+          deleteCompletedCloudTasks();
+          extraWidgets.push('tasks');
+          hadTaskAction = true;
+        } else {
+          try {
+            const raw = localStorage.getItem('cloud_cache_tasks');
+            if (raw) {
+              const list = JSON.parse(raw);
+              const query = rawTitle.toLowerCase();
+              const found = list.find(t => String(t.id).toLowerCase() === query || (t.title && t.title.toLowerCase().includes(query)));
+              if (found) {
+                deleteCloudDocument('tasks', found.id);
+                window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'tasks' } }));
+                extraWidgets.push('tasks');
+                hadTaskAction = true;
+              }
             }
-          }
-        } catch {}
+          } catch {}
+        }
       } else if (actionType === 'ADD_LESSON') {
         const id = 't_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
         const newLesson = {
@@ -785,6 +849,35 @@ export function parseAndExecuteAiActionsWithWidgets(text, userQuery = '') {
     }
   }
 
+  // Kognitywny filtr intencji (Autonomous Fallback) dla operacji czyszczenia i masowych zadań To-Do
+  const lowerUser = (userQuery || '').toLowerCase();
+  const lowerAi = (cleanedText || '').toLowerCase();
+
+  const isClearTasksIntent = 
+    /(wyczyść|usuń wszystko|usuń całą|skasuj wszystko|wyczyść bazę|wyczyść listę|skasuj bazę|usuń zadania).*(to-?do|zadań|zadania|pipeline|tudu)/i.test(lowerUser) ||
+    /^(wyczyść|skasuj|usuń wszystko z|usuń wszystko)\s+(to-?do|zadań|zadania|tudu)$/i.test(lowerUser) ||
+    /lista to-?do została wyczyszczona/i.test(lowerAi) ||
+    /baza danych z listą to-?do została wyczyszczona/i.test(lowerAi) ||
+    /wszystkie pozycje z listy to-?do zostały usunięte/i.test(lowerAi);
+
+  if (!hadClearTasks && isClearTasksIntent) {
+    clearCloudCollection('tasks');
+    extraWidgets.push('tasks');
+    hadClearTasks = true;
+  }
+
+  const isCompleteAllIntent = 
+    /(zaznacz|oznacz|ustaw).*(wszystkie|wszystko).*(jako wykonane|jako zrobione|wykonałem)/i.test(lowerUser) ||
+    /(oznacz|zaznacz)\s+(wszystkie zadania|wszystko)\s+(na liście|w to-?do|w tudu)/i.test(lowerUser) ||
+    /zaktualizowana lista to-?do[\s\S]*wykonane/i.test(lowerAi) ||
+    /wszystkie zadania.*zostały (oznaczone|zaznaczone) jako wykonane/i.test(lowerAi);
+
+  if (!hadCompleteAllTasks && !hadClearTasks && isCompleteAllIntent) {
+    completeAllCloudTasks();
+    extraWidgets.push('tasks');
+    hadCompleteAllTasks = true;
+  }
+
   // Oczyść pozostałe znaczniki akcji z tekstu użytkownika (w tym otoczone przez **, * lub `)
   return { cleanedText, extraWidgets };
 }
@@ -906,7 +999,18 @@ Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomie
 Zasady: Posiadasz bezpośredni dostęp do internetu, bazy danych oraz smartfona użytkownika przez Pushbullet API. Odpowiadaj wyczerpująco, logicznie i wspierająco w języku ${language}.
 BEZWZGLĘDNY ZAKAZ sugerowania użytkownikowi ręcznego kopiowania danych lub wysyłania sobie wiadomości/SMS („skopiuj powyższą tabelę i wyślij do siebie...”). Jeśli dane mają trafić na telefon lub użytkownik chce powiadomienia, wyemituj [ACTION:SEND_PUSH title="..." body="..."]. Nigdy nie twórz sekcji „Co zrobić z tymi informacjami?”. Lekcje są w bazie Timetable, nie proponuj dodawania ich do kalendarza.
 Gdy przedstawiasz tabele danych, pogodę, finanse czy harmonogramy, ZAWSZE używaj czytelnych tabel Markdown (| Kolumna | ... |).
-Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu w czystej postaci (BEZ pogrubień **): [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SEND_PUSH ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].
+
+DOSTĘPNE ZNACZNIKI AKCJI ZARZĄDZANIA ZADANIAMI (TO-DO):
+- [ACTION:ADD_TASK title="Nazwa zadania" priority="HIGH|MEDIUM|LOW" category="kategoria"]
+- [ACTION:COMPLETE_TASK title="Nazwa zadania"]
+- [ACTION:UNCOMPLETE_TASK title="Nazwa zadania"]
+- [ACTION:DELETE_TASK title="Nazwa zadania"]
+- [ACTION:CLEAR_TASKS] (usuwa WSZYSTKIE zadania i czyści listę To-Do)
+- [ACTION:COMPLETE_ALL_TASKS] (oznacza WSZYSTKIE zadania jako wykonane)
+- [ACTION:DELETE_COMPLETED_TASKS] (usuwa wyłącznie wykonane zadania)
+KRYTYCZNA ZASADA TO-DO: Jeśli użytkownik prosi o usunięcie zadań, wyczyszczenie listy To-Do lub zmianę stanu zadań, ZAWSZE wyemituj na samym końcu właściwy znacznik akcji. BEZWZGLĘDNY ZAKAZ deklarowania w treści, że zadania zostały usunięte lub zaktualizowane, jeśli nie dołączyłeś odpowiedniego znacznika akcji!
+
+Inne akcje systemowe: [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SEND_PUSH ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].
 
 Zadania w To-Do:
 ${tasksSummary}
@@ -943,7 +1047,18 @@ Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomie
 Zasady: Posiadasz bezpośredni dostęp do internetu, bazy danych oraz smartfona użytkownika przez Pushbullet API. Odpowiadaj konkretnie, merytorycznie i technicznie w języku ${language}.
 BEZWZGLĘDNY ZAKAZ sugerowania użytkownikowi ręcznego kopiowania danych lub wysyłania sobie wiadomości/SMS („skopiuj powyższą tabelę i wyślij do siebie...”). Jeśli dane mają trafić na telefon lub użytkownik chce powiadomienia, wyemituj [ACTION:SEND_PUSH title="..." body="..."]. Nigdy nie twórz sekcji „Co zrobić z tymi informacjami?”. Lekcje są w bazie Timetable, nie proponuj dodawania ich do kalendarza.
 Gdy przedstawiasz tabele danych, pogodę, finanse czy harmonogramy, ZAWSZE używaj czytelnych tabel Markdown (| Kolumna | ... |).
-Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu w czystej postaci (BEZ pogrubień **): [ACTION:ADD_TASK ...], [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SEND_PUSH ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].
+
+DOSTĘPNE ZNACZNIKI AKCJI ZARZĄDZANIA ZADANIAMI (TO-DO):
+- [ACTION:ADD_TASK title="Nazwa zadania" priority="HIGH|MEDIUM|LOW" category="kategoria"]
+- [ACTION:COMPLETE_TASK title="Nazwa zadania"]
+- [ACTION:UNCOMPLETE_TASK title="Nazwa zadania"]
+- [ACTION:DELETE_TASK title="Nazwa zadania"]
+- [ACTION:CLEAR_TASKS] (usuwa WSZYSTKIE zadania i czyści listę To-Do)
+- [ACTION:COMPLETE_ALL_TASKS] (oznacza WSZYSTKIE zadania jako wykonane)
+- [ACTION:DELETE_COMPLETED_TASKS] (usuwa wyłącznie wykonane zadania)
+KRYTYCZNA ZASADA TO-DO: Jeśli użytkownik prosi o usunięcie zadań, wyczyszczenie listy To-Do lub zmianę stanu zadań, ZAWSZE wyemituj na samym końcu właściwy znacznik akcji. BEZWZGLĘDNY ZAKAZ deklarowania w treści, że zadania zostały usunięte lub zaktualizowane, jeśli nie dołączyłeś odpowiedniego znacznika akcji!
+
+Inne akcje systemowe: [ACTION:ADD_LESSON ...], [ACTION:ADD_EXPENSE ...], [ACTION:ADD_INCOME ...], [ACTION:ADD_WORKOUT ...], [ACTION:ADD_EVENT ...], [ACTION:SEND_PUSH ...], [ACTION:SET_THEME ...], [ACTION:SET_ACCENT ...], [ACTION:REMEMBER ...].
 
 Zadania w To-Do:
 ${tasksSummary}

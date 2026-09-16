@@ -12,10 +12,28 @@ import {
   extractPushDetails,
   parseActionTags,
   parseAttributes,
-  getTimetableContext
+  getTimetableContext,
+  getClientTasks
 } from '../modules/services/clientAiDispatcher.js';
 import { formatPushText } from '../modules/services/pushbulletService.js';
 import { ELEVENLABS_DEFAULT_VOICES } from '../modules/services/ttsService.js';
+
+const localStorageMock = (() => {
+  let store = {};
+  return {
+    getItem: (key) => store[key] || null,
+    setItem: (key, value) => { store[key] = String(value); },
+    removeItem: (key) => { delete store[key]; },
+    clear: () => { store = {}; }
+  };
+})();
+
+if (typeof global !== 'undefined') {
+  global.localStorage = localStorageMock;
+}
+if (typeof window !== 'undefined') {
+  window.localStorage = localStorageMock;
+}
 
 describe('Pushbullet Financial Notification Classifier', () => {
   describe('isFinancialNotification', () => {
@@ -395,6 +413,79 @@ describe('Pushbullet Financial Notification Classifier', () => {
       expect(formatPushText('')).toBe('');
       expect(formatPushText(null)).toBe('');
       expect(formatPushText(undefined)).toBe('');
+    });
+  });
+
+  describe('Zarządzanie Zadaniami To-Do przez AI (Masowe i Odznaczanie)', () => {
+    const mockTasks = [
+      { id: '1', title: 'Wdrożenie Cloud Hosting', status: 'completed', priority: 'HIGH' },
+      { id: '2', title: 'Personalizacja widżetów', status: 'pending', priority: 'MEDIUM' },
+      { id: '3', title: 'Nowe zadanie ogólne', status: 'pending', priority: 'LOW' }
+    ];
+
+    it('powinien obsłużyć znacznik [ACTION:CLEAR_TASKS] i wyczyścić zadania', () => {
+      localStorage.setItem('cloud_cache_tasks', JSON.stringify(mockTasks));
+      const res = parseAndExecuteAiActionsWithWidgets('[ACTION:CLEAR_TASKS]');
+      expect(res.extraWidgets).toContain('tasks');
+      const cached = JSON.parse(localStorage.getItem('cloud_cache_tasks'));
+      expect(cached).toEqual([]);
+    });
+
+    it('powinien obsłużyć znacznik [ACTION:COMPLETE_ALL_TASKS] i oznaczyć wszystkie jako wykonane', () => {
+      localStorage.setItem('cloud_cache_tasks', JSON.stringify(mockTasks));
+      const res = parseAndExecuteAiActionsWithWidgets('[ACTION:COMPLETE_ALL_TASKS]');
+      expect(res.extraWidgets).toContain('tasks');
+      const cached = JSON.parse(localStorage.getItem('cloud_cache_tasks'));
+      expect(cached.every(t => t.status === 'completed')).toBe(true);
+    });
+
+    it('powinien obsłużyć [ACTION:COMPLETE_TASK title="wszystko"] jako operację masową', () => {
+      localStorage.setItem('cloud_cache_tasks', JSON.stringify(mockTasks));
+      const res = parseAndExecuteAiActionsWithWidgets('[ACTION:COMPLETE_TASK title="wszystko"]');
+      expect(res.extraWidgets).toContain('tasks');
+      const cached = JSON.parse(localStorage.getItem('cloud_cache_tasks'));
+      expect(cached.every(t => t.status === 'completed')).toBe(true);
+    });
+
+    it('powinien obsłużyć [ACTION:DELETE_TASK title="wszystkie"] jako wyczyszczenie całej listy', () => {
+      localStorage.setItem('cloud_cache_tasks', JSON.stringify(mockTasks));
+      const res = parseAndExecuteAiActionsWithWidgets('[ACTION:DELETE_TASK title="wszystkie"]');
+      expect(res.extraWidgets).toContain('tasks');
+      const cached = JSON.parse(localStorage.getItem('cloud_cache_tasks'));
+      expect(cached).toEqual([]);
+    });
+
+    it('powinien obsłużyć [ACTION:UNCOMPLETE_TASK] i przywrócić zadanie do stanu pending', () => {
+      localStorage.setItem('cloud_cache_tasks', JSON.stringify(mockTasks));
+      const res = parseAndExecuteAiActionsWithWidgets('[ACTION:UNCOMPLETE_TASK title="Wdrożenie Cloud Hosting"]');
+      expect(res.extraWidgets).toContain('tasks');
+      const cached = JSON.parse(localStorage.getItem('cloud_cache_tasks'));
+      const found = cached.find(t => t.id === '1');
+      expect(found.status).toBe('pending');
+    });
+
+    it('powinien obsłużyć [ACTION:DELETE_COMPLETED_TASKS] i usunąć tylko ukończone zadania', () => {
+      localStorage.setItem('cloud_cache_tasks', JSON.stringify(mockTasks));
+      const res = parseAndExecuteAiActionsWithWidgets('[ACTION:DELETE_COMPLETED_TASKS]');
+      expect(res.extraWidgets).toContain('tasks');
+      const cached = JSON.parse(localStorage.getItem('cloud_cache_tasks'));
+      expect(cached.length).toBe(2);
+      expect(cached.some(t => t.status === 'completed')).toBe(false);
+    });
+
+    it('powinien autonomicznie wyczyścić zadania w razie deklaracji w tekście bez znacznika (Cognitive Fallback)', () => {
+      localStorage.setItem('cloud_cache_tasks', JSON.stringify(mockTasks));
+      const aiText = 'Lista To-Do została wyczyszczona – nie ma już żadnych pozycji.';
+      const res = parseAndExecuteAiActionsWithWidgets(aiText, 'wyczyść bazę danych z listy to do');
+      expect(res.extraWidgets).toContain('tasks');
+      const cached = JSON.parse(localStorage.getItem('cloud_cache_tasks'));
+      expect(cached).toEqual([]);
+    });
+
+    it('powinien w getClientTasks zwrócić pustą tablicę bez resurekcji domyślnych zadań, gdy cache to []', () => {
+      localStorage.setItem('cloud_cache_tasks', JSON.stringify([]));
+      const tasks = getClientTasks();
+      expect(tasks).toEqual([]);
     });
   });
 });

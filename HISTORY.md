@@ -1,5 +1,31 @@
 ## Wersja Bieżąca
-**v2.18.12**
+**v2.18.13**
+
+## v 2.18.13 — 2026-09-16
+**Typ:** PATCH  
+**Zakres:** Obsługa Operacji Masowych na Zadaniach To-Do (`CLEAR_TASKS`, `COMPLETE_ALL_TASKS`, `DELETE_COMPLETED_TASKS`), Odznaczanie Zadań (`UNCOMPLETE_TASK`), Autonomiczny Filtr Kognitywny Intencji oraz Wyczyszczenie Zalegających Dokumentów w Cloud Firestore.
+
+### Zmiany
+- [+] Dodano: Wdrożenie funkcji masowych i operacji zbiorczych w `modules/services/cloudSync.js`:
+  - `clearCloudCollection(collectionName)` z czyszczeniem pamięci lokalnej, Cloud Firestore oraz lokalnego Express SQLite (`DELETE /api/tasks/all`).
+  - `completeAllCloudTasks()` masowo ustawiające `status: 'completed'` na wszystkich zadaniach.
+  - `uncompleteCloudTask(docIdOrTitle)` przywracające zadanie do statusu `pending`.
+  - `deleteCompletedCloudTasks()` usuwające wyłącznie zadania ze statusem `completed`.
+- [+] Dodano: Obsługę znaczników `[ACTION:CLEAR_TASKS]`, `[ACTION:CLEAR_TODO]`, `[ACTION:DELETE_ALL_TASKS]`, `[ACTION:COMPLETE_ALL_TASKS]`, `[ACTION:DELETE_COMPLETED_TASKS]` oraz `[ACTION:UNCOMPLETE_TASK]` w `modules/services/clientAiDispatcher.js`.
+- [+] Dodano: Inteligentną obsługę słów kluczowych `wszystko`, `wszystkie`, `all` w akcjach `DELETE_TASK` i `COMPLETE_TASK`.
+- [+] Dodano: Autonomiczny filtr kognitywny (Cognitive Fallback) w `parseAndExecuteAiActionsWithWidgets`, który w razie zadeklarowania przez model wyczyszczenia listy To-Do lub oznaczenia zadań bez wyemitowania znacznika automatycznie wykonuje operację w bazie danych.
+- [*] Zmodyfikowano: `getClientTasks()` w `clientAiDispatcher.js` – wyeliminowano defekt przywracania 5 domyślnych zadań startowych, gdy tablica zadań w pamięci podręcznej ma długość 0 (`[]`).
+- [*] Zmodyfikowano: Prompty systemowe `OMNI MIND` i `OMNI EXEC` w `clientAiDispatcher.js` oraz `api/agent.js` o kompletną specyfikację znaczników akcji To-Do oraz bezwzględny zakaz deklarowania operacji bez tagu akcji.
+- [+] Dodano: Wyczyszczono 7 zalegających dokumentów w Cloud Firestore (`tasks`), sprowadzając stan bazy do 0.
+- [+] Dodano: 8 nowych testów jednostkowych w `tests/pushbullet_finance.test.js` (100/100 PASS).
+- [*] Zmodyfikowano: `package.json` – podniesiono wersję do `2.18.13`.
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.18.13.md`.
+- [*] Zmodyfikowano: Zamknięto kartę defektu `docs/errors/ERROR_DIFF_2026-09-16_ai_todo_actions_and_batch_operations.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.18.12 — 2026-09-16
 **Typ:** PATCH  

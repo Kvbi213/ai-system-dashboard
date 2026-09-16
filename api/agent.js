@@ -677,7 +677,11 @@ Gdy użytkownik prosi Cię o dodanie, modyfikację lub usunięcie danych w syste
 - Zadania:
   [ACTION:ADD_TASK title="Nazwa zadania" priority="HIGH|MEDIUM|LOW" category="kategoria"]
   [ACTION:COMPLETE_TASK title="Nazwa zadania"]
+  [ACTION:UNCOMPLETE_TASK title="Nazwa zadania"]
   [ACTION:DELETE_TASK title="Nazwa zadania"]
+  [ACTION:CLEAR_TASKS]
+  [ACTION:COMPLETE_ALL_TASKS]
+  [ACTION:DELETE_COMPLETED_TASKS]
 - Plan Lekcji:
   [ACTION:ADD_LESSON day="monday|tuesday|wednesday|thursday|friday|saturday|sunday" subject="Przedmiot" time_start="08:00" time_end="09:30" room="Sala" teacher="Prowadzący" type="Wykład|Laboratorium|Ćwiczenia"]
   [ACTION:DELETE_LESSON subject="Przedmiot" day="monday|tuesday|..."]
@@ -759,7 +763,11 @@ Gdy użytkownik prosi Cię o dodanie, modyfikację lub usunięcie danych w syste
 - Zadania:
   [ACTION:ADD_TASK title="Nazwa zadania" priority="HIGH|MEDIUM|LOW" category="kategoria"]
   [ACTION:COMPLETE_TASK title="Nazwa zadania"]
+  [ACTION:UNCOMPLETE_TASK title="Nazwa zadania"]
   [ACTION:DELETE_TASK title="Nazwa zadania"]
+  [ACTION:CLEAR_TASKS]
+  [ACTION:COMPLETE_ALL_TASKS]
+  [ACTION:DELETE_COMPLETED_TASKS]
 - Plan Lekcji:
   [ACTION:ADD_LESSON day="monday|tuesday|wednesday|thursday|friday|saturday|sunday" subject="Przedmiot" time_start="08:00" time_end="09:30" room="Sala" teacher="Prowadzący" type="Wykład|Laboratorium|Ćwiczenia"]
   [ACTION:DELETE_LESSON subject="Przedmiot" day="monday|tuesday|..."]

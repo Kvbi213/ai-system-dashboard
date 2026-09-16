@@ -1,5 +1,6 @@
 import { collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, getDocs } from "firebase/firestore";
 import { firestore } from "../firebaseClient.js";
+import axios from 'axios';
 
 export const CLOUD_COLLECTIONS = {
   TASKS: 'tasks',
@@ -730,6 +731,196 @@ export const clearChatHistoryCloud = async (targetMode = 'worker') => {
       console.warn('[CloudSync] Błąd usuwania historii czatu z Firestore:', e);
     }
   }
+};
+
+/**
+ * Trwale czyści całą kolekcję z bazy Cloud Firestore oraz lokalnej pamięci podręcznej (cache).
+ * @param {string} collectionName Nazwa kolekcji (np. 'tasks', 'finances')
+ */
+export const clearCloudCollection = async (collectionName) => {
+  const cacheKey = `cloud_cache_${collectionName}`;
+  const initKey = `cloud_initialized_${collectionName}`;
+
+  // 1. Natychmiastowe czyszczenie pamięci lokalnej (Optymistyczne UI)
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(cacheKey, JSON.stringify([]));
+      localStorage.setItem(initKey, 'true');
+    }
+    emitCloudDataChanged({ collection: collectionName, action: 'clear', count: 0 });
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: collectionName } }));
+    }
+  } catch (e) {
+    console.warn(`[CloudSync] Błąd czyszczenia pamięci lokalnej (${collectionName}):`, e);
+  }
+
+  // 2. Usunięcie wszystkich dokumentów z Cloud Firestore
+  if (firestore && typeof collection === 'function') {
+    try {
+      const colRef = collection(firestore, collectionName);
+      const snap = await getDocs(colRef);
+      const deletePromises = [];
+      snap.forEach(docSnap => {
+        deletePromises.push(deleteDoc(doc(firestore, collectionName, docSnap.id)));
+      });
+      await Promise.allSettled(deletePromises);
+    } catch (e) {
+      console.warn(`[CloudSync] Błąd czyszczenia kolekcji w chmurze Firestore (${collectionName}):`, e);
+    }
+  }
+
+  // 3. Opcjonalnie: wywołanie lokalnego endpointu Express (Desktop)
+  if (typeof window !== 'undefined' && collectionName === 'tasks' && !isCloudEnvironment()) {
+    try {
+      await axios.delete('/api/tasks/all');
+    } catch {}
+  }
+};
+
+/**
+ * Oznacza wszystkie zadania w kolekcji 'tasks' jako wykonane (completed).
+ */
+export const completeAllCloudTasks = async () => {
+  const cacheKey = 'cloud_cache_tasks';
+  let items = [];
+
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const cached = localStorage.getItem(cacheKey);
+      items = cached ? JSON.parse(cached) : [];
+      if (Array.isArray(items)) {
+        const now = new Date().toISOString();
+        items = items.map(t => ({ ...t, status: 'completed', completed_at: now, updated_at: now }));
+        localStorage.setItem(cacheKey, JSON.stringify(items));
+        emitCloudDataChanged({ collection: 'tasks', action: 'update_all' });
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'tasks' } }));
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[CloudSync] Błąd optymistycznego oznaczania wszystkich zadań:', e);
+  }
+
+  if (firestore && typeof collection === 'function') {
+    try {
+      const colRef = collection(firestore, 'tasks');
+      const snap = await getDocs(colRef);
+      const updatePromises = [];
+      const now = new Date().toISOString();
+      snap.forEach(docSnap => {
+        updatePromises.push(updateDoc(doc(firestore, 'tasks', docSnap.id), {
+          status: 'completed',
+          completed_at: now,
+          updated_at: now
+        }));
+      });
+      await Promise.allSettled(updatePromises);
+    } catch (e) {
+      console.warn('[CloudSync] Błąd aktualizacji wszystkich zadań w Firestore:', e);
+    }
+  }
+
+  return items;
+};
+
+/**
+ * Przywraca zadanie ze statusu 'completed' na 'pending' (odznaczenie wykonania).
+ */
+export const uncompleteCloudTask = async (docIdOrTitle) => {
+  const cacheKey = 'cloud_cache_tasks';
+  const queryStr = String(docIdOrTitle || '').toLowerCase().trim();
+  let updatedTask = null;
+
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const cached = localStorage.getItem(cacheKey);
+      let items = cached ? JSON.parse(cached) : [];
+      if (Array.isArray(items)) {
+        const found = items.find(t => 
+          String(t.id).toLowerCase() === queryStr || 
+          (t.title && t.title.toLowerCase().includes(queryStr))
+        );
+        if (found) {
+          found.status = 'pending';
+          found.updated_at = new Date().toISOString();
+          delete found.completed_at;
+          updatedTask = found;
+          localStorage.setItem(cacheKey, JSON.stringify(items));
+          emitCloudDataChanged({ collection: 'tasks', action: 'update', id: found.id });
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'tasks' } }));
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[CloudSync] Błąd odznaczania zadania:', e);
+  }
+
+  if (updatedTask && firestore) {
+    try {
+      await updateDoc(doc(firestore, 'tasks', String(updatedTask.id)), {
+        status: 'pending',
+        updated_at: new Date().toISOString()
+      });
+    } catch (e) {
+      console.warn(`[CloudSync] Błąd aktualizacji zadania ${updatedTask.id} w Firestore:`, e);
+    }
+  }
+
+  return updatedTask;
+};
+
+/**
+ * Usuwa wyłącznie zadania o statusie 'completed'.
+ */
+export const deleteCompletedCloudTasks = async () => {
+  const cacheKey = 'cloud_cache_tasks';
+  let removedIds = [];
+
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const cached = localStorage.getItem(cacheKey);
+      let items = cached ? JSON.parse(cached) : [];
+      if (Array.isArray(items)) {
+        const remaining = items.filter(t => {
+          if (t.status === 'completed') {
+            removedIds.push(String(t.id));
+            return false;
+          }
+          return true;
+        });
+        localStorage.setItem(cacheKey, JSON.stringify(remaining));
+        emitCloudDataChanged({ collection: 'tasks', action: 'delete_completed', count: removedIds.length });
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'tasks' } }));
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[CloudSync] Błąd optymistycznego usuwania ukończonych zadań:', e);
+  }
+
+  if (firestore && typeof collection === 'function') {
+    try {
+      const colRef = collection(firestore, 'tasks');
+      const snap = await getDocs(colRef);
+      const deletePromises = [];
+      snap.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.status === 'completed' || removedIds.includes(docSnap.id)) {
+          deletePromises.push(deleteDoc(doc(firestore, 'tasks', docSnap.id)));
+        }
+      });
+      await Promise.allSettled(deletePromises);
+    } catch (e) {
+      console.warn('[CloudSync] Błąd usuwania ukończonych zadań z Firestore:', e);
+    }
+  }
+
+  return removedIds;
 };
 
 /**
