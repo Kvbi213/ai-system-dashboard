@@ -148,15 +148,23 @@ export function formatPushText(text) {
         }
       }
 
+      // Wyodrębnij salę (zarówno z [Sala ...] jak i surowego tekstu)
       let room = '';
-      const roomMatch = rest.match(/\b(sala\s+[0-9a-zA-Z.]+|hala|basen|siłownia)\b/i);
-      if (roomMatch) room = roomMatch[1];
+      const bracketMatch = rest.match(/\[([^\]]+)\]/);
+      if (bracketMatch) {
+        room = bracketMatch[1];
+      } else {
+        const roomMatch = rest.match(/\b(sala\s+[0-9a-zA-Z.]+|hala|basen|siłownia)\b/i);
+        if (roomMatch) room = roomMatch[1];
+      }
 
+      // Oczyść przedmiot ze zbędnych metadanych (typy zajęć, sala, nawiasy okrągłe i kwadratowe)
       let subject = cleanSubjectName(rest)
         .replace(/\([^)]*\)/g, '')
+        .replace(/\[[^\]]*\]/g, '')
         .replace(/\b(sala\s+[0-9a-zA-Z.]+|hala|basen|siłownia)\b/gi, '')
         .replace(/\b(laboratorium|wykład|ćwiczenia|inne|zajęcia)\b/gi, '')
-        .replace(/[-:,•]+/g, ' ')
+        .replace(/[\[\]\-:,•]+/g, ' ')
         .replace(/\s+/g, ' ')
         .trim();
 

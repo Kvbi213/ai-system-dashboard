@@ -384,6 +384,13 @@ describe('Pushbullet Financial Notification Classifier', () => {
       expect(formatted).toContain('• 08:50 - 09:35 Matematyka');
     });
 
+    it('powinien zachować już sformatowane linie z [Sala ...] bez tworzenia pustych nawiasów []', () => {
+      const alreadyFormatted = '• 10:40 - 11:25 [Sala 0.2] Biznes i zarządzanie (PS)';
+      const formatted = formatPushText(alreadyFormatted);
+      expect(formatted).toBe('• 10:40 - 11:25 [Sala 0.2] Biznes i zarządzanie (PS)');
+      expect(formatted).not.toContain('[]');
+    });
+
     it('powinien poprawnie obsługiwać puste wartości', () => {
       expect(formatPushText('')).toBe('');
       expect(formatPushText(null)).toBe('');
