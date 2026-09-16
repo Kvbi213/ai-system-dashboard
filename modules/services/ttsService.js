@@ -24,13 +24,74 @@ export const EDGE_DEFAULT_VOICES = [
 ];
 
 export const ELEVENLABS_DEFAULT_VOICES = [
-  { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam (Męski - Głęboki Studio / Polski Naturalny)' },
-  { id: 'ErXwobaYiN019PkySvjV', name: 'Antoni (Męski - Spokojny / Polski)' },
-  { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel (Damski - Naturalny/Ciepły)' },
-  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah (Damski - Profesjonalny Studio)' },
-  { id: 'piTKgcLEGmPE4e6mEKli', name: 'Nicole (Damski - Wyrazisty)' },
-  { id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold (Męski - Mocny)' }
+  { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger (Męski - Laid-Back, Resonant)' },
+  { id: 'hpp4J3VqNfWAUOO0d1Us', name: 'Bella (Damski - Professional, Bright, Warm)' },
+  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah (Damski - Mature, Reassuring, Confident)' },
+  { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura (Damski - Enthusiast, Quirky Attitude)' },
+  { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie (Męski - Deep, Confident, Energetic)' },
+  { id: 'JBFqnCBsd6RMkjVDRZzb', name: 'George (Męski - Warm Storyteller)' },
+  { id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum (Męski - Husky Trickster)' },
+  { id: 'SAz9YHcvj6GT2YYXdXww', name: 'River (Neutralny - Relaxed, Informative)' },
+  { id: 'SOYHLrjzK2X1ezoPC6cr', name: 'Harry (Męski - Fierce Warrior)' },
+  { id: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam (Męski - Energetic Creator)' },
+  { id: 'Xb7hH8MSUJpSbSDYk0k2', name: 'Alice (Damski - Clear, Engaging Educator)' },
+  { id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda (Damski - Knowledgable, Professional)' },
+  { id: 'bIHbv24MWmeRgasZH58o', name: 'Will (Męski - Relaxed Optimist)' },
+  { id: 'cgSgspJ2msm6clMCkdW9', name: 'Jessica (Damski - Playful, Bright, Warm)' },
+  { id: 'cjVigY5qzO86Huf0OWal', name: 'Eric (Męski - Smooth, Trustworthy)' },
+  { id: 'iP95p4xoKVk53GoZ742B', name: 'Chris (Męski - Charming, Down-to-Earth)' },
+  { id: 'nPczCjzI2devNBz1zQrb', name: 'Brian (Męski - Deep, Resonant and Comforting)' },
+  { id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel (Męski - Steady Broadcaster)' },
+  { id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily (Damski - Velvety Actress)' },
+  { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam (Męski - Dominant, Firm)' },
+  { id: 'pqHfZKP75CvOlQylNhV4', name: 'Bill (Męski - Wise, Mature, Balanced)' }
 ];
+
+export async function fetchElevenLabsVoices(apiKey) {
+  const key = apiKey || (typeof localStorage !== 'undefined' && localStorage.getItem('system_elevenlabs_api_key')) ||
+              (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ELEVENLABS_API_KEY) ||
+              (typeof process !== 'undefined' && process.env?.ELEVENLABS_API_KEY) || '';
+  if (!key) return ELEVENLABS_DEFAULT_VOICES;
+
+  try {
+    const res = await fetch('https://api.elevenlabs.io/v1/voices', {
+      method: 'GET',
+      headers: {
+        'xi-api-key': key.trim(),
+        'Accept': 'application/json'
+      }
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.voices) && data.voices.length > 0) {
+        const mapped = data.voices.map(v => ({
+          id: v.voice_id,
+          name: v.name,
+          category: v.category || 'premade',
+          description: v.description || ''
+        }));
+        if (typeof localStorage !== 'undefined') {
+          try {
+            localStorage.setItem('cached_elevenlabs_voices', JSON.stringify(mapped));
+          } catch {}
+        }
+        return mapped;
+      }
+    }
+  } catch (err) {
+    console.warn('[TTSService] Błąd pobierania dynamicznej listy głosów ElevenLabs:', err.message);
+  }
+
+  if (typeof localStorage !== 'undefined') {
+    try {
+      const cached = localStorage.getItem('cached_elevenlabs_voices');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+  }
+  return ELEVENLABS_DEFAULT_VOICES;
+}
+
 
 export const OPENAI_DEFAULT_VOICES = [
   { id: 'onyx', name: 'Onyx (Głęboki, męski)' },

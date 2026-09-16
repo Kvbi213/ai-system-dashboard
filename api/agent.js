@@ -183,12 +183,17 @@ export function formatPushText(text) {
   return formatted.join('\n');
 }
 
-export function extractPushDetails(userQuery, aiText) {
+export function extractPushDetails(userQuery, aiText, timetable = []) {
   let title = 'OmniDash Powiadomienie';
   const q = (userQuery || '').toLowerCase();
+  const isNextLessonQuery = q.includes('następn') || q.includes('kolejn') || q.includes('najbliższ');
+  const isLessonQuery = q.includes('lekcj') || q.includes('plan') || q.includes('zajęć') || q.includes('zajęcia');
+
   if (q.includes('test')) {
     title = 'OmniDash: Test Powiadomień';
-  } else if (q.includes('lekcj') || q.includes('plan')) {
+  } else if (isNextLessonQuery && isLessonQuery) {
+    title = 'OmniDash: Następna lekcja';
+  } else if (isLessonQuery) {
     title = 'OmniDash: Plan Lekcji';
   } else if (q.includes('pogod')) {
     title = 'OmniDash: Prognoza Pogody';
@@ -201,7 +206,7 @@ export function extractPushDetails(userQuery, aiText) {
   }
 
   let cleanBody = (aiText || '')
-    .replace(/\[ACTION:[^\]]+\]/gi, '')
+    .replace(/(?:\*\*|\*|`|\s)*\[(?:\*\*|\*|`|\s)*ACTION\s*:\s*[A-Za-z_]+[^\]]*\](?:\*\*|\*|`|\s)*/gi, '')
     .trim();
 
   const lowerBody = cleanBody.toLowerCase();
@@ -210,9 +215,64 @@ export function extractPushDetails(userQuery, aiText) {
     lowerBody.includes('nie ma dedykowanej') ||
     lowerBody.includes('nie ma w aktualnym zestawie') ||
     lowerBody.includes('brak polecenia') ||
-    lowerBody.includes('nie ma funkcji')
+    lowerBody.includes('nie ma funkcji') ||
+    lowerBody.includes('nie posiadam możliwości')
   ) {
-    cleanBody = 'Testowe powiadomienie Push z systemu OmniDash.';
+    cleanBody = '';
+  }
+
+  const isBodyBroken = !cleanBody || cleanBody.length < 5 || /^[^a-zA-Z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*$/.test(cleanBody) || cleanBody.includes('""') || cleanBody.includes('„”');
+  if (isLessonQuery && (isBodyBroken || isNextLessonQuery) && Array.isArray(timetable) && timetable.length > 0) {
+    const timeZone = 'Europe/Warsaw';
+    const now = new Date();
+    const dayNamesPl = { 1: 'poniedziałek', 2: 'wtorek', 3: 'środa', 4: 'czwartek', 5: 'piątek', 6: 'sobota', 0: 'niedziela' };
+    const dayIdMap = { 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday', 0: 'sunday' };
+    const plDaysOrder = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota'];
+    const warsawDayNameLong = new Intl.DateTimeFormat('pl-PL', { timeZone, weekday: 'long' }).format(now).toLowerCase();
+    const todayDayIndex = plDaysOrder.indexOf(warsawDayNameLong) !== -1 ? plDaysOrder.indexOf(warsawDayNameLong) : now.getDay();
+    const todayDayId = dayIdMap[todayDayIndex];
+    const todayDayName = dayNamesPl[todayDayIndex];
+    const currentTimeStr = now.toLocaleTimeString('pl-PL', { timeZone, hour: '2-digit', minute: '2-digit' });
+
+    const todayLessons = timetable
+      .filter(l => (l.day || '').toLowerCase() === todayDayId || (l.day || '').toLowerCase() === todayDayName.toLowerCase())
+      .sort((a, b) => (a.time_start || '').localeCompare(b.time_start || ''));
+
+    const nextLessonToday = todayLessons.find(l => (l.time_start || '') > currentTimeStr);
+    let targetLesson = nextLessonToday;
+
+    if (!targetLesson) {
+      for (let offset = 1; offset <= 7; offset++) {
+        const nextDayIndex = (todayDayIndex + offset) % 7;
+        const nextDayId = dayIdMap[nextDayIndex];
+        const nextDayName = dayNamesPl[nextDayIndex];
+        const candidateLessons = timetable
+          .filter(l => (l.day || '').toLowerCase() === nextDayId || (l.day || '').toLowerCase() === nextDayName.toLowerCase())
+          .sort((a, b) => (a.time_start || '').localeCompare(b.time_start || ''));
+        if (candidateLessons.length > 0) {
+          targetLesson = candidateLessons[0];
+          break;
+        }
+      }
+    }
+
+    if (isNextLessonQuery && targetLesson) {
+      const cleanSubj = cleanSubjectName(targetLesson.subject);
+      const roomPart = targetLesson.room ? `[${targetLesson.room}]` : '';
+      const teacherPart = targetLesson.teacher ? `(${targetLesson.teacher})` : '';
+      cleanBody = `• ${targetLesson.time_start || '??'} - ${targetLesson.time_end || '??'} ${roomPart} ${cleanSubj} ${teacherPart}`.replace(/\s+/g, ' ').trim();
+    } else if (todayLessons.length > 0) {
+      cleanBody = todayLessons.map(l => {
+        const cleanSubj = cleanSubjectName(l.subject);
+        const roomPart = l.room ? `[${l.room}]` : '';
+        const teacherPart = l.teacher ? `(${l.teacher})` : '';
+        return `• ${l.time_start || '??'} - ${l.time_end || '??'} ${roomPart} ${cleanSubj} ${teacherPart}`.replace(/\s+/g, ' ').trim();
+      }).join('\n');
+    }
+  }
+
+  if (!cleanBody) {
+    cleanBody = 'Powiadomienie z systemu OmniDash.';
   }
 
   const formatted = formatPushText(cleanBody);
@@ -483,22 +543,46 @@ ${txsList}`
       .filter(l => l.day === tomorrowDayId || l.day?.toLowerCase() === tomorrowDayName.toLowerCase())
       .sort((a, b) => (a.time_start || '').localeCompare(b.time_start || ''));
 
+    const ongoingLesson = todayLessons.find(l => (l.time_start || '') <= timeStr && (l.time_end || '') >= timeStr);
+    const nextLessonToday = todayLessons.find(l => (l.time_start || '') > timeStr);
+    let nextLessonOverall = nextLessonToday;
+    let nextLessonDayLabel = todayDayName;
+
+    if (!nextLessonOverall) {
+      for (let offset = 1; offset <= 7; offset++) {
+        const nextDayIndex = (todayDayIndex + offset) % 7;
+        const nextDayId = dayIdMap[nextDayIndex];
+        const nextDayName = dayNamesPl[nextDayIndex];
+        const candidateLessons = timetable
+          .filter(l => (l.day || '').toLowerCase() === nextDayId || (l.day || '').toLowerCase() === nextDayName.toLowerCase())
+          .sort((a, b) => (a.time_start || '').localeCompare(b.time_start || ''));
+        if (candidateLessons.length > 0) {
+          nextLessonOverall = candidateLessons[0];
+          nextLessonDayLabel = nextDayName;
+          break;
+        }
+      }
+    }
+
+    const formatLessonItem = (l) => {
+      if (!l) return '';
+      const s = cleanSubjectName(l.subject);
+      const r = l.room ? `[${l.room}]` : '';
+      const t = l.teacher ? `(${l.teacher})` : '';
+      return `• ${l.time_start || '??'} - ${l.time_end || '??'} ${r} ${s} ${t}`.replace(/\s+/g, ' ').trim();
+    };
+
+    const currentLessonFormatted = ongoingLesson ? formatLessonItem(ongoingLesson) : 'Brak (trwa przerwa lub czas wolny poza zajęciami)';
+    const nextLessonFormatted = nextLessonOverall 
+      ? `${formatLessonItem(nextLessonOverall)} (${nextLessonDayLabel === todayDayName ? 'dziś' : nextLessonDayLabel})`
+      : 'Brak zaplanowanych kolejnych lekcji w planie.';
+
     const todayStr = todayLessons.length > 0
-      ? todayLessons.map(l => {
-          const s = cleanSubjectName(l.subject);
-          const r = l.room ? `[${l.room}]` : '';
-          const t = l.teacher ? `(${l.teacher})` : '';
-          return `  • ${l.time_start || '??'} - ${l.time_end || '??'} ${r} ${s} ${t}`.trim();
-        }).join('\n')
+      ? todayLessons.map(l => formatLessonItem(l)).join('\n')
       : '  Brak zajęć dydaktycznych na dziś.';
 
     const tomorrowStr = tomorrowLessons.length > 0
-      ? tomorrowLessons.map(l => {
-          const s = cleanSubjectName(l.subject);
-          const r = l.room ? `[${l.room}]` : '';
-          const t = l.teacher ? `(${l.teacher})` : '';
-          return `  • ${l.time_start || '??'} - ${l.time_end || '??'} ${r} ${s} ${t}`.trim();
-        }).join('\n')
+      ? tomorrowLessons.map(l => formatLessonItem(l)).join('\n')
       : '  Brak zajęć dydaktycznych na jutro.';
 
     const allLessonsStr = timetable.length > 0
@@ -511,10 +595,14 @@ ${txsList}`
       : 'Brak wpisów w planie lekcji.';
 
     const timetableSummary = `
-DZISIAJ (${todayDayName.toUpperCase()}):
+📅 DZIŚ JEST: ${todayDayName.toUpperCase()} (${todayDayId}), ${dateStr}, godzina ${timeStr}.
+📍 AKTUALNA TRWAJĄCA LEKCJA: ${currentLessonFormatted}
+🎯 NAJBLIŻSZA NASTĘPNA LEKCJA: ${nextLessonFormatted}
+
+PLAN NA DZIŚ (${todayDayName.toUpperCase()}):
 ${todayStr}
 
-JUTRO (${tomorrowDayName.toUpperCase()}):
+PLAN NA JUTRO (${tomorrowDayName.toUpperCase()}):
 ${tomorrowStr}
 
 PEŁNY HARMONOGRAM TYGODNIA (${timetable.length} pozycji łącznie):
@@ -751,7 +839,7 @@ ${liveIntelBlock}`;
         agent_response = 'Wysyłam powiadomienie na Twój telefon.';
       }
       if (!agent_response.includes('[ACTION:SEND_PUSH')) {
-        const { title: pushTitle, body: pushBody } = extractPushDetails(incomingText, agent_response);
+        const { title: pushTitle, body: pushBody } = extractPushDetails(incomingText, agent_response, timetable);
         agent_response = `${agent_response.trim()}\n\n[ACTION:SEND_PUSH title="${pushTitle}" body="${pushBody}"]`;
       }
     }

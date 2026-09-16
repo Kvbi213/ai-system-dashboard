@@ -1,5 +1,25 @@
 ## Wersja Bieżąca
-**v2.18.11**
+**v2.18.12**
+
+## v 2.18.12 — 2026-09-16
+**Typ:** PATCH  
+**Zakres:** Odporny Parser Znaczników Akcji Push (Obsługa Zagnieżdżonych Nawiasów `[Sala]` i Wewnętrznych Cudzysłowów), Kognitywna Prekomputacja Harmonogramu Lekcji w Czasie Rzeczywistym (`getTimetableContext`) oraz Wdrożenie Pełnej Bazy 21 Głosów ElevenLabs z Dynamicznym Pobieraniem z API.
+
+### Zmiany
+- [+] Dodano: Wdrożenie 21 oficjalnych głosów z konta ElevenLabs VoiceLab w `modules/services/ttsService.js` (Roger, Bella, Sarah, Laura, Charlie, George, Callum, River, Harry, Liam, Alice, Matilda, Will, Jessica, Eric, Chris, Brian, Daniel, Lily, Adam, Bill) wraz ze zweryfikowanymi identyfikatorami API.
+- [+] Dodano: Funkcję `fetchElevenLabsVoices(apiKey)` w `ttsService.js` z buforowaniem w `localStorage` oraz integracją przycisku odświeżania listy głosów w `modules/pages/SettingsPage.jsx`.
+- [+] Dodano: Deterministyczny silnik prekomputacji harmonogramu lekcji `getTimetableContext(timetable, now)` w `modules/services/clientAiDispatcher.js` oraz `api/agent.js`, automatycznie wstrzykujący trwającą lekcję, najbliższą kolejną lekcję oraz plan dnia do promptów systemowych `OMNI MIND` i `OMNI EXEC`.
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` – wprowadzono odporny analizator leksykalny `parseActionTags` i `parseAttributes`, eliminujący defekt przedwczesnego ucinania atrybutów `body` powiadomień Pushbullet na nawiasach sal (np. `[Sala 0.2]`) i wewnętrznych cudzysłowach.
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` & `api/agent.js` – dodano autonomiczny fallback w `extractPushDetails` i `SEND_PUSH`, automatycznie uzupełniający treść powiadomienia najbliższą lekcją przy pytaniach o plan zajęć.
+- [+] Dodano: 8 nowych testów jednostkowych w `tests/pushbullet_finance.test.js` pokrywających parser zagnieżdżeń i cudzysłowów, prekomputację harmonogramu, fallback push oraz poprawność 21 głosów ElevenLabs (91/91 PASS).
+- [*] Zmodyfikowano: `package.json` – podniesiono wersję do `2.18.12`.
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.18.12.md`.
+- [*] Zmodyfikowano: Zaktualizowano i zamknięto kartę defektu `docs/errors/ERROR_DIFF_2026-09-16_next_lesson_push_syntax_and_elevenlabs_voices.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.18.11 — 2026-09-15
 **Typ:** PATCH  

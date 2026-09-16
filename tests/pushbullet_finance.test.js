@@ -9,9 +9,13 @@ import {
 import {
   parseAndExecuteAiActionsWithWidgets,
   isPushRequest,
-  extractPushDetails
+  extractPushDetails,
+  parseActionTags,
+  parseAttributes,
+  getTimetableContext
 } from '../modules/services/clientAiDispatcher.js';
 import { formatPushText } from '../modules/services/pushbulletService.js';
+import { ELEVENLABS_DEFAULT_VOICES } from '../modules/services/ttsService.js';
 
 describe('Pushbullet Financial Notification Classifier', () => {
   describe('isFinancialNotification', () => {
@@ -163,6 +167,111 @@ describe('Pushbullet Financial Notification Classifier', () => {
       const { cleanedText } = parseAndExecuteAiActionsWithWidgets(hallucinatedDenial, 'Wyślij Testowy Push na Telefon');
       expect(cleanedText).toContain('Wysłano powiadomienie Push na Twój telefon');
       expect(cleanedText).not.toContain('nie ma polecenia');
+    });
+
+    it('powinien poprawnie sparsować akcję z nawiasami kwadratowymi [Sala ...] wewnątrz parametru body', () => {
+      const input = '[ACTION:SEND_PUSH title="Następna lekcja" body="• 10:40 - 11:25 [Sala 0.2] Biznes i zarządzanie (PS)"]';
+      const actions = parseActionTags(input);
+      expect(actions).toHaveLength(1);
+      expect(actions[0].actionType).toBe('SEND_PUSH');
+
+      const attrs = parseAttributes(actions[0].rawAttrs);
+      expect(attrs.title).toBe('Następna lekcja');
+      expect(attrs.body).toBe('• 10:40 - 11:25 [Sala 0.2] Biznes i zarządzanie (PS)');
+    });
+
+    it('powinien poprawnie sparsować atrybuty z wewnętrznymi cudzysłowami (prostymi oraz polskimi „ ”)', () => {
+      const input1 = '[ACTION:SEND_PUSH title="Następna lekcja" body="Następna lekcja: "Biznes i zarządzanie" w sali 0.2 o 10:40."]';
+      const actions1 = parseActionTags(input1);
+      const attrs1 = parseAttributes(actions1[0].rawAttrs);
+      expect(attrs1.title).toBe('Następna lekcja');
+      expect(attrs1.body).toContain('Biznes i zarządzanie');
+      expect(attrs1.body).toContain('10:40');
+
+      const input2 = '[ACTION:SEND_PUSH title="Następna lekcja" body="Następna lekcja: „Biznes i zarządzanie” w sali 0.2 o 10:40."]';
+      const actions2 = parseActionTags(input2);
+      const attrs2 = parseAttributes(actions2[0].rawAttrs);
+      expect(attrs2.title).toBe('Następna lekcja');
+      expect(attrs2.body).toContain('Biznes i zarządzanie');
+    });
+
+    it('powinien usunąć znacznik SEND_PUSH z tekstu nawet gdy zawiera wewnętrzne nawiasy [Sala 0.2]', () => {
+      const input = 'Wysyłam powiadomienie na Twój telefon.\n[ACTION:SEND_PUSH title="Następna lekcja" body="• 10:40 - 11:25 [Sala 0.2] Biznes i zarządzanie (PS)"]';
+      const { cleanedText } = parseAndExecuteAiActionsWithWidgets(input);
+      expect(cleanedText).toBe('Wysyłam powiadomienie na Twój telefon.');
+      expect(cleanedText).not.toContain('ACTION:SEND_PUSH');
+      expect(cleanedText).not.toContain('[Sala 0.2]');
+    });
+  });
+
+  describe('Timetable Context Engine & Next Lesson Precomputation', () => {
+    const sampleTimetable = [
+      { id: 'wed_1', day: 'wednesday', subject: 'Biznes i zarządzanie', time_start: '10:40', time_end: '11:25', room: 'Sala 0.2', teacher: 'PS' },
+      { id: 'wed_2', day: 'wednesday', subject: 'Biologia', time_start: '11:30', time_end: '12:15', room: 'Sala 19', teacher: 'JŁ' },
+      { id: 'wed_3', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '12:20', time_end: '13:05', room: 'Sala 1.16', teacher: 'BG' },
+      { id: 'thu_1', day: 'thursday', subject: 'Język angielski', time_start: '08:00', time_end: '08:45', room: 'Sala 12', teacher: 'KT' }
+    ];
+
+    it('powinien wyznaczyć pierwszą lekcję w środę o godzinie 07:05 rano (przed rozpoczęciem zajęć)', () => {
+      // 2026-09-16 to środa
+      const wednesdayMorning = new Date('2026-09-16T07:05:00.000Z');
+      const ctx = getTimetableContext(sampleTimetable, wednesdayMorning);
+
+      expect(ctx.todayDayId).toBe('wednesday');
+      expect(ctx.ongoingLesson).toBeUndefined();
+      expect(ctx.nextLessonToday).toBeDefined();
+      expect(ctx.nextLessonToday.subject).toBe('Biznes i zarządzanie');
+      expect(ctx.nextLessonToday.time_start).toBe('10:40');
+      expect(ctx.nextLessonFormatted).toContain('10:40 - 11:25');
+      expect(ctx.nextLessonFormatted).toContain('[Sala 0.2]');
+      expect(ctx.nextLessonFormatted).toContain('Biznes i zarządzanie');
+    });
+
+    it('powinien wyznaczyć trwającą lekcję oraz kolejną w trakcie zajęć (godz. 10:50)', () => {
+      // 10:50 czasu polskiego (w UTC 08:50)
+      const wednesdayMidLesson = new Date('2026-09-16T08:50:00.000Z'); // 10:50 w strefie Warszawa (+02:00)
+      const ctx = getTimetableContext(sampleTimetable, wednesdayMidLesson);
+
+      expect(ctx.ongoingLesson).toBeDefined();
+      expect(ctx.ongoingLesson.subject).toBe('Biznes i zarządzanie');
+      expect(ctx.nextLessonToday).toBeDefined();
+      expect(ctx.nextLessonToday.subject).toBe('Biologia');
+      expect(ctx.nextLessonToday.time_start).toBe('11:30');
+    });
+
+    it('powinien automatycznie uzupełnić uciętą/pustą treść powiadomienia o lekcji właściwą najbliższą lekcją', () => {
+      const brokenAiOutput = 'Następna lekcja: ".';
+      const details = extractPushDetails('wyślij mi informację o następnej lekcji na telefon', brokenAiOutput, sampleTimetable);
+
+      expect(details.title).toBe('OmniDash: Następna lekcja');
+      expect(details.body).not.toBe('Następna lekcja: ".');
+      expect(details.body).toContain('Biznes i zarządzanie');
+      expect(details.body).toContain('10:40');
+      expect(details.body).toContain('[Sala 0.2]');
+    });
+  });
+
+  describe('ElevenLabs Studio Voices (21 Verified Voices)', () => {
+    it('baza ELEVENLABS_DEFAULT_VOICES powinna zawierać dokładnie 21 zweryfikowanych głosów', () => {
+      expect(ELEVENLABS_DEFAULT_VOICES).toHaveLength(21);
+    });
+
+    it('powinna zawierać kluczowe głosy z konta użytkownika z prawidłowymi identyfikatorami', () => {
+      const roger = ELEVENLABS_DEFAULT_VOICES.find(v => v.name.includes('Roger'));
+      expect(roger).toBeDefined();
+      expect(roger.id).toBe('CwhRBWXzGAHq8TQ4Fs17');
+
+      const bella = ELEVENLABS_DEFAULT_VOICES.find(v => v.name.includes('Bella'));
+      expect(bella).toBeDefined();
+      expect(bella.id).toBe('hpp4J3VqNfWAUOO0d1Us');
+
+      const adam = ELEVENLABS_DEFAULT_VOICES.find(v => v.name.includes('Adam'));
+      expect(adam).toBeDefined();
+      expect(adam.id).toBe('pNInz6obpgDQGcFmaJgB');
+
+      const sarah = ELEVENLABS_DEFAULT_VOICES.find(v => v.name.includes('Sarah'));
+      expect(sarah).toBeDefined();
+      expect(sarah.id).toBe('EXAVITQu4vr4xnSDxMaL');
     });
   });
 

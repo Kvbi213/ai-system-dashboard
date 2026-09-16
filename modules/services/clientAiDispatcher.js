@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { saveCloudDocument, deleteCloudDocument } from './cloudSync.js';
+import { saveCloudDocument, deleteCloudDocument, INITIAL_FIRESTORE_DATA } from './cloudSync.js';
 import { sendPushNotificationClient, formatPushText, cleanSubjectName } from './pushbulletService.js';
 
 /**
@@ -104,6 +104,9 @@ function getClientContextSummary() {
     const rawTimetable = localStorage.getItem('cloud_cache_timetable');
     if (rawTimetable) timetable = JSON.parse(rawTimetable);
   } catch {}
+  if (!Array.isArray(timetable) || timetable.length === 0) {
+    timetable = Array.isArray(INITIAL_FIRESTORE_DATA?.timetable) ? INITIAL_FIRESTORE_DATA.timetable : [];
+  }
 
   const now = new Date();
   const timeZone = 'Europe/Warsaw';
@@ -122,6 +125,92 @@ function getClientContextSummary() {
     dateStr,
     timeStr,
     timeZone
+  };
+}
+
+export function getTimetableContext(timetable = [], now = new Date()) {
+  const timeZone = 'Europe/Warsaw';
+  const dayNamesPl = { 1: 'poniedziałek', 2: 'wtorek', 3: 'środa', 4: 'czwartek', 5: 'piątek', 6: 'sobota', 0: 'niedziela' };
+  const dayIdMap = { 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday', 0: 'sunday' };
+  const plDaysOrder = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota'];
+
+  const warsawDayNameLong = new Intl.DateTimeFormat('pl-PL', { timeZone, weekday: 'long' }).format(now).toLowerCase();
+  const todayDayIndex = plDaysOrder.indexOf(warsawDayNameLong) !== -1 ? plDaysOrder.indexOf(warsawDayNameLong) : now.getDay();
+  const todayDayId = dayIdMap[todayDayIndex];
+  const todayDayName = dayNamesPl[todayDayIndex];
+
+  const currentTimeStr = now.toLocaleTimeString('pl-PL', { timeZone, hour: '2-digit', minute: '2-digit' });
+  const currentDateStr = now.toLocaleDateString('pl-PL', { timeZone, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  // Lekcje na dziś
+  const todayLessons = (timetable || [])
+    .filter(l => (l.day || '').toLowerCase() === todayDayId || (l.day || '').toLowerCase() === todayDayName.toLowerCase())
+    .sort((a, b) => (a.time_start || '').localeCompare(b.time_start || ''));
+
+  // Trwająca lekcja
+  const ongoingLesson = todayLessons.find(l => (l.time_start || '') <= currentTimeStr && (l.time_end || '') >= currentTimeStr);
+
+  // Najbliższa kolejna lekcja dzisiaj
+  const nextLessonToday = todayLessons.find(l => (l.time_start || '') > currentTimeStr);
+
+  // Najbliższa lekcja ogółem (dzisiaj lub w kolejnych dniach szkolnych)
+  let nextLessonOverall = nextLessonToday;
+  let nextLessonDayLabel = todayDayName;
+
+  if (!nextLessonOverall) {
+    for (let offset = 1; offset <= 7; offset++) {
+      const nextDayIndex = (todayDayIndex + offset) % 7;
+      const nextDayId = dayIdMap[nextDayIndex];
+      const nextDayName = dayNamesPl[nextDayIndex];
+      const candidateLessons = (timetable || [])
+        .filter(l => (l.day || '').toLowerCase() === nextDayId || (l.day || '').toLowerCase() === nextDayName.toLowerCase())
+        .sort((a, b) => (a.time_start || '').localeCompare(b.time_start || ''));
+      if (candidateLessons.length > 0) {
+        nextLessonOverall = candidateLessons[0];
+        nextLessonDayLabel = nextDayName;
+        break;
+      }
+    }
+  }
+
+  // Lekcje na jutro
+  const tomorrowDayIndex = (todayDayIndex + 1) % 7;
+  const tomorrowDayId = dayIdMap[tomorrowDayIndex];
+  const tomorrowDayName = dayNamesPl[tomorrowDayIndex];
+  const tomorrowLessons = (timetable || [])
+    .filter(l => (l.day || '').toLowerCase() === tomorrowDayId || (l.day || '').toLowerCase() === tomorrowDayName.toLowerCase())
+    .sort((a, b) => (a.time_start || '').localeCompare(b.time_start || ''));
+
+  const formatLessonLine = (l) => {
+    if (!l) return '';
+    const cleanSubj = cleanSubjectName(l.subject);
+    const roomPart = l.room ? `[${l.room}]` : '';
+    const teacherPart = l.teacher ? `(${l.teacher})` : '';
+    return `• ${l.time_start || '??'} - ${l.time_end || '??'} ${roomPart} ${cleanSubj} ${teacherPart}`.replace(/\s+/g, ' ').trim();
+  };
+
+  const currentLessonFormatted = ongoingLesson ? formatLessonLine(ongoingLesson) : 'Brak (trwa przerwa lub czas wolny poza zajęciami)';
+  const nextLessonFormatted = nextLessonOverall 
+    ? `${formatLessonLine(nextLessonOverall)} (${nextLessonDayLabel === todayDayName ? 'dziś' : nextLessonDayLabel})`
+    : 'Brak zaplanowanych kolejnych lekcji w planie.';
+
+  return {
+    timeZone,
+    todayDayIndex,
+    todayDayId,
+    todayDayName,
+    currentTimeStr,
+    currentDateStr,
+    todayLessons,
+    ongoingLesson,
+    nextLessonToday,
+    nextLessonOverall,
+    nextLessonDayLabel,
+    tomorrowLessons,
+    tomorrowDayName,
+    currentLessonFormatted,
+    nextLessonFormatted,
+    formatLessonLine
   };
 }
 
@@ -219,12 +308,119 @@ export function isPushRequest(text) {
   return pushKeywords.some(kw => t.includes(kw));
 }
 
-export function extractPushDetails(userQuery, aiText) {
+export function parseActionTags(text) {
+  const actions = [];
+  if (!text || typeof text !== 'string') return actions;
+
+  // Szukamy początku akcji: [ACTION:NAZWA
+  const startRegex = /(?:\*\*|\*|`|\s)*\[(?:\*\*|\*|`|\s)*ACTION\s*:\s*([A-Za-z_]+)\s*/gi;
+  let match;
+
+  while ((match = startRegex.exec(text)) !== null) {
+    const actionType = match[1].toUpperCase();
+    const startIndex = match.index;
+    const contentStartIndex = startRegex.lastIndex;
+
+    let depth = 1;
+    let inQuote = null;
+    let endIndex = -1;
+
+    for (let i = contentStartIndex; i < text.length; i++) {
+      const char = text[i];
+      const prevChar = i > 0 ? text[i - 1] : '';
+
+      if (inQuote) {
+        if (char === inQuote && prevChar !== '\\') {
+          const rest = text.slice(i + 1).trimStart();
+          if (rest.startsWith(']') || rest.startsWith('**]') || rest.startsWith('*]') || rest.startsWith('`]') || /^[a-zA-Z0-9_]+\s*=/.test(rest)) {
+            inQuote = null;
+          }
+        }
+      } else {
+        if (char === '"' || char === "'" || char === '„' || char === '«') {
+          inQuote = char === '„' ? '”' : (char === '«' ? '»' : char);
+        } else if (char === '[') {
+          depth++;
+        } else if (char === ']') {
+          depth--;
+          if (depth === 0) {
+            endIndex = i;
+            break;
+          }
+        }
+      }
+    }
+
+    if (endIndex === -1) {
+      const fallbackEnd = text.indexOf(']', contentStartIndex);
+      endIndex = fallbackEnd !== -1 ? fallbackEnd : text.length;
+    }
+
+    const rawAttrs = text.slice(contentStartIndex, endIndex);
+    let fullEnd = (endIndex < text.length && text[endIndex] === ']') ? endIndex + 1 : endIndex;
+    while (fullEnd < text.length && (text[fullEnd] === '*' || text[fullEnd] === '`' || text[fullEnd] === ' ')) {
+      fullEnd++;
+    }
+
+    actions.push({
+      actionType,
+      rawAttrs,
+      fullMatchStart: startIndex,
+      fullMatchEnd: fullEnd
+    });
+  }
+  return actions;
+}
+
+export function parseAttributes(rawAttrs) {
+  const attrs = {};
+  if (!rawAttrs || typeof rawAttrs !== 'string') return attrs;
+
+  const keyPattern = /(?:^|\s+)([a-zA-Z0-9_]+)\s*=\s*/g;
+  const matches = [];
+  let m;
+  while ((m = keyPattern.exec(rawAttrs)) !== null) {
+    matches.push({
+      key: m[1],
+      valueStart: m.index + m[0].length
+    });
+  }
+
+  for (let i = 0; i < matches.length; i++) {
+    const key = matches[i].key;
+    const vStart = matches[i].valueStart;
+    const nextMatch = matches[i + 1];
+    let vEnd = nextMatch ? (nextMatch.valueStart - (nextMatch.key.length + 1)) : rawAttrs.length;
+    let rawVal = rawAttrs.slice(vStart, vEnd).trim();
+
+    if (
+      (rawVal.startsWith('"') && rawVal.endsWith('"')) ||
+      (rawVal.startsWith("'") && rawVal.endsWith("'")) ||
+      (rawVal.startsWith('„') && rawVal.endsWith('”')) ||
+      (rawVal.startsWith('«') && rawVal.endsWith('»'))
+    ) {
+      rawVal = rawVal.slice(1, -1);
+    } else if (rawVal.startsWith('"') || rawVal.startsWith("'") || rawVal.startsWith('„') || rawVal.startsWith('«')) {
+      rawVal = rawVal.replace(/^["'„«]/, '').replace(/["'”»]$/, '');
+    }
+
+    attrs[key] = rawVal;
+    attrs[key.toLowerCase()] = rawVal;
+  }
+  return attrs;
+}
+
+export function extractPushDetails(userQuery, aiText, timetable = []) {
   let title = 'OmniDash Powiadomienie';
   const q = (userQuery || '').toLowerCase();
+  const isNextLessonQuery = q.includes('następn') || q.includes('kolejn') || q.includes('najbliższ');
+  const isLessonQuery = q.includes('lekcj') || q.includes('plan') || q.includes('zajęć') || q.includes('zajęcia');
+
   if (q.includes('test')) {
     title = 'OmniDash: Test Powiadomień';
-  } else if (q.includes('lekcj') || q.includes('plan')) {
+  } else if (isNextLessonQuery && isLessonQuery) {
+    title = 'OmniDash: Następna lekcja';
+  } else if (isLessonQuery) {
     title = 'OmniDash: Plan Lekcji';
   } else if (q.includes('pogod')) {
     title = 'OmniDash: Prognoza Pogody';
@@ -237,7 +433,7 @@ export function extractPushDetails(userQuery, aiText) {
   }
 
   let cleanBody = (aiText || '')
-    .replace(/\[ACTION:[^\]]+\]/gi, '')
+    .replace(/(?:\*\*|\*|`|\s)*\[(?:\*\*|\*|`|\s)*ACTION\s*:\s*[A-Za-z_]+[^\]]*\](?:\*\*|\*|`|\s)*/gi, '')
     .trim();
 
   const lowerBody = cleanBody.toLowerCase();
@@ -246,9 +442,37 @@ export function extractPushDetails(userQuery, aiText) {
     lowerBody.includes('nie ma dedykowanej') ||
     lowerBody.includes('nie ma w aktualnym zestawie') ||
     lowerBody.includes('brak polecenia') ||
-    lowerBody.includes('nie ma funkcji')
+    lowerBody.includes('nie ma funkcji') ||
+    lowerBody.includes('nie posiadam możliwości')
   ) {
-    cleanBody = 'Testowe powiadomienie Push z systemu OmniDash.';
+    cleanBody = '';
+  }
+
+  const isBodyBroken = !cleanBody || cleanBody.length < 5 || /^[^a-zA-Z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*$/.test(cleanBody) || cleanBody.includes('""') || cleanBody.includes('„”');
+  if (isLessonQuery && (isBodyBroken || isNextLessonQuery)) {
+    let ttList = (Array.isArray(timetable) && timetable.length > 0) ? timetable : [];
+    if (ttList.length === 0) {
+      try {
+        const raw = localStorage.getItem('cloud_cache_timetable');
+        if (raw) ttList = JSON.parse(raw);
+      } catch {}
+    }
+    if (!Array.isArray(ttList) || ttList.length === 0) {
+      ttList = Array.isArray(INITIAL_FIRESTORE_DATA?.timetable) ? INITIAL_FIRESTORE_DATA.timetable : [];
+    }
+
+    if (ttList.length > 0) {
+      const ttCtx = getTimetableContext(ttList, new Date());
+      if (isNextLessonQuery && ttCtx.nextLessonOverall) {
+        cleanBody = ttCtx.formatLessonLine(ttCtx.nextLessonOverall);
+      } else if (ttCtx.todayLessons.length > 0) {
+        cleanBody = ttCtx.todayLessons.map(l => ttCtx.formatLessonLine(l)).join('\n');
+      }
+    }
+  }
+
+  if (!cleanBody) {
+    cleanBody = 'Powiadomienie z systemu OmniDash.';
   }
 
   const formatted = formatPushText(cleanBody);
@@ -262,26 +486,12 @@ export function parseAndExecuteAiActionsWithWidgets(text, userQuery = '') {
   let cleanedText = text;
   const extraWidgets = [];
   let hadSendPush = false;
-  // Odporny regex dopasowujący tagi akcji nawet jeśli model otoczy je pogrubieniem (**), grawisem (`) lub spacjami
-  const actionRegex = /(?:\*\*|\*|`|\s)*\[(?:\*\*|\*|`|\s)*ACTION\s*:\s*(?:\*\*|\*|`|\s)*([A-Za-z_]+)(?:\*\*|\*|`|\s)*([^\]]*)\](?:\*\*|\*|`|\s)*/gi;
-  let match;
 
-  while ((match = actionRegex.exec(text)) !== null) {
-    const actionType = (match[1] || '').trim().toUpperCase();
-    const rawAttrs = match[2] || '';
-    
-    const attrs = {};
-    // Wsparcie dla cudzysłowów pojedynczych, podwójnych, polskich („ ”) oraz francuskich/typograficznych (« »)
-    const attrRegex = /([a-zA-Z0-9_]+)\s*=\s*["'„”«»]([^"'„”«»]*)["'„”«»]|([a-zA-Z0-9_]+)\s*=\s*([^\s\]]+)/g;
-    let attrMatch;
-    while ((attrMatch = attrRegex.exec(rawAttrs)) !== null) {
-      const key = (attrMatch[1] || attrMatch[3] || '').trim();
-      const val = attrMatch[2] !== undefined ? attrMatch[2] : attrMatch[4];
-      if (key) {
-        attrs[key] = val;
-        attrs[key.toLowerCase()] = val;
-      }
-    }
+  const actions = parseActionTags(text);
+
+  for (const action of actions) {
+    const actionType = action.actionType;
+    const attrs = parseAttributes(action.rawAttrs);
 
     try {
       if (actionType === 'ADD_TASK') {
@@ -497,8 +707,33 @@ export function parseAndExecuteAiActionsWithWidgets(text, userQuery = '') {
         if (attrs.name) extraWidgets.push(attrs.name.toLowerCase());
       } else if (actionType === 'SEND_PUSH') {
         hadSendPush = true;
-        const title = attrs.title || 'OmniDash System';
-        const body = attrs.body || '';
+        let title = attrs.title || 'OmniDash System';
+        let body = attrs.body || '';
+
+        const isBodyBroken = !body || body.length < 5 || /^[^a-zA-Z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*$/.test(body) || body.includes('""') || body.includes('„”');
+        if (isBodyBroken) {
+          let ttList = [];
+          try {
+            const raw = localStorage.getItem('cloud_cache_timetable');
+            if (raw) ttList = JSON.parse(raw);
+          } catch {}
+          if (!Array.isArray(ttList) || ttList.length === 0) {
+            ttList = Array.isArray(INITIAL_FIRESTORE_DATA?.timetable) ? INITIAL_FIRESTORE_DATA.timetable : [];
+          }
+          if (ttList.length > 0) {
+            const ttCtx = getTimetableContext(ttList, new Date());
+            const q = (userQuery || '').toLowerCase();
+            const isNextLessonQuery = q.includes('następn') || q.includes('kolejn') || q.includes('najbliższ') || (title || '').toLowerCase().includes('następn');
+            if (isNextLessonQuery && ttCtx.nextLessonOverall) {
+              body = ttCtx.formatLessonLine(ttCtx.nextLessonOverall);
+              title = 'OmniDash: Następna lekcja';
+            } else if (ttCtx.todayLessons.length > 0) {
+              body = ttCtx.todayLessons.map(l => ttCtx.formatLessonLine(l)).join('\n');
+              title = 'OmniDash: Plan Lekcji';
+            }
+          }
+        }
+
         if (body) {
           sendPushNotificationClient(title, body).catch(err => {
             console.warn('[AiDispatcher] Błąd asynchronicznej wysyłki Push:', err);
@@ -511,6 +746,14 @@ export function parseAndExecuteAiActionsWithWidgets(text, userQuery = '') {
       }
     } catch (actErr) {
       console.warn('[AiDispatcher] Błąd wykonania akcji:', actionType, actErr);
+    }
+  }
+
+  // Precyzyjne usuwanie znaczników akcji z tekstu za pomocą indeksów parsera
+  if (actions.length > 0) {
+    const sorted = [...actions].sort((a, b) => b.fullMatchStart - a.fullMatchStart);
+    for (const a of sorted) {
+      cleanedText = cleanedText.slice(0, a.fullMatchStart) + cleanedText.slice(a.fullMatchEnd);
     }
   }
 
@@ -542,8 +785,7 @@ export function parseAndExecuteAiActionsWithWidgets(text, userQuery = '') {
     }
   }
 
-  // Oczyść znaczniki akcji z tekstu użytkownika (w tym otoczone przez **, * lub `)
-  cleanedText = cleanedText.replace(/(?:\*\*|\*|`|\s)*\[(?:\*\*|\*|`|\s)*ACTION\s*:\s*[A-Za-z_]+(?:\*\*|\*|`|\s)*[^\]]*\](?:\*\*|\*|`|\s)*/gi, '').trim();
+  // Oczyść pozostałe znaczniki akcji z tekstu użytkownika (w tym otoczone przez **, * lub `)
   return { cleanedText, extraWidgets };
 }
 
@@ -606,14 +848,33 @@ Podział ${targetNeeds}/${targetWants}/${targetSavings}: Potrzeby ${needsSum.toF
 Ostatnie transakcje: ` + actualTxs.slice(0, 10).map(f => `${f.type === 'income' ? '+' : '-'}${f.amount} PLN (${f.category || 'Inne'})`).join(', ')
         : 'Brak transakcji w bazie. Saldo: 0.00 PLN.';
 
-      const timetableSummary = (context.timetable || []).length > 0
+      const ttCtx = getTimetableContext(context.timetable, new Date());
+      const todayPlanFormatted = ttCtx.todayLessons.length > 0
+        ? ttCtx.todayLessons.map(l => ttCtx.formatLessonLine(l)).join('\n')
+        : '• Brak zaplanowanych lekcji na dziś.';
+      const tomorrowPlanFormatted = ttCtx.tomorrowLessons.length > 0
+        ? ttCtx.tomorrowLessons.map(l => ttCtx.formatLessonLine(l)).join('\n')
+        : '• Brak zaplanowanych lekcji na jutro.';
+
+      const timetableFullSummary = `📅 DZIŚ JEST: ${ttCtx.todayDayName.toUpperCase()} (${ttCtx.todayDayId}), ${context.dateStr}, godzina ${context.timeStr}.
+📍 AKTUALNA TRWAJĄCA LEKCJA: ${ttCtx.currentLessonFormatted}
+🎯 NAJBLIŻSZA NASTĘPNA LEKCJA: ${ttCtx.nextLessonFormatted}
+
+PLAN NA DZIŚ (${ttCtx.todayDayName.toUpperCase()}):
+${todayPlanFormatted}
+
+PLAN NA JUTRO (${ttCtx.tomorrowDayName.toUpperCase()}):
+${tomorrowPlanFormatted}
+
+WSZYSTKIE POZOSTAŁE LEKCJE W TYGODNIU:
+` + ((context.timetable || []).length > 0
         ? context.timetable.map(l => {
             const cleanSubj = cleanSubjectName(l.subject);
             const roomPart = l.room ? `[${l.room}]` : '';
             const teacherPart = l.teacher ? `(${l.teacher})` : '';
             return `- [${(l.day || '').toUpperCase()}] ${l.time_start || ''}-${l.time_end || ''} ${roomPart} ${cleanSubj} ${teacherPart}`.trim();
           }).join('\n')
-        : 'Brak wpisów w planie lekcji.';
+        : 'Brak wpisów w planie lekcji.');
 
       const workoutsSummary = (context.workouts || []).length > 0
         ? `Zarejestrowano ${context.workouts.length} treningów. Ostatnie: ` + context.workouts.slice(0, 5).map(w => `[${w.date || 'b/d'}] ${w.title} (${w.type || 'Siłowy'})`).join(', ')
@@ -627,6 +888,7 @@ PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr},
 🚨 KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
 Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomieniu lub Pushbullet (np. „wyślij na telefon”, „wyślij mi to”, „przypomnij na telefonie”, „wyślij powiadomienie”, „chcę to na komórce”, „pushbullet”):
 1. PRZEANALIZUJ PYTANIE UŻYTKOWNIKA ORAZ POTRZEBNE DANE Z BAZY (np. następna lekcja, plan lekcji, pogoda, zadania, finanse).
+   - Jeśli użytkownik pyta o następną/najbliższą lekcję, ZAWSZE podawaj dane z: 🎯 NAJBLIŻSZA NASTĘPNA LEKCJA: ${ttCtx.nextLessonFormatted}.
 2. W treści odpowiedzi zwięźle potwierdź, że wysyłasz powiadomienie na telefon.
 3. BEZWZGLĘDNIE, ZAWSZE I BEZ WYJĄTKU na samym końcu odpowiedzi wyemituj znacznik:
    [ACTION:SEND_PUSH title="Zwięzły Tytuł" body="Treść wiadomości wysyłana na telefon"]
@@ -649,7 +911,7 @@ Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu 
 Zadania w To-Do:
 ${tasksSummary}
 Plan Lekcji:
-${timetableSummary}
+${timetableFullSummary}
 Finanse i Budżet 50/30/20:
 ${financesSummary}
 Treningi:
@@ -663,6 +925,7 @@ PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr},
 🚨 KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
 Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomieniu, przesłaniu na smartfon itp. (np. „wyślij na telefon”, „wyślij mi to”, „przypomnij na telefonie”, „wyślij powiadomienie”, „chcę to na komórce”, „pushbullet”):
 1. PRZEANALIZUJ PYTANIE UŻYTKOWNIKA ORAZ POTRZEBNE DANE Z BAZY (np. następna lekcja, plan lekcji, pogoda, zadania, finanse).
+   - Jeśli użytkownik pyta o następną/najbliższą lekcję, ZAWSZE podawaj dane z: 🎯 NAJBLIŻSZA NASTĘPNA LEKCJA: ${ttCtx.nextLessonFormatted}.
 2. W treści odpowiedzi zwięźle potwierdź, że wysyłasz powiadomienie na telefon.
 3. BEZWZGLĘDNIE, ZAWSZE I BEZ WYJĄTKU na samym końcu odpowiedzi wyemituj znacznik:
    [ACTION:SEND_PUSH title="Zwięzły Tytuł" body="Treść wiadomości wysyłana na telefon"]
@@ -685,7 +948,7 @@ Jeśli użytkownik prosi o akcję, możesz użyć odpowiednich tagów na końcu 
 Zadania w To-Do:
 ${tasksSummary}
 Plan Lekcji:
-${timetableSummary}
+${timetableFullSummary}
 Finanse i Budżet 50/30/20:
 ${financesSummary}
 Treningi:

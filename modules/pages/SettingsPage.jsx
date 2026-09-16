@@ -6,13 +6,13 @@ import {
   LayoutGrid, Mic, Volume2, Globe, Sparkles, Cloud, Database, BrainCircuit, Activity,
   Compass, LayoutDashboard, MessageSquare, GraduationCap, Crosshair, CalendarDays,
   Wallet, Dumbbell, Server, Sliders, Download, Upload, RotateCcw, Bot, CheckCircle2, Eye, EyeOff,
-  Smartphone, Send, AlertTriangle
+  Smartphone, Send, AlertTriangle, RefreshCw
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
 import { initializeAllFirestoreCollections, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
 import { wakeWordService } from '../services/wakeWordService';
-import { ttsService, EDGE_DEFAULT_VOICES, ELEVENLABS_DEFAULT_VOICES, OPENAI_DEFAULT_VOICES } from '../services/ttsService';
+import { ttsService, EDGE_DEFAULT_VOICES, ELEVENLABS_DEFAULT_VOICES, OPENAI_DEFAULT_VOICES, fetchElevenLabsVoices } from '../services/ttsService';
 import { getPushbulletApiKey, setPushbulletApiKey, testPushbulletConnection } from '../services/pushbulletService';
 
 const Toggle = ({ value, onChange }) => (
@@ -193,6 +193,14 @@ const SettingsPage = () => {
   });
   const [openAiTtsKey, setOpenAiTtsKey] = useState(() => localStorage.getItem('system_openai_tts_api_key') || '');
   const [elevenVoiceId, setElevenVoiceId] = useState(() => localStorage.getItem('system_elevenlabs_voice_id') || ELEVENLABS_DEFAULT_VOICES[0].id);
+  const [elevenVoicesList, setElevenVoicesList] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cached_elevenlabs_voices');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return ELEVENLABS_DEFAULT_VOICES;
+  });
+  const [isLoadingVoices, setIsLoadingVoices] = useState(false);
   const [openAiVoiceId, setOpenAiVoiceId] = useState(() => localStorage.getItem('system_openai_voice_id') || 'onyx');
   const [showElevenKey, setShowElevenKey] = useState(false);
   const [showOpenAiKey, setShowOpenAiKey] = useState(false);
@@ -333,6 +341,29 @@ const SettingsPage = () => {
     localStorage.setItem('system_elevenlabs_voice_id', val);
   };
 
+  useEffect(() => {
+    if (elevenLabsKey) {
+      setIsLoadingVoices(true);
+      fetchElevenLabsVoices(elevenLabsKey).then(voices => {
+        if (Array.isArray(voices) && voices.length > 0) {
+          setElevenVoicesList(voices);
+        }
+      }).finally(() => setIsLoadingVoices(false));
+    }
+  }, [elevenLabsKey]);
+
+  const handleRefreshElevenVoices = async () => {
+    setIsLoadingVoices(true);
+    try {
+      const voices = await fetchElevenLabsVoices(elevenLabsKey);
+      if (Array.isArray(voices) && voices.length > 0) {
+        setElevenVoicesList(voices);
+      }
+    } finally {
+      setIsLoadingVoices(false);
+    }
+  };
+
   const updateOpenAiVoiceId = (val) => {
     setOpenAiVoiceId(val);
     localStorage.setItem('system_openai_voice_id', val);
@@ -383,7 +414,7 @@ const SettingsPage = () => {
 
     let voiceLabel = '';
     if (ttsEngine === 'elevenlabs') {
-      const found = ELEVENLABS_DEFAULT_VOICES.find(v => v.id === activeVoiceId);
+      const found = elevenVoicesList.find(v => v.id === activeVoiceId) || ELEVENLABS_DEFAULT_VOICES.find(v => v.id === activeVoiceId);
       voiceLabel = found ? found.name.split(' (')[0] : 'ElevenLabs';
     } else if (ttsEngine === 'edge') {
       const found = EDGE_DEFAULT_VOICES.find(v => v.id === activeVoiceId);
@@ -1270,15 +1301,25 @@ const SettingsPage = () => {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-textPrimary font-sans mb-1.5">
-                        Profil Głosu ElevenLabs (Język Polski & Multilingual)
-                      </label>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-semibold text-textPrimary font-sans">
+                          Profil Głosu ElevenLabs ({elevenVoicesList.length} dostępnych lektorów)
+                        </label>
+                        <button
+                          type="button"
+                          onClick={handleRefreshElevenVoices}
+                          disabled={isLoadingVoices}
+                          className="text-[10px] font-mono text-accentPrimary hover:underline flex items-center gap-1 disabled:opacity-50"
+                        >
+                          <RefreshCw className={`w-3 h-3 ${isLoadingVoices ? 'animate-spin' : ''}`} /> Odśwież z API
+                        </button>
+                      </div>
                       <select
                         value={elevenVoiceId}
                         onChange={(e) => updateElevenVoiceId(e.target.value)}
                         className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-xs font-mono text-textPrimary focus:outline-none focus:border-accentPrimary"
                       >
-                        {ELEVENLABS_DEFAULT_VOICES.map(v => (
+                        {elevenVoicesList.map(v => (
                           <option key={v.id} value={v.id}>{v.name}</option>
                         ))}
                       </select>
