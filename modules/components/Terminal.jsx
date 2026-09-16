@@ -15,6 +15,7 @@ import {
   WorkoutsChatWidget, 
   CalendarChatWidget 
 } from './ChatInlineWidgets';
+import AgentExecutionTrace, { extractTraceFromMessage } from './AgentExecutionTrace';
 import { useChatContext } from '../context/ChatContext';
 import { ttsService } from '../services/ttsService';
 import { wakeWordService, isAcousticEcho } from '../services/wakeWordService';
@@ -188,6 +189,9 @@ const ChatMessage = ({ msg, mode = 'worker' }) => {
 
         {/* AI Message Card */}
         <div className="w-full glass-panel p-4 md:p-5 rounded-2xl rounded-tl-sm border border-border/70 bg-gradient-to-br from-surface/90 via-surface/75 to-background/95 shadow-xl text-textPrimary text-sm md:text-[14.5px] leading-relaxed relative">
+          {/* Agent Execution Trace Inspector */}
+          <AgentExecutionTrace trace={msg.executionTrace || extractTraceFromMessage(msg)} />
+
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -370,6 +374,7 @@ const Terminal = () => {
     mode, setMode,
     showThoughts, setShowThoughts,
     isProcessing,
+    liveTrace,
     workerMessages,
     mentorMessages,
     daemonMessages,
@@ -1192,9 +1197,14 @@ const Terminal = () => {
           <ChatMessage key={msg.id || (msg.timestamp ? `${msg.role}_${msg.timestamp}` : `msg_${i}`)} msg={msg} mode={mode} />
         ))}
         {isProcessing && (
-          <div className="flex items-center gap-2.5 text-textMuted font-sans p-3 glass-panel rounded-xl max-w-fit border border-border/50 animate-pulse">
-            <Loader2 className="w-4 h-4 animate-spin text-accentPrimary" />
-            <span className="text-xs font-mono">{mode === 'mentor' ? 'OMNI MIND analizuje zapytanie...' : (mode === 'daemon' ? 'OMNIDAEMON przetwarza zapytanie...' : 'OMNI EXEC przetwarza odpowiedź...')}</span>
+          <div className="flex flex-col gap-2 p-3.5 glass-panel rounded-2xl max-w-[98%] md:max-w-[92%] border border-border/60 bg-gradient-to-br from-surface/90 to-background/95 shadow-xl animate-fade-in">
+            <AgentExecutionTrace trace={liveTrace} isLive={true} defaultExpanded={true} />
+            {(!liveTrace || (liveTrace.searches?.length === 0 && liveTrace.commands?.length === 0 && liveTrace.exploredFiles?.length === 0)) && (
+              <div className="flex items-center gap-2.5 text-textMuted font-sans animate-pulse">
+                <Loader2 className="w-4 h-4 animate-spin text-accentPrimary" />
+                <span className="text-xs font-mono">{mode === 'mentor' ? 'OMNI MIND analizuje zapytanie...' : (mode === 'daemon' ? 'OMNIDAEMON przetwarza zapytanie...' : 'OMNI EXEC przetwarza odpowiedź...')}</span>
+              </div>
+            )}
           </div>
         )}
         <div ref={endOfMessagesRef} />

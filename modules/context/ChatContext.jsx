@@ -104,6 +104,8 @@ export const ChatProvider = ({ children }) => {
     t("chatMentorActive", "System Mentor aktywowany. Oczekiwanie na dane wejściowe..."),
   ]);
 
+  const [liveTrace, setLiveTrace] = useState(null);
+
   // Subskrypcja chmurowej historii chatu z Firestore (chat_history)
   useEffect(() => {
     const ghostMode = localStorage.getItem('system_ghost_mode') === 'true';
@@ -458,6 +460,13 @@ export const ChatProvider = ({ children }) => {
     }
 
     setIsProcessing(true);
+    setLiveTrace({ 
+      status: 'working', 
+      statusMessage: mode === 'daemon' ? 'Inicjalizacja OmniDaemon...' : 'Working.', 
+      searches: [], 
+      commands: [], 
+      exploredFiles: [] 
+    });
 
     const savedNews = localStorage.getItem('system_news_categories');
     const newsCategories = savedNews ? JSON.parse(savedNews) : ['ai', 'security'];
@@ -485,7 +494,14 @@ export const ChatProvider = ({ children }) => {
 
         const content = result.content || t("chatParseErr", "Błąd parsowania odpowiedzi.");
         const aiMsgId = (Date.now() + 1).toString();
-        const aiMsg = { id: aiMsgId, role: 'ai', content, timestamp: new Date().toISOString(), chatMode: 'mentor' };
+        const aiMsg = { 
+          id: aiMsgId, 
+          role: 'ai', 
+          content, 
+          timestamp: new Date().toISOString(), 
+          chatMode: 'mentor',
+          executionTrace: result.executionTrace || null 
+        };
         
         setMentorMessages(prev => [...prev, aiMsg]);
         if (!ghostMode) {
@@ -496,10 +512,12 @@ export const ChatProvider = ({ children }) => {
           const time = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
           setThoughtsLog(prev => [`${time} > ${result.mentor_thoughts}`, ...prev]);
         }
+        setLiveTrace(null);
         setIsProcessing(false);
         return { content, widgets: result.widgets || [] };
       } catch (err) {
         setMentorMessages(prev => [...prev, { role: 'ai', content: t('chatConnErr', 'BŁĄD POŁĄCZENIA: ') + err.message, timestamp: new Date().toISOString() }]);
+        setLiveTrace(null);
         setIsProcessing(false);
         return { content: t("chatSorryErr", "Przepraszam, wystąpił błąd połączenia."), widgets: [] };
       }
@@ -515,6 +533,9 @@ export const ChatProvider = ({ children }) => {
           userName,
           language: systemLanguage,
           onProgress: (milestone) => {
+            if (milestone.trace) {
+              setLiveTrace(milestone.trace);
+            }
             const msId = 'ms_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
             const msMsg = {
               id: msId,
@@ -522,7 +543,8 @@ export const ChatProvider = ({ children }) => {
               content: milestone.text,
               timestamp: new Date().toISOString(),
               chatMode: 'daemon',
-              isMilestone: true
+              isMilestone: true,
+              executionTrace: milestone.trace || null
             };
             setDaemonMessages(prev => [...prev, msMsg]);
             if (!ghostMode) {
@@ -534,13 +556,22 @@ export const ChatProvider = ({ children }) => {
         const content = result.content || 'Polecenie zrealizowane przez OMNIDAEMON.';
         const widgets = result.widgets || [];
         const aiMsgId = (Date.now() + 1).toString();
-        const aiMsg = { id: aiMsgId, role: 'ai', content, widgets, timestamp: new Date().toISOString(), chatMode: 'daemon' };
+        const aiMsg = { 
+          id: aiMsgId, 
+          role: 'ai', 
+          content, 
+          widgets, 
+          timestamp: new Date().toISOString(), 
+          chatMode: 'daemon',
+          executionTrace: result.executionTrace || null 
+        };
 
         setDaemonMessages(prev => [...prev, aiMsg]);
         if (!ghostMode) {
           saveCloudDocument('chat_history', aiMsgId, aiMsg);
         }
 
+        setLiveTrace(null);
         setIsProcessing(false);
         return { content, widgets };
       } catch (error) {
@@ -549,6 +580,7 @@ export const ChatProvider = ({ children }) => {
           content: t('chatTimeout', 'BŁĄD POŁĄCZENIA: ') + (error?.message || 'Nieznany błąd'),
           timestamp: new Date().toISOString()
         }]);
+        setLiveTrace(null);
         setIsProcessing(false);
         return { content: t("chatSorryErr", "Przepraszam, wystąpił błąd połączenia."), widgets: [] };
       }
@@ -568,13 +600,22 @@ export const ChatProvider = ({ children }) => {
       const content = result.content || t('chatDone', 'Polecenie zrealizowane.');
       const widgets = result.widgets || [];
       const aiMsgId = (Date.now() + 1).toString();
-      const aiMsg = { id: aiMsgId, role: 'ai', content, widgets, timestamp: new Date().toISOString(), chatMode: 'worker' };
+      const aiMsg = { 
+        id: aiMsgId, 
+        role: 'ai', 
+        content, 
+        widgets, 
+        timestamp: new Date().toISOString(), 
+        chatMode: 'worker',
+        executionTrace: result.executionTrace || null 
+      };
 
       setWorkerMessages(prev => [...prev, aiMsg]);
       if (!ghostMode) {
         saveCloudDocument('chat_history', aiMsgId, aiMsg);
       }
 
+      setLiveTrace(null);
       setIsProcessing(false);
       return { content, widgets };
     } catch (error) {
@@ -583,6 +624,7 @@ export const ChatProvider = ({ children }) => {
         content: t('chatTimeout', 'BŁĄD POŁĄCZENIA: ') + (error?.message || 'Nieznany błąd'),
         timestamp: new Date().toISOString()
       }]);
+      setLiveTrace(null);
       setIsProcessing(false);
     }
   };
@@ -591,6 +633,7 @@ export const ChatProvider = ({ children }) => {
     mode, setMode,
     showThoughts, setShowThoughts,
     isProcessing,
+    liveTrace, setLiveTrace,
     workerMessages, setWorkerMessages,
     mentorMessages, setMentorMessages,
     daemonMessages, setDaemonMessages,

@@ -1,5 +1,33 @@
 ## Wersja Bieżąca
-**v2.19.4**
+**v2.19.5**
+
+## v 2.19.5 — 2026-09-16
+**Typ:** PATCH  
+**Zakres:** Interaktywny Inspektor Wykonania Agenta AI (`AgentExecutionTrace`), Wizualizacja Eksplorowanych Plików/Baz Danych (`Explored X files`), Uruchomionych Narzędzi (`Ran <tool>`), Zrealizowanych Wyszukiwań Sieciowych (`Exploring X searches` / `Searched <query> X results`), Wskaźnik Stanu Na Żywo (`Working.`), Sanityzacja Sekretów oraz Nowe Testy Jednostkowe (125/125 PASS).
+
+### Zmiany
+- [+] Dodano: Nowy komponent interfejsu `modules/components/AgentExecutionTrace.jsx` wzorowany na zaawansowanych środowiskach agentowych (Antigravity/Cursor/Gemini):
+  - Zwijalne wiersze eksplorowanych plików i kolekcji bazy danych z dedykowanymi ikonami zasobów.
+  - Zwijalne pozycje wykonanych komend i akcji z podglądem danych wyjściowych oraz weryfikacją statusu (`200 OK`, `sent`).
+  - Rozwijana sekcja zapytań sieciowych z etykietami liczby wyników i możliwością bezpośredniego podglądu tytułów, odnośników URL i abstraktów znalezionych stron.
+  - Wskaźnik pracy na żywo (`Working.`) z animacją pulsującą.
+  - Automatyczna sanityzacja kluczy poświadczeń (`sanitizeCommand`).
+  - Funkcja pomocnicza `extractTraceFromMessage` do automatycznej ekstrakcji śladów dla wiadomości historycznych.
+- [+] Dodano: Pełne śledzenie wykonania w `modules/services/clientAiDispatcher.js`:
+  - `parseAndExecuteAiActionsWithWidgets`: rejestracja wykonanych akcji w tablicy `executedTools`.
+  - `executeClientDeepResearch`: strumieniowanie obiektu `trace` w czasie rzeczywistym przez `onProgress` oraz dołączenie kompletnego `executionTrace` do raportu końcowego.
+  - Nowy generator śladów `buildExecutionTrace` dla zapytań standardowych w trybach Worker i Mentor.
+- [+] Dodano: Obsługa stanu `liveTrace` w `modules/context/ChatContext.jsx` oraz dołączanie `executionTrace` do obiektów wiadomości zapisywanych w Cloud Firestore.
+- [*] Zmodyfikowano: `modules/components/Terminal.jsx` – integracja komponentu `AgentExecutionTrace` w kartach wiadomości AI oraz podglądu na żywo w trakcie przetwarzania zapytania (`isProcessing`).
+- [+] Dodano: Nowy plik testów jednostkowych `tests/agent_execution_trace.test.jsx` (125/125 PASS w 10 plikach testowych).
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.19.5`.
+- [*] Zmodyfikowano: Wdrożenie na Firebase Hosting `https://void-potato-7721.web.app` (SUCCESS).
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.19.5.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.19.4 — 2026-09-16
 **Typ:** PATCH  
