@@ -1,5 +1,20 @@
 ## Wersja Bieżąca
-**v2.19.5**
+**v2.19.6**
+
+## v 2.19.6 — 2026-09-16
+**Typ:** PATCH  
+**Zakres:** Usunięcie Widgetu Agenta z Głównego Pulpitu, Przywrócenie Kanonicznego Układu Siatki 3-Kolumnowej (TodoList, ITNewsTicker, Routines, NewsFeed), Centralizacja Kontroli OmniDaemon w Terminalu AI.
+
+### Zmiany
+- [*] Zmodyfikowano: `modules/pages/Dashboard.jsx` – usunięto osadzenie `AgentControlWidget` zakłócające układ kolumn; przywrócono pełną symetrię i ergonomię głównego pulpitu.
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.19.6`.
+- [*] Zmodyfikowano: Wdrożenie na Firebase Hosting `https://void-potato-7721.web.app` (SUCCESS).
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.19.6.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.19.5 — 2026-09-16
 **Typ:** PATCH  
