@@ -252,4 +252,16 @@ router.post('/agent/status-inquiry', async (req, res) => {
   }
 });
 
+router.all('/search', async (req, res) => {
+  const query = req.method === 'POST' ? req.body?.query : req.query?.q;
+  const count = req.method === 'POST' ? (Number(req.body?.count) || 5) : (Number(req.query?.count) || 5);
+  if (!query) return res.status(400).json({ error: 'Brak parametru query' });
+  try {
+    const results = await executeWebSearch(query, { count });
+    res.json({ query, count: results.length, results });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

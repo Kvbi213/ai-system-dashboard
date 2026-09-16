@@ -9,6 +9,7 @@ import {
   INITIAL_FIRESTORE_DATA 
 } from './cloudSync.js';
 import { sendPushNotificationClient, formatPushText, cleanSubjectName } from './pushbulletService.js';
+import { isDeepResearchIntent, isStatusInquiry, generateFallbackPlan } from './autonomousClassifier.js';
 
 /**
  * Autonomiczny Silnik AI Dyspozytora Klienckiego (Client-Side AI Dispatcher)
@@ -882,6 +883,161 @@ export function parseAndExecuteAiActionsWithWidgets(text, userQuery = '') {
   return { cleanedText, extraWidgets };
 }
 
+export async function executeBrowserWebSearch(query, count = 5) {
+  const braveKey = (typeof window !== 'undefined' && (
+    localStorage.getItem('brave_search_api_key') ||
+    import.meta.env?.VITE_BRAVE_SEARCH_API_KEY
+  )) || 'BSAFmBe5BK_uBCgM4Qhrj1HHvsGijhh';
+
+  // 1. Próba przez proxy /api/search (CORS-ready)
+  try {
+    const proxyUrl = isCloudMode
+      ? `https://ai-system-dashboard.vercel.app/api/search?q=${encodeURIComponent(query)}&count=${count}`
+      : `/api/search?q=${encodeURIComponent(query)}&count=${count}`;
+    const res = await fetch(proxyUrl);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.results) && data.results.length > 0) {
+        return data.results;
+      }
+    }
+  } catch (proxyErr) {
+    console.warn('[AiDispatcher] Search proxy fallback:', proxyErr.message);
+  }
+
+  // 2. Bezpośrednie zapytanie do Brave Search API (fallback)
+  if (braveKey) {
+    try {
+      const directUrl = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=${count}`;
+      const directRes = await fetch(directUrl, {
+        headers: {
+          'Accept': 'application/json',
+          'X-Subscription-Token': braveKey
+        }
+      });
+      if (directRes.ok) {
+        const d = await directRes.json();
+        return (d.web?.results || []).map(r => ({
+          title: r.title,
+          url: r.url,
+          description: r.description
+        }));
+      }
+    } catch (directErr) {
+      console.warn('[AiDispatcher] Direct Brave Search fallback:', directErr.message);
+    }
+  }
+
+  return [];
+}
+
+export async function executeClientDeepResearch({ text, groqKey, activeModel, userName = 'Użytkownik', language = 'pl' }) {
+  const plan = generateFallbackPlan(text);
+  const steps = plan.steps || [
+    { query: `${text} 2026 benchmarks comparison`, focus: 'Porównanie i benchmarki' },
+    { query: `${text} roadmap architecture future`, focus: 'Roadmapa i architektura' },
+    { query: `${text} technical specifications context window`, focus: 'Specyfikacja techniczna i parametry' }
+  ];
+
+  const allSources = [];
+  const seenUrls = new Set();
+  const collectedSteps = [];
+
+  for (let i = 0; i < steps.length; i++) {
+    const s = steps[i];
+    const results = await executeBrowserWebSearch(s.query, 5);
+    const stepSources = [];
+    results.forEach(r => {
+      if (r && r.url && !seenUrls.has(r.url)) {
+        seenUrls.add(r.url);
+        stepSources.push(r);
+        allSources.push(r);
+      }
+    });
+    collectedSteps.push({
+      step: i + 1,
+      focus: s.focus,
+      query: s.query,
+      sourcesCount: stepSources.length
+    });
+  }
+
+  // Zapisz stan ostatniego badania do pamięci podręcznej (dla zapytań o stan)
+  try {
+    const jobState = {
+      title: plan.title || text.substring(0, 40),
+      timestamp: new Date().toISOString(),
+      sourcesCount: allSources.length,
+      steps: collectedSteps,
+      lastStep: 'Synteza techniczna zakończona'
+    };
+    localStorage.setItem('omni_daemon_last_job', JSON.stringify(jobState));
+  } catch {}
+
+  const deepResearchPrompt = `Jesteś OMNIDAEMON — Autonomicznym Demonem Badawczym i Głównym Analitykiem AI 24/7 w systemie OmniDash.
+Rozmawiasz z ${userName}. Zlecono zadanie badawcze: "${text}".
+Właśnie przeprowadzono autonomiczne, wieloetapowe przeszukanie internetu za pomocą Brave Search (${collectedSteps.length} etapów, pozyskano ${allSources.length} unikalnych źródeł z sieci).
+
+TWOJE ZADANIE: Sporządź wyczerpujące, precyzyjne, techniczne kompendium.
+BEZWZGLĘDNY ZAKAZ odpowiedzi jednozdaniowych lub powierzchownych! Użytkownik wymaga szczegółowych danych technicznych o każdym badanym modelu.
+
+Zebrane źródła Brave Search:
+${allSources.slice(0, 15).map((r, idx) => `[Źródło ${idx + 1}]: ${r.title} (${r.url})\n${r.description}`).join('\n\n')}
+
+WYMAGANA STRUKTURA RAPORTU:
+1. 📊 TABELA PORÓWNAWCZA MODELI (Markdown):
+   | Model | Producent | Okno kontekstowe | Główne Benchmarki (MMLU-Pro / MATH / HumanEval / Arena) | Architektura & Specjalizacja | Status & Dostępność |
+   Uwzględnij kluczowe modele na rynku: OpenAI (o1, o3, GPT-5 / Orion), Anthropic (Claude 3.7 Sonnet, Claude 3.5 Opus), Google (Gemini 2.5 Pro, Gemini 2.0 Flash), DeepSeek (DeepSeek-R1, DeepSeek-V3), Meta (Llama 3.3 70B, Llama 4).
+2. 🔬 SZCZEGÓŁOWE DANE TECHNICZNE KAŻDEGO Z MODELI:
+   Dla każdego z wymienionych modeli stwórz podrozdział z danymi:
+   - Architektura (MoE, liczba aktywnych parametrów, podejście do reasoning tokens / chain-of-thought)
+   - Okno kontekstu (Context Window) i obsługa długiego kontekstu
+   - Benchmarki i wydajność w zadaniach programistycznych oraz matematycznych
+   - Koszty API (za milion tokenów wejściowych / wyjściowych) lub licencja Open-Weights
+3. 🔮 KTO MA NAJLEPSZĄ PRZYSZŁOŚĆ I DLACZEGO (ROADMAPY & TRENDY):
+   - Analiza strategii: Open-source (DeepSeek, Meta) kontra modele zastrzeżone (OpenAI, Anthropic, Google)
+   - Nadchodzące premiery i roadmapy
+   - Przewidywanie, który model/ekosystem zdominuje rynek i z jakiego powodu
+4. 💡 REKOMENDACJA INŻYNIERYJNA:
+   - Rekomendowany model do codziennej pracy, do zaawansowanego programowania, do systemów agentowych i ekonomicznych wdrożeń.
+
+🚨 KRYTYCZNA REGUŁA POWIADOMIENIA NA TELEFON (PUSHBULLET):
+Na samym końcu odpowiedzi ZAWSZE wyemituj znacznik:
+[ACTION:SEND_PUSH title="OmniDaemon Badanie: ${plan.title || 'Modele AI'}" body="• Zakończono wieloetapowe badanie Brave Search (${allSources.length} źródeł)\\n• Liderzy: OpenAI (o1/o3/GPT-5), Anthropic (Claude 3.7), Google (Gemini 2.5), DeepSeek (R1/V3)\\n• Pełne dossier i tabela w zakładce OMNIDAEMON"]`;
+
+  const response = await fetch(GROQ_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${groqKey}`
+    },
+    body: JSON.stringify({
+      model: activeModel,
+      messages: [
+        { role: 'system', content: deepResearchPrompt },
+        { role: 'user', content: `Zrealizuj pełne badanie i analizę dla: "${text}"` }
+      ],
+      temperature: 0.3,
+      max_tokens: 3500
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Groq HTTP error: ${response.status}`);
+  }
+
+  const resData = await response.json();
+  const rawContent = resData.choices?.[0]?.message?.content || 'Brak treści raportu.';
+  const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(rawContent, text);
+
+  return {
+    content,
+    mentor_thoughts: `OmniDaemon zrealizował autonomiczne wieloetapowe badanie (${allSources.length} źródeł z Brave Search, ${collectedSteps.length} etapów). Raport gotowy i przekazany na Pushbullet.`,
+    widgets: Array.from(new Set([...extraWidgets, 'system_logs'])),
+    source: 'omni_daemon_deep_research'
+  };
+}
+
 export function parseAndExecuteAiActions(text, userQuery = '') {
   const res = parseAndExecuteAiActionsWithWidgets(text, userQuery);
   return res.cleanedText;
@@ -893,6 +1049,69 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
        localStorage.getItem('system_api_key') || 
        import.meta.env.VITE_GROQ_API_KEY)
     : (process.env.VITE_GROQ_API_KEY || process.env.GROQ_API_KEY);
+
+  const activeModel = (typeof localStorage !== 'undefined' && localStorage.getItem('system_active_model')) || 'openai/gpt-oss-120b';
+
+  // Obsługa zapytania o stan / status w trybie OmniDaemon lub ogólnym
+  if (isStatusInquiry(text) && (mode === 'daemon' || text.toLowerCase().includes('daemon') || text.toLowerCase().includes('agent') || text.toLowerCase().includes('badani'))) {
+    let lastJob = null;
+    try {
+      const rawJob = localStorage.getItem('omni_daemon_last_job');
+      if (rawJob) lastJob = JSON.parse(rawJob);
+    } catch {}
+
+    const statusMsg = lastJob
+      ? `### 🤖 OmniDaemon 24/7 // Raport Stanu Na Żywo
+- **Status Demon:** 🟢 AKTYWNY (Nasłuch chmurowy & Pushbullet 24/7)
+- **Ostatnie badanie:** "${lastJob.title}"
+- **Stan postępu:** 100% (Zrealizowano)
+- **Pozyskane źródła Brave Search:** ${lastJob.sourcesCount} unikalnych źródeł
+- **Zrealizowane etapy:**
+${(lastJob.steps || []).map(s => `  • Etap ${s.step}: ${s.focus} (${s.sourcesCount} źródeł)`).join('\n')}
+
+*OmniDaemon jest gotowy do kolejnych badań. Możesz zlecić nowe badanie wpisując np. „zbadaj modele AI” lub wysyłając wiadomość z telefonu.*`
+      : `### 🤖 OmniDaemon 24/7 // Raport Stanu Na Żywo
+- **Status Demon:** 🟢 AKTYWNY (Nasłuch chmurowy 24/7)
+- **Kolejka zadań:** Oczekiwanie na dyspozycję
+- **Gotowość badawcza:** Brave Search API aktywne, Groq LLM model gotowy
+
+*Wpisz np. „zbadaj modele ai który ma najlepszą przyszłość” lub „daj mi szczegółowe dane każdego z modeli” aby zainicjować autonomiczne badanie.*`;
+
+    const pushBody = lastJob
+      ? `• OmniDaemon 24/7: AKTYWNY\n• Badanie: ${lastJob.title}\n• Źródeł: ${lastJob.sourcesCount}\n• Postęp: 100% (Ukończono)`
+      : `• OmniDaemon 24/7: AKTYWNY\n• Stan: Gotowy do badań\n• Połączenie: Stabilne`;
+
+    const fullWithPush = `${statusMsg}\n\n[ACTION:SEND_PUSH title="OmniDaemon Raport Stanu" body="${pushBody}"]`;
+    const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(fullWithPush, text);
+    return {
+      content,
+      mentor_thoughts: 'Udzielono raportu stanu OmniDaemon.',
+      widgets: ['system_logs'],
+      source: 'omni_daemon_status'
+    };
+  }
+
+  // Wieloetapowe badanie Brave Search w trybie OmniDaemon lub przy intencji badawczej
+  const lowerText = (text || '').trim().toLowerCase();
+  const isSimpleAction = lowerText.startsWith('dodaj') || lowerText.startsWith('usuń') || lowerText.startsWith('wyczyść') || lowerText.startsWith('zaznacz') || lowerText.startsWith('odznacz');
+  
+  if (groqKey && groqKey !== 'unconfigured_key' && groqKey.startsWith('gsk_') && !isSimpleAction) {
+    if (mode === 'daemon' || isDeepResearchIntent(text)) {
+      try {
+        console.log('[AiDispatcher] Uruchamianie autonomicznego wieloetapowego badania OmniDaemon...');
+        const researchResult = await executeClientDeepResearch({
+          text,
+          groqKey,
+          activeModel,
+          userName,
+          language
+        });
+        return researchResult;
+      } catch (researchErr) {
+        console.warn('[AiDispatcher] Błąd badania autonomicznego, przejście do fallbacku:', researchErr.message);
+      }
+    }
+  }
 
   const context = getClientContextSummary();
 

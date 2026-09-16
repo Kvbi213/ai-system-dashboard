@@ -37,62 +37,15 @@ export async function callAgentLLM(messages, temperature = 0.3, maxTokens = 1200
   throw new Error('Wszystkie modele LLM dla agenta zawiodły.');
 }
 
-/**
- * Sprawdza czy tekst jest pytaniem o status / stan pracy ze smartfona
- */
-export function isStatusInquiry(text) {
-  if (!text || typeof text !== 'string') return false;
-  const t = text.trim().toLowerCase();
-  const keywords = [
-    'stan', 'status', 'jak idzie', 'jak tam', 'co robisz', 'co tam',
-    'ile jeszcze', 'postęp', 'postep', 'raport', 'jak leci', 'na jakim etapie',
-    'gdzie jesteś', 'co robisz teraz', 'stan pracy'
-  ];
-  return keywords.some(kw => t === kw || t.startsWith(kw + ' ') || t.endsWith(' ' + kw) || t.includes(kw));
-}
+export {
+  isStatusInquiry,
+  isAbortCommand,
+  isDeepResearchIntent,
+  extractTaskFromPhone,
+  generateFallbackPlan
+} from './autonomousClassifier.js';
 
-/**
- * Sprawdza czy tekst jest poleceniem zatrzymania / anulowania
- */
-export function isAbortCommand(text) {
-  if (!text || typeof text !== 'string') return false;
-  const t = text.trim().toLowerCase();
-  const stopKeywords = ['stop', 'zatrzymaj', 'anuluj', 'przerwij', 'pauza', 'stój', 'stoj', 'kill'];
-  return stopKeywords.some(kw => t === kw || t.startsWith(kw + ' '));
-}
-
-/**
- * Wykrywa czy wiadomość ze smartfona jest zleceniem nowego zadania
- */
-export function extractTaskFromPhone(text) {
-  if (!text || typeof text !== 'string') return null;
-  const trimmed = text.trim();
-  const lower = trimmed.toLowerCase();
-
-  const prefixes = [
-    /^omni:\s*/i,
-    /^agent:\s*/i,
-    /^zadanie:\s*/i,
-    /^zbadaj:\s*/i,
-    /^zbadaj\s+/i,
-    /^przebadaj\s+/i,
-    /^sprawdź\s+/i,
-    /^research:\s*/i
-  ];
-
-  for (const prefix of prefixes) {
-    if (prefix.test(trimmed)) {
-      return trimmed.replace(prefix, '').trim();
-    }
-  }
-
-  // Jeśli tekst zawiera bezpośrednie czasowniki zlecające
-  if (lower.startsWith('znajdź ') || lower.startsWith('analizuj ') || lower.startsWith('poszukaj ')) {
-    return trimmed;
-  }
-
-  return null;
-}
+import { generateFallbackPlan } from './autonomousClassifier.js';
 
 /**
  * Dekomponuje złożony cel badawczy na 2 do 4 logicznych kroków Brave Search
@@ -133,19 +86,6 @@ Zwróć WYŁĄCZNIE poprawny obiekt JSON o strukturze:
 
   // Fallback gdyby LLM nie zwrócił poprawnego JSON
   return generateFallbackPlan(goal);
-}
-
-/**
- * Generuje deterministyczny, awaryjny plan badawczy bez użycia sieci
- */
-export function generateFallbackPlan(goal) {
-  return {
-    title: (goal || 'Badanie').substring(0, 40),
-    steps: [
-      { step: 1, query: `${goal} roadmap 2026`, focus: 'Główne trendy i kierunki rozwoju' },
-      { step: 2, query: `${goal} news analysis`, focus: 'Najnowsze analizy branżowe' }
-    ]
-  };
 }
 
 /**
@@ -387,6 +327,25 @@ Raport musi być konkretny, czytelny, z punktorami.`;
   // Wysłanie raportu końcowego na smartfon
   const reportPushTitle = `[OmniAgent 🤖] Raport Końcowy: ${log.title || 'Badanie'}`;
   await sendPushNotification(reportPushTitle, finalReport).catch(() => {});
+
+  // Zapis raportu końcowego do Cloud Firestore dla OMNIDAEMON chat_history
+  try {
+    const { getFirestoreDb } = await import('../firebase.js');
+    const firestoreDb = getFirestoreDb();
+    if (firestoreDb) {
+      const aiMsgId = `ai_daemon_${Date.now()}`;
+      await firestoreDb.collection('chat_history').doc(aiMsgId).set({
+        id: aiMsgId,
+        role: 'ai',
+        content: finalReport,
+        timestamp: new Date().toISOString(),
+        chatMode: 'daemon',
+        source: 'omni_daemon'
+      });
+    }
+  } catch (fsErr) {
+    // Ignoruj jeśli Firestore nie jest skonfigurowane
+  }
 
   return { finished: true, resultSummary: finalReport };
 }

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   isStatusInquiry,
   isAbortCommand,
+  isDeepResearchIntent,
   extractTaskFromPhone,
   decomposeGoal,
   generateFallbackPlan
@@ -50,7 +51,26 @@ describe('Autonomiczny Agent Ciągły (OmniDaemon 24/7) - Klasyfikatory i Narzę
     });
   });
 
-  describe('3. Wyodrębnianie Zadań ze Smartfona (extractTaskFromPhone)', () => {
+  describe('3. Detekcja Intencji Badawczych Deep Research (isDeepResearchIntent)', () => {
+    it('poprawnie rozpoznaje złożone cele badawcze z Brave Search', () => {
+      expect(isDeepResearchIntent('przebadaj modele ai który ma najlepszą przyszłość plany itp')).toBe(true);
+      expect(isDeepResearchIntent('zbierz informacje na temat modeli ai')).toBe(true);
+      expect(isDeepResearchIntent('szukaj na ich temat wszystkiego')).toBe(true);
+      expect(isDeepResearchIntent('daj mi szczegółowe dane każdego z modeli')).toBe(true);
+      expect(isDeepResearchIntent('przeszukaj sieć pod kątem nowych modeli LLM')).toBe(true);
+      expect(isDeepResearchIntent('porównaj modele sztucznej inteligencji')).toBe(true);
+    });
+
+    it('odrzuca zapytania o stan i proste polecenia', () => {
+      expect(isDeepResearchIntent('stan')).toBe(false);
+      expect(isDeepResearchIntent('status')).toBe(false);
+      expect(isDeepResearchIntent('stop')).toBe(false);
+      expect(isDeepResearchIntent('jaka jest pogoda?')).toBe(false);
+      expect(isDeepResearchIntent('')).toBe(false);
+    });
+  });
+
+  describe('4. Wyodrębnianie Zadań ze Smartfona (extractTaskFromPhone)', () => {
     it('wykrywa i oczyszcza prefiksy zleceniowe', () => {
       expect(extractTaskFromPhone('Omni: zbadaj modele AI')).toBe('zbadaj modele AI');
       expect(extractTaskFromPhone('Agent: przygotuj raport o rynkach')).toBe('przygotuj raport o rynkach');
@@ -60,14 +80,19 @@ describe('Autonomiczny Agent Ciągły (OmniDaemon 24/7) - Klasyfikatory i Narzę
       expect(extractTaskFromPhone('research: trendy technologiczne 2026')).toBe('trendy technologiczne 2026');
     });
 
-    it('obsługuje bezpośrednie czasowniki zlecające', () => {
+    it('obsługuje bezpośrednie czasowniki zlecające i zapytania o modele', () => {
       expect(extractTaskFromPhone('znajdź najlepsze modele do programowania')).toBe('znajdź najlepsze modele do programowania');
       expect(extractTaskFromPhone('analizuj wyniki finansowe')).toBe('analizuj wyniki finansowe');
+      expect(extractTaskFromPhone('daj mi szczegółowe dane każdego z modeli')).toBe('daj mi szczegółowe dane każdego z modeli');
+      expect(extractTaskFromPhone('szukaj na ich temat wszystkiego')).toBe('szukaj na ich temat wszystkiego');
+      expect(extractTaskFromPhone('zbierz informacje na temat modeli ai')).toBe('zbierz informacje na temat modeli ai');
     });
 
-    it('zwraca null dla neutralnych wiadomości', () => {
+    it('zwraca null dla neutralnych wiadomości i zapytań o stan', () => {
       expect(extractTaskFromPhone('cześć jak się masz')).toBe(null);
       expect(extractTaskFromPhone('co tam')).toBe(null);
+      expect(extractTaskFromPhone('stan')).toBe(null);
+      expect(extractTaskFromPhone('stop')).toBe(null);
       expect(extractTaskFromPhone('')).toBe(null);
     });
   });
@@ -101,6 +126,16 @@ describe('Autonomiczny Agent Ciągły (OmniDaemon 24/7) - Klasyfikatory i Narzę
       expect(res.steps[0]).toHaveProperty('step');
       expect(res.steps[0]).toHaveProperty('query');
       expect(res.steps[0]).toHaveProperty('focus');
+    });
+
+    it('generuje 3-etapowy zaawansowany plan dla zapytań o modele AI', () => {
+      const res = generateFallbackPlan('przebadaj modele ai który ma najlepszą przyszłość');
+      expect(res).toBeDefined();
+      expect(res.title).toContain('Modeli AI');
+      expect(res.steps.length).toBe(3);
+      expect(res.steps[0].query).toContain('benchmarks');
+      expect(res.steps[1].query).toContain('roadmap');
+      expect(res.steps[2].query).toContain('context window');
     });
   });
 

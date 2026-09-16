@@ -1,5 +1,5 @@
 import Groq from 'groq-sdk';
-import { isStatusInquiry, isAbortCommand, extractTaskFromPhone } from '../modules/services/autonomousAgent.js';
+import { isStatusInquiry, isAbortCommand, extractTaskFromPhone, generateFallbackPlan } from '../modules/services/autonomousClassifier.js';
 
 export const config = {
   maxDuration: 60,
@@ -98,26 +98,59 @@ export default async function handler(req, res) {
         return res.status(200).json({ received: true, action: 'aborted' });
       }
 
-      // 3. Zlecenie zadania badawczego
+      // 3. Zlecenie zadania badawczego (Deep Research)
       const task = extractTaskFromPhone(content);
       if (task) {
         await sendServerlessPush(
           apiKey,
-          '[OmniAgent Cloud 🤖] Przyjęto Zlecenie',
-          `Rozpoczynam badanie: "${task}" w chmurze. Za chwilę wyślę raport.`
+          '[OmniAgent Cloud 🤖] Przyjęto Cel Badawczy',
+          `Rozpoczynam wieloetapowe badanie w sieci (Brave Search) dla:\n"${task}"\nBędę raportował postępy.`
         );
 
-        // Wykonaj szybkie wyszukiwanie i syntezę (w oknie 60s Vercela)
-        const braveKey = process.env.BRAVE_SEARCH_API_KEY;
+        const braveKey = process.env.BRAVE_SEARCH_API_KEY || 'BSAFmBe5BK_uBCgM4Qhrj1HHvsGijhh';
         const groqKey = process.env.GROQ_API_KEY || process.env.VITE_GROQ_API_KEY;
 
-        if (braveKey && groqKey) {
-          const searchUrl = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(task)}&count=5`;
-          const sRes = await fetch(searchUrl, {
-            headers: { 'Accept': 'application/json', 'X-Subscription-Token': braveKey }
-          });
-          const sData = await sRes.json();
-          const results = sData.web?.results || [];
+        if (groqKey) {
+          const plan = generateFallbackPlan(task);
+          const steps = plan.steps || [
+            { query: `${task} benchmarks comparison 2026`, focus: 'Porównanie i benchmarki' },
+            { query: `${task} roadmap future architecture specs`, focus: 'Roadmapa i specyfikacja' }
+          ];
+
+          const allResults = [];
+          const seenUrls = new Set();
+
+          // Wykonanie wyszukiwań dla kolejnych etapów
+          for (let i = 0; i < steps.length; i++) {
+            const step = steps[i];
+            try {
+              const searchUrl = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(step.query)}&count=5`;
+              const sRes = await fetch(searchUrl, {
+                headers: { 'Accept': 'application/json', 'X-Subscription-Token': braveKey }
+              });
+              if (sRes.ok) {
+                const sData = await sRes.json();
+                const list = sData.web?.results || [];
+                list.forEach(r => {
+                  if (r.url && !seenUrls.has(r.url)) {
+                    seenUrls.add(r.url);
+                    allResults.push({ ...r, stepFocus: step.focus });
+                  }
+                });
+              }
+            } catch (searchErr) {
+              console.warn('[Vercel Search Err]:', searchErr.message);
+            }
+
+            // Milestone Push po etapie 1 (jeśli są kolejne)
+            if (i === 0 && steps.length > 1 && allResults.length > 0) {
+              await sendServerlessPush(
+                apiKey,
+                `[OmniAgent 🤖] Etap 1/${steps.length}`,
+                `• Zbadano: ${step.focus}\n• Pozyskano ${allResults.length} źródeł.\n• Przechodzę do analizy roadmap i szczegółów.`
+              );
+            }
+          }
 
           const groq = new Groq({ apiKey: groqKey });
           const completion = await groq.chat.completions.create({
@@ -125,19 +158,30 @@ export default async function handler(req, res) {
             messages: [
               {
                 role: 'system',
-                content: 'Jesteś analitykiem OmniDash. Sporządź zwięzły, konkretny raport z zebranych wyników dla operatora.'
+                content: `Jesteś OMNIDAEMON — Głównym Analitykiem AI i Agentem Badawczym 24/7.
+Operator zadał pytanie: "${task}".
+Przeszukano internet przez Brave Search. Sporządź wyczerpujący, ekspercki, techniczny raport.
+Jeśli badane są modele AI:
+1. Dla KAŻDEGO z modeli (np. OpenAI GPT-5/o-series, Claude 3.7/Sonnet, Gemini 2.5/Pro, DeepSeek R1/V3):
+   - Architektura i kluczowe parametry
+   - Rozmiar okna kontekstowego (Context Window)
+   - Benchmarki (MMLU-Pro, MATH, HumanEval)
+   - Plany, roadmapa i przewidywana przyszłość
+2. Tabela porównawcza parametrów Markdown.
+3. Kto ma największą szansę zdominować rynek i dlaczego.
+Pisz profesjonalnie, technicznie, po polsku.`
               },
               {
                 role: 'user',
-                content: `Zadanie: "${task}"\nWyniki:\n${results.map((r, i) => `${i + 1}. [${r.title}] ${r.description}`).join('\n')}`
+                content: `Cel: "${task}"\n\nZebrane źródła (${allResults.length}):\n${allResults.map((r, i) => `${i + 1}. [${r.title}] (${r.url})\n   ${r.description}`).join('\n\n')}`
               }
             ],
             temperature: 0.3,
-            max_tokens: 1000
+            max_tokens: 1800
           });
 
-          const finalReport = completion.choices?.[0]?.message?.content || 'Brak danych.';
-          await sendServerlessPush(apiKey, `[OmniAgent Cloud 🤖] Wynik: ${task.substring(0, 30)}`, finalReport);
+          const finalReport = completion.choices?.[0]?.message?.content || 'Brak danych z syntezy.';
+          await sendServerlessPush(apiKey, `[OmniAgent 🤖] Raport: ${task.substring(0, 30)}`, finalReport);
         }
 
         return res.status(200).json({ received: true, action: 'task_executed' });

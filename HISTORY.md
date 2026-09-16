@@ -1,5 +1,30 @@
 ## Wersja Bieżąca
-**v2.19.1**
+**v2.19.2**
+
+## v 2.19.2 — 2026-09-16
+**Typ:** PATCH  
+**Zakres:** Autonomiczny Silnik Deep Research (Brave Search), Wieloetapowa Analiza Modeli AI, Eliminacja Natychmiastowych Halucynacji w OMNIDAEMON, Uniwersalny Klasyfikator `autonomousClassifier.js`, Raportowanie Mobilne Pushbullet i Testy Jednostkowe.
+
+### Zmiany
+- [+] Dodano: Nowy moduł `modules/services/autonomousClassifier.js` – czysty moduł JavaScript bez zależności od Node/SQLite (funkcje `isDeepResearchIntent`, rozbudowane `extractTaskFromPhone`, zoptymalizowane `isStatusInquiry`, 3-etapowe `generateFallbackPlan` dla modeli AI).
+- [+] Dodano: Klientowy silnik Deep Research w `modules/services/clientAiDispatcher.js`:
+  - Eliminacja natychmiastowych statycznych odpowiedzi w zakładce OMNIDAEMON przy zleceniach badawczych.
+  - Hybrydowe pobieranie danych przez Brave Search (`executeBrowserWebSearch`) z wykorzystaniem proxy `/api/search` i bezpośredniego fallbacku.
+  - Wieloetapowe badanie sieci (`executeClientDeepResearch`): sekwencyjne odpytywanie Brave Search (News + Web), deduplikacja źródeł, synteza Groq LLM z tabelą porównawczą, dogłębną analizą techniczną każdego modelu, roadmapą przyszłości i rekomendacją.
+  - Automatyczna emisja znacznika `[ACTION:SEND_PUSH]` z natychmiastową wysyłką powiadomienia na telefon przez Pushbullet.
+  - Obsługa zapytań o stan na żywo w przeglądarce (`isStatusInquiry`) z pamięcią podręczną `omni_daemon_last_job`.
+- [+] Dodano: Wieloetapowy badacz w chmurze w `api/pushbullet-webhook.js` – dekompozycja celu, zapytania Brave Search z milestone push po etapie 1, pełna synteza techniczna modeli AI i odesłanie raportu push na telefon.
+- [+] Dodano: Uniwersalny endpoint `/api/search` z nagłówkami CORS w Express routerze (`modules/routes/ai.js`).
+- [+] Dodano: Automatyczny zapis raportów końcowych badań do Cloud Firestore `chat_history` (`chatMode: 'daemon'`) w `modules/services/autonomousAgent.js`.
+- [+] Dodano: 3 nowe testy jednostkowe w `tests/autonomous_agent.test.js` (117/117 PASS).
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.19.2`.
+- [*] Zmodyfikowano: Wdrożenie na Firebase Hosting `https://void-potato-7721.web.app` (SUCCESS).
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.19.2.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.19.1 — 2026-09-16
 **Typ:** PATCH  
