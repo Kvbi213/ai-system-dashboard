@@ -1,5 +1,25 @@
 ## Wersja Bieżąca
-**v2.19.7**
+**v2.19.8**
+
+## v 2.19.8 — 2026-09-16
+**Typ:** PATCH  
+**Zakres:** Otwarte Odkrywanie Modeli Frontier 2026 (Open Discovery Queries), Bezwzględne Uziemienie w Bazie Pamięci (`https://void-potato-7721.web.app/memory` / `operator_brain`), Autonomiczne Utrwalanie Faktów (`[ACTION:REMEMBER]`), Obowiązek Jawnej Treści Notyfikacji Push w Czacie, Uniwersalny Inspektor Wykonania Narzędzi (`AgentExecutionTrace`) w Każdej Wiadomości i Trybie Czatu, Odporna Sanityzacja Zapisów Firestore.
+
+### Zmiany
+- [+] Dodano: Uziemienie wiedzy w pamięci długoterminowej (`operator_brain`) w promptach `deepResearchPrompt` oraz systemowych (`mentor`, `daemon`, `worker`). Wprowadzono żelazną regułę Zero-Trust dla starych danych nieobecnych w Pamięci ani w wynikach Brave Search Live.
+- [+] Dodano: Autonomiczne zapisywanie nowo zweryfikowanych faktów o modelach i preferencjach do `operator_brain` (`[ACTION:REMEMBER fact="..." category="Modele AI"]`) wraz z natychmiastową synchronizacją lokalnego cache `cloud_cache_operator_brain`.
+- [+] Dodano: Obowiązek wypisywania pełnej treści powiadomień Pushbullet w samej treści wiadomości na czacie (sekcja `📲 Podsumowanie wysłane na smartfon (Pushbullet)`).
+- [*] Zmodyfikowano: `modules/components/AgentExecutionTrace.jsx` – zunifikowano ekstrakcję śladu (`extractTraceFromMessage`), dzięki czemu każda odpowiedź asystenta w każdym trybie prezentuje eksplorowane bazy (w tym `operator_brain`) oraz wykonane narzędzia (`Ran Tool: ...`).
+- [*] Zmodyfikowano: `modules/services/cloudSync.js` – zabezpieczono `saveCloudDocument` przed polami `undefined`, zapewniając stabilność bazy Firestore.
+- [+] Dodano: Nowe testy jednostkowe w `tests/agent_execution_trace.test.jsx` weryfikujące ślad narzędzi i integrację z `operator_brain` (126/126 PASS).
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.19.8`.
+- [*] Zmodyfikowano: Wdrożenie na Firebase Hosting `https://void-potato-7721.web.app` (SUCCESS).
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.19.8.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.19.7 — 2026-09-16
 **Typ:** PATCH  

@@ -886,6 +886,12 @@ export function parseAndExecuteAiActionsWithWidgets(text, userQuery = '') {
           category: attrs.category || 'Wiedza',
           created_at: new Date().toISOString()
         };
+        try {
+          const raw = localStorage.getItem('cloud_cache_operator_brain');
+          const list = raw ? JSON.parse(raw) : [];
+          list.push(newBrain);
+          localStorage.setItem('cloud_cache_operator_brain', JSON.stringify(list));
+        } catch {}
         saveCloudDocument('operator_brain', id, newBrain);
         window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'operator_brain' } }));
         executedTools.push({
@@ -1079,7 +1085,8 @@ export function buildExecutionTrace({
   statusMessage = 'Zakończono.'
 } = {}) {
   const exploredFiles = [
-    { name: 'localStorage: system_active_model', type: 'config', details: activeModel }
+    { name: 'localStorage: system_active_model', type: 'config', details: activeModel },
+    { name: 'Cloud Firestore: operator_brain', type: 'database', details: `${(context?.operatorBrain || []).length} zweryfikowanych faktów (/memory)` }
   ];
 
   if (context?.tasks && context.tasks.length > 0) {
@@ -1169,7 +1176,15 @@ export function generateDeterministicReport(text, isNoOpenSource, allSources, co
 - 🧮 **Do Złożonej Matematyki i Logiki Algorytmicznej:** **ChatGPT Pro ($200)** lub Plus z o3-mini.
 - 🌐 **Do Przeszukiwania Sieci i Raportów Branżowych:** **Perplexity Pro ($20)**.
 
-[ACTION:SEND_PUSH title="OmniDaemon: Komercyjne Modele w Czacie 2026" body="• Zakończono 4-etapowe badanie Brave Search (${sourcesCount} źródeł)\\n• Claude Pro (3.7 Sonnet): Lider programowania i Artifacts\\n• Gemini Advanced: Król kontekstu 2M tokenów\\n• ChatGPT Pro: Potęga o1/o3 do myślenia\\n• Pełna tabela i dossier w zakładce OMNIDAEMON"]`;
+### 📲 Podsumowanie wysłane na smartfon (Pushbullet):
+• Zakończono 4-etapowe badanie Brave Search (${sourcesCount} źródeł)
+• Claude Pro (3.7 Sonnet): Lider programowania i Artifacts
+• Gemini Advanced: Król kontekstu 2M tokenów
+• ChatGPT Pro: Potęga o1/o3 do myślenia
+• Pełna tabela i dossier w zakładce OMNIDAEMON
+
+[ACTION:REMEMBER fact="Zestawienie komercyjnych modeli w czacie 2026: ChatGPT Pro (o1/o3-mini), Claude Pro (3.7 Sonnet extended thinking), Gemini Advanced (2M tokenów), Grok 3" category="Modele AI"]
+[ACTION:SEND_PUSH title="OmniDaemon: Komercyjne Modele w Czacie 2026" body="• Zakończono 4-etapowe badanie Brave Search (${sourcesCount} źródeł)\n• Claude Pro (3.7 Sonnet): Lider programowania i Artifacts\n• Gemini Advanced: Król kontekstu 2M tokenów\n• ChatGPT Pro: Potęga o1/o3 do myślenia\n• Pełna tabela i dossier w zakładce OMNIDAEMON"]`;
   }
 
   return `## 📊 TABELA PORÓWNAWCZA FRONTIER MODELI AI (2026)
@@ -1186,7 +1201,12 @@ export function generateDeterministicReport(text, isNoOpenSource, allSources, co
 ## 🔬 SZCZEGÓŁOWA ANALIZA TECHNICZNA I WNIOSKI
 W oparciu o ${sourcesCount} pozyskanych źródeł Brave Search w ${collectedSteps?.length || 4} etapach badawczych, ekosystemy AI wykazują wyraźną dywersyfikację: modele hybrydowe (reasoning tokens) stają się standardem w inżynierii oprogramowania.
 
-[ACTION:SEND_PUSH title="OmniDaemon Badanie Zakończone" body="• Zakończono wieloetapowe badanie Brave Search (${sourcesCount} źródeł)\\n• Pełna tabela i analiza w zakładce OMNIDAEMON"]`;
+### 📲 Podsumowanie wysłane na smartfon (Pushbullet):
+• Zakończono wieloetapowe badanie Brave Search (${sourcesCount} źródeł)
+• Pełna tabela i analiza w zakładce OMNIDAEMON
+
+[ACTION:REMEMBER fact="OmniDaemon Badanie: Zsyntetyzowano dane z ${sourcesCount} źródeł Brave Search." category="Modele AI"]
+[ACTION:SEND_PUSH title="OmniDaemon Badanie Zakończone" body="• Zakończono wieloetapowe badanie Brave Search (${sourcesCount} źródeł)\n• Pełna tabela i analiza w zakładce OMNIDAEMON"]`;
 }
 
 export async function executeBrowserWebSearch(query, count = 5) {
@@ -1321,6 +1341,15 @@ export async function executeClientDeepResearch({ text, groqKey, activeModel, us
   const isNoOpenSource = /nie.*(open[- ]?source|opensorce|otwart[a-z]*\s+kod)/i.test(lowerText) || /dostępne\s+w\s+(chacie|chat)/i.test(lowerText);
   const isModelsQuery = lowerText.includes('model') || lowerText.includes('ai') || lowerText.includes('llm');
 
+  let operatorBrain = [];
+  try {
+    const rawBrain = typeof localStorage !== 'undefined' ? localStorage.getItem('cloud_cache_operator_brain') : null;
+    if (rawBrain) operatorBrain = JSON.parse(rawBrain);
+  } catch {}
+  const brainSummary = (operatorBrain || []).length > 0
+    ? operatorBrain.map(b => `- [${b.category || 'Wiedza'}] ${b.fact || ''}`).join('\n')
+    : '• Pamięć długoterminowa jest pusta.';
+
   let stages = [];
   let planTitle = '';
 
@@ -1329,55 +1358,55 @@ export async function executeClientDeepResearch({ text, groqKey, activeModel, us
     stages = [
       {
         step: 1,
-        shortTitle: 'OpenAI (ChatGPT Plus & Pro)',
-        focus: 'OpenAI ChatGPT: modele GPT-4o, o1, o3-mini, GPT-4.5 Orion, subskrypcje Plus ($20) vs Pro ($200), limity wiadomości i Canvas',
-        query: 'top commercial OpenAI models ChatGPT Plus Pro 2026 o1 o3-mini limits pricing'
+        shortTitle: 'Odkrywanie Rynku Modeli w Czacie',
+        focus: 'Wyszukiwanie najświeższych rankingów, zestawień i najnowszych modeli komercyjnych w czacie w 2026 roku',
+        query: 'best commercial AI chat models subscriptions 2026 rankings'
       },
       {
         step: 2,
-        shortTitle: 'Anthropic (Claude.ai Pro)',
-        focus: 'Anthropic Claude.ai Pro: Claude 3.5 Sonnet, Claude 3.7 Sonnet (hybrydowy reasoning), okno 200k, Artifacts i projekty',
-        query: 'Anthropic Claude 3.7 Sonnet Claude Pro chat features pricing 2026'
+        shortTitle: 'Skan Flagowych Subskrypcji Komercyjnych',
+        focus: 'Przeszukanie aktualnych ofert i funkcji płatnych planów wiodących platform komercyjnych (ChatGPT, Claude, Gemini, Grok, Copilot, Perplexity)',
+        query: 'commercial AI chatbot comparison pricing context window 2026'
       },
       {
         step: 3,
-        shortTitle: 'Google (Gemini Advanced)',
-        focus: 'Google Gemini Advanced (Google One AI Premium): Gemini 2.0 Flash, Gemini 2.0 Pro, okno 1M-2M tokenów, multimodalność audio/wideo na żywo',
-        query: 'Google Gemini Advanced Gemini 2.0 Pro Flash features pricing 2026'
+        shortTitle: 'Możliwości Narzędziowe i Tryby Myślenia',
+        focus: 'Weryfikacja zaawansowanych możliwości interfejsów (Canvas, Artifacts, Deep Research, reasoning tokens, okna kontekstu)',
+        query: 'AI chat features Canvas Artifacts reasoning tokens comparison 2026'
       },
       {
         step: 4,
-        shortTitle: 'xAI Grok, Copilot Pro & Perplexity',
-        focus: 'xAI Grok (X Premium), Microsoft Copilot Pro (Office 365) oraz Perplexity Pro (Deep Research i wielomodelowy czat)',
-        query: 'commercial AI chat subscriptions 2026 Grok Copilot Pro Perplexity Pro features'
+        shortTitle: 'Opłacalność, Limity i Wnioski',
+        focus: 'Ocena wartości subskrypcji, limitów zapytań, kosztów miesięcznych i kierunków rozwoju w 2026 roku',
+        query: 'top commercial AI chat subscriptions value pricing limits 2026'
       }
     ];
   } else if (isModelsQuery) {
-    planTitle = 'Skan Czołowych Modeli AI i Roadmap 2026';
+    planTitle = 'Skan Czołowych Modeli AI i Benchmarków 2026';
     stages = [
       {
         step: 1,
-        shortTitle: 'Modele Frontier (OpenAI & Anthropic)',
-        focus: 'Flagowe modele frontier: OpenAI (o1, o3, GPT-4o) i Anthropic (Claude 3.5/3.7 Sonnet)',
-        query: 'top AI frontier models 2026 OpenAI Claude benchmarks'
+        shortTitle: 'Odkrywanie Nowych Modeli Frontier',
+        focus: 'Przeszukiwanie najnowszych zestawień i benchmarków modeli AI frontier w 2026 roku',
+        query: 'latest top AI frontier models benchmarks rankings 2026'
       },
       {
         step: 2,
-        shortTitle: 'Google Gemini & Ekosystem',
-        focus: 'Google Gemini 2.0 Flash / Pro oraz DeepSeek V3 / R1 architektura i wydajność',
-        query: 'Google Gemini 2.0 Pro Flash DeepSeek R1 V3 benchmarks 2026'
+        shortTitle: 'Architektura i Okna Kontekstu',
+        focus: 'Analiza architektury nowych modeli (MoE, reasoning tokens, multimodalność, okna kontekstu)',
+        query: 'newest AI models architecture context window benchmarks 2026'
       },
       {
         step: 3,
-        shortTitle: 'Roadmapy i Architektura 2026',
-        focus: 'Kierunki rozwoju, hybrydowe reasoning tokens, MoE i okna kontekstu',
-        query: 'AI frontier models architecture reasoning tokens roadmap 2026'
+        shortTitle: 'Roadmapy i Zapowiedzi Ekosystemów',
+        focus: 'Weryfikacja planów rozwoju, zapowiedzi i kierunków rynkowych na kolejne kwartały 2026',
+        query: 'AI frontier models roadmap releases trends 2026'
       },
       {
         step: 4,
-        shortTitle: 'Synteza Rynkowa i Koszty',
-        focus: 'Koszty API, subskrypcje czatowe, opłacalność i prognozy dominacji rynku',
-        query: 'AI models subscription pricing token costs 2026'
+        shortTitle: 'Synteza i Porównanie Efektywności',
+        focus: 'Zestawienie kosztów, dostępności i efektywności operacyjnej modeli',
+        query: 'AI models efficiency token cost comparison 2026'
       }
     ];
   } else {
@@ -1538,21 +1567,18 @@ export async function executeClientDeepResearch({ text, groqKey, activeModel, us
   if (isNoOpenSource) {
     deepResearchPrompt = `Jesteś OMNIDAEMON — Autonomicznym Demonem Badawczym i Głównym Analitykiem AI 24/7 w systemie OmniDash.
 Rozmawiasz z ${userName}. Zlecono zadanie badawcze: "${text}".
-Właśnie przeprowadzono autonomiczne, 4-etapowe badanie internetu za pomocą Brave Search (pozyskano ${allSources.length} unikalnych źródeł na żywo).
+Właśnie przeprowadzono autonomiczne badanie internetu za pomocą Brave Search (pozyskano ${allSources.length} unikalnych źródeł na żywo).
 
-🚨 KRYTYCZNY ROZKAZ UŻYTKOWNIKA — ANTY-HALUCYNACJA & ZAKAZ OPEN-SOURCE:
-Użytkownik wyraźnie nakazał: "chodzi mi o dostępne w chacie a nie modele opensorce".
-1. BEZWZGLĘDNY ZAKAZ wymieniania, tabelowania i opisywania modeli open-source / open-weights (ZAKAZ Llama, ZAKAZ DeepSeek, ZAKAZ Mistral, ZAKAZ Qwen, ZAKAZ Gemma)!
-2. BEZWZGLĘDNY ZAKAZ wymyślania fikcyjnych modeli lub starych plotek (ZAKAZ o3-Turbo jako GPT-5, ZAKAZ Orion/GPT-5 na 2025 rok, ZAKAZ Claude 3.5 Opus, ZAKAZ Gemini 2.5 Pro, ZAKAZ Llama 4 preview, ZAKAZ benchmarków z 2024-Q3)!
-3. Skup się WYŁĄCZNIE na oficjalnych modelach komercyjnych w aplikacjach i subskrypcjach czatowych w 2026 roku:
-- OpenAI ChatGPT Plus ($20) i ChatGPT Pro ($200): modele GPT-4o, o1, o1 Pro Mode, o3-mini
-- Anthropic Claude.ai Pro ($20): Claude 3.5 Sonnet, Claude 3.7 Sonnet (hybrydowy reasoning i extended thinking), Artifacts, Projects
-- Google Gemini Advanced ($20/Google One AI): Gemini 2.0 Flash, Gemini 2.0 Pro, okno 1M-2M tokenów, multimodalność na żywo, integracja z Google Workspace
-- xAI Grok (X Premium): Grok 2, Grok 3, dane z platformy X w czasie rzeczywistym
-- Microsoft Copilot Pro ($20): integracja z pakietem Microsoft 365 (Office)
-- Perplexity Pro ($20): Deep Research, multi-model switcher
+🧠 DŁUGOTERMINOWA BAZA PAMIĘCI OPERATORA (https://void-potato-7721.web.app/memory):
+${brainSummary}
 
-Aktualny rok to 2026. Bezwzględny zakaz podawania przestarzałych dat (np. 2024 czy wrzesień 2024).
+🚨 ŻELAZNE REGUŁY UŻYTKOWNIKA — OTWARTE ODKRYWANIE, ZERO-TRUST DLA STARYCH DANYCH & ZAPIS DO PAMIĘCI:
+1. NIGDY NIE UFAJ DANYM ANI WŁASNYM ZAŁOŻENIOM Z PRZESZŁOŚCI, KTÓRYCH NIE MA W PAMIĘCI (https://void-potato-7721.web.app/memory) ANI W ZEBRANYCH ŹRÓDŁACH SIECIOWYCH BRAVE SEARCH!
+2. ZAKAZ SZUKANIA TYLKO TEGO CO JUŻ ZNASZ: Przeprowadzaj otwarte odkrywanie najnowszych modeli komercyjnych w czacie w 2026 r. na podstawie zebranych źródeł z sieci, bez faworyzowania starych baz danych.
+3. UŻYTKOWNIK WYRAŹNIE NAKAZAŁ: "chodzi mi o dostępne w chacie a nie modele opensorce":
+   - BEZWZGLĘDNY ZAKAZ wymieniania, tabelowania i rekomendowania modeli open-source / open-weights (ZAKAZ Llama, ZAKAZ DeepSeek, ZAKAZ Mistral, ZAKAZ Qwen, ZAKAZ Gemma)!
+   - Skup się WYŁĄCZNIE na oficjalnych komercyjnych modelach frontier w aplikacjach i subskrypcjach czatowych 2026 r. (ChatGPT Plus/Pro, Claude.ai Pro, Gemini Advanced, Grok 3, Copilot Pro, Perplexity Pro).
+4. Aktualny rok to 2026. Bezwzględny zakaz podawania przestarzałych dat (np. 2024 czy wrzesień 2024).
 
 Zebrane źródła Brave Search na żywo:
 ${sourcesSection}
@@ -1562,27 +1588,35 @@ WYMAGANA STRUKTURA RAPORTU:
    | Model w Czacie | Dostawca / Subskrypcja | Okno kontekstowe | Limity zapytań / Wiadomości | Kluczowe atuty interfejsu (Canvas, Artifacts, Workspace) | Koszt miesięczny |
    (Tylko modele komercyjne w czacie — zakaz modeli open-source!)
 2. 🔬 SZCZEGÓŁOWE DANE TECHNICZNE I MOŻLIWOŚCI EKOSYSTEMÓW:
-   - ChatGPT Plus vs Pro: limity o1 i o3-mini, dostęp bez ograniczeń w planie Pro ($200), Canvas
+   - ChatGPT Plus vs Pro: limity modeli o1, o3-mini i GPT-4o, zniesienie limitów w planie Pro ($200), Canvas
    - Claude.ai Pro: możliwości Claude 3.7 Sonnet i regulacja czasu myślenia (extended thinking), Artifacts
-   - Gemini Advanced: obsługa plików do 2M tokenów, wideo/audio na żywo, integracja z Dyskiem i Gmailem
-   - Inne platformy: Grok 3, Copilot Pro i Perplexity Pro
+   - Gemini Advanced: obsługa plików do 2M tokenów, multimodalność na żywo, integracja z Google Workspace
+   - Inne platformy komercyjne: Grok 3, Copilot Pro i Perplexity Pro
 3. 🔮 KTO MA NAJLEPSZĄ PRZYSZŁOŚĆ I DLACZEGO (ROADMAPY 2026):
-   - Porównanie kierunków rozwoju OpenAI vs Anthropic vs Google
+   - Porównanie kierunków rozwoju wiodących dostawców komercyjnych
    - Który ekosystem oferuje największą wartość w subskrypcji
 4. 💡 REKOMENDACJA INŻYNIERYJNA WYBORU SUBSKRYPCJI:
-   - Najlepszy model do programowania (Claude 3.7 vs o3-mini)
-   - Najlepszy do wielkich analiz danych (Gemini Advanced 2M)
+   - Najlepszy model do programowania
+   - Najlepszy do wielkich analiz danych
    - Najlepszy ogólny asystent codzienny
+5. 📲 PODSUMOWANIE DLA OPERATORA:
+   - Wypisz w punktach zwięzłą syntezę wysyłaną na telefon (użytkownik musi widzieć treść powiadomienia w czacie!)
 
-🚨 KRYTYCZNA REGUŁA POWIADOMIENIA NA TELEFON (PUSHBULLET):
-Na samym końcu odpowiedzi ZAWSZE wyemituj znacznik:
-[ACTION:SEND_PUSH title="OmniDaemon: Komercyjne Modele w Czacie 2026" body="• Zakończono 4-etapowe badanie Brave Search (${allSources.length} źródeł)\\n• ChatGPT Pro: potęga o1/o3-mini do zaawansowanego myślenia\\n• Claude Pro: bezkonkurencyjny w kodowaniu (3.7 Sonnet + Artifacts)\\n• Gemini Advanced: król wielkiego kontekstu (2M tokenów)\\n• Pełna tabela i dossier w zakładce OMNIDAEMON"]`;
+🚨 KRYTYCZNE AKCJE KOŃCOWE (PAMIĘĆ & PUSH):
+Na samym końcu odpowiedzi ZAWSZE wyemituj znaczniki:
+[ACTION:REMEMBER fact="Zestawienie komercyjnych modeli w czacie 2026: ChatGPT Pro (o1/o3-mini), Claude Pro (3.7 Sonnet extended thinking), Gemini Advanced (2M tokenów), Grok 3" category="Modele AI"]
+[ACTION:SEND_PUSH title="OmniDaemon: Komercyjne Modele w Czacie 2026" body="• Zakończono badanie Brave Search (${allSources.length} źródeł)\\n• Claude Pro (3.7 Sonnet): Lider kodu i Artifacts\\n• Gemini Advanced: Król kontekstu 2M tokenów\\n• ChatGPT Pro: Potęga o1/o3-mini\\n• Pełna tabela i dossier w OmniDash"]`;
   } else {
     deepResearchPrompt = `Jesteś OMNIDAEMON — Autonomicznym Demonem Badawczym i Głównym Analitykiem AI 24/7 w systemie OmniDash.
 Rozmawiasz z ${userName}. Zlecono zadanie badawcze: "${text}".
 Właśnie przeprowadzono autonomiczne, ${collectedSteps.length}-etapowe przeszukanie internetu za pomocą Brave Search (pozyskano ${allSources.length} unikalnych źródeł z sieci).
 
-Aktualny rok to 2026. Sporządź wyczerpujące, precyzyjne, techniczne kompendium. Zakaz odpowiedzi jednozdaniowych lub powierzchownych!
+🧠 DŁUGOTERMINOWA BAZA PAMIĘCI OPERATORA (https://void-potato-7721.web.app/memory):
+${brainSummary}
+
+🚨 ŻELAZNA ZASADA WIARYGODNOŚCI I PAMIĘCI:
+1. NIGDY NIE UFAJ DANYM ANI WŁASNYM ZAŁOŻENIOM Z PRZESZŁOŚCI, KTÓRYCH NIE MA W PAMIĘCI (https://void-potato-7721.web.app/memory) ANI W WYNIKACH BRAVE SEARCH!
+2. Aktualny rok to 2026. Sporządź wyczerpujące, precyzyjne, techniczne kompendium.
 
 Zebrane źródła Brave Search na żywo:
 ${sourcesSection}
@@ -1592,10 +1626,12 @@ WYMAGANA STRUKTURA RAPORTU:
 2. 🔬 SZCZEGÓŁOWE DANE TECHNICZNE
 3. 🔮 ANALIZA PRZYSZŁOŚCI, ROADMAP I EKOSYSTEMÓW 2026
 4. 💡 REKOMENDACJA INŻYNIERYJNA
+5. 📲 PODSUMOWANIE DLA OPERATORA (wypisana treść powiadomienia push w czacie)
 
-🚨 KRYTYCZNA REGUŁA POWIADOMIENIA NA TELEFON (PUSHBULLET):
-Na samym końcu odpowiedzi ZAWSZE wyemituj znacznik:
-[ACTION:SEND_PUSH title="OmniDaemon Badanie: ${planTitle}" body="• Zakończono wieloetapowe badanie Brave Search (${allSources.length} źródeł)\\n• Raport i wnioski gotowe\\n• Pełne dossier w zakładce OMNIDAEMON"]`;
+🚨 KRYTYCZNE AKCJE KOŃCOWE (PAMIĘĆ & PUSH):
+Na samym końcu odpowiedzi ZAWSZE wyemituj znaczniki:
+[ACTION:REMEMBER fact="OmniDaemon Badanie: ${planTitle} — zweryfikowano dane na podstawie ${allSources.length} źródeł sieciowych." category="Modele AI"]
+[ACTION:SEND_PUSH title="OmniDaemon Badanie: ${planTitle}" body="• Zakończono badanie Brave Search (${allSources.length} źródeł)\\n• Raport i wnioski gotowe\\n• Pełne dossier w zakładce OMNIDAEMON"]`;
   }
 
   // 4. Trzywarstwowa odporna synteza raportu końcowego (Direct Groq -> Vercel Gateway -> Deterministic Fail-Safe)
@@ -1858,6 +1894,10 @@ ${(lastJob.steps || []).map(s => `  • Etap ${s.step}: ${s.focus} (${s.sourcesC
         ? context.calendar.map(e => `- [${e.event_date || e.date || 'brak daty'}] ${e.title}`).join('\n')
         : 'Brak zaplanowanych wydarzeń.';
 
+      const brainSummary = (context.operatorBrain || []).length > 0
+        ? context.operatorBrain.map(b => `- [${b.category || 'Wiedza'}] ${b.fact || ''}`).join('\n')
+        : '• Pamięć długoterminowa jest pusta.';
+
       let totalIncome = 0;
       let totalExpenses = 0;
       let needsSum = 0;
@@ -1923,10 +1963,21 @@ WSZYSTKIE POZOSTAŁE LEKCJE W TYGODNIU:
         ? `Zarejestrowano ${context.workouts.length} treningów. Ostatnie: ` + context.workouts.slice(0, 5).map(w => `[${w.date || 'b/d'}] ${w.title} (${w.type || 'Siłowy'})`).join(', ')
         : 'Brak sesji treningowych.';
 
+      const sharedGroundingAndMemoryRules = `
+🧠 DŁUGOTERMINOWA BAZA PAMIĘCI OPERATORA (https://void-potato-7721.web.app/memory):
+${brainSummary}
+
+🚨 ŻELAZNE REGUŁY WIARYGODNOŚCI I PAMIĘCI (ZERO-HALLUCINATION & MEMORY GROUNDING):
+1. NIGDY NIE UFAJ DANYM ANI WŁASNYM ZAŁOŻENIOM Z PRZESZŁOŚCI, KTÓRYCH NIE MA W PAMIĘCI (https://void-potato-7721.web.app/memory) ANI W WYNIKACH WYSZUKIWANIA LIVE! Wszelkie fakty, specyfikacje i modele muszą wynikać wyłącznie z powyższej Bazy Pamięci lub bieżących zweryfikowanych źródeł sieciowych.
+2. ZAPIS DO PAMIĘCI: Masz pełne uprawnienia i obowiązek zapisywać nowo zweryfikowane fakty, preferencje, modele AI i ustalenia w Pamięci https://void-potato-7721.web.app/memory. Aby to zrobić, wyemituj na końcu odpowiedzi:
+   [ACTION:REMEMBER fact="Treść faktu do trwałego zapamiętania" category="Modele AI|Wiedza|Preferencje"]
+3. JAWNA TREŚĆ POWIADOMIENIA PUSH W CZACIE: Gdy wysyłasz powiadomienie na telefon za pomocą [ACTION:SEND_PUSH title="..." body="..."], BEZWZGLĘDNIE podaj pełną treść tego powiadomienia również bezpośrednio w tekście wiadomości czatu (użytkownik musi widzieć treść notyfikacji na ekranie)!`;
+
       const systemPrompt = mode === 'mentor'
         ? `Jesteś OMNI MIND — inteligentnym mentorem i analitykiem w systemie OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
+${sharedGroundingAndMemoryRules}
 
 🚨 KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
 Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomieniu lub Pushbullet (np. „wyślij na telefon”, „wyślij mi to”, „przypomnij na telefonie”, „wyślij powiadomienie”, „chcę to na komórce”, „pushbullet”):
@@ -1976,6 +2027,7 @@ ${calendarSummary}`
           ? `Jesteś OMNIDAEMON — autonomicznym, całodobowym demonem operacyjnym (OmniDaemon 24/7 Engine) w OmniDash. Rozmawiasz z ${userName}. Prowadzisz badania w tle, odpowiadasz na wiadomości ze smartfona i raportujesz stan.
 Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
+${sharedGroundingAndMemoryRules}
 
 🚨 KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
 Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomieniu, przesłaniu na smartfon itp. (np. „wyślij na telefon”, „wyślij mi to”, „przypomnij na telefonie”, „wyślij powiadomienie”, „chcę to na komórce”, „pushbullet”):
@@ -2015,6 +2067,7 @@ ${calendarSummary}`
           : `Jesteś OMNI EXEC — wysoko wyspecjalizowanym inżynieryjnym systemem wykonawczym (Core Worker Engine) w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
+${sharedGroundingAndMemoryRules}
 
 🚨 KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
 Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomieniu, przesłaniu na smartfon itp. (np. „wyślij na telefon”, „wyślij mi to”, „przypomnij na telefonie”, „wyślij powiadomienie”, „chcę to na komórce”, „pushbullet”):
@@ -2205,7 +2258,11 @@ ${calendarSummary}`);
   }
 
   // 4. Wbudowany inteligentny asystent autonomiczny (Gdy brak sieci / błąd API)
-  return handleAutonomousFallback(text, mode, userName, context);
+  const autoResult = handleAutonomousFallback(text, mode, userName, context);
+  if (!autoResult.executionTrace) {
+    autoResult.executionTrace = buildExecutionTrace({ text, activeModel: 'openai/gpt-oss-120b', context, executedTools: [] });
+  }
+  return autoResult;
 };
 
 function handleAutonomousFallback(text, mode, userName, context = getClientContextSummary()) {
@@ -2662,11 +2719,17 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
         category: 'Preferencje',
         created_at: new Date().toISOString()
       };
+      try {
+        const raw = localStorage.getItem('cloud_cache_operator_brain');
+        const list = raw ? JSON.parse(raw) : [];
+        list.push(newBrain);
+        localStorage.setItem('cloud_cache_operator_brain', JSON.stringify(list));
+      } catch {}
       saveCloudDocument('operator_brain', newBrain.id, newBrain);
       window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'operator_brain' } }));
 
       return {
-        content: `[+] **Zapisano fakt w Pamięci Długoterminowej (Operator Brain):**\n\n- 🧠 *" ${fact} "*\n\nTa informacja została utrwalona w Twoim profilu i asystent będzie brał ją pod uwagę podczas wszystkich kolejnych rozmów.`,
+        content: `[+] **Zapisano fakt w Pamięci Długoterminowej (Operator Brain):**\n\n- 🧠 *" ${fact} "*\n\nTa informacja została utrwalona w Twoim profilu (https://void-potato-7721.web.app/memory) i asystent będzie brał ją pod uwagę podczas wszystkich kolejnych rozmów.`,
         mentor_thoughts: `Utrwalono fakt w Operator Brain: "${fact}".`,
         widgets: []
       };

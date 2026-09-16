@@ -623,7 +623,8 @@ export const saveCloudDocument = async (collectionName, docId, data) => {
   // 2. Propagacja do Cloud Firestore (Cloud-First)
   if (firestore) {
     try {
-      await setDoc(doc(firestore, collectionName, idStr), itemToSave, { merge: true });
+      const sanitizedItem = JSON.parse(JSON.stringify(itemToSave));
+      await setDoc(doc(firestore, collectionName, idStr), sanitizedItem, { merge: true });
     } catch (e) {
       console.warn(`[CloudSync] Błąd zapisu do chmury Firestore (${collectionName}/${idStr}):`, e.message);
     }

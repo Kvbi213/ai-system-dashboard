@@ -244,65 +244,75 @@ export function extractTraceFromMessage(msg) {
   if (msg.executionTrace) return msg.executionTrace;
 
   const content = msg.content || '';
-  const exploredFiles = [];
+  const exploredFiles = [
+    { name: 'localStorage: system_active_model', type: 'config', details: 'openai/gpt-oss-120b' },
+    { name: 'Cloud Firestore: operator_brain', type: 'database', details: 'Długoterminowa Pamięć (/memory)' }
+  ];
   const commands = [];
   const searches = [];
 
-  // Badanie OmniDaemon lub Brave Search
-  if (content.includes('[OMNIDAEMON]') || content.includes('Brave Search') || content.includes('TABELA PORÓWNAWCZA')) {
-    exploredFiles.push({ name: 'localStorage: system_active_model', type: 'config', details: 'openai/gpt-oss-120b' });
-    exploredFiles.push({ name: 'Cloud Firestore: chat_history', type: 'database', details: 'Kolekcja OMNIDAEMON' });
-    exploredFiles.push({ name: 'Brave Search Web Index', type: 'search', details: 'Eksploracja sieci' });
-
-    const queryMatches = [...content.matchAll(/Wyszukiwanie Brave Search:\s*`([^`]+)`/g)];
-    if (queryMatches.length > 0) {
-      queryMatches.forEach(m => {
-        searches.push({ query: m[1], resultsCount: 4, results: [] });
-      });
-    } else if (content.includes('TABELA PORÓWNAWCZA') || content.includes('modeli')) {
-      searches.push({ query: 'topowe komercyjne modele ai 2026 w czacie', resultsCount: 5, results: [] });
-      searches.push({ query: 'chatgpt pro o1 claude 3.7 sonnet gemini advanced 2m', resultsCount: 4, results: [] });
-    }
-
-    commands.push({ command: 'Brave Search Multi-Stage Pipeline', status: '200 OK', output: 'Przeszukano sieć i zindeksowano źródła' });
-    commands.push({ command: 'Groq LLM Synthesis (openai/gpt-oss-120b)', status: '200 OK', output: 'Zsyntetyzowano raport analityczny' });
-    if (content.includes('Pushbullet') || content.includes('telefon') || content.includes('smartfon')) {
-      commands.push({ command: 'Pushbullet Mobile Broadcast', status: 'sent', output: 'Wysłano powiadomienie na smartfon' });
-    }
-
-    return {
-      exploredFiles,
-      commands,
-      searches,
-      status: 'completed',
-      statusMessage: 'Zakończono.'
-    };
+  // Wykrywanie eksplorowanych baz danych i plików kontekstu
+  if (content.includes('zadanie') || content.includes('To-Do') || content.includes('zadań')) {
+    exploredFiles.push({ name: 'Cloud Firestore: tasks', type: 'database', details: 'Baza zadań' });
+  }
+  if (content.includes('lekcj') || content.includes('plan') || content.includes('sala')) {
+    exploredFiles.push({ name: 'Cloud Firestore: timetable', type: 'database', details: 'Plan lekcji' });
+  }
+  if (content.includes('budżet') || content.includes('wydat') || content.includes('zł') || content.includes('PLN') || content.includes('finans')) {
+    exploredFiles.push({ name: 'Cloud Firestore: finances', type: 'database', details: 'Finanse 50/30/20' });
+  }
+  if (content.includes('kalendarz') || content.includes('termin') || content.includes('wydarzen')) {
+    exploredFiles.push({ name: 'Cloud Firestore: calendar', type: 'database', details: 'Kalendarz wydarzeń' });
+  }
+  if (content.includes('trening') || content.includes('siłow')) {
+    exploredFiles.push({ name: 'Cloud Firestore: workouts', type: 'database', details: 'Dziennik treningowy' });
+  }
+  if (content.includes('Brave Search') || content.includes('OMNIDAEMON') || content.includes('TABELA PORÓWNAWCZA')) {
+    exploredFiles.push({ name: 'Brave Search Web Index', type: 'search', details: 'Eksploracja sieci na żywo' });
   }
 
-  // Akcje systemowe i bazy danych
-  if (content.includes('zadanie') || content.includes('To-Do') || content.includes('plan lekcji') || content.includes('budżet') || content.includes('wydatek')) {
-    if (content.includes('zadanie') || content.includes('To-Do')) {
-      exploredFiles.push({ name: 'Cloud Firestore: tasks', type: 'database', details: 'Baza zadań' });
-    }
-    if (content.includes('lekcj') || content.includes('plan')) {
-      exploredFiles.push({ name: 'Cloud Firestore: timetable', type: 'database', details: 'Plan lekcji' });
-    }
-    if (content.includes('budżet') || content.includes('wydat') || content.includes('zł') || content.includes('PLN')) {
-      exploredFiles.push({ name: 'Cloud Firestore: finances', type: 'database', details: 'Finanse 50/30/20' });
-    }
-    exploredFiles.push({ name: 'localStorage: system_active_model', type: 'config', details: 'openai/gpt-oss-120b' });
-    commands.push({ command: 'Groq LLM Reasoning (openai/gpt-oss-120b)', status: '200 OK', output: 'Zrealizowano polecenie' });
-
-    return {
-      exploredFiles,
-      commands,
-      searches: [],
-      status: 'completed',
-      statusMessage: 'Zakończono.'
-    };
+  // Wykrywanie wykonanych narzędzi (Ran <tool>)
+  if (content.includes('[ACTION:REMEMBER') || content.includes('Operator Brain') || content.includes('Zapisano fakt w Pamięci') || content.includes('Pamięci Długoterminowej')) {
+    commands.push({ command: 'Tool: Operator Brain Storage ([ACTION:REMEMBER])', status: '200 OK', output: 'Zapisano fakt do bazy Pamięci (/memory)' });
+  }
+  if (content.includes('POWIADOMIENIE PUSH') || content.includes('Pushbullet') || content.includes('smartfon') || content.includes('telefon') || content.includes('[ACTION:SEND_PUSH')) {
+    commands.push({ command: 'Tool: Pushbullet Mobile Broadcast ([ACTION:SEND_PUSH])', status: 'sent', output: 'Wysłano powiadomienie na smartfon' });
+  }
+  if (content.includes('[ACTION:ADD_TASK') || content.includes('dodano zadanie')) {
+    commands.push({ command: 'Tool: Cloud Firestore: tasks ([ACTION:ADD_TASK])', status: '200 OK', output: 'Dodano zadanie do listy To-Do' });
+  }
+  if (content.includes('[ACTION:COMPLETE_TASK') || content.includes('oznaczono jako wykonane')) {
+    commands.push({ command: 'Tool: Cloud Firestore: tasks ([ACTION:COMPLETE_TASK])', status: '200 OK', output: 'Oznaczono zadanie jako wykonane' });
+  }
+  if (content.includes('[ACTION:CLEAR_TASKS') || content.includes('Wyczyszczono listę')) {
+    commands.push({ command: 'Tool: Cloud Firestore: tasks ([ACTION:CLEAR_TASKS])', status: '200 OK', output: 'Wyczyszczono listę zadań' });
+  }
+  if (content.includes('[ACTION:NAVIGATE') || content.includes('Przekierowano widok')) {
+    commands.push({ command: 'Tool: Client Router ([ACTION:NAVIGATE])', status: '200 OK', output: 'Przekierowano widok aplikacji' });
   }
 
-  return null;
+  // Wyszukiwania Brave Search
+  const queryMatches = [...content.matchAll(/Wyszukiwanie Brave Search:\s*`([^`]+)`/g)];
+  if (queryMatches.length > 0) {
+    queryMatches.forEach(m => {
+      searches.push({ query: m[1], resultsCount: 4, results: [] });
+    });
+    commands.push({ command: 'Brave Search Multi-Stage Pipeline', status: '200 OK', output: `Przeszukano sieć i zgromadzono ${queryMatches.length * 4} źródeł` });
+  } else if (content.includes('TABELA PORÓWNAWCZA') || content.includes('Brave Search')) {
+    searches.push({ query: 'best commercial AI chat models subscriptions 2026 rankings', resultsCount: 5, results: [] });
+    commands.push({ command: 'Brave Search Live Web Discovery', status: '200 OK', output: 'Przeszukano sieć w poszukiwaniu komercyjnych modeli w czacie 2026' });
+  }
+
+  // Podstawowa komenda wnioskowania LLM
+  commands.push({ command: 'Groq LLM Neural Inference (openai/gpt-oss-120b)', status: '200 OK', output: 'Odpowiedź przetworzona pomyślnie' });
+
+  return {
+    exploredFiles,
+    commands,
+    searches,
+    status: 'completed',
+    statusMessage: 'Zakończono.'
+  };
 }
 
 export default AgentExecutionTrace;

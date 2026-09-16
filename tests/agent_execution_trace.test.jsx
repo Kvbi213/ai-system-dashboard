@@ -111,4 +111,18 @@ describe('AgentExecutionTrace Component & Helper Logic Suite', () => {
     expect(trace.commands.some(c => c.command.includes('[ACTION:ADD_TASK'))).toBe(true);
     expect(trace.status).toBe('completed');
   });
+
+  it('should include operator_brain and REMEMBER / SEND_PUSH tools in extractTraceFromMessage', () => {
+    const msg = {
+      role: 'ai',
+      content: 'Zapisano fakt w Pamięci Długoterminowej (Operator Brain): "Model o3-mini jest szybki".\n[ACTION:SEND_PUSH title="Test Push" body="Raport gotowy"]'
+    };
+
+    const trace = extractTraceFromMessage(msg);
+    expect(trace).not.toBeNull();
+    expect(trace.exploredFiles.some(f => f.name.includes('operator_brain'))).toBe(true);
+    expect(trace.commands.some(c => c.command.includes('Operator Brain') || c.command.includes('REMEMBER'))).toBe(true);
+    expect(trace.commands.some(c => c.command.includes('Pushbullet'))).toBe(true);
+  });
 });
+
