@@ -259,7 +259,8 @@ describe('Pushbullet Financial Notification Classifier', () => {
 
     it('powinien automatycznie uzupełnić uciętą/pustą treść powiadomienia o lekcji właściwą najbliższą lekcją', () => {
       const brokenAiOutput = 'Następna lekcja: ".';
-      const details = extractPushDetails('wyślij mi informację o następnej lekcji na telefon', brokenAiOutput, sampleTimetable);
+      const wednesdayMorning = new Date('2026-09-16T08:00:00.000Z');
+      const details = extractPushDetails('wyślij mi informację o następnej lekcji na telefon', brokenAiOutput, sampleTimetable, wednesdayMorning);
 
       expect(details.title).toBe('OmniDash: Następna lekcja');
       expect(details.body).not.toBe('Następna lekcja: ".');

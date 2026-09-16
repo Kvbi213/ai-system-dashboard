@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { generateHourlySummary } from './agent.js';
 import { executeRun, executeQuery } from './database.js';
+import { runNextAgentStep } from './services/autonomousAgent.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -178,14 +179,28 @@ function tickCalendarReminders() {
 export async function runScheduler() {
   console.log('[*] INFO: Inicjalizacja zaawansowanego schedulera...');
 
-  // Za�aduj joby cykliczne z bazy
+  // Zaaduj joby cykliczne z bazy
   await loadRecurringJobs();
   await loadCalendarReminders();
 
-  // Minutowy tick dla cyklicznych job�w
+  // Minutowy tick dla cyklicznych jobw
   setInterval(() => { tickRecurringJobs(); tickCalendarReminders(); }, 60000);
 
-  // Co 30 minut od�wie� kolejk� z bazy (odbiera nowe zadania dodane przez agenta)
+  // 30-sekundowy tick dla ciągłej pracy autonomicznego agenta (OmniDaemon)
+  let isAgentStepRunning = false;
+  setInterval(async () => {
+    if (isAgentStepRunning) return;
+    try {
+      isAgentStepRunning = true;
+      await runNextAgentStep();
+    } catch (agentErr) {
+      logError('autonomousAgent:tick', agentErr);
+    } finally {
+      isAgentStepRunning = false;
+    }
+  }, 30000);
+
+  // Co 30 minut odwie kolejk z bazy (odbiera nowe zadania dodane przez agenta)
   setInterval(() => { loadRecurringJobs(); loadCalendarReminders(); }, 30 * 60 * 1000);
 
   // Godzinne podsumowanie pogodowe

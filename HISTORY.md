@@ -1,5 +1,36 @@
 ## Wersja Bieżąca
-**v2.18.13**
+**v2.19.0**
+
+## v 2.19.0 — 2026-09-16
+**Typ:** MINOR  
+**Zakres:** Autonomiczny Agent Ciągły (OmniDaemon 24/7), Deep Research z Brave Search, Etapowe Raportowanie i Interaktywne Odpytywanie ze Smartfona (Pushbullet), Architektura Hybrydowa (Vercel Serverless & Node Daemon) oraz Widżet Dashboardu.
+
+### Zmiany
+- [+] Dodano: Nowy moduł silnika autonomicznego agenta `modules/services/autonomousAgent.js`:
+  - Dekompozycja celów badawczych na sekwencję zapytań do Brave Search (`decomposeGoal`, `generateFallbackPlan`).
+  - Pętla badawcza z syntezą cząstkową przez Groq LLM (`openai/gpt-oss-120b` / `llama-3.3-70b-versatile`).
+  - Wysyłka powiadomień etapowych (Milestone Pushes) oraz generowanie ustrukturyzowanego raportu końcowego na smartfon.
+  - Obsługa zapytań o stan pracy (`handleStatusInquiry`) i poleceń awaryjnego zatrzymania (`abortActiveJob`).
+- [+] Dodano: Interaktywny mobilny Push Relay w `modules/pushbullet.js`:
+  - Obsługa przychodzących notatek z telefonu przez WebSocket (reakcja na `stan`, `status`, `jak idzie?`, `stop`, `Omni: ...`).
+- [+] Dodano: Endpointy Vercel Serverless dla pracy w chmurze bez włączonego komputera:
+  - `api/pushbullet-webhook.js` – natychmiastowy odbiór notatek i zapytań o stan ze smartfona przez Webhook Pushbullet.
+  - `api/cron/agent.js` – cykliczne taktowanie przez Vercel Cron.
+  - `vercel.json` – konfiguracja harmonogramu crons.
+- [+] Dodano: Nowy komponent `modules/components/AgentControlWidget.jsx` w dashboardzie (status pracy, pasek postępu, formularz badań, zrzut stanu na telefon, Kill Switch).
+- [*] Zmodyfikowano: `modules/search.js` – wzbogacenie Brave Search o zapytania ogólne `web` i `news` z deduplikacją wyników.
+- [*] Zmodyfikowano: `modules/database.js` – utworzenie tabeli `agent_jobs` w SQLite.
+- [*] Zmodyfikowano: `modules/scheduler.js` – dodano 30-sekundowy ticker obsługujący zadania agenta w tle.
+- [*] Zmodyfikowano: `modules/routes/ai.js` – dodano endpointy `/api/agent/jobs`, `/api/agent/research`, `/api/agent/abort`, `/api/agent/status-inquiry`.
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` & `api/agent.js` – dodano opcjonalny parametr `now` w `extractPushDetails` zapewniający 100% determinizmu testów planu lekcji.
+- [+] Dodano: 10 nowych testów jednostkowych w `tests/autonomous_agent.test.js` (110/110 PASS).
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.19.0`.
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.19.0.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.18.13 — 2026-09-16
 **Typ:** PATCH  

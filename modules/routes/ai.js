@@ -7,6 +7,8 @@ import { processUserIntent, MODEL_FALLBACK_CHAIN, transcribeAudio } from '../age
 import { logError } from '../scheduler.js';
 import { apiLimiter } from './middleware.js';
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
+import { getActiveJob, createAgentJob, abortActiveJob, handleStatusInquiry, runFullResearchJob } from '../services/autonomousAgent.js';
+import { executeQuery } from '../database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -206,6 +208,48 @@ router.post('/models/active', (req, res) => {
   }
   
   res.json({ success: true, activeModel: MODEL_FALLBACK_CHAIN[0], fallbackChain: MODEL_FALLBACK_CHAIN });
+});
+
+// Endpointy Autonomicznego Agenta Badawczego (OmniDaemon)
+router.get('/agent/jobs', async (req, res) => {
+  try {
+    const jobs = await executeQuery('SELECT * FROM agent_jobs ORDER BY id DESC LIMIT 10');
+    const active = await getActiveJob();
+    res.json({ active, jobs });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/agent/research', async (req, res) => {
+  const { goal, priority, notify_mode } = req.body;
+  if (!goal) return res.status(400).json({ error: 'Wymagany parametr goal.' });
+  try {
+    runFullResearchJob(goal, { priority, notify_mode }).catch(err => {
+      console.error('[!] Błąd zadania badawczego:', err);
+    });
+    res.json({ success: true, message: `Rozpoczęto badanie w tle: "${goal}"` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/agent/abort', async (req, res) => {
+  try {
+    const result = await abortActiveJob();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/agent/status-inquiry', async (req, res) => {
+  try {
+    const result = await handleStatusInquiry();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;

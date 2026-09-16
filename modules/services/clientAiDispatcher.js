@@ -426,7 +426,7 @@ export function parseAttributes(rawAttrs) {
   return attrs;
 }
 
-export function extractPushDetails(userQuery, aiText, timetable = []) {
+export function extractPushDetails(userQuery, aiText, timetable = [], now = new Date()) {
   let title = 'OmniDash Powiadomienie';
   const q = (userQuery || '').toLowerCase();
   const isNextLessonQuery = q.includes('następn') || q.includes('kolejn') || q.includes('najbliższ');
@@ -478,7 +478,7 @@ export function extractPushDetails(userQuery, aiText, timetable = []) {
     }
 
     if (ttList.length > 0) {
-      const ttCtx = getTimetableContext(ttList, new Date());
+      const ttCtx = getTimetableContext(ttList, now);
       if (isNextLessonQuery && ttCtx.nextLessonOverall) {
         cleanBody = ttCtx.formatLessonLine(ttCtx.nextLessonOverall);
       } else if (ttCtx.todayLessons.length > 0) {

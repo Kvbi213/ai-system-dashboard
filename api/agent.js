@@ -191,7 +191,7 @@ export function formatPushText(text) {
   return formatted.join('\n');
 }
 
-export function extractPushDetails(userQuery, aiText, timetable = []) {
+export function extractPushDetails(userQuery, aiText, timetable = [], now = new Date()) {
   let title = 'OmniDash Powiadomienie';
   const q = (userQuery || '').toLowerCase();
   const isNextLessonQuery = q.includes('następn') || q.includes('kolejn') || q.includes('najbliższ');
@@ -232,12 +232,12 @@ export function extractPushDetails(userQuery, aiText, timetable = []) {
   const isBodyBroken = !cleanBody || cleanBody.length < 5 || /^[^a-zA-Z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]*$/.test(cleanBody) || cleanBody.includes('""') || cleanBody.includes('„”');
   if (isLessonQuery && (isBodyBroken || isNextLessonQuery) && Array.isArray(timetable) && timetable.length > 0) {
     const timeZone = 'Europe/Warsaw';
-    const now = new Date();
+    const effectiveNow = now || new Date();
     const dayNamesPl = { 1: 'poniedziałek', 2: 'wtorek', 3: 'środa', 4: 'czwartek', 5: 'piątek', 6: 'sobota', 0: 'niedziela' };
     const dayIdMap = { 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday', 0: 'sunday' };
     const plDaysOrder = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota'];
-    const warsawDayNameLong = new Intl.DateTimeFormat('pl-PL', { timeZone, weekday: 'long' }).format(now).toLowerCase();
-    const todayDayIndex = plDaysOrder.indexOf(warsawDayNameLong) !== -1 ? plDaysOrder.indexOf(warsawDayNameLong) : now.getDay();
+    const warsawDayNameLong = new Intl.DateTimeFormat('pl-PL', { timeZone, weekday: 'long' }).format(effectiveNow).toLowerCase();
+    const todayDayIndex = plDaysOrder.indexOf(warsawDayNameLong) !== -1 ? plDaysOrder.indexOf(warsawDayNameLong) : effectiveNow.getDay();
     const todayDayId = dayIdMap[todayDayIndex];
     const todayDayName = dayNamesPl[todayDayIndex];
     const currentTimeStr = now.toLocaleTimeString('pl-PL', { timeZone, hour: '2-digit', minute: '2-digit' });

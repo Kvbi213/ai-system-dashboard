@@ -8,6 +8,16 @@ import {
   formatExpenseConfirmation
 } from './services/pushbulletClassifier.js';
 import { formatPushText } from './services/pushbulletService.js';
+import {
+  isStatusInquiry,
+  isAbortCommand,
+  extractTaskFromPhone,
+  handleStatusInquiry,
+  abortActiveJob,
+  runFullResearchJob
+} from './services/autonomousAgent.js';
+
+let lastProcessedPushId = null;
 
 export function startPushbulletListener() {
   const API_KEY = process.env.PUSHBULLET_API_KEY;
@@ -28,15 +38,81 @@ export function startPushbulletListener() {
     try {
       const message = JSON.parse(data);
       
-      // "tickle" oznacza zmianę stanu na telefonie. "push" niesie treść powiadomienia
+      // 1. Sprawdzenie zmiany stanu pushy (nowa notatka od użytkownika)
+      if (message.type === 'tickle' && message.subtype === 'push') {
+        try {
+          const pushesRes = await fetch('https://api.pushbullet.com/v2/pushes?limit=1', {
+            headers: { 'Access-Token': API_KEY }
+          });
+          if (pushesRes.ok) {
+            const pushData = await pushesRes.json();
+            const latestPush = pushData.pushes?.[0];
+            if (latestPush && latestPush.iden !== lastProcessedPushId && latestPush.type === 'note') {
+              lastProcessedPushId = latestPush.iden;
+              const content = `${latestPush.title || ''} ${latestPush.body || ''}`.trim();
+              console.log(`[*] PUSHBULLET: Odebrano bezpośrednią notatkę od operatora: "${content}"`);
+              
+              if (isStatusInquiry(content)) {
+                await handleStatusInquiry();
+                return;
+              } else if (isAbortCommand(content)) {
+                await abortActiveJob();
+                return;
+              } else {
+                const task = extractTaskFromPhone(content);
+                if (task) {
+                  runFullResearchJob(task).catch(err => console.error('[!] Błąd zadania agenta:', err));
+                  return;
+                }
+              }
+            }
+          }
+        } catch (tickleErr) {
+          console.warn('[!] PUSHBULLET: Błąd sprawdzania tickle:', tickleErr.message);
+        }
+      }
+
+      // 2. "push" niesie treść powiadomienia
       if (message.type === 'push' && message.push) {
         const pushObj = message.push;
+
+        // Bezpośrednia notatka z konta
+        if (pushObj.type === 'note') {
+          const content = `${pushObj.title || ''} ${pushObj.body || ''}`.trim();
+          console.log(`[*] PUSHBULLET: Bezpośrednia notatka push: "${content}"`);
+          if (isStatusInquiry(content)) {
+            await handleStatusInquiry();
+            return;
+          } else if (isAbortCommand(content)) {
+            await abortActiveJob();
+            return;
+          } else {
+            const task = extractTaskFromPhone(content);
+            if (task) {
+              runFullResearchJob(task).catch(err => console.error('[!] Błąd zadania agenta:', err));
+              return;
+            }
+          }
+        }
         
         // Czyste powiadomienie z telefonu nosi typ 'mirror'
         if (pushObj.type === 'mirror') {
           const appName = pushObj.application_name || 'System';
           const title = pushObj.title || 'Brak tytułu';
           const body = pushObj.body || '';
+
+          // Reakcja na komendy w powiadomieniach (np. SMS od siebie)
+          const mirrorText = `${title} ${body}`.trim();
+          if (isStatusInquiry(mirrorText)) {
+            await handleStatusInquiry();
+          } else if (isAbortCommand(mirrorText)) {
+            await abortActiveJob();
+          } else {
+            const phoneTask = extractTaskFromPhone(mirrorText);
+            if (phoneTask) {
+              runFullResearchJob(phoneTask).catch(err => console.error('[!] Błąd zadania agenta:', err));
+            }
+          }
 
           // 1. Zapisanie surowego powiadomienia do lokalnej bazy
           await executeRun(

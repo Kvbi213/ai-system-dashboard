@@ -7,6 +7,7 @@ import TodoList from '../components/TodoList';
 import ITNewsTicker from '../components/ITNewsTicker';
 import NewsFeed from '../components/NewsFeed';
 import RoutinesWidget from '../components/RoutinesWidget';
+import AgentControlWidget from '../components/AgentControlWidget';
 
 const Dashboard = () => {
   const { t, i18n } = useTranslation();
@@ -65,6 +66,11 @@ const Dashboard = () => {
 
       {/* Main Grid */}
       <main className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 sm:gap-6 flex-1 overflow-y-auto p-1 min-h-0">
+        {/* OmniDaemon 24/7 Agent */}
+        <div className="lg:col-span-1 opacity-0 animate-soft-enter" style={{ animationDelay: '80ms' }}>
+          <AgentControlWidget />
+        </div>
+
         {/* Todo */}
         <div id="tour-todo" className="lg:col-span-1 lg:row-span-2 min-h-[350px] sm:min-h-[400px] opacity-0 animate-soft-enter" style={{ animationDelay: '100ms' }}>
           <TodoList />

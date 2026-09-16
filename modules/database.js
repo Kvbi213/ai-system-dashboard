@@ -137,6 +137,26 @@ export const initDB = () => {
           )
         `);
 
+        db.run(`
+          CREATE TABLE IF NOT EXISTS agent_jobs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            goal TEXT NOT NULL,
+            status TEXT DEFAULT 'queued',
+            priority TEXT DEFAULT 'MEDIUM',
+            current_step TEXT,
+            progress_percent INTEGER DEFAULT 0,
+            iteration_count INTEGER DEFAULT 0,
+            max_iterations INTEGER DEFAULT 10,
+            milestones_notified INTEGER DEFAULT 0,
+            result_summary TEXT,
+            execution_log TEXT,
+            notify_mode TEXT DEFAULT 'milestones',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            completed_at DATETIME
+          )
+        `);
+
         console.log('[+] Zapewniono istnienie struktur bazy danych.');
         resolve();
       } catch (err) {
