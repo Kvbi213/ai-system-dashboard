@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.19.9 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.20.0 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE)  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Inspekcja Limitu Znaków ElevenLabs checkElevenLabsQuota, Monitor Zużycia i Alert w Ustawieniach oraz Terminalu, 1-Klikowe Przełączenie na Microsoft Edge Neural Studio, Vitest 131/131 PASS)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Chirurgiczna Redukcja Web Speech API, Wdrożenie Google Cloud Neural Text-to-Speech API 1 Mln Znaków/mc Free Tier, Studyjny Fallback ElevenLabs -> Google -> Edge, Vitest PASS)
 
 ---
 

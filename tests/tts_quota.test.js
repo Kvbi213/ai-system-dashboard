@@ -1,12 +1,24 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { checkElevenLabsQuota, ttsService, ELEVENLABS_DEFAULT_VOICES } from '../modules/services/ttsService.js';
+import { checkElevenLabsQuota, ttsService, ELEVENLABS_DEFAULT_VOICES, GOOGLE_DEFAULT_VOICES } from '../modules/services/ttsService.js';
+
+const localStorageMock = (() => {
+  let store = {};
+  return {
+    getItem: (key) => store[key] || null,
+    setItem: (key, value) => { store[key] = value.toString(); },
+    removeItem: (key) => { delete store[key]; },
+    clear: () => { store = {}; }
+  };
+})();
+global.localStorage = localStorageMock;
+if (typeof window !== 'undefined') {
+  window.localStorage = localStorageMock;
+}
 
 describe('TTS Service & ElevenLabs Quota Management', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    if (typeof localStorage !== 'undefined') {
-      localStorage.clear();
-    }
+    localStorageMock.clear();
   });
 
   afterEach(() => {
@@ -123,4 +135,48 @@ describe('TTS Service & ElevenLabs Quota Management', () => {
       expect(ELEVENLABS_DEFAULT_VOICES.length).toBe(21);
     });
   });
+
+  describe('4. Google Cloud Neural TTS & Eliminacja Web Speech', () => {
+    it('całkowicie usuwa speakWithWebSpeech z obiektu ttsService', () => {
+      expect(ttsService.speakWithWebSpeech).toBeUndefined();
+    });
+
+    it('migruje silnik web na bezpieczny domyślny silnik studyjny', () => {
+      localStorage.setItem('system_tts_engine', 'web');
+      expect(ttsService.getEngine()).not.toBe('web');
+      expect(['edge', 'elevenlabs', 'google']).toContain(ttsService.getEngine());
+    });
+
+    it('zawiera zweryfikowane głosy Google WaveNet i Neural2', () => {
+      const voiceIds = GOOGLE_DEFAULT_VOICES.map(v => v.id);
+      expect(voiceIds).toContain('pl-PL-Wavenet-B');
+      expect(voiceIds).toContain('pl-PL-Neural2-A');
+      expect(voiceIds).toContain('en-US-Journey-D');
+      expect(GOOGLE_DEFAULT_VOICES.length).toBeGreaterThanOrEqual(5);
+    });
+
+    it('speakWithGoogle poprawnie wykonuje bezpośrednie zapytanie REST do Google Cloud TTS', async () => {
+      const mockBase64Mp3 = 'SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA';
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ audioContent: mockBase64Mp3 }),
+        headers: { get: () => 'application/json' }
+      });
+
+      // Mock playAudioBlob aby nie uruchamiać HTML5 Audio w jsdom
+      const playBlobSpy = vi.spyOn(ttsService, 'playAudioBlob').mockResolvedValue();
+
+      await ttsService.speakWithGoogle('Test mowy Google Cloud', 'AIzaSy_mock_key', 'pl-PL-Wavenet-B', {});
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('https://texttospeech.googleapis.com/v1/text:synthesize?key=AIzaSy_mock_key'),
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('"name":"pl-PL-Wavenet-B"')
+        })
+      );
+      expect(playBlobSpy).toHaveBeenCalled();
+    });
+  });
 });
+

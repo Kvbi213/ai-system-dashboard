@@ -109,6 +109,8 @@ const filesToSync = [
   'docs/versions/v2.18.3.md',
   'docs/versions/v2.18.4.md',
   'docs/versions/v2.18.5.md',
+  'docs/versions/v2.19.9.md',
+  'docs/versions/v2.20.0.md',
   'index.html',
   'firebase.json',
   'modules/pages/LockScreen.jsx',
@@ -117,7 +119,8 @@ const filesToSync = [
   'modules/services/wakeWordService.js',
   'modules/services/ttsService.js',
   'api/voice/tts.js',
-  'tests/wakeword.test.js'
+  'tests/wakeword.test.js',
+  'tests/tts_quota.test.js'
 ];
 
 filesToSync.forEach(relPath => {

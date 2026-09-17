@@ -1,5 +1,27 @@
 ## Wersja Bieżąca
-**v2.19.9**
+**v2.20.0**
+
+## v 2.20.0 — 2026-09-17
+**Typ:** MINOR  
+**Zakres:** Chirurgiczna Redukcja Archaicznego Web Speech API (`speakWithWebSpeech`), Permanentna Eliminacja Drewnianych Głosów Desktopowych, Wdrożenie Google Cloud Neural Text-to-Speech API (`google`) z Pakietem 1 000 000 Znaków Miesięcznie (WaveNet & Neural2), Konfiguracja Klucza i Wybór Lektorów w Ustawieniach, Odporny Studyjny Łańcuch Awaryjny.
+
+### Zmiany
+- [-] Usunięto: Metodę `speakWithWebSpeech` oraz tablicę `WEB_VOICE_PROFILES` z `modules/services/ttsService.js` (chirurgiczna redukcja).
+- [-] Usunięto: Kafelek oraz panel konfiguracyjny Web Speech z `modules/pages/SettingsPage.jsx`.
+- [+] Dodano: Stałą `GOOGLE_DEFAULT_VOICES` ze zweryfikowanymi lektorami studyjnymi WaveNet i Neural2 (`pl-PL-Wavenet-B`, `pl-PL-Neural2-A`, `pl-PL-Wavenet-C`, `pl-PL-Wavenet-A`, `pl-PL-Wavenet-D`, `en-US-Journey-D`, `en-US-Neural2-F`).
+- [+] Dodano: Metodę `speakWithGoogle(text, apiKey, voiceId, options)` w `modules/services/ttsService.js` z bezpośrednim żądaniem REST (CORS), konwersją Base64 MP3 na Blob i odtwarzaniem audio.
+- [+] Dodano: Kafelek `Google Neural` (`1 MLN / MC`) oraz panel konfiguracyjny klucza API Google Cloud (`system_google_tts_api_key`) z przełącznikiem widoczności i selektorem głosów w `modules/pages/SettingsPage.jsx`.
+- [+] Dodano: Obsługę silnika `google` w backendowych trasach proxy `/voice/tts` w `modules/routes/ai.js`, `api/tts.js` i `api/voice/tts.js`.
+- [*] Zmodyfikowano: `speak()` w `ttsService.js` z bezpiecznym łańcuchem studyjnym (ElevenLabs → Google Neural → Edge Neural) i emisją `systemAlert` zamiast odtwarzania robotycznego głosu w razie awarii dostawców.
+- [+] Dodano: 4 nowe testy jednostkowe w `tests/tts_quota.test.js` potwierdzające usunięcie Web Speech i poprawność Google TTS.
+- [*] Zmodyfikowano: Utworzono i zamknięto kartę defektu `docs/errors/ERROR_DIFF_2026-09-17_wooden_webspeech_elimination_and_google_neural_tts.md`.
+- [*] Zmodyfikowano: Utworzono raport wydania `docs/versions/v2.20.0.md`.
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.20.0`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.19.9 — 2026-09-17
 **Typ:** PATCH  

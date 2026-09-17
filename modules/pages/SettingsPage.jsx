@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
 import { initializeAllFirestoreCollections, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
 import { wakeWordService } from '../services/wakeWordService';
-import { ttsService, EDGE_DEFAULT_VOICES, ELEVENLABS_DEFAULT_VOICES, OPENAI_DEFAULT_VOICES, fetchElevenLabsVoices, checkElevenLabsQuota } from '../services/ttsService';
+import { ttsService, EDGE_DEFAULT_VOICES, ELEVENLABS_DEFAULT_VOICES, OPENAI_DEFAULT_VOICES, GOOGLE_DEFAULT_VOICES, fetchElevenLabsVoices, checkElevenLabsQuota } from '../services/ttsService';
 import { getPushbulletApiKey, setPushbulletApiKey, testPushbulletConnection } from '../services/pushbulletService';
 
 const Toggle = ({ value, onChange }) => (
@@ -181,16 +181,25 @@ const SettingsPage = () => {
   // Zaawansowany TTS
   const [ttsEngine, setTtsEngine] = useState(() => {
     const stored = localStorage.getItem('system_tts_engine');
-    if (stored) return stored;
+    if (stored && stored !== 'web') return stored;
     const envKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ELEVENLABS_API_KEY) || '';
     const hasKey = localStorage.getItem('system_elevenlabs_api_key') || envKey;
-    return hasKey ? 'elevenlabs' : 'edge';
+    const googleKey = localStorage.getItem('system_google_tts_api_key') || (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GOOGLE_TTS_API_KEY) || '';
+    if (hasKey) return 'elevenlabs';
+    if (googleKey) return 'google';
+    return 'edge';
   });
   const [edgeVoiceId, setEdgeVoiceId] = useState(() => localStorage.getItem('system_edge_voice_id') || EDGE_DEFAULT_VOICES[0].id);
   const [elevenLabsKey, setElevenLabsKey] = useState(() => {
     const envKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ELEVENLABS_API_KEY) || '';
     return localStorage.getItem('system_elevenlabs_api_key') || envKey;
   });
+  const [googleTtsKey, setGoogleTtsKey] = useState(() => {
+    const envKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GOOGLE_TTS_API_KEY) || '';
+    return localStorage.getItem('system_google_tts_api_key') || envKey;
+  });
+  const [googleVoiceId, setGoogleVoiceId] = useState(() => localStorage.getItem('system_google_voice_id') || GOOGLE_DEFAULT_VOICES[0].id);
+  const [showGoogleKey, setShowGoogleKey] = useState(false);
   const [openAiTtsKey, setOpenAiTtsKey] = useState(() => localStorage.getItem('system_openai_tts_api_key') || '');
   const [elevenVoiceId, setElevenVoiceId] = useState(() => localStorage.getItem('system_elevenlabs_voice_id') || ELEVENLABS_DEFAULT_VOICES[0].id);
   const [elevenVoicesList, setElevenVoicesList] = useState(() => {
@@ -331,6 +340,16 @@ const SettingsPage = () => {
     localStorage.setItem('system_elevenlabs_api_key', val);
   };
 
+  const updateGoogleTtsKey = (val) => {
+    setGoogleTtsKey(val);
+    localStorage.setItem('system_google_tts_api_key', val);
+  };
+
+  const updateGoogleVoiceId = (val) => {
+    setGoogleVoiceId(val);
+    localStorage.setItem('system_google_voice_id', val);
+  };
+
   const updateOpenAiTtsKey = (val) => {
     setOpenAiTtsKey(val);
     localStorage.setItem('system_openai_tts_api_key', val);
@@ -432,22 +451,27 @@ const SettingsPage = () => {
 
     const activeVoiceId = ttsEngine === 'elevenlabs' 
       ? elevenVoiceId 
-      : ttsEngine === 'edge' 
-        ? edgeVoiceId 
-        : ttsEngine === 'openai' 
-          ? openAiVoiceId 
-          : voicePref;
+      : ttsEngine === 'google'
+        ? googleVoiceId
+        : ttsEngine === 'edge' 
+          ? edgeVoiceId 
+          : openAiVoiceId;
 
     const activeApiKey = ttsEngine === 'elevenlabs'
       ? (elevenLabsKey || ttsService.getElevenLabsKey())
-      : ttsEngine === 'openai'
-        ? (openAiTtsKey || ttsService.getOpenAiKey())
-        : undefined;
+      : ttsEngine === 'google'
+        ? (googleTtsKey || ttsService.getGoogleApiKey())
+        : ttsEngine === 'openai'
+          ? (openAiTtsKey || ttsService.getOpenAiKey())
+          : undefined;
 
     let voiceLabel = '';
     if (ttsEngine === 'elevenlabs') {
       const found = elevenVoicesList.find(v => v.id === activeVoiceId) || ELEVENLABS_DEFAULT_VOICES.find(v => v.id === activeVoiceId);
       voiceLabel = found ? found.name.split(' (')[0] : 'ElevenLabs';
+    } else if (ttsEngine === 'google') {
+      const found = GOOGLE_DEFAULT_VOICES.find(v => v.id === activeVoiceId);
+      voiceLabel = found ? found.name.split(' (')[0] : 'Google Cloud';
     } else if (ttsEngine === 'edge') {
       const found = EDGE_DEFAULT_VOICES.find(v => v.id === activeVoiceId);
       voiceLabel = found ? found.name.split(' (')[0] : 'Edge Neural';
@@ -455,7 +479,7 @@ const SettingsPage = () => {
       const found = OPENAI_DEFAULT_VOICES.find(v => v.id === activeVoiceId);
       voiceLabel = found ? found.name.split(' (')[0] : 'OpenAI';
     } else {
-      voiceLabel = voicePref === 'male' ? 'Marek' : 'Paulina';
+      voiceLabel = 'Omni';
     }
 
     const testText = `Cześć! Tutaj ${voiceLabel}. Testuję ustawienia syntezy mowy w systemie OmniDash.`;
@@ -1255,18 +1279,18 @@ const SettingsPage = () => {
 
                     <button
                       type="button"
-                      onClick={() => updateTtsEngine('web')}
+                      onClick={() => updateTtsEngine('google')}
                       className={`p-3 rounded-xl border text-left transition-all ${
-                        ttsEngine === 'web'
+                        ttsEngine === 'google'
                           ? 'border-accentPrimary bg-accentPrimary/15 shadow-md shadow-accentPrimary/10'
                           : 'border-border bg-surface/60 hover:bg-white/5'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs font-mono text-textPrimary">Web Speech</span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 font-mono font-bold">OFFLINE</span>
+                        <span className="font-bold text-xs font-mono text-textPrimary">Google Neural</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono font-bold">1 MLN / MC</span>
                       </div>
-                      <p className="text-[11px] text-textMuted mt-1">Lokalny syntezator wbudowany w przeglądarkę.</p>
+                      <p className="text-[11px] text-textMuted mt-1">Klucz API Google Cloud (WaveNet & Neural2).</p>
                     </button>
                   </div>
                 </div>
@@ -1489,30 +1513,57 @@ const SettingsPage = () => {
                   </div>
                 )}
 
-                {/* WEB NEURAL CONFIG */}
-                {ttsEngine === 'web' && (
-                  <div className="p-4 rounded-xl border border-border/50 bg-black/20 space-y-3">
-                    <div>
-                      <p className="font-semibold text-textPrimary font-sans text-sm mb-1.5">Wybór Profilu Głosu Przeglądarki</p>
-                      <select 
-                        value={voicePref === 'paulina' ? 'female' : voicePref} 
-                        onChange={(e) => updateVoicePref(e.target.value)}
-                        className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-xs font-mono text-textPrimary focus:outline-none focus:border-accentPrimary"
-                      >
-                        <option value="female">Głos Damski (Paulina / Zofia Online Natural)</option>
-                        <option value="male">Głos Męski (Marek / Adam Online Natural)</option>
-                      </select>
+                {/* GOOGLE CLOUD NEURAL CONFIG */}
+                {ttsEngine === 'google' && (
+                  <div className="p-4 rounded-xl border border-accentPrimary/30 bg-accentPrimary/5 space-y-3 animate-fade-in">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-accentPrimary" />
+                        <span className="text-xs font-bold font-mono text-textPrimary">Google Cloud Text-to-Speech API</span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold">
+                        1 000 000 ZNAKÓW / MC (FREE TIER)
+                      </span>
                     </div>
 
                     <div>
-                      <p className="font-semibold text-textPrimary font-sans text-sm mb-1">Prędkość mowy (Rate): {voiceRate.toFixed(1)}x</p>
-                      <input 
-                        type="range" 
-                        min="0.5" max="2.0" step="0.1" 
-                        value={voiceRate} 
-                        onChange={(e) => updateVoiceRate(parseFloat(e.target.value))}
-                        className="w-full accent-accentPrimary h-2 rounded-lg appearance-none bg-surface border border-border" 
-                      />
+                      <label className="block text-xs font-semibold text-textPrimary font-sans mb-1.5">
+                        Klucz API Google Cloud Console
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showGoogleKey ? 'text' : 'password'}
+                          value={googleTtsKey}
+                          onChange={(e) => updateGoogleTtsKey(e.target.value)}
+                          placeholder="AIzaSy... (lub zdefiniuj VITE_GOOGLE_TTS_API_KEY w .env)"
+                          className="w-full bg-surface border border-border rounded-lg pl-3 pr-10 py-2 text-xs font-mono text-textPrimary placeholder:text-textMuted focus:outline-none focus:border-accentPrimary"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowGoogleKey(!showGoogleKey)}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-textMuted hover:text-textPrimary"
+                        >
+                          {showGoogleKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-textMuted mt-1">
+                        Google Cloud oferuje 1 000 000 bezpłatnych znaków co miesiąc bez wygasania dla głosów WaveNet oraz Neural2. Utwórz klucz API w Google Cloud Console z aktywną usługą Cloud Text-to-Speech API.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-textPrimary font-sans mb-1.5">
+                        Wybór Głosu Google Neural (Język Polski & Angielski)
+                      </label>
+                      <select
+                        value={googleVoiceId}
+                        onChange={(e) => updateGoogleVoiceId(e.target.value)}
+                        className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-xs font-mono text-textPrimary focus:outline-none focus:border-accentPrimary"
+                      >
+                        {GOOGLE_DEFAULT_VOICES.map(v => (
+                          <option key={v.id} value={v.id}>{v.name}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 )}

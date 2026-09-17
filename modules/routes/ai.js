@@ -148,6 +148,50 @@ router.post('/voice/tts', async (req, res) => {
       return res.send(Buffer.from(arrayBuffer));
     }
 
+    if (engine === 'google') {
+      const key = apiKey || process.env.GOOGLE_TTS_API_KEY;
+      if (!key) {
+        return res.status(400).json({ error: 'Brak klucza API Google Cloud TTS' });
+      }
+
+      const targetVoice = voiceId || 'pl-PL-Wavenet-B';
+      const langCode = targetVoice.substring(0, 5) || 'pl-PL';
+      const gRes = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(key)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          input: { text: safeText },
+          voice: {
+            languageCode: langCode,
+            name: targetVoice
+          },
+          audioConfig: {
+            audioEncoding: 'MP3',
+            speakingRate: 1.0,
+            pitch: 0.0
+          }
+        })
+      });
+
+      if (!gRes.ok) {
+        const errText = await gRes.text();
+        return res.status(gRes.status).json({ error: `Błąd Google Cloud TTS: ${errText}` });
+      }
+
+      const gData = await gRes.json();
+      if (!gData || !gData.audioContent) {
+        return res.status(500).json({ error: 'Brak zawartości audioContent z Google TTS' });
+      }
+
+      res.setHeader('Content-Type', 'audio/mpeg');
+      const buffer = Buffer.from(gData.audioContent, 'base64');
+      res.setHeader('Content-Length', buffer.length);
+      return res.send(buffer);
+    }
+
     return res.status(400).json({ error: 'Nieobsługiwany silnik syntezy TTS' });
   } catch (err) {
     logError('POST /api/voice/tts', err);
