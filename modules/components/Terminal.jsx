@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Terminal as TerminalIcon, Send, Code, BrainCircuit, Bot, Lightbulb, X, Mic, MicOff, Loader2, Copy, Check, Radio, User, Sparkles, Volume2, VolumeX, ArrowDown, StopCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Terminal as TerminalIcon, Send, Code, BrainCircuit, Bot, Lightbulb, X, Mic, MicOff, Loader2, Copy, Check, Radio, User, Sparkles, Volume2, VolumeX, ArrowDown, StopCircle, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -381,6 +382,26 @@ const Terminal = () => {
     thoughtsLog,
     sendCommand
   } = useChatContext();
+
+  const navigate = useNavigate();
+  const [elevenQuotaAlert, setElevenQuotaAlert] = useState(() => {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('elevenlabs_quota_exceeded') === 'true') {
+      return {
+        message: 'Konto ElevenLabs wykorzystało darmowy limit 10 000 znaków. Mowa odtwarzana silnikiem zapasowym.'
+      };
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    const handleQuota = (e) => {
+      setElevenQuotaAlert(e.detail || {
+        message: 'Konto ElevenLabs wykorzystało limit 10 000 znaków. Odtwarzanie mowy przełączono na silnik zapasowy.'
+      });
+    };
+    window.addEventListener('ttsQuotaExceeded', handleQuota);
+    return () => window.removeEventListener('ttsQuotaExceeded', handleQuota);
+  }, []);
 
   const [newsCategories, setNewsCategories] = useState(['ai', 'security', 'hardware']);
 
@@ -1052,6 +1073,40 @@ const Terminal = () => {
           </button>
         )}
       </div>
+
+      {/* ELEVENLABS QUOTA ALERT BANNER */}
+      {elevenQuotaAlert && (
+        <div className="mb-3 p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 flex items-center justify-between gap-3 text-xs font-mono text-amber-200 animate-fade-in shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+            <span className="truncate">
+              {elevenQuotaAlert.message || 'Wyczerpano limit ElevenLabs. Syntetyzator odtwarza mowę silnikiem rezerwowym.'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => navigate('/settings')}
+              className="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 rounded-lg text-[11px] font-bold border border-amber-500/40 transition-colors"
+            >
+              Ustawienia
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setElevenQuotaAlert(null);
+                if (typeof localStorage !== 'undefined') {
+                  localStorage.removeItem('elevenlabs_quota_exceeded');
+                }
+              }}
+              className="text-amber-400/70 hover:text-amber-200 p-1"
+              title="Zamknij"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* LIVE VOICE BAR - Tryb Ciągłej Rozmowy z Wyciszeniem Mikrofonu Podczas Mowy AI */}
       {isLiveMode && (

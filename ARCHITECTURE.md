@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.19.8 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.19.9 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE)  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Otwarte Odkrywanie Modeli Frontier 2026, Uziemienie w Bazy Pamięci /memory, Autonomiczny Zapis ACTION:REMEMBER, Jawna Treść Push w Czacie, Uniwersalny Inspektor AgentExecutionTrace, Vitest 126/126 PASS)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Inspekcja Limitu Znaków ElevenLabs checkElevenLabsQuota, Monitor Zużycia i Alert w Ustawieniach oraz Terminalu, 1-Klikowe Przełączenie na Microsoft Edge Neural Studio, Vitest 131/131 PASS)
 
 ---
 
@@ -34,13 +34,17 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   ├── main.yml               ← Główny potok CI/CD produkcyjny
 │   └── ci.yml                 ← Równoległy potok weryfikacyjny pull requestów
 │
-├── /tests/                    ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 91/91 PASS, 8 zestawów)
+├── /tests/                    ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 131/131 PASS, 11 zestawów)
+│   ├── tts_quota.test.js      ← Testy inspekcji limitów ElevenLabs, błędu quota_exceeded i bazy głosów
+│   ├── agent_execution_trace.test.jsx ← Testy inspektora wykonania narzędzi i uziemienia Pamięci
+│   ├── autonomous_agent.test.js ← Testy agenta ciągłego, klasyfikacji intencji i pętli badawczej
 │   ├── pushbullet_finance.test.js ← Testy kasyfikatora wydatków Pushbullet i akcji SEND_PUSH
 │   ├── components.test.jsx    ← Testy komponentów Reacta (@testing-library/react + JSDOM)
 │   ├── budget.test.js         ← Testy reguły 50/30/20, alokacji, wag 0% i transferów
 │   ├── export.test.js         ← Testy serializacji RFC 4180 dla plików CSV
 │   ├── time.test.js           ← Testy obliczeń czasowych strefy Europe/Warsaw
 │   ├── osint.test.js          ← Testy klasyfikatora celów OSINT (IP, e-mail, domena, MAC)
+│   ├── wakeword.test.js       ← Testy słowa wybudzającego Hej Omni
 │   └── cloudSync.test.js      ← Testy rejestru kolekcji i detekcji środowiska
 │
 ├── /api/                      ← Funkcje Vercel Serverless (Node.js Gateway)

@@ -1,5 +1,26 @@
 ## Wersja Bieżąca
-**v2.19.8**
+**v2.19.9**
+
+## v 2.19.9 — 2026-09-17
+**Typ:** PATCH  
+**Zakres:** Inspekcja i Monitorowanie Limitu Konta ElevenLabs (`checkElevenLabsQuota`), Eliminacja Cichej Degradacji Syntezy Mowy do Web Speech, Transparentne Powiadomienia w Ustawieniach i Terminalu (`ttsQuotaExceeded`), 1-Klikowe Przełączenie na Microsoft Edge Neural Studio oraz Odblokowanie Autoryzacji Audio Proxy w Express.
+
+### Zmiany
+- [+] Dodano: Funkcję `checkElevenLabsQuota(apiKey)` w `modules/services/ttsService.js` z pobieraniem zużycia z `https://api.elevenlabs.io/v1/user/subscription` i buforowaniem w `localStorage`.
+- [+] Dodano: Wykrywanie statusu `quota_exceeded` / 401 w `speakWithElevenLabs` z emisją zdarzenia `ttsQuotaExceeded` i powiadomień `systemAlert`.
+- [+] Dodano: Estetyczny panel stanu i pasek zużycia limitu ElevenLabs w `modules/pages/SettingsPage.jsx` z datą odnowienia i natychmiastowym przyciskiem przełączenia na Edge Neural.
+- [+] Dodano: Baner ostrzegawczy w `modules/components/Terminal.jsx` informujący o wyczerpaniu znaków konta i przekierowujący do konfiguracji.
+- [*] Zmodyfikowano: `modules/routes/auth.js` – odblokowano ścieżkę `/voice/tts` spod blokady tokenowej w `authMiddleware`.
+- [*] Zmodyfikowano: `api/voice/tts.js` – dodano pełne nagłówki CORS i obsługę preflight OPTIONS.
+- [+] Dodano: Zestaw testów jednostkowych w `tests/tts_quota.test.js` (131/131 PASS).
+- [*] Zmodyfikowano: Utworzono i zamknięto kartę defektu `docs/errors/ERROR_DIFF_2026-09-17_elevenlabs_quota_exceeded_and_transparent_fallback.md`.
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.19.9`.
+- [*] Zmodyfikowano: Utworzono dokumentację wydania `docs/versions/v2.19.9.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.19.8 — 2026-09-16
 **Typ:** PATCH  

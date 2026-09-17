@@ -55,6 +55,7 @@ export const authMiddleware = (req, res, next) => {
   if (req.path.startsWith('/firebase/verify-owner')) return next();
   if (req.path.startsWith('/system/keys')) return next();
   if (req.path.startsWith('/phone/')) return next();
+  if (req.path.startsWith('/voice/tts')) return next();
   const token = req.headers.authorization?.split(' ')[1];
   if (activeSessions.has(token)) return next();
   res.status(401).json({ error: 'Brak autoryzacji' });

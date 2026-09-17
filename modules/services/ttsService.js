@@ -92,6 +92,79 @@ export async function fetchElevenLabsVoices(apiKey) {
   return ELEVENLABS_DEFAULT_VOICES;
 }
 
+export async function checkElevenLabsQuota(apiKey) {
+  let key = apiKey;
+  if (key === undefined) {
+    key = (typeof localStorage !== 'undefined' && localStorage.getItem('system_elevenlabs_api_key')) ||
+          (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ELEVENLABS_API_KEY) ||
+          (typeof process !== 'undefined' && process.env?.ELEVENLABS_API_KEY) || '';
+  }
+  if (!key || !key.trim()) {
+    return { hasKey: false, tier: 'brak', characterCount: 0, characterLimit: 0, remaining: 0, isExceeded: false };
+  }
+
+  try {
+    const res = await fetch('https://api.elevenlabs.io/v1/user/subscription', {
+      method: 'GET',
+      headers: {
+        'xi-api-key': key.trim(),
+        'Accept': 'application/json'
+      }
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const characterCount = Number(data.character_count || 0);
+      const characterLimit = Number(data.character_limit || 10000);
+      const remaining = Math.max(0, characterLimit - characterCount);
+      const isExceeded = remaining <= 10 || data.status === 'quota_exceeded';
+      const resetTimestamp = data.next_character_count_reset_unix;
+      const resetDate = resetTimestamp ? new Date(resetTimestamp * 1000).toLocaleDateString('pl-PL') : null;
+
+      const result = {
+        hasKey: true,
+        tier: data.tier || 'free',
+        status: data.status || 'active',
+        characterCount,
+        characterLimit,
+        remaining,
+        isExceeded,
+        resetDate,
+        percentUsed: characterLimit > 0 ? Math.min(100, Math.round((characterCount / characterLimit) * 1000) / 10) : 0
+      };
+
+      if (typeof localStorage !== 'undefined') {
+        try {
+          localStorage.setItem('cached_elevenlabs_quota', JSON.stringify(result));
+          if (isExceeded) {
+            localStorage.setItem('elevenlabs_quota_exceeded', 'true');
+          } else {
+            localStorage.removeItem('elevenlabs_quota_exceeded');
+          }
+        } catch {}
+      }
+
+      return result;
+    } else {
+      const errText = await res.text();
+      return {
+        hasKey: true,
+        error: `Błąd API (${res.status}): ${errText}`,
+        isExceeded: res.status === 401 || res.status === 429
+      };
+    }
+  } catch (err) {
+    console.warn('[TTSService] Błąd sprawdzania limitu ElevenLabs:', err.message);
+    if (typeof localStorage !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('cached_elevenlabs_quota');
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return { hasKey: true, error: err.message, isExceeded: false };
+  }
+}
+
 
 export const OPENAI_DEFAULT_VOICES = [
   { id: 'onyx', name: 'Onyx (Głęboki, męski)' },
@@ -218,7 +291,15 @@ class TTSService {
         await this.speakWithElevenLabs(clean, apiKey, voiceId, { onStart, onEnd, onError });
         return;
       } catch (err) {
-        console.warn('[TTSService] Błąd ElevenLabs, przejście do silnika rezerwowego Edge TTS:', err.message);
+        console.warn('[TTSService] Błąd ElevenLabs, przejście do silnika rezerwowego:', err.message);
+        if (typeof window !== 'undefined' && (err.message.includes('limit') || err.message.includes('quota'))) {
+          window.dispatchEvent(new CustomEvent('ttsQuotaExceeded', {
+            detail: {
+              engine: 'elevenlabs',
+              message: err.message
+            }
+          }));
+        }
         try {
           await this.speakWithEdgeTTS(clean, localStorage.getItem('system_edge_voice_id') || 'pl-PL-MarekNeural', { onStart, onEnd, onError });
           return;
@@ -291,8 +372,44 @@ class TTSService {
         } else {
           const errText = await res.text();
           console.warn(`[ElevenLabs API] Błąd ${res.status}:`, errText);
+
+          // Precyzyjna detekcja wyczerpania limitu znaków konta (quota_exceeded)
+          if (res.status === 401 || res.status === 429 || errText.includes('quota_exceeded') || errText.includes('exceeds your quota')) {
+            let remainingCredits = 0;
+            const match = errText.match(/(\d+)\s+credits?\s+remaining/i);
+            if (match) remainingCredits = parseInt(match[1], 10);
+
+            const quotaDetail = {
+              engine: 'elevenlabs',
+              status: 'quota_exceeded',
+              remainingCredits,
+              message: `Wyczerpano bezpłatny miesięczny limit znaków konta ElevenLabs (pozostało tylko ${remainingCredits} znaków). Przełączono na silnik zapasowy.`
+            };
+
+            if (typeof localStorage !== 'undefined') {
+              try {
+                localStorage.setItem('elevenlabs_quota_exceeded', 'true');
+              } catch {}
+            }
+
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('ttsQuotaExceeded', { detail: quotaDetail }));
+              window.dispatchEvent(new CustomEvent('systemAlert', {
+                detail: {
+                  type: 'warning',
+                  title: 'ElevenLabs: Limit znaków wyczerpany',
+                  message: `Konto ElevenLabs osiągnęło limit 10 000 znaków (pozostało: ${remainingCredits} znaków). Zmień klucz API lub wybierz Edge Neural w Ustawieniach.`
+                }
+              }));
+            }
+
+            throw new Error(`Wyczerpano miesięczny limit znaków ElevenLabs (pozostało tylko ${remainingCredits} znaków).`);
+          }
         }
       } catch (err) {
+        if (err.message && (err.message.includes('limit') || err.message.includes('quota'))) {
+          throw err;
+        }
         console.warn('[ElevenLabs Direct Fetch] Błąd sieciowy:', err.message);
       }
     }

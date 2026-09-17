@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
 import { initializeAllFirestoreCollections, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
 import { wakeWordService } from '../services/wakeWordService';
-import { ttsService, EDGE_DEFAULT_VOICES, ELEVENLABS_DEFAULT_VOICES, OPENAI_DEFAULT_VOICES, fetchElevenLabsVoices } from '../services/ttsService';
+import { ttsService, EDGE_DEFAULT_VOICES, ELEVENLABS_DEFAULT_VOICES, OPENAI_DEFAULT_VOICES, fetchElevenLabsVoices, checkElevenLabsQuota } from '../services/ttsService';
 import { getPushbulletApiKey, setPushbulletApiKey, testPushbulletConnection } from '../services/pushbulletService';
 
 const Toggle = ({ value, onChange }) => (
@@ -341,6 +341,27 @@ const SettingsPage = () => {
     localStorage.setItem('system_elevenlabs_voice_id', val);
   };
 
+  const [elevenQuota, setElevenQuota] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cached_elevenlabs_quota');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return null;
+  });
+  const [isCheckingQuota, setIsCheckingQuota] = useState(false);
+
+  const refreshElevenQuota = async (keyToUse) => {
+    const k = keyToUse || elevenLabsKey;
+    if (!k) return;
+    setIsCheckingQuota(true);
+    try {
+      const q = await checkElevenLabsQuota(k);
+      setElevenQuota(q);
+    } finally {
+      setIsCheckingQuota(false);
+    }
+  };
+
   useEffect(() => {
     if (elevenLabsKey) {
       setIsLoadingVoices(true);
@@ -349,7 +370,17 @@ const SettingsPage = () => {
           setElevenVoicesList(voices);
         }
       }).finally(() => setIsLoadingVoices(false));
+
+      refreshElevenQuota(elevenLabsKey);
     }
+  }, [elevenLabsKey]);
+
+  useEffect(() => {
+    const handleQuotaExceeded = () => {
+      refreshElevenQuota(elevenLabsKey);
+    };
+    window.addEventListener('ttsQuotaExceeded', handleQuotaExceeded);
+    return () => window.removeEventListener('ttsQuotaExceeded', handleQuotaExceeded);
   }, [elevenLabsKey]);
 
   const handleRefreshElevenVoices = async () => {
@@ -359,6 +390,7 @@ const SettingsPage = () => {
       if (Array.isArray(voices) && voices.length > 0) {
         setElevenVoicesList(voices);
       }
+      await refreshElevenQuota(elevenLabsKey);
     } finally {
       setIsLoadingVoices(false);
     }
@@ -1296,9 +1328,97 @@ const SettingsPage = () => {
                         </button>
                       </div>
                       <p className="text-[11px] text-textMuted mt-1">
-                        Klucz jest zapisywany lokalnie lub pobierany z serwera. Jeśli brak klucza, system automatycznie używa silnika Web Neural.
+                        Klucz jest zapisywany lokalnie lub pobierany z serwera. Jeśli brak klucza lub wyczerpano limit, system przełącza się na silnik zapasowy.
                       </p>
                     </div>
+
+                    {/* ELEVENLABS LIVE QUOTA CARD */}
+                    {elevenQuota && elevenQuota.hasKey && (
+                      <div className={`p-3.5 rounded-xl border transition-all ${
+                        elevenQuota.isExceeded || (elevenQuota.remaining <= 10)
+                          ? 'bg-red-500/10 border-red-500/40 text-red-200'
+                          : elevenQuota.percentUsed > 80
+                            ? 'bg-amber-500/10 border-amber-500/40 text-amber-200'
+                            : 'bg-black/30 border-border/80 text-textPrimary'
+                      }`}>
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-white/10 font-bold tracking-wider">
+                              Plan: {elevenQuota.tier || 'Free'}
+                            </span>
+                            {elevenQuota.isExceeded || (elevenQuota.remaining <= 10) ? (
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-500/20 text-red-300 font-bold border border-red-500/40 flex items-center gap-1">
+                                <AlertTriangle className="w-3 h-3 text-red-400 shrink-0" />
+                                LIMIT WYCZERPANY
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-green-500/20 text-green-300 font-bold border border-green-500/40 flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3 text-green-400 shrink-0" />
+                                KONTO AKTYWNE
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => refreshElevenQuota(elevenLabsKey)}
+                            disabled={isCheckingQuota}
+                            className="text-[10px] font-mono text-accentPrimary hover:underline flex items-center gap-1 disabled:opacity-50"
+                            title="Sprawdź aktualny stan limitu znaków"
+                          >
+                            <RefreshCw className={`w-3 h-3 ${isCheckingQuota ? 'animate-spin' : ''}`} />
+                            Sprawdź limit
+                          </button>
+                        </div>
+
+                        {/* Pasek postępu zużycia limitu */}
+                        <div className="w-full bg-surface/80 rounded-full h-2 overflow-hidden border border-border/60 my-2">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              elevenQuota.isExceeded || (elevenQuota.remaining <= 10)
+                                ? 'bg-red-500'
+                                : elevenQuota.percentUsed > 80
+                                  ? 'bg-amber-500'
+                                  : 'bg-accentPrimary'
+                            }`}
+                            style={{ width: `${Math.min(100, elevenQuota.percentUsed || 0)}%` }}
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between text-[11px] font-mono text-textMuted mt-1">
+                          <span>
+                            Zużyto: <strong className="text-textPrimary">{elevenQuota.characterCount?.toLocaleString('pl-PL') || 0}</strong> / {elevenQuota.characterLimit?.toLocaleString('pl-PL') || 10000} znaków ({elevenQuota.percentUsed || 0}%)
+                          </span>
+                          <span className={elevenQuota.isExceeded || (elevenQuota.remaining <= 10) ? 'text-red-400 font-bold' : 'text-accentPrimary font-semibold'}>
+                            Pozostało: {elevenQuota.remaining?.toLocaleString('pl-PL') || 0} znaków
+                          </span>
+                        </div>
+
+                        {elevenQuota.resetDate && (
+                          <div className="text-[10px] font-mono text-textMuted/80 mt-1">
+                            Odnowienie bezpłatnego limitu: <span className="text-textSecondary">{elevenQuota.resetDate}</span>
+                          </div>
+                        )}
+
+                        {/* Alert w razie wyczerpania limitu z 1-klikowym przełącznikiem */}
+                        {(elevenQuota.isExceeded || elevenQuota.remaining <= 10) && (
+                          <div className="mt-3 p-3 rounded-lg bg-red-950/50 border border-red-500/40 text-xs text-red-200 space-y-2 animate-fade-in">
+                            <p className="text-[11px] leading-relaxed">
+                              ⚠️ <strong>Limit bezpłatnego konta ElevenLabs (10 000 znaków) został wyczerpany.</strong> Żądania syntezy mowy ElevenLabs są odrzucane z kodem 401 Quota Exceeded, co powoduje odtwarzanie podstawowego głosu przeglądarki.
+                            </p>
+                            <div className="pt-1 flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => updateTtsEngine('edge')}
+                                className="px-3 py-1.5 bg-accentPrimary hover:bg-accentPrimary/90 text-black rounded-lg font-bold text-xs transition-colors flex items-center gap-1.5 shadow-sm"
+                              >
+                                <Sparkles className="w-3.5 h-3.5 text-black" />
+                                Przełącz na Microsoft Edge Neural (Marek / Zofia Studio – Bez Limitu)
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
