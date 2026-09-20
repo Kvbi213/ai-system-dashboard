@@ -120,7 +120,8 @@ const filesToSync = [
   'modules/services/ttsService.js',
   'api/voice/tts.js',
   'tests/wakeword.test.js',
-  'tests/tts_quota.test.js'
+  'tests/tts_quota.test.js',
+  'TO-DO.md'
 ];
 
 filesToSync.forEach(relPath => {
