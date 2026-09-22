@@ -7,6 +7,9 @@ import {
   Clock, User, Star, TrendingUp, Info, X, SlidersHorizontal, Settings
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { firestore } from '../firebaseClient';
+import { isCloudEnvironment } from '../services/cloudSync';
 
 // Kolorystyka pigułek ocen w zależności od wartości
 const getGradeBadgeStyle = (val) => {
@@ -92,6 +95,33 @@ const GradesPage = () => {
 
   useEffect(() => {
     fetchGrades(false, useDemo);
+  }, [useDemo]);
+
+  // Subskrypcja Firestore w chmurze (Realtime Sync dla void-potato-7721.web.app)
+  useEffect(() => {
+    if (!firestore || useDemo) return;
+    try {
+      const docRef = doc(firestore, 'librus_cache', 'latest');
+      const unsub = onSnapshot(docRef, (snap) => {
+        if (snap.exists()) {
+          const cloudData = snap.data();
+          if (cloudData && Array.isArray(cloudData.subjects)) {
+            setData(prev => ({
+              ...(prev || {}),
+              ...cloudData,
+              isConfigured: true,
+              isDemo: false
+            }));
+            setLoading(false);
+          }
+        }
+      }, (err) => {
+        console.debug('[Firestore] Subskrypcja librus_cache:', err.message);
+      });
+      return () => unsub();
+    } catch (e) {
+      console.debug('[Firestore] Inicjalizacja subskrypcji librus pominięta:', e);
+    }
   }, [useDemo]);
 
   // Wymuszenie odświeżenia przez serwer

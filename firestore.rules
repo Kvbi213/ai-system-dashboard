@@ -13,7 +13,8 @@ service cloud.firestore {
         'chat_history', 
         'timetable', 
         'notes',
-        'system_logs'
+        'system_logs',
+        'librus_cache'
       ];
     }
 

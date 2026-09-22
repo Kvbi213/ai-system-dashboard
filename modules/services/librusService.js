@@ -286,6 +286,21 @@ export async function fetchLibrusFromSource(login, password) {
     console.error(`[!] ERROR :: LIBRUS :: Błąd zapisu do bazy SQLite:`, dbErr.message);
   }
 
+  // Replikacja do Firebase Firestore (dostęp dla void-potato-7721.web.app)
+  try {
+    const { getFirestoreDb } = await import('../firebase.js');
+    const firestoreDb = getFirestoreDb ? getFirestoreDb() : null;
+    if (firestoreDb) {
+      await firestoreDb.collection('librus_cache').doc('latest').set({
+        ...payload,
+        updated_at: new Date().toISOString()
+      });
+      console.log(`[+] SUCCESS :: LIBRUS :: Zreplikowano stan ocen do chmury Firestore (librus_cache/latest).`);
+    }
+  } catch (fErr) {
+    console.warn(`[!] ALERT :: LIBRUS :: Pominięto replikację do Firestore: ${fErr.message}`);
+  }
+
   return payload;
 }
 

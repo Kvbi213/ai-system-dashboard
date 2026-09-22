@@ -10,7 +10,8 @@ export const CLOUD_COLLECTIONS = {
   OPERATOR_BRAIN: 'operator_brain',
   CHAT_HISTORY: 'chat_history',
   TIMETABLE: 'timetable',
-  NOTES: 'notes'
+  NOTES: 'notes',
+  LIBRUS_CACHE: 'librus_cache'
 };
 
 export const isCloudEnvironment = () => {
