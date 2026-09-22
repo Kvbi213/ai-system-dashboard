@@ -4,7 +4,7 @@ import axios from 'axios';
 import { 
   Settings, Shield, Bell, HardDrive, Cpu, Palette, Sun, Moon, Rss, Zap, Lock, Check, 
   LayoutGrid, Mic, Volume2, Globe, Sparkles, Cloud, Database, BrainCircuit, Activity,
-  Compass, LayoutDashboard, MessageSquare, GraduationCap, Crosshair, CalendarDays,
+  Compass, LayoutDashboard, MessageSquare, GraduationCap, Award, Crosshair, CalendarDays,
   Wallet, Dumbbell, Server, Sliders, Download, Upload, RotateCcw, Bot, CheckCircle2, Eye, EyeOff,
   Smartphone, Send, AlertTriangle, RefreshCw
 } from 'lucide-react';
@@ -116,6 +116,7 @@ const DEFAULT_VISIBLE_NAV = {
   '/': true,
   '/chat': true,
   '/timetable': true,
+  '/grades': true,
   '/memory': true,
   '/osint': true,
   '/calendar': true,
@@ -129,6 +130,7 @@ const NAV_CONFIG_ITEMS = [
   { path: '/', name: 'Pulpit (Dashboard)', icon: LayoutDashboard, desc: 'Główny pulpit ze statystykami, zegarem, zadaniami to-do i wiadomościami' },
   { path: '/chat', name: 'Asystent AI (Chat)', icon: MessageSquare, desc: 'Interfejs czatu z gpt-oss-120b, Brave Search i syntezą mowy' },
   { path: '/timetable', name: 'Plan Lekcji (Timetable)', icon: GraduationCap, desc: 'Harmonogram zajęć szkolnych, sale i przedmioty zsynchronizowane w chmurze' },
+  { path: '/grades', name: 'Oceny (Librus Synergia)', icon: Award, desc: 'Dziennik ocen szkolnych, szczęśliwy numerek i średnie ważone' },
   { path: '/memory', name: 'Pamięć & Notatki (Memory)', icon: BrainCircuit, desc: 'Długoterminowa baza wiedzy asystenta, fakty o operatorze i notatnik' },
   { path: '/osint', name: 'Baza Wiedzy (OSINT Hub)', icon: Crosshair, desc: 'Agregator narzędzi wywiadu jawnoźródłowego, feedy i procedury' },
   { path: '/calendar', name: 'Kalendarz (Calendar)', icon: CalendarDays, desc: 'Terminarz wydarzeń, harmonogram zadań i integracja z chmurą' },
@@ -237,6 +239,72 @@ const SettingsPage = () => {
       setPushbulletTestResult({ success: false, error: err.message });
     } finally {
       setIsTestingPushbullet(false);
+    }
+  };
+
+  // Stany i handlery Librus Synergia
+  const [librusLogin, setLibrusLogin] = useState(() => localStorage.getItem('system_librus_login') || '');
+  const [librusPassword, setLibrusPassword] = useState(() => localStorage.getItem('system_librus_password') || '');
+  const [showLibrusPassword, setShowLibrusPassword] = useState(false);
+  const [isTestingLibrus, setIsTestingLibrus] = useState(false);
+  const [librusTestResult, setLibrusTestResult] = useState(null);
+  const [librusSaved, setLibrusSaved] = useState(false);
+  const [librusStatus, setLibrusStatus] = useState(null);
+  const [isRefreshingLibrus, setIsRefreshingLibrus] = useState(false);
+
+  useEffect(() => {
+    axios.get('/api/librus/status')
+      .then(res => {
+        if (res.data) setLibrusStatus(res.data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSaveLibrus = async (syncNow = false) => {
+    if (!librusLogin.trim() || !librusPassword.trim()) return;
+    try {
+      localStorage.setItem('system_librus_login', librusLogin.trim());
+      localStorage.setItem('system_librus_password', librusPassword.trim());
+      await axios.post('/api/librus/credentials', {
+        login: librusLogin.trim(),
+        password: librusPassword.trim(),
+        syncNow
+      });
+      setLibrusSaved(true);
+      setTimeout(() => setLibrusSaved(false), 3000);
+      const st = await axios.get('/api/librus/status');
+      if (st.data) setLibrusStatus(st.data);
+    } catch (err) {
+      console.warn('Błąd zapisu poświadczeń Librus:', err.message);
+    }
+  };
+
+  const handleTestLibrus = async () => {
+    setIsTestingLibrus(true);
+    setLibrusTestResult(null);
+    try {
+      const res = await axios.post('/api/librus/test-auth', {
+        login: librusLogin.trim(),
+        password: librusPassword.trim()
+      });
+      setLibrusTestResult({ success: true, message: res.data?.message || 'Autoryzacja udana!' });
+    } catch (err) {
+      setLibrusTestResult({ success: false, error: err.response?.data?.error || err.message || 'Błąd logowania' });
+    } finally {
+      setIsTestingLibrus(false);
+    }
+  };
+
+  const handleManualLibrusSync = async () => {
+    setIsRefreshingLibrus(true);
+    try {
+      await axios.post('/api/librus/refresh');
+      const st = await axios.get('/api/librus/status');
+      if (st.data) setLibrusStatus(st.data);
+    } catch (err) {
+      console.warn('Błąd synchronizacji:', err);
+    } finally {
+      setIsRefreshingLibrus(false);
     }
   };
 
@@ -1618,6 +1686,130 @@ const SettingsPage = () => {
                 <SettingRow label={t("soundNotifsLabel", "Powiadomienia Dźwiękowe")} desc={t("soundNotifsDesc", "Sygnały audio przy zakończeniu procesów w tle.")}>
                   <Toggle value={notifications} onChange={setNotifications} />
                 </SettingRow>
+              </div>
+            </section>
+
+            {/* --- DZIENNIK SZKOLNY (LIBRUS SYNERGIA) --- */}
+            <section className="glass-panel p-5 rounded-xl border border-border">
+              <SectionHeader icon={Award} title="Dziennik Szkolny — Librus Synergia" />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-textMuted font-mono">
+                    Integracja scrapera Synergia Librus (pobieranie ocen, średnich i szczęśliwego numerka co 2 godziny)
+                  </span>
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase border ${
+                    librusStatus?.isConfigured 
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' 
+                      : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                  }`}>
+                    {librusStatus?.isConfigured ? 'Skonfigurowano' : 'Brak poświadczeń'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-textPrimary font-sans mb-1.5">
+                      Login Synergia Librus
+                    </label>
+                    <input
+                      type="text"
+                      value={librusLogin}
+                      onChange={(e) => setLibrusLogin(e.target.value)}
+                      placeholder="np. 1234567u lub login"
+                      className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-xs font-mono text-textPrimary placeholder:text-textMuted focus:outline-none focus:border-accentPrimary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-textPrimary font-sans mb-1.5">
+                      Hasło Synergia Librus
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showLibrusPassword ? 'text' : 'password'}
+                        value={librusPassword}
+                        onChange={(e) => setLibrusPassword(e.target.value)}
+                        placeholder="Wprowadź hasło"
+                        className="w-full bg-surface border border-border rounded-lg pl-3 pr-10 py-2 text-xs font-mono text-textPrimary placeholder:text-textMuted focus:outline-none focus:border-accentPrimary"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLibrusPassword(!showLibrusPassword)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-textMuted hover:text-textPrimary"
+                      >
+                        {showLibrusPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {librusTestResult && (
+                  <div className={`p-3 rounded-lg border text-xs font-mono flex items-center gap-2 ${
+                    librusTestResult.success 
+                      ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' 
+                      : 'bg-rose-500/10 text-rose-300 border-rose-500/30'
+                  }`}>
+                    {librusTestResult.success ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> : <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />}
+                    <span>{librusTestResult.success ? librusTestResult.message : librusTestResult.error}</span>
+                  </div>
+                )}
+
+                {librusSaved && (
+                  <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-mono flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Poświadczenia Librus Synergia zostały zapisane w .env i pamięci systemu.</span>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/50">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleTestLibrus}
+                      disabled={isTestingLibrus || !librusLogin || !librusPassword}
+                      className="px-3.5 py-1.5 rounded-lg bg-surface hover:bg-surfaceHover border border-border text-textPrimary text-xs font-mono flex items-center gap-1.5 transition-all disabled:opacity-50"
+                    >
+                      <Zap className="w-3.5 h-3.5 text-accentPrimary" />
+                      <span>{isTestingLibrus ? 'Testowanie...' : 'Testuj połączenie'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleSaveLibrus(false)}
+                      disabled={!librusLogin || !librusPassword}
+                      className="px-4 py-1.5 rounded-lg bg-accentPrimary/20 hover:bg-accentPrimary/30 text-accentPrimary border border-accentPrimary/40 text-xs font-mono font-bold flex items-center gap-1.5 transition-all disabled:opacity-50"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Zapisz poświadczenia</span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleManualLibrusSync}
+                      disabled={isRefreshingLibrus || !librusStatus?.isConfigured}
+                      className="px-3.5 py-1.5 rounded-lg bg-surface hover:bg-surfaceHover border border-border text-textPrimary text-xs font-mono flex items-center gap-1.5 transition-all disabled:opacity-50"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 text-accentPrimary ${isRefreshingLibrus ? 'animate-spin' : ''}`} />
+                      <span>{isRefreshingLibrus ? 'Pobieranie...' : 'Synchronizuj teraz'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => navigate('/grades')}
+                      className="px-3.5 py-1.5 rounded-lg bg-surface hover:bg-surfaceHover border border-border text-textPrimary text-xs font-mono flex items-center gap-1 transition-all"
+                    >
+                      <span>Przejdź do Ocen</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-textMuted font-mono flex items-center justify-between">
+                  <span>Harmonogram: automatyczne pobieranie co 2 godziny</span>
+                  <span>Ostatnia synchronizacja: {librusStatus?.lastSync ? new Date(librusStatus.lastSync).toLocaleString('pl-PL') : 'Brak'}</span>
+                </div>
               </div>
             </section>
 

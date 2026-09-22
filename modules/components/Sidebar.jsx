@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, MessageSquare, Search, Settings, ChevronLeft, ChevronRight, 
   LayoutGrid, CalendarDays, BrainCircuit, Crosshair, Wallet, Dumbbell, Globe, 
-  Server, GraduationCap, Menu, X, Palette, Sparkles, Check, Sun, Moon, Mic
+  Server, GraduationCap, Award, Menu, X, Palette, Sparkles, Check, Sun, Moon, Mic
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -83,6 +83,7 @@ const Sidebar = () => {
     '/': true,
     '/chat': true,
     '/timetable': true,
+    '/grades': true,
     '/memory': true,
     '/osint': true,
     '/calendar': true,
@@ -123,6 +124,7 @@ const Sidebar = () => {
     { name: 'Pulpit', path: '/', icon: <LayoutDashboard className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Ekran główny' },
     { name: 'Asystent AI', path: '/chat', icon: <MessageSquare className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Konwersacja LLM' },
     { name: 'Plan Lekcji', path: '/timetable', icon: <GraduationCap className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Rozkład zajęć' },
+    { name: 'Oceny', path: '/grades', icon: <Award className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Librus Synergia' },
     { name: 'Finanse', path: '/finances', icon: <Wallet className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Budżet 50/30/20' },
     { name: 'Treningi', path: '/workouts', icon: <Dumbbell className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Dziennik fitness' },
     { name: 'Kalendarz', path: '/calendar', icon: <CalendarDays className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Terminarz' },

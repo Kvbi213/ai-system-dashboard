@@ -121,6 +121,15 @@ const filesToSync = [
   'api/voice/tts.js',
   'tests/wakeword.test.js',
   'tests/tts_quota.test.js',
+  'tests/librus.test.js',
+  'modules/pages/GradesPage.jsx',
+  'modules/services/librusService.js',
+  'modules/routes/librus.js',
+  'modules/database.js',
+  'modules/scheduler.js',
+  'core.server.js',
+  'api/librus.js',
+  'docs/versions/v2.21.0.md',
   'TO-DO.md'
 ];
 

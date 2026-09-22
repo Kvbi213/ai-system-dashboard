@@ -54,6 +54,7 @@ const CalendarPage = lazyWithRetry(() => import('./modules/pages/CalendarPage'))
 const FinancePage = lazyWithRetry(() => import('./modules/pages/FinancePage'));
 const WorkoutsPage = lazyWithRetry(() => import('./modules/pages/WorkoutsPage'));
 const TimetablePage = lazyWithRetry(() => import('./modules/pages/TimetablePage'));
+const GradesPage = lazyWithRetry(() => import('./modules/pages/GradesPage'));
 const MemoryPage = lazyWithRetry(() => import('./modules/pages/MemoryPage'));
 const OSINTPage = lazyWithRetry(() => import('./modules/pages/OSINTPage'));
 const ServerPage = lazyWithRetry(() => import('./modules/pages/ServerPage'));
@@ -311,6 +312,8 @@ const App = () => {
                   <Route path="/osint" element={<OSINTPage />} />
                   <Route path="/calendar" element={<CalendarPage />} />
                   <Route path="/timetable" element={<TimetablePage />} />
+                  <Route path="/grades" element={<GradesPage />} />
+                  <Route path="/oceny" element={<GradesPage />} />
                   <Route path="/finances" element={<FinancePage />} />
                   <Route path="/workouts" element={<WorkoutsPage />} />
                   <Route path="/widgets" element={<WidgetsPage />} />

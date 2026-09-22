@@ -2,6 +2,7 @@ import axios from 'axios';
 import { generateHourlySummary } from './agent.js';
 import { executeRun, executeQuery } from './database.js';
 import { runNextAgentStep } from './services/autonomousAgent.js';
+import { syncLibrusGrades, getLibrusCredentials } from './services/librusService.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -219,4 +220,25 @@ export async function runScheduler() {
 
   hourlyJob();
   setInterval(hourlyJob, 3600000);
+
+  // Cykliczna synchronizacja Librus Synergia (co 2 godziny = 7200000 ms)
+  const librusSyncJob = async () => {
+    try {
+      const creds = getLibrusCredentials();
+      if (creds.isConfigured) {
+        console.log('[*] INFO :: SCHEDULER :: Inicjalizacja 2-godzinnej synchronizacji Librus Synergia...');
+        const result = await syncLibrusGrades();
+        if (result.success) {
+          console.log('[+] SUCCESS :: SCHEDULER :: 2-godzinna synchronizacja Librus zakończona pomyślnie.');
+        } else {
+          console.warn(`[!] ALERT :: SCHEDULER :: Błąd synchronizacji Librus: ${result.error}`);
+        }
+      }
+    } catch (librusErr) {
+      logError('scheduler:librusSyncJob', librusErr);
+    }
+  };
+
+  setTimeout(librusSyncJob, 10000); // Pierwszy przebieg po 10s od startu
+  setInterval(librusSyncJob, 2 * 60 * 60 * 1000); // Kolejne co 2h (7200000 ms)
 }

@@ -1,5 +1,29 @@
 ## Wersja Bieżąca
-**v2.20.0**
+**v2.21.0**
+
+## v 2.21.0 — 2026-09-22
+**Typ:** MINOR  
+**Zakres:** Integracja Dziennika Elektronicznego Librus Synergia (`librus-api` v2.18.1), 2-Godzinny Harmonogram Odświeżania Ocen (`librusSyncJob`), Nowy Widok "Oceny" (`/grades` i `/oceny`), Obsługa Szczęśliwego Numerka, Średnich Ważonych, Detali Ocen w Oknie Modalnym, Konfiguracja Poświadczeń w Ustawieniach oraz Pamięć Podręczna SQLite.
+
+### Zmiany
+- [+] Dodano: Zależność produkcyjną `librus-api` (v2.18.1).
+- [+] Dodano: Moduł `modules/services/librusService.js` z kompletną obsługą autoryzacji w Librus Synergia, pobieraniem ocen, szczęśliwego numerka, kalkulatorem średnich ważonych oraz danymi demonstracyjnymi.
+- [+] Dodano: Router Express `modules/routes/librus.js` udostępniający endpointy REST `/api/librus/grades`, `/api/librus/refresh`, `/api/librus/status`, `/api/librus/credentials`, `/api/librus/test-auth`.
+- [+] Dodano: Tabelę `librus_cache` w bazie danych SQLite `tasks.sqlite` (`modules/database.js`).
+- [+] Dodano: 2-godzinny cykl synchronizacji `librusSyncJob` w `modules/scheduler.js`.
+- [+] Dodano: Serverless endpoint `api/librus.js` dla środowiska Vercel Gateway.
+- [+] Dodano: Nową podstronę `modules/pages/GradesPage.jsx` w stylistyce Adaptive-Clean UI z kafelkami KPI (Szczęśliwy numerek, średnia ogólna, przedmioty), pigułkami ocen w kolorach zależnych od stopni, filtrami semestralnymi i oknem modalnym detali.
+- [+] Dodano: Pozycję nawigacyjną "Oceny" z ikoną `Award` w `modules/components/Sidebar.jsx` i `DEFAULT_VISIBLE_NAV`.
+- [+] Dodano: Rejestrację tras `/grades` i `/oceny` z Code-Splittingiem w `core.client.jsx`.
+- [+] Dodano: Sekcję konfiguracji poświadczeń Librus Synergia w `modules/pages/SettingsPage.jsx` z testowaniem połączenia i zapisem poświadczeń.
+- [+] Dodano: Zestaw 8 testów jednostkowych w `tests/librus.test.js` (100% PASS).
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.21.0`.
+- [*] Zmodyfikowano: Utworzono raport wydania `docs/versions/v2.21.0.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.20.0 — 2026-09-17
 **Typ:** MINOR  

@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.20.0 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.21.0 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE)  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Chirurgiczna Redukcja Web Speech API, Wdrożenie Google Cloud Neural Text-to-Speech API 1 Mln Znaków/mc Free Tier, Studyjny Fallback ElevenLabs -> Google -> Edge, Vitest PASS)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Integracja Librus Synergia v2.18.1, Dedykowana Podstrona Oceny /grades, 2-Godzinny Harmonogram Odświeżania, SQLite librus_cache, Google Neural TTS, Vitest PASS)
 
 ---
 
@@ -34,7 +34,8 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   ├── main.yml               ← Główny potok CI/CD produkcyjny
 │   └── ci.yml                 ← Równoległy potok weryfikacyjny pull requestów
 │
-├── /tests/                    ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 131/131 PASS, 11 zestawów)
+├── /tests/                    ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 139/139 PASS, 12 zestawów)
+│   ├── librus.test.js         ← Testy integracji Librus Synergia, parserów ocen i statystyk
 │   ├── tts_quota.test.js      ← Testy inspekcji limitów ElevenLabs, błędu quota_exceeded i bazy głosów
 │   ├── agent_execution_trace.test.jsx ← Testy inspektora wykonania narzędzi i uziemienia Pamięci
 │   ├── autonomous_agent.test.js ← Testy agenta ciągłego, klasyfikacji intencji i pętli badawczej
@@ -48,6 +49,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   └── cloudSync.test.js      ← Testy rejestru kolekcji i detekcji środowiska
 │
 ├── /api/                      ← Funkcje Vercel Serverless (Node.js Gateway)
+│   ├── librus.js              ← Gateway do ocen Librus Synergia (CORS *, cloud proxy/demo)
 │   ├── agent.js               ← CORS-enabled proxy do openai/gpt-oss-120b z wstrzykiwaniem kontekstu, narzędzi akcji & Live Brave Search
 │   ├── news.js                ← Serverless endpoint newsowy z integracją Brave Search News API i kategoryzacją
 │   ├── models.js              ← Dynamiczny wykaz dostępnych modeli LLM z fallbackiem
@@ -66,49 +68,50 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │
 ├── /modules/                  ← Główna logika i komponenty.
 │   ├── agent.js               ← System podłączający się do API LLM (lokalnie i chmurowo).
-│   ├── database.js            ← Abstrakcja nad SQLite dla środowiska lokalnego (w tym tabela timetable).
+│   ├── database.js            ← Abstrakcja nad SQLite dla środowiska lokalnego (w tym tabele timetable, librus_cache).
+│   ├── scheduler.js           ← Zaawansowany harmonogram zadań cyklicznych (w tym 2-godzinny librusSyncJob).
 │   ├── firebase.js            ← Most z chmurą Firebase Admin SDK.
 │   ├── firebaseClient.js      ← Klient frontendowy Firebase Web SDK (Auth, Firestore).
 │   ├── osint.js               ← Narzędzia rozpoznania OSINT i klasyfikator celów.
 │   │
 │   ├── /services/             ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
-│   │   ├── pushbulletService.js ← Serwis bezpośredniej integracji z Pushbullet API (CORS *, Access-Token, formatPushText normalizer tabel i znaków nowej linii).
-│   │   ├── wakeWordService.js ← Serwis detekcji słowa wybudzającego "Hej Omni" (akustyczna matryca cichej mowy, maxAlternatives=5, DevTools hub window.__OMNI_VOICE__, no-speech zero backoff).
-│   │   ├── ttsService.js      ← Wielosilnikowa synteza mowy (Microsoft Edge Neural Marek/Zofia, ElevenLabs, OpenAI TTS, Web Speech).
+│   │   ├── librusService.js   ← Integracja z librus-api v2.18.1, pobieranie ocen, średnie ważone i szczęśliwy numerek.
+│   │   ├── pushbulletService.js ← Serwis bezpośredniej integracji z Pushbullet API.
+│   │   ├── wakeWordService.js ← Serwis detekcji słowa wybudzającego "Hej Omni".
+│   │   ├── ttsService.js      ← Wielosilnikowa synteza mowy (Google Neural, ElevenLabs, OpenAI, Edge Neural).
 │   │   ├── pushbulletClassifier.js ← Kognitywny klasyfikator wydatków 50/30/20 i deduplikator powiadomień.
-│   │   ├── cloudSync.js       ← Dwukierunkowa subskrypcja 8 kolekcji Firestore z auto-inicjalizacją i cloud purge czatu.
-│   │   ├── clientAiDispatcher.js ← Autonomiczny silnik zapytań LLM (openai/gpt-oss-120b) przez Vercel Gateway.
+│   │   ├── cloudSync.js       ← Dwukierunkowa subskrypcja kolekcji Firestore z auto-inicjalizacją.
+│   │   ├── clientAiDispatcher.js ← Autonomiczny silnik zapytań LLM przez Vercel Gateway.
 │   │   ├── budgetCalculator.js ← Czysty silnik kalkulacji budżetowych 50/30/20 i kopert.
 │   │   ├── exportService.js   ← Usługa eksportu danych do formatu CSV oraz podglądu PDF/druku.
 │   │   └── timeUtils.js       ← Narzędzia strefy czasowej Europe/Warsaw i formatowania dat.
 │   │
+│   ├── /routes/               ← Trasy API Express.
+│   │   ├── librus.js          ← Endpointy REST /api/librus (grades, refresh, status, credentials).
+│   │   └── ...
+│   │
 │   ├── /context/              ← Konteksty globalnego stanu aplikacji.
-│   │   ├── ChatContext.jsx    ← Zarządzanie wiadomościami Workera/Mentora, obsługa komend systemowych (/clear, /purge) i izolacja sesji.
-│   │   └── ToastContext.jsx   ← Pływające powiadomienia, błędy i detekcja łączności online/offline.
+│   │   ├── ChatContext.jsx    ← Zarządzanie wiadomościami Workera/Mentora.
+│   │   └── ToastContext.jsx   ← Pływające powiadomienia, błędy i detekcja łączności.
 │   │
 │   ├── /components/           ← Reużywalne klocki UI w React.
-│   │   ├── CommandPalette.jsx ← Globalna paleta komend i szybkich akcji (Ctrl + K).
-│   │   ├── VoiceInspectorHUD.jsx ← Pływający widżet diagnostyczny na żywo (status mikrofonu, odsłuch słów, przyciski testowe).
-│   │   ├── Sidebar.jsx        ← Lewy pasek nawigacyjny z zakładką Plan Lekcji (GraduationCap).
-│   │   ├── ToastContainer.jsx ← Kontener pływających powiadomień toast i paska offline.
-│   │   ├── ErrorBoundary.jsx  ← Strażnik awarii interfejsu (Crash Guard & Recovery Screen).
-│   │   ├── Terminal.jsx       ← Zaawansowany terminal czatu z Markdown, Live Voice Bar i TTS.
-│   │   ├── TodoList.jsx       ← Interaktywna lista to-do z obsługą priorytetów.
-│   │   └── ... (pozostałe widżety UI)
+│   │   ├── Sidebar.jsx        ← Lewy pasek nawigacyjny z zakładkami Plan Lekcji i Oceny (Award).
+│   │   └── ...
 │   │
 │   └── /pages/              ← Konkretne podstrony w React Router.
 │       ├── Dashboard.jsx    ← Strona startowa. Siatka wszystkich widżetów.
 │       ├── ChatPage.jsx     ← Pełnoekranowy Terminal AI.
+│       ├── GradesPage.jsx   ← Dziennik Ocen & Librus Synergia (szczęśliwy numerek, średnie ważone, widok semestralny, modal detali).
 │       ├── TimetablePage.jsx← Plan Lekcji & Zajęć (Live Tracker, widok osi czasu i siatki, CRUD, Firestore sync).
 │       ├── CalendarPage.jsx ← Kalendarz operacyjny i terminarz zdarzeń.
-│       ├── FinancePage.jsx  ← Finanse, budżet (konfigurowalne wagi procentowe, dwutrybowy Donut Chart [Wydatki vs Pule], dynamiczna repartycja split).
+│       ├── FinancePage.jsx  ← Finanse, budżet 50/30/20.
 │       ├── WorkoutsPage.jsx ← Dziennik sesji treningowych.
 │       ├── MemoryPage.jsx   ← Pamięć długoterminowa asystenta (Operator Brain).
 │       ├── SearchPage.jsx   ← Wyszukiwarka zintegrowana z Brave Search.
-│       └── SettingsPage.jsx ← Centrum kategorii Firestore, motywy i diagnostyka bramy.
+│       └── SettingsPage.jsx ← Centrum konfiguracji poświadczeń Librus, motywów i diagnostyki.
 │
 ├── /data/                   ← Magazyn danych lokalnych.
-│   └── tasks.sqlite         ← Baza SQL przechowująca zadania, harmonogram lekcji i logi.
+│   └── tasks.sqlite         ← Baza SQL przechowująca zadania, harmonogram lekcji, cache ocen librus_cache i logi.
 │
 └── /docs/                   ← Hub dokumentacji (logi wersji SemVer, błędy ERROR_DIFF, mapy architektoniczne).
 ```
@@ -140,6 +143,11 @@ Backend to lekka aplikacja oparta na Express.js. Działa na porcie `5000`. Pełn
 | `/api/firebase/verify-owner` | `POST` | `idToken` lub `email` | Uwierzytelnia właściciela z chmury Firebase i przyznaje unikalny token sesyjny. |
 | `/api/firebase/sync` | `POST` | - | Przeprowadza pełną synchronizację bazy lokalnej SQLite do chmury Firestore. |
 | `/api/firebase/data/:col` | `GET` | URL param: `col` | Bezpośredni odczyt dokumentów z kolekcji Firestore w chmurze. |
+| `/api/librus/grades` | `GET` | `?demo=true` | Pobieranie ocen z pamięci podręcznej SQLite / Synergii wraz ze szczęśliwym numerkiem i średnimi. |
+| `/api/librus/refresh` | `POST` | - | Wymuszenie natychmiastowej synchronizacji ocen i szczęśliwego numerka z serwerów Librusa. |
+| `/api/librus/status` | `GET` | - | Status autoryzacji, maskowany login, czas ostatniej synchronizacji i metryki. |
+| `/api/librus/credentials` | `POST` | `login`, `password`, `syncNow` | Zapisanie poświadczeń konta Librus Synergia w .env i pamięci systemu. |
+| `/api/librus/test-auth` | `POST` | `login`, `password` | Jednorazowy test poprawności danych logowania bez ich zapisywania. |
 
 ---
 
@@ -164,6 +172,14 @@ System bazuje na plikowej bazie SQLite (`/data/tasks.sqlite`), która tworzy si�
    - `type`: TEXT (INFO, WARN, ERROR, SCHEDULER)
    - `content`: TEXT
    - `created_at`: DATETIME
+
+3. **`librus_cache`**
+   - `id`: INTEGER PRIMARY KEY CHECK (id = 1)
+   - `data`: TEXT (zserializowany JSON z ocenami, średnimi i metrykami)
+   - `lucky_number`: INTEGER (dzisiejszy szczęśliwy numerek)
+   - `last_sync`: DATETIME DEFAULT CURRENT_TIMESTAMP
+   - `status`: TEXT ('ok', 'error', 'pending')
+   - `error_message`: TEXT (ewentualny komunikat błędu)
 
 *Moduł `database.js` udostępnia promisyfikowane funkcje `executeQuery` i `executeRun`, co pozwala używać składni `async/await` w całym kodzie backendu.*
 
