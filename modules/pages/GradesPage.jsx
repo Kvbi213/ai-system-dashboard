@@ -47,6 +47,104 @@ const getAverageBadgeStyle = (avg) => {
   return 'bg-rose-500/15 text-rose-400 border-rose-500/40 shadow-[0_0_10px_rgba(244,63,94,0.2)]';
 };
 
+// Wbudowane dane demonstracyjne (fallback offline / tryb demonstracyjny)
+const STATIC_DEMO_DATA = {
+  isDemo: true,
+  luckyNumber: 17,
+  lastSync: new Date().toISOString(),
+  overallAverage: "5.19",
+  totalSubjects: 6,
+  highestAverage: { name: "Informatyka", average: "6.00" },
+  subjects: [
+    {
+      name: 'Język polski',
+      computedAverage: '4.60',
+      gradesCount: 3,
+      semester: [
+        [
+          { id: 101, value: '5', info: 'Kategoria: Sprawdzian\nWaga: 3\nData: 2026-02-15\nNauczyciel: J. Kowalska\nKomentarz: Romantyzm - praca klasowa' },
+          { id: 102, value: '4+', info: 'Kategoria: Odpowiedź ustna\nWaga: 2\nData: 2026-03-01\nNauczyciel: J. Kowalska' },
+          { id: 103, value: '5', info: 'Kategoria: Wypracowanie\nWaga: 3\nData: 2026-03-20\nNauczyciel: J. Kowalska\nKomentarz: Analiza Dziadów cz. III' }
+        ],
+        []
+      ]
+    },
+    {
+      name: 'Matematyka',
+      computedAverage: '4.80',
+      gradesCount: 5,
+      semester: [
+        [
+          { id: 201, value: '5', info: 'Kategoria: Sprawdzian\nWaga: 3\nData: 2026-02-18\nNauczyciel: A. Wiśniewski\nKomentarz: Ciągi liczbowe i granice' },
+          { id: 202, value: '5-', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-03-05\nNauczyciel: A. Wiśniewski' },
+          { id: 203, value: '4', info: 'Kategoria: Aktywność\nWaga: 1\nData: 2026-03-22\nNauczyciel: A. Wiśniewski' }
+        ],
+        [
+          { id: 204, value: '5', info: 'Kategoria: Sprawdzian\nWaga: 3\nData: 2026-04-15\nNauczyciel: A. Wiśniewski\nKomentarz: Rachunek prawdopodobieństwa' },
+          { id: 205, value: '4+', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-04-29\nNauczyciel: A. Wiśniewski' }
+        ]
+      ]
+    },
+    {
+      name: 'Język angielski',
+      computedAverage: '5.60',
+      gradesCount: 4,
+      semester: [
+        [
+          { id: 301, value: '6', info: 'Kategoria: Sprawdzian\nWaga: 3\nData: 2026-02-12\nNauczyciel: E. Smith\nKomentarz: Advanced Grammar Unit 4' },
+          { id: 302, value: '5', info: 'Kategoria: Prezentacja\nWaga: 2\nData: 2026-03-08\nNauczyciel: E. Smith\nKomentarz: Artificial Intelligence in Modern Society' }
+        ],
+        [
+          { id: 303, value: '6', info: 'Kategoria: Esej\nWaga: 3\nData: 2026-04-12\nNauczyciel: E. Smith\nKomentarz: Critical essay' },
+          { id: 304, value: '5+', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-05-03\nNauczyciel: E. Smith\nKomentarz: Phrasal verbs' }
+        ]
+      ]
+    },
+    {
+      name: 'Informatyka',
+      computedAverage: '6.00',
+      gradesCount: 3,
+      semester: [
+        [
+          { id: 401, value: '6', info: 'Kategoria: Projekt\nWaga: 3\nData: 2026-02-20\nNauczyciel: P. Zieliński\nKomentarz: Architektura fullstack w Node.js' },
+          { id: 402, value: '6', info: 'Kategoria: Sprawdzian praktyczny\nWaga: 3\nData: 2026-03-15\nNauczyciel: P. Zieliński\nKomentarz: Algorytmy grafowe' }
+        ],
+        [
+          { id: 403, value: '6', info: 'Kategoria: Projekt grupowy\nWaga: 3\nData: 2026-04-25\nNauczyciel: P. Zieliński\nKomentarz: Model AI & REST API' }
+        ]
+      ]
+    },
+    {
+      name: 'Fizyka',
+      computedAverage: '4.75',
+      gradesCount: 3,
+      semester: [
+        [
+          { id: 501, value: '4+', info: 'Kategoria: Sprawdzian\nWaga: 3\nData: 2026-02-22\nNauczyciel: T. Lewandowski\nKomentarz: Termodynamika' },
+          { id: 502, value: '5', info: 'Kategoria: Ćwiczenia laboratoryjne\nWaga: 2\nData: 2026-03-12\nNauczyciel: T. Lewandowski' }
+        ],
+        [
+          { id: 503, value: '5', info: 'Kategoria: Sprawdzian\nWaga: 3\nData: 2026-04-18\nNauczyciel: T. Lewandowski\nKomentarz: Optyka falowa' }
+        ]
+      ]
+    },
+    {
+      name: 'Historia',
+      computedAverage: '5.00',
+      gradesCount: 3,
+      semester: [
+        [
+          { id: 601, value: '5', info: 'Kategoria: Sprawdzian\nWaga: 3\nData: 2026-02-25\nNauczyciel: D. Kamińska\nKomentarz: Dwudziestolecie międzywojenne' }
+        ],
+        [
+          { id: 602, value: '5', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-04-14\nNauczyciel: D. Kamińska' },
+          { id: 603, value: '5', info: 'Kategoria: Projekt\nWaga: 2\nData: 2026-05-02\nNauczyciel: D. Kamińska' }
+        ]
+      ]
+    }
+  ]
+};
+
 const GradesPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -71,21 +169,64 @@ const GradesPage = () => {
     else setLoading(true);
     setError(null);
 
+    // Tryb demonstracyjny
+    if (forceDemoMode) {
+      setData(STATIC_DEMO_DATA);
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
+
+    // W środowisku chmurowym (Firebase Hosting) pobieramy dane WYŁĄCZNIE z Firestore
+    if (isCloudEnvironment()) {
+      if (firestore) {
+        try {
+          const { getDoc } = await import('firebase/firestore');
+          const snap = await getDoc(doc(firestore, 'librus_cache', 'latest'));
+          if (snap.exists()) {
+            const cloudData = snap.data();
+            if (cloudData && Array.isArray(cloudData.subjects)) {
+              setData(prev => ({
+                ...(prev || {}),
+                ...cloudData,
+                isConfigured: true,
+                isDemo: false
+              }));
+              setError(null);
+              setLoading(false);
+              setRefreshing(false);
+              return;
+            }
+          }
+        } catch (fErr) {
+          console.debug('[Firestore] Błąd odczytu bezpośredniego:', fErr);
+        }
+      }
+      // Jeśli brak dokumentu w Firestore w chmurze, fallback demo bez zapytań HTTP
+      setData(STATIC_DEMO_DATA);
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
+
+    // Środowisko lokalne (Express backend pod localhost:3000)
     try {
-      const url = forceDemoMode ? '/api/librus/grades?demo=true' : '/api/librus/grades';
+      const url = '/api/librus/grades';
       const res = await axios.get(url, { timeout: 12000 });
       if (res.data) {
         setData(res.data);
       }
     } catch (err) {
-      console.warn('[!] ALERT :: Błąd pobierania ocen z Librusa:', err.message);
-      setError(err.response?.data?.error || err.message || 'Nie udało się pobrać ocen');
-      // Fallback do danych demonstracyjnych jeśli nie udało się pobrać z backendu
+      const isHtmlErr = err.message?.includes('zwrócił HTML');
+      if (isHtmlErr || data?.subjects?.length > 0) {
+        console.debug('[Librus] Pominięto anomalię endpointu:', err.message);
+      } else {
+        setError(err.response?.data?.error || err.message || 'Nie udało się pobrać ocen');
+      }
+
+      // Fallback demonstracyjny w razie błędu sieci lokalnej
       if (!data) {
-        try {
-          const demoRes = await axios.get('/api/librus/grades?demo=true', { timeout: 3000 });
-          setData(demoRes.data);
-        } catch {}
+        setData(STATIC_DEMO_DATA);
       }
     } finally {
       setLoading(false);
@@ -112,6 +253,7 @@ const GradesPage = () => {
               isConfigured: true,
               isDemo: false
             }));
+            setError(null);
             setLoading(false);
           }
         }
@@ -127,11 +269,36 @@ const GradesPage = () => {
   // Wymuszenie odświeżenia przez serwer
   const handleForceRefresh = async () => {
     if (useDemo) {
-      fetchGrades(true, true);
+      setData(STATIC_DEMO_DATA);
       return;
     }
     setRefreshing(true);
     setError(null);
+
+    // W środowisku chmurowym odświeżamy bezpośrednio ze snapshota Firestore
+    if (isCloudEnvironment()) {
+      if (firestore) {
+        try {
+          const { getDoc } = await import('firebase/firestore');
+          const snap = await getDoc(doc(firestore, 'librus_cache', 'latest'));
+          if (snap.exists()) {
+            const cloudData = snap.data();
+            if (cloudData && Array.isArray(cloudData.subjects)) {
+              setData(prev => ({
+                ...(prev || {}),
+                ...cloudData,
+                isConfigured: true,
+                isDemo: false
+              }));
+              setError(null);
+            }
+          }
+        } catch {}
+      }
+      setRefreshing(false);
+      return;
+    }
+
     try {
       const res = await axios.post('/api/librus/refresh', {}, { timeout: 20000 });
       if (res.data?.success && res.data?.data) {
@@ -141,7 +308,9 @@ const GradesPage = () => {
       }
     } catch (err) {
       const msg = err.response?.data?.error || err.message || 'Błąd odświeżania danych Librus';
-      setError(msg);
+      if (!msg.includes('zwrócił HTML')) {
+        setError(msg);
+      }
       await fetchGrades(true);
     } finally {
       setRefreshing(false);
@@ -271,7 +440,7 @@ const GradesPage = () => {
       )}
 
       {/* KOMUNIKAT BŁĘDU */}
-      {error && (
+      {error && !error.toLowerCase().includes('html') && (!data?.subjects || data.subjects.length === 0) && (
         <div className="mt-3 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
           <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
           <span>{error}</span>

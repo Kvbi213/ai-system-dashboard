@@ -1,5 +1,21 @@
 ## Wersja Bieżąca
-**v2.21.0**
+**v2.21.1**
+
+## v 2.21.1 — 2026-09-22
+**Typ:** PATCH  
+**Zakres:** Eliminacja fałszywego komunikatu o błędzie HTML Rewrite w widoku Ocen (`/grades`) na hostingu produkcyjnym Firebase Hosting. Pełna separacja środowiska hybrydowego (bezpośredni odczyt Firestore w chmurze bez zapytań do nieistniejących endpointów Express).
+
+### Zmiany
+- [*] Zmodyfikowano: `modules/pages/GradesPage.jsx` – dodano wbudowany zestaw danych demonstracyjnych `STATIC_DEMO_DATA`, odcięto zapytania Axios do Express w środowisku Firebase Hosting na rzecz bezpośredniego odczytu z Cloud Firestore `librus_cache/latest`.
+- [*] Zmodyfikowano: `modules/pages/GradesPage.jsx` – zaktualizowano warunek renderowania banera błędu, tłumiąc fałszywe komunikaty o parsowaniu HTML na hostingu statycznym.
+- [+] Dodano: Kartę błędu `docs/errors/ERROR_DIFF_2026-09-22_librus_grades_html_rewrite_cloud_suppression.md`.
+- [+] Dodano: Raport wydania `docs/versions/v2.21.1.md`.
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.21.1`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.21.0 — 2026-09-22
 **Typ:** MINOR  

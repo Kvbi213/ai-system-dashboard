@@ -1,6 +1,6 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.21.0 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.21.1 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE)  
 **Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Integracja Librus Synergia v2.18.1, Dedykowana Podstrona Oceny /grades, 2-Godzinny Harmonogram Odświeżania, SQLite librus_cache, Google Neural TTS, Vitest PASS)
 
