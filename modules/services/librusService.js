@@ -10,11 +10,26 @@ const rootDir = path.resolve(__dirname, '../../');
 const envPath = path.resolve(rootDir, '.env');
 
 /**
- * Pobiera poświadczenia Librus ze zmiennych środowiskowych.
+ * Pobiera poświadczenia Librus ze zmiennych środowiskowych lub pliku .env.
  */
 export function getLibrusCredentials() {
-  const login = process.env.LIBRUS_LOGIN || '';
-  const password = process.env.LIBRUS_PASSWORD || '';
+  let login = process.env.LIBRUS_LOGIN || '';
+  let password = process.env.LIBRUS_PASSWORD || '';
+
+  if (!login || !password) {
+    try {
+      if (fs.existsSync(envPath)) {
+        const content = fs.readFileSync(envPath, 'utf8');
+        const mLogin = content.match(/^LIBRUS_LOGIN=(.*)$/m);
+        const mPass = content.match(/^LIBRUS_PASSWORD=(.*)$/m);
+        if (mLogin && mLogin[1]) login = mLogin[1].trim();
+        if (mPass && mPass[1]) password = mPass[1].trim();
+        if (login) process.env.LIBRUS_LOGIN = login;
+        if (password) process.env.LIBRUS_PASSWORD = password;
+      }
+    } catch {}
+  }
+
   return {
     login: login.trim(),
     password: password.trim(),
@@ -86,8 +101,12 @@ export function parseGradeInfo(infoStr) {
       if (match) details.weight = parseFloat(match[1].replace(',', '.')) || 1;
     } else if (/data:/i.test(trimmed)) {
       details.date = trimmed.replace(/^.*?data:\s*/i, '').trim();
-    } else if (/nauczyciel:/i.test(trimmed)) {
-      details.teacher = trimmed.replace(/^.*?nauczyciel:\s*/i, '').trim();
+    } else if (/nauczyciel:/i.test(trimmed) || /dodał:/i.test(trimmed)) {
+      if (!details.teacher || /nauczyciel:/i.test(trimmed)) {
+        details.teacher = trimmed.replace(/^.*?(nauczyciel|dodał):\s*/i, '').trim();
+      }
+    } else if (/licz do średniej:/i.test(trimmed)) {
+      details.inAverage = !/nie/i.test(trimmed);
     } else if (/komentarz:/i.test(trimmed) || /opis:/i.test(trimmed)) {
       details.comment = trimmed.replace(/^.*?(komentarz|opis):\s*/i, '').trim();
     }
@@ -121,14 +140,24 @@ export function computeGradeStats(subjects = []) {
   let highestAverage = { subject: '', average: 0 };
   let lowestAverage = { subject: '', average: 7 };
 
-  const enrichedSubjects = subjects.map(subj => {
-    const sem1Grades = (subj.semester?.[0] || []).map(g => ({
+  const extractGradesList = (sem) => {
+    if (!sem) return [];
+    if (Array.isArray(sem)) return sem;
+    if (Array.isArray(sem.grades)) return sem.grades;
+    return [];
+  };
+
+  const enrichedSubjects = (subjects || []).map(subj => {
+    const rawSem1 = subj.semester?.[0];
+    const rawSem2 = subj.semester?.[1];
+
+    const sem1Grades = extractGradesList(rawSem1).map(g => ({
       ...g,
       details: parseGradeInfo(g.info),
       numericValue: parseGradeNumeric(g.value)
     }));
 
-    const sem2Grades = (subj.semester?.[1] || []).map(g => ({
+    const sem2Grades = extractGradesList(rawSem2).map(g => ({
       ...g,
       details: parseGradeInfo(g.info),
       numericValue: parseGradeNumeric(g.value)
@@ -138,7 +167,7 @@ export function computeGradeStats(subjects = []) {
       let sum = 0;
       let weights = 0;
       for (const g of gradesList) {
-        if (g.numericValue !== null) {
+        if (g.numericValue !== null && g.details?.inAverage !== false) {
           const w = g.details?.weight || 1;
           sum += g.numericValue * w;
           weights += w;
@@ -147,8 +176,8 @@ export function computeGradeStats(subjects = []) {
       return weights > 0 ? parseFloat((sum / weights).toFixed(2)) : null;
     };
 
-    const sem1Avg = calcAverage(sem1Grades);
-    const sem2Avg = calcAverage(sem2Grades);
+    const sem1Avg = parseFloat(rawSem1?.average || rawSem1?.tempAverage) || calcAverage(sem1Grades);
+    const sem2Avg = parseFloat(rawSem2?.average || rawSem2?.tempAverage) || calcAverage(sem2Grades);
     
     // Użyj średniej z Librusa lub wyliczonej
     let finalAvg = parseFloat(subj.average || subj.tempAverage || 0);
@@ -157,21 +186,26 @@ export function computeGradeStats(subjects = []) {
       finalAvg = calcAverage(allGrades) || 0;
     }
 
+    const cleanName = subj.name 
+      ? subj.name.charAt(0).toUpperCase() + subj.name.slice(1) 
+      : 'Przedmiot';
+
     if (finalAvg > 0) {
       gradedSubjectsCount++;
       totalSum += finalAvg;
       totalWeights += 1;
 
       if (finalAvg > highestAverage.average) {
-        highestAverage = { subject: subj.name, average: finalAvg };
+        highestAverage = { subject: cleanName, average: finalAvg };
       }
       if (finalAvg < lowestAverage.average) {
-        lowestAverage = { subject: subj.name, average: finalAvg };
+        lowestAverage = { subject: cleanName, average: finalAvg };
       }
     }
 
     return {
       ...subj,
+      name: cleanName,
       sem1Grades,
       sem2Grades,
       sem1Avg,
@@ -185,7 +219,7 @@ export function computeGradeStats(subjects = []) {
   return {
     subjects: enrichedSubjects,
     overallAverage,
-    totalSubjects: subjects.length,
+    totalSubjects: (subjects || []).length,
     gradedSubjectsCount,
     highestAverage: highestAverage.average > 0 ? highestAverage : null,
     lowestAverage: lowestAverage.average < 7 ? lowestAverage : null
@@ -232,6 +266,16 @@ export async function fetchLibrusFromSource(login, password) {
 
   // Zapis do bazy SQLite
   try {
+    await executeRun(`
+      CREATE TABLE IF NOT EXISTS librus_cache (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        data TEXT NOT NULL,
+        lucky_number INTEGER,
+        last_sync DATETIME DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'ok',
+        error_message TEXT
+      )
+    `);
     await executeRun(
       `INSERT OR REPLACE INTO librus_cache (id, data, lucky_number, last_sync, status, error_message)
        VALUES (1, ?, ?, datetime('now'), 'ok', NULL)`,
