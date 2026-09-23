@@ -5,7 +5,10 @@ import {
   getLibrusCredentials, 
   saveLibrusCredentials, 
   testLibrusAuth,
-  getDemoGradesData
+  getDemoGradesData,
+  getCachedCalendar,
+  syncLibrusCalendar,
+  getDemoCalendarData
 } from '../services/librusService.js';
 
 const router = express.Router();
@@ -81,6 +84,79 @@ router.post('/refresh', async (req, res) => {
     res.json({
       success: true,
       message: 'Zsynchronizowano pomyślnie z Librus Synergia.',
+      data: result.data
+    });
+  } else {
+    res.status(502).json({
+      success: false,
+      error: result.error
+    });
+  }
+});
+
+/**
+ * GET /api/librus/calendar
+ * Pobiera terminarz szkolny (sprawdziany, kartkówki, nieobecności nauczycieli).
+ */
+router.get('/calendar', async (req, res) => {
+  const creds = getLibrusCredentials();
+  const forceDemo = req.query.demo === 'true';
+
+  if (forceDemo) {
+    return res.json({
+      success: true,
+      isConfigured: creds.isConfigured,
+      ...getDemoCalendarData()
+    });
+  }
+
+  const cached = await getCachedCalendar();
+  if (cached) {
+    return res.json({
+      success: true,
+      isConfigured: creds.isConfigured,
+      ...cached
+    });
+  }
+
+  // Jeśli brak w cache, ale są poświadczenia — zsynchronizuj
+  if (creds.isConfigured) {
+    const syncRes = await syncLibrusCalendar();
+    if (syncRes.success) {
+      return res.json({
+        success: true,
+        isConfigured: true,
+        ...syncRes.data
+      });
+    }
+  }
+
+  // Fallback demo
+  res.json({
+    success: true,
+    isConfigured: creds.isConfigured,
+    ...getDemoCalendarData()
+  });
+});
+
+/**
+ * POST /api/librus/calendar/refresh
+ * Wymusza natychmiastowe odświeżenie terminarza szkolnego.
+ */
+router.post('/calendar/refresh', async (req, res) => {
+  const creds = getLibrusCredentials();
+  if (!creds.isConfigured) {
+    return res.status(400).json({
+      success: false,
+      error: 'Brak skonfigurowanych poświadczeń Librus Synergia.'
+    });
+  }
+
+  const result = await syncLibrusCalendar();
+  if (result.success) {
+    res.json({
+      success: true,
+      message: 'Zsynchronizowano terminarz z Librus Synergia.',
       data: result.data
     });
   } else {

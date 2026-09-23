@@ -286,7 +286,19 @@ export async function fetchLibrusFromSource(login, password) {
     console.error(`[!] ERROR :: LIBRUS :: Błąd zapisu do bazy SQLite:`, dbErr.message);
   }
 
-  // Replikacja do Firebase Firestore (dostęp dla void-potato-7721.web.app)
+  // Pobierz terminarz szkolny (sprawdziany, kartkówki, nieobecności nauczycieli)
+  let calendarPayload = null;
+  try {
+    calendarPayload = await fetchLibrusCalendarFromSource(client);
+    if (calendarPayload && Array.isArray(calendarPayload.events)) {
+      await saveCalendarToCache(calendarPayload);
+      console.log(`[+] SUCCESS :: LIBRUS :: Zapisano i zreplikowano terminarz szkolny (${calendarPayload.events.length} zdarzeń).`);
+    }
+  } catch (cErr) {
+    console.warn(`[!] ALERT :: LIBRUS :: Pominięto synchronizację terminarza: ${cErr.message}`);
+  }
+
+  // Replikacja ocen do Firebase Firestore (dostęp dla void-potato-7721.web.app)
   try {
     const { getFirestoreDb } = await import('../firebase.js');
     const firestoreDb = getFirestoreDb ? getFirestoreDb() : null;
@@ -298,10 +310,10 @@ export async function fetchLibrusFromSource(login, password) {
       console.log(`[+] SUCCESS :: LIBRUS :: Zreplikowano stan ocen do chmury Firestore (librus_cache/latest).`);
     }
   } catch (fErr) {
-    console.warn(`[!] ALERT :: LIBRUS :: Pominięto replikację do Firestore: ${fErr.message}`);
+    console.warn(`[!] ALERT :: LIBRUS :: Pominięto replikację ocen do Firestore: ${fErr.message}`);
   }
 
-  return payload;
+  return { ...payload, calendar: calendarPayload?.events || [] };
 }
 
 /**
@@ -466,5 +478,330 @@ export function getDemoGradesData() {
     lastSync: new Date().toISOString(),
     status: 'demo',
     ...stats
+  };
+}
+
+/**
+ * Parsuje surowy wpis z terminarza Librus do ustandaryzowanego obiektu zdarzenia.
+ */
+export function parseCalendarEvent(item) {
+  if (!item || !item.title) return null;
+  const rawTitle = String(item.title).trim();
+  const day = item.day || '';
+  const id = item.id || null;
+
+  // 1. Nieobecność nauczyciela
+  if (/nieobecność/i.test(rawTitle) && /nauczyciel/i.test(rawTitle)) {
+    const teacherMatch = rawTitle.match(/nauczyciel:\s*([^\n\r]+?)(?:godziny:|$)/i);
+    const hoursMatch = rawTitle.match(/godziny:\s*([^\n\r]+)/i);
+    const teacher = teacherMatch ? teacherMatch[1].trim() : 'Nauczyciel';
+    const hours = hoursMatch ? hoursMatch[1].trim() : 'Cały dzień';
+
+    return {
+      id: id || `abs_${day}_${teacher.replace(/\s+/g, '_')}`,
+      date: day,
+      type: 'absence',
+      category: 'Nieobecność nauczyciela',
+      title: `Nieobecność: ${teacher}`,
+      teacher,
+      time: hours,
+      subject: null,
+      description: `Nieobecność nauczyciela: ${teacher} (${hours})`,
+      raw: rawTitle
+    };
+  }
+
+  // 2. Kartkówka
+  if (/kartkówka/i.test(rawTitle)) {
+    const lessonMatch = rawTitle.match(/nr\s*lekcji:\s*(\d+)/i);
+    const lessonNr = lessonMatch ? lessonMatch[1] : null;
+
+    let subject = 'Zajęcia szkolne';
+    const clean = rawTitle.replace(/nr\s*lekcji:\s*\d+/i, '').trim();
+    const parts = clean.split(/,|\n/);
+    if (parts.length > 0 && parts[0].trim()) {
+      subject = parts[0].replace(/kartkówka/i, '').trim() || 'Zajęcia szkolne';
+    }
+
+    return {
+      id: id || `kart_${day}_${Math.random().toString(36).substr(2, 5)}`,
+      date: day,
+      type: 'kartkowka',
+      category: 'Kartkówka',
+      title: `Kartkówka: ${subject}`,
+      subject,
+      teacher: null,
+      time: lessonNr ? `Lekcja ${lessonNr}` : '',
+      description: rawTitle,
+      raw: rawTitle
+    };
+  }
+
+  // 3. Sprawdzian / Praca klasowa
+  if (/sprawdzian|praca\s*klasowa|test/i.test(rawTitle)) {
+    const lessonMatch = rawTitle.match(/nr\s*lekcji:\s*(\d+)/i);
+    const lessonNr = lessonMatch ? lessonMatch[1] : null;
+
+    let subject = 'Zajęcia szkolne';
+    const clean = rawTitle.replace(/nr\s*lekcji:\s*\d+/i, '').trim();
+    const parts = clean.split(/,|\n/);
+    if (parts.length > 0 && parts[0].trim()) {
+      subject = parts[0].replace(/sprawdzian|praca\s*klasowa|test/i, '').trim() || 'Zajęcia szkolne';
+    }
+
+    return {
+      id: id || `sprawdzian_${day}_${Math.random().toString(36).substr(2, 5)}`,
+      date: day,
+      type: 'sprawdzian',
+      category: 'Sprawdzian',
+      title: `Sprawdzian: ${subject}`,
+      subject,
+      teacher: null,
+      time: lessonNr ? `Lekcja ${lessonNr}` : '',
+      description: rawTitle,
+      raw: rawTitle
+    };
+  }
+
+  // 4. Wywiadówka / Zebranie
+  if (/wywiadówka|zebranie|spotkanie/i.test(rawTitle)) {
+    return {
+      id: id || `event_${day}_${Math.random().toString(36).substr(2, 5)}`,
+      date: day,
+      type: 'wywiadowka',
+      category: 'Wywiadówka / Zebranie',
+      title: rawTitle.split(/[:\n]/)[0].trim() || 'Spotkanie z rodzicami',
+      subject: null,
+      teacher: null,
+      time: '',
+      description: rawTitle,
+      raw: rawTitle
+    };
+  }
+
+  // 5. Inne wydarzenia szkolne
+  return {
+    id: id || `event_${day}_${Math.random().toString(36).substr(2, 5)}`,
+    date: day,
+    type: 'inne',
+    category: 'Wydarzenie szkolne',
+    title: rawTitle.slice(0, 45),
+    subject: null,
+    teacher: null,
+    time: '',
+    description: rawTitle,
+    raw: rawTitle
+  };
+}
+
+/**
+ * Pobiera terminarz z Librusa (bieżący miesiąc oraz opcjonalnie kolejny).
+ */
+export async function fetchLibrusCalendarFromSource(client, targetMonth, targetYear) {
+  const now = new Date();
+  const m = targetMonth || (now.getMonth() + 1);
+  const y = targetYear || now.getFullYear();
+
+  const rawCalendar = await client.calendar.getCalendar(m, y);
+  const items = Array.isArray(rawCalendar) ? rawCalendar.flat().filter(Boolean) : [];
+
+  const parsedEvents = [];
+  for (const it of items) {
+    const parsed = parseCalendarEvent(it);
+    if (!parsed) continue;
+
+    // Próba wzbogacenia o szczegóły jeśli ID jest unikalne i dodatnie
+    if (it.id && typeof it.id === 'number' && it.id > 0) {
+      try {
+        const isAbs = parsed.type === 'absence';
+        const details = await client.calendar.getEvent(it.id, isAbs);
+        if (details) {
+          if (isAbs && details.teacher) {
+            parsed.teacher = details.teacher;
+            if (details.range) parsed.time = details.range;
+          } else if (!isAbs) {
+            if (details.subject) parsed.subject = details.subject;
+            if (details.teacher) parsed.teacher = details.teacher;
+            if (details.description) parsed.description = details.description;
+            if (details.room) parsed.room = details.room;
+            if (details.lessonNumber) parsed.time = `Lekcja ${details.lessonNumber}`;
+          }
+        }
+      } catch {}
+    }
+    parsedEvents.push(parsed);
+  }
+
+  // Posortuj chronologicznie
+  parsedEvents.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+  return {
+    lastSync: new Date().toISOString(),
+    month: m,
+    year: y,
+    events: parsedEvents
+  };
+}
+
+/**
+ * Zapisuje kalendarz do bazy SQLite oraz replikuje do Firestore (librus_cache/calendar).
+ */
+export async function saveCalendarToCache(payload) {
+  try {
+    await executeRun(`
+      CREATE TABLE IF NOT EXISTS librus_calendar_cache (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        data TEXT NOT NULL,
+        last_sync DATETIME DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'ok',
+        error_message TEXT
+      )
+    `);
+    await executeRun(
+      `INSERT OR REPLACE INTO librus_calendar_cache (id, data, last_sync, status, error_message)
+       VALUES (1, ?, datetime('now'), 'ok', NULL)`,
+      [JSON.stringify(payload)]
+    );
+  } catch (err) {
+    console.error('[!] ERROR :: LIBRUS :: Błąd zapisu librus_calendar_cache w SQLite:', err.message);
+  }
+
+  // Replikacja do Firestore (dokument librus_cache/calendar - zaufana kolekcja z firestore.rules)
+  try {
+    const { getFirestoreDb } = await import('../firebase.js');
+    const firestoreDb = getFirestoreDb ? getFirestoreDb() : null;
+    if (firestoreDb) {
+      await firestoreDb.collection('librus_cache').doc('calendar').set({
+        ...payload,
+        updated_at: new Date().toISOString()
+      });
+      console.log(`[+] SUCCESS :: LIBRUS :: Zreplikowano terminarz do Firestore (librus_cache/calendar).`);
+    }
+  } catch (fErr) {
+    console.warn(`[!] ALERT :: LIBRUS :: Pominięto replikację terminarza do Firestore: ${fErr.message}`);
+  }
+}
+
+/**
+ * Zwraca zbuforowany terminarz z bazy SQLite.
+ */
+export async function getCachedCalendar() {
+  try {
+    const rows = await executeQuery('SELECT * FROM librus_calendar_cache WHERE id = 1');
+    if (rows && rows.length > 0) {
+      const row = rows[0];
+      const parsedData = JSON.parse(row.data);
+      return {
+        cached: true,
+        lastSync: row.last_sync,
+        status: row.status,
+        ...parsedData
+      };
+    }
+  } catch (err) {
+    console.error('[!] ERROR :: LIBRUS :: Błąd odczytu librus_calendar_cache:', err.message);
+  }
+  return null;
+}
+
+/**
+ * Wymusza synchronizację samego terminarza szkolnego.
+ */
+export async function syncLibrusCalendar() {
+  const creds = getLibrusCredentials();
+  if (!creds.isConfigured) {
+    return { success: false, error: 'Brak skonfigurowanych poświadczeń Librus Synergia.' };
+  }
+
+  try {
+    const LibrusClass = (await import('librus-api')).default;
+    const client = new LibrusClass();
+    await client.authorize(creds.login, creds.password);
+    const calendarPayload = await fetchLibrusCalendarFromSource(client);
+    await saveCalendarToCache(calendarPayload);
+    return { success: true, data: calendarPayload };
+  } catch (err) {
+    console.error(`[!] ERROR :: LIBRUS :: Błąd synchronizacji terminarza:`, err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Zwraca realistyczne dane demonstracyjne terminarza szkolnego.
+ */
+export function getDemoCalendarData() {
+  const today = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const formatDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+  const d1 = new Date(today);
+  d1.setDate(d1.getDate() + 1);
+  const d2 = new Date(today);
+  d2.setDate(d2.getDate() + 2);
+  const d3 = new Date(today);
+  d3.setDate(d3.getDate() + 4);
+  const d4 = new Date(today);
+  d4.setDate(d4.getDate() + 7);
+
+  return {
+    isDemo: true,
+    lastSync: new Date().toISOString(),
+    events: [
+      {
+        id: 9001,
+        date: formatDate(today),
+        type: 'absence',
+        category: 'Nieobecność nauczyciela',
+        title: 'Nieobecność: Lorenz Krzysztof',
+        teacher: 'Lorenz Krzysztof',
+        time: '08:00 do 13:05',
+        subject: 'Informatyka',
+        description: 'Nieobecność nauczyciela w godz. 08:00 do 13:05 (zastępstwo lub okienko)'
+      },
+      {
+        id: 9002,
+        date: formatDate(d1),
+        type: 'kartkowka',
+        category: 'Kartkówka',
+        title: 'Kartkówka: Język angielski',
+        teacher: 'Ziemba Joanna',
+        time: 'Lekcja 2 (08:50)',
+        subject: 'Język angielski',
+        description: 'Słownictwo unit 4 (Phrasal verbs & Collocations)'
+      },
+      {
+        id: 9003,
+        date: formatDate(d2),
+        type: 'absence',
+        category: 'Nieobecność nauczyciela',
+        title: 'Nieobecność: Negowska Alicja',
+        teacher: 'Negowska Alicja',
+        time: '08:50 do 14:50',
+        subject: null,
+        description: 'Nieobecność nauczyciela: Negowska Alicja (08:50 do 14:50)'
+      },
+      {
+        id: 9004,
+        date: formatDate(d3),
+        type: 'sprawdzian',
+        category: 'Sprawdzian',
+        title: 'Sprawdzian: Matematyka',
+        teacher: 'Wiśniewski Andrzej',
+        time: 'Lekcja 4 (10:40)',
+        subject: 'Matematyka',
+        description: 'Rachunek prawdopodobieństwa, permutacje i kombinatoryka'
+      },
+      {
+        id: 9005,
+        date: formatDate(d4),
+        type: 'sprawdzian',
+        category: 'Praca klasowa',
+        title: 'Praca klasowa: Język polski',
+        teacher: 'Kowalska Jadwiga',
+        time: 'Lekcja 3 (09:45)',
+        subject: 'Język polski',
+        description: 'Dziady cz. III oraz Kordian — motyw prometeizmu i tyrteizmu'
+      }
+    ]
   };
 }

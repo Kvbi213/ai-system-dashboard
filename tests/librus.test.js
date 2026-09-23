@@ -3,7 +3,9 @@ import {
   parseGradeNumeric, 
   parseGradeInfo, 
   computeGradeStats, 
-  getDemoGradesData 
+  getDemoGradesData,
+  parseCalendarEvent,
+  getDemoCalendarData
 } from '../modules/services/librusService.js';
 
 describe('Librus Synergia Integration Service', () => {
@@ -101,6 +103,65 @@ Komentarz: Dział 3`;
       expect(demo.subjects.length).toBeGreaterThan(0);
       expect(demo.overallAverage).toBeGreaterThan(0);
       expect(demo.status).toBe('demo');
+    });
+  });
+
+  describe('parseCalendarEvent', () => {
+    it('should parse teacher absence event correctly', () => {
+      const raw = {
+        id: 3469819,
+        day: '2026-09-24',
+        title: 'Nieobecność:Nauczyciel: Negowska AlicjaGodziny: 08:50 do 14:50'
+      };
+
+      const parsed = parseCalendarEvent(raw);
+      expect(parsed).not.toBeNull();
+      expect(parsed.type).toBe('absence');
+      expect(parsed.category).toBe('Nieobecność nauczyciela');
+      expect(parsed.teacher).toBe('Negowska Alicja');
+      expect(parsed.time).toBe('08:50 do 14:50');
+      expect(parsed.date).toBe('2026-09-24');
+    });
+
+    it('should parse quiz (kartkówka) event correctly', () => {
+      const raw = {
+        id: 12481501,
+        day: '2026-09-17',
+        title: 'Nr lekcji: 2język angielski, kartkówkaj.ang 2 TI gr.1'
+      };
+
+      const parsed = parseCalendarEvent(raw);
+      expect(parsed).not.toBeNull();
+      expect(parsed.type).toBe('kartkowka');
+      expect(parsed.category).toBe('Kartkówka');
+      expect(parsed.time).toBe('Lekcja 2');
+      expect(parsed.date).toBe('2026-09-17');
+    });
+
+    it('should parse exam (sprawdzian) event correctly', () => {
+      const raw = {
+        id: 12481502,
+        day: '2026-09-30',
+        title: 'Nr lekcji: 4Matematyka, sprawdzianrachunek prawdopodobieństwa'
+      };
+
+      const parsed = parseCalendarEvent(raw);
+      expect(parsed).not.toBeNull();
+      expect(parsed.type).toBe('sprawdzian');
+      expect(parsed.category).toBe('Sprawdzian');
+      expect(parsed.time).toBe('Lekcja 4');
+    });
+  });
+
+  describe('getDemoCalendarData', () => {
+    it('should return valid demo school calendar events', () => {
+      const demo = getDemoCalendarData();
+      expect(demo.isDemo).toBe(true);
+      expect(Array.isArray(demo.events)).toBe(true);
+      expect(demo.events.length).toBeGreaterThan(0);
+      expect(demo.events[0]).toHaveProperty('date');
+      expect(demo.events[0]).toHaveProperty('type');
+      expect(demo.events[0]).toHaveProperty('category');
     });
   });
 });

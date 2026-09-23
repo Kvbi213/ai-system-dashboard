@@ -27,6 +27,41 @@ export default async function handler(req, res) {
       });
     }
 
+    if (subpath === 'calendar' || req.url.includes('/calendar')) {
+      const today = new Date().toISOString().split('T')[0];
+      const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+      return res.status(200).json({
+        success: true,
+        isConfigured: !!(login && password),
+        isDemo: true,
+        lastSync: new Date().toISOString(),
+        events: [
+          {
+            id: 9001,
+            date: today,
+            type: 'absence',
+            category: 'Nieobecność nauczyciela',
+            title: 'Nieobecność: Lorenz Krzysztof',
+            teacher: 'Lorenz Krzysztof',
+            time: '08:00 do 13:05',
+            subject: 'Informatyka',
+            description: 'Nieobecność nauczyciela (zastępstwo lub okienko)'
+          },
+          {
+            id: 9002,
+            date: tomorrow,
+            type: 'kartkowka',
+            category: 'Kartkówka',
+            title: 'Kartkówka: Język angielski',
+            teacher: 'Ziemba Joanna',
+            time: 'Lekcja 2 (08:50)',
+            subject: 'Język angielski',
+            description: 'Słownictwo unit 4'
+          }
+        ]
+      });
+    }
+
     // Jeśli brak poświadczeń na Vercel lub żądanie demo
     if (!login || !password || req.query.demo === 'true') {
       return res.status(200).json({

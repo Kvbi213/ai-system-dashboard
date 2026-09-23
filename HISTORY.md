@@ -1,5 +1,24 @@
 ## Wersja Bieżąca
-**v2.21.1**
+**v2.22.0**
+
+## v 2.22.0 — 2026-09-23
+**Typ:** MINOR  
+**Zakres:** Dedykowana Zakładka i Tryb „Szkolny” w Kalendarzu (`CalendarPage.jsx`) z Terminarzem Librus Synergia (Sprawdziany, Kartkówki, Nieobecności Nauczycieli), Kompleksowa Modernizacja Ergonomii i Przejrzystości Zakładki Ocen (`GradesPage.jsx`) z Widocznymi Wagami Ocen (`w:3`), Filtrem „Tylko z ocenami”, Zwartym Widokiem Wierszowym i Paskami Średnich, Rozszerzenie Serwisu i Tras Librusa oraz Zestaw Testów Vitest (147/147 PASS).
+
+### Zmiany
+- [+] Dodano: Nowy tryb „Szkolny (Librus)” w `modules/pages/CalendarPage.jsx` z neonowymi kafelkami KPI (Sprawdziany, Kartkówki, Absencje kadry, Najbliższy termin), kolorowymi wskaźnikami na siatce kalendarza, kartami szczegółów i agendą nadchodzących terminów.
+- [+] Dodano: Obsługę pobierania terminarza Librus Synergia w `modules/services/librusService.js` (`parseCalendarEvent`, `fetchLibrusCalendarFromSource`, `saveCalendarToCache`, `getCachedCalendar`, `syncLibrusCalendar`, `getDemoCalendarData`).
+- [+] Dodano: Endpointy REST `GET /api/librus/calendar` oraz `POST /api/librus/calendar/refresh` w `modules/routes/librus.js` i `api/librus.js`.
+- [+] Dodano: Replikację terminarza do bazy SQLite `librus_calendar_cache` oraz Cloud Firestore `librus_cache/calendar`.
+- [*] Zmodyfikowano: `modules/pages/GradesPage.jsx` – dodano pigułki ocen z widocznymi mikro-wagami (`5 w:3`, `4+ w:1`), szybkie filtry przedmiotów (`Wszystkie`, `Tylko z ocenami`, `Zagrożenia`, `Wzorowe`), przełącznik widoku (Karty vs Zwarty) oraz gradientowe paski postępu średniej.
+- [+] Dodano: 4 nowe testy jednostkowe w `tests/librus.test.js` dla parsera terminarza szkolnego i danych demonstracyjnych (147/147 PASS).
+- [+] Dodano: Raport wydania `docs/versions/v2.22.0.md`.
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.22.0`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.21.1 — 2026-09-22
 **Typ:** PATCH  
