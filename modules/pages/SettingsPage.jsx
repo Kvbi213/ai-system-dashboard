@@ -6,7 +6,7 @@ import {
   LayoutGrid, Mic, Volume2, Globe, Sparkles, Cloud, Database, BrainCircuit, Activity,
   Compass, LayoutDashboard, MessageSquare, GraduationCap, Award, Crosshair, CalendarDays,
   Wallet, Dumbbell, Server, Sliders, Download, Upload, RotateCcw, Bot, CheckCircle2, Eye, EyeOff,
-  Smartphone, Send, AlertTriangle, RefreshCw
+  Smartphone, Send, AlertTriangle, RefreshCw, ChevronRight
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';

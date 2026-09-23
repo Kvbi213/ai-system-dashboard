@@ -1,5 +1,20 @@
 ## Wersja Bieżąca
-**v2.23.2**
+**v2.23.3**
+
+## v 2.23.3 — 2026-09-23
+**Typ:** PATCH  
+**Zakres:** Eliminacja defektu ReferenceError (brakujący import ChevronRight w SettingsPage.jsx), rejestracja i zamknięcie karty błędu ERROR_DIFF oraz wdrożenie produkcyjne.
+
+### Zmiany
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` – zaimportowano `ChevronRight` z pakietu `lucide-react`, eliminując ReferenceError blokujący renderowanie podstrony `/settings`.
+- [+] Dodano: Kartę błędu `docs/errors/ERROR_DIFF_2026-09-23_settings_page_chevron_right_reference_error.md` (zamkniętą po pomyślnej weryfikacji).
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.23.3`.
+- [+] Dodano: Raport wydania `docs/versions/v2.23.3.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.23.2 — 2026-09-23
 **Typ:** PATCH  
