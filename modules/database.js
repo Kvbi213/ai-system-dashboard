@@ -168,6 +168,26 @@ export const initDB = () => {
           )
         `);
 
+        db.run(`
+          CREATE TABLE IF NOT EXISTS librus_calendar_cache (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            data TEXT NOT NULL,
+            last_sync DATETIME DEFAULT CURRENT_TIMESTAMP,
+            status TEXT DEFAULT 'ok',
+            error_message TEXT
+          )
+        `);
+
+        db.run(`
+          CREATE TABLE IF NOT EXISTS librus_timetable_cache (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            data TEXT NOT NULL,
+            last_sync DATETIME DEFAULT CURRENT_TIMESTAMP,
+            status TEXT DEFAULT 'ok',
+            error_message TEXT
+          )
+        `);
+
         console.log('[+] Zapewniono istnienie struktur bazy danych.');
         resolve();
       } catch (err) {

@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.23.0 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.23.1 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE)  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Plan Lekcji z Korelacją Absencji i Zastępstw Librus /timetable, Terminarz Szkolny Librus Synergia w Kalendarzu /calendar, Odświeżony UI/UX Zakładki Ocen /grades z Wagami i Filtrami, SQLite librus_timetable_cache, Vitest 158/158 PASS)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Plan Lekcji z Pełnymi Danymi Kadry i Korelacją Absencji /timetable, Terminarz Szkolny Librus Synergia w Kalendarzu /calendar, Odświeżony UI/UX Zakładki Ocen /grades z Wagami i Filtrami, Moduł teacherUtils.js, Vitest 161/161 PASS)
 
 ---
 
@@ -84,6 +84,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   │   ├── clientAiDispatcher.js ← Autonomiczny silnik zapytań LLM przez Vercel Gateway.
 │   │   ├── budgetCalculator.js ← Czysty silnik kalkulacji budżetowych 50/30/20 i kopert.
 │   │   ├── exportService.js   ← Usługa eksportu danych do formatu CSV oraz podglądu PDF/druku.
+│   │   ├── teacherUtils.js    ← Czysty moduł normalizacji, rozwiązywania skrótów i dopasowywania danych kadry (Vite/Node).
 │   │   └── timeUtils.js       ← Narzędzia strefy czasowej Europe/Warsaw i formatowania dat.
 │   │
 │   ├── /routes/               ← Trasy API Express.

@@ -3,6 +3,21 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { executeQuery, executeRun } from '../database.js';
+import {
+  TEACHER_INITIALS_MAP,
+  COMMON_FIRST_NAMES,
+  cleanTeacherName,
+  resolveFullTeacherName,
+  matchTeacherNames
+} from './teacherUtils.js';
+
+export {
+  TEACHER_INITIALS_MAP,
+  COMMON_FIRST_NAMES,
+  cleanTeacherName,
+  resolveFullTeacherName,
+  matchTeacherNames
+};
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -638,17 +653,19 @@ export async function fetchLibrusCalendarFromSource(client, targetMonth, targetY
       try {
         const isAbs = parsed.type === 'absence';
         const details = await client.calendar.getEvent(it.id, isAbs);
-        if (details) {
-          if (isAbs && details.teacher) {
-            parsed.teacher = details.teacher;
-            if (details.range) parsed.time = details.range;
-          } else if (!isAbs) {
-            if (details.subject) parsed.subject = details.subject;
-            if (details.teacher) parsed.teacher = details.teacher;
-            if (details.description) parsed.description = details.description;
-            if (details.room) parsed.room = details.room;
-            if (details.lessonNumber) parsed.time = `Lekcja ${details.lessonNumber}`;
+        if (isAbs) {
+          if (details.teacher) parsed.teacher = details.teacher;
+          if (details.range) parsed.dateRange = details.range;
+          if (!parsed.time || parsed.time === 'Cały dzień') {
+            if (details.hours) parsed.time = details.hours;
+            else if (details.time) parsed.time = details.time;
           }
+        } else if (!isAbs) {
+          if (details.subject) parsed.subject = details.subject;
+          if (details.teacher) parsed.teacher = details.teacher;
+          if (details.description) parsed.description = details.description;
+          if (details.room) parsed.room = details.room;
+          if (details.lessonNumber) parsed.time = `Lekcja ${details.lessonNumber}`;
         }
       } catch {}
     }
@@ -829,45 +846,7 @@ export function getDemoCalendarData() {
   };
 }
 
-/**
- * Czyści nazwę nauczyciela z dopisków grup, klas, sal, np. 'Becker Adam (2 TI gr.2)' -> 'Becker Adam'.
- */
-export function cleanTeacherName(rawTeacher) {
-  if (!rawTeacher || typeof rawTeacher !== 'string') return '';
-  return rawTeacher
-    .replace(/\s*\([^)]*\)/g, '')
-    .replace(/\s*-\s*gr\s*\d+/gi, '')
-    .replace(/\s*gr\s*\.?\s*\d+/gi, '')
-    .replace(/(?:^|\s)(?:mgr|inż|dr|prof|hab|p)\.?(?=\s|$)/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
 
-/**
- * Sprawdza czy dwie reprezentacje nazwiska/imienia nauczyciela odnoszą się do tej samej osoby.
- */
-export function matchTeacherNames(teacherA, teacherB) {
-  const cleanA = cleanTeacherName(teacherA).toLowerCase();
-  const cleanB = cleanTeacherName(teacherB).toLowerCase();
-  if (!cleanA || !cleanB) return false;
-  if (cleanA === cleanB) return true;
-
-  // Sprawdź czy którekolwiek zawiera drugie
-  if (cleanA.includes(cleanB) || cleanB.includes(cleanA)) return true;
-
-  // Rozbij na tokeny (np. 'Negowska', 'Alicja')
-  const wordsA = cleanA.split(/\s+/).filter(w => w.length > 2);
-  const wordsB = cleanB.split(/\s+/).filter(w => w.length > 2);
-
-  // Jeśli mają chociaż 2 wspólne słowa (imię i nazwisko w dowolnej kolejności)
-  const common = wordsA.filter(w => wordsB.includes(w));
-  if (common.length >= 2) return true;
-
-  // Jeśli mają 1 wspólne słowo o długości >= 4 (np. unikalne nazwisko 'Negowska', 'Wojnarowski')
-  if (common.some(w => w.length >= 4)) return true;
-
-  return false;
-}
 
 /**
  * Parsuje string czasu 'HH:MM' do minut od północy.
@@ -1171,15 +1150,41 @@ export async function syncLibrusTimetable(options = {}) {
     // 4. Opcjonalny import do aktywnego planu zajęć aplikacji (tabela `timetable`)
     if (options.importToMainSchedule) {
       try {
-        await executeRun(`DELETE FROM timetable WHERE id LIKE 'librus_%'`);
+        await executeRun(`DELETE FROM timetable`);
         for (const l of correlated.lessons) {
+          const fullT = l.cleanTeacher || resolveFullTeacherName(l.teacher) || l.teacher || '';
           await executeRun(
             `INSERT OR REPLACE INTO timetable (id, day, subject, time_start, time_end, room, teacher, type, color, notes)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [l.id, l.day, l.subject, l.time_start, l.time_end, l.room || '', l.teacher || '', l.type || 'Wykład', l.color || 'indigo', l.notes || '']
+            [l.id, l.day, l.subject, l.time_start, l.time_end, l.room || '', fullT, l.type || 'Wykład', l.color || 'indigo', l.notes || '']
           );
         }
         console.log(`[+] SUCCESS :: LIBRUS :: Zaimportowano ${correlated.lessons.length} lekcji do tabeli timetable.`);
+
+        // Replikacja do kolekcji Firestore 'timetable'
+        try {
+          const { getFirestoreDb } = await import('../firebase.js');
+          const firestoreDb = getFirestoreDb ? getFirestoreDb() : null;
+          if (firestoreDb) {
+            const snap = await firestoreDb.collection('timetable').get();
+            const batch = firestoreDb.batch();
+            snap.forEach(d => batch.delete(d.ref));
+            for (const l of correlated.lessons) {
+              const fullT = l.cleanTeacher || resolveFullTeacherName(l.teacher) || l.teacher || '';
+              const docRef = firestoreDb.collection('timetable').doc(String(l.id));
+              batch.set(docRef, {
+                ...l,
+                teacher: fullT,
+                cleanTeacher: fullT,
+                updated_at: new Date().toISOString()
+              });
+            }
+            await batch.commit();
+            console.log(`[+] SUCCESS :: LIBRUS :: Zreplikowano ${correlated.lessons.length} lekcji do kolekcji Firestore timetable.`);
+          }
+        } catch (fSyncErr) {
+          console.warn(`[!] ALERT :: LIBRUS :: Błąd replikacji do kolekcji timetable:`, fSyncErr.message);
+        }
       } catch (impErr) {
         console.warn(`[!] ALERT :: LIBRUS :: Błąd importu do tabeli timetable: ${impErr.message}`);
       }

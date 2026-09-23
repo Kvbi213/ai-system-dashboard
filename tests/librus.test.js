@@ -180,8 +180,30 @@ Komentarz: Dział 3`;
       expect(matchTeacherNames('Becker Adam (2 TI gr.2)', 'Becker Adam')).toBe(true);
     });
 
+    it('should correctly resolve teacher abbreviations and initials', () => {
+      expect(matchTeacherNames('AN', 'Negowska Alicja')).toBe(true);
+      expect(matchTeacherNames('PW', 'Wojnarowski Przemysław')).toBe(true);
+      expect(matchTeacherNames('KP', 'Kolasińska Paulina')).toBe(true);
+      expect(matchTeacherNames('AB', 'Becker Adam')).toBe(true);
+    });
+
+    it('should NEVER falsely match initials as substring of an unrelated teacher', () => {
+      // Błąd krytyczny z sesji: 'AN' dopasowywał się do 'Prabucki Andrzej' przez .includes()
+      expect(matchTeacherNames('AN', 'Prabucki Andrzej')).toBe(false);
+      expect(matchTeacherNames('PA', 'Negowska Alicja')).toBe(false);
+      expect(matchTeacherNames('KP', 'Becker Adam')).toBe(false);
+    });
+
+    it('should NEVER match different teachers sharing the same common first name', () => {
+      // Błąd krytyczny z sesji: Czarna Alicja i Negowska Alicja łączyły się przez wspólne imię 'Alicja'
+      expect(matchTeacherNames('Czarna Alicja', 'Negowska Alicja')).toBe(false);
+      expect(matchTeacherNames('Becker Adam', 'Mickiewicz Adam')).toBe(false);
+      expect(matchTeacherNames('Czarna Alicja', 'Alicja')).toBe(false);
+    });
+
     it('should match single unique surname (>= 4 chars)', () => {
       expect(matchTeacherNames('Wojnarowski Przemysław', 'Wojnarowski')).toBe(true);
+      expect(matchTeacherNames('Negowska Alicja', 'Negowska')).toBe(true);
     });
 
     it('should return false for completely different teachers', () => {

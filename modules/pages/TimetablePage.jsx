@@ -10,6 +10,11 @@ import { useTranslation } from 'react-i18next';
 import { subscribeCollection, saveCloudDocument, deleteCloudDocument, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
 import { doc, onSnapshot, getDoc } from 'firebase/firestore';
 import { firestore } from '../firebaseClient.js';
+import { 
+  resolveFullTeacherName, 
+  cleanTeacherName, 
+  matchTeacherNames 
+} from '../services/teacherUtils.js';
 
 const DAYS = [
   { id: 'monday', label: 'Poniedziałek', short: 'Pon', dayIndex: 1 },
@@ -108,61 +113,52 @@ const STATIC_DEMO_ABSENCE_EVENTS = [
 
 const STATIC_DEMO_TIMETABLE_LESSONS = [
   // Poniedziałek
-  { id: 'librus_mon_1', day: 'monday', subject: 'Informatyka', time_start: '08:50', time_end: '09:35', room: 's. 17', teacher: 'Becker Adam (2 TI gr.2)', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia' },
-  { id: 'librus_mon_2', day: 'monday', subject: 'Informatyka', time_start: '09:40', time_end: '10:25', room: 's. 17', teacher: 'Becker Adam (2 TI gr.2)', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia' },
-  { id: 'librus_mon_3', day: 'monday', subject: 'Chemia', time_start: '10:40', time_end: '11:25', room: 's. 31', teacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '' },
-  { id: 'librus_mon_4', day: 'monday', subject: 'Edukacja zdrowotna', time_start: '11:30', time_end: '12:15', room: 's. 38', teacher: 'Spych Monika', type: 'Wykład', color: 'emerald', notes: '' },
-  { id: 'librus_mon_5', day: 'monday', subject: 'Systemy operacyjne', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
-  { id: 'librus_mon_6', day: 'monday', subject: 'Systemy operacyjne', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
+  { id: 'librus_mon_1', day: 'monday', subject: 'Informatyka', time_start: '08:50', time_end: '09:35', room: 's. 17', teacher: 'Becker Adam', cleanTeacher: 'Becker Adam', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia informatyczna', isLibrus: true },
+  { id: 'librus_mon_2', day: 'monday', subject: 'Informatyka', time_start: '09:40', time_end: '10:25', room: 's. 17', teacher: 'Becker Adam', cleanTeacher: 'Becker Adam', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia informatyczna', isLibrus: true },
+  { id: 'librus_mon_3', day: 'monday', subject: 'Chemia', time_start: '10:40', time_end: '11:25', room: 's. 31', teacher: 'Kolasińska Paulina', cleanTeacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true },
+  { id: 'librus_mon_4', day: 'monday', subject: 'Edukacja zdrowotna', time_start: '11:30', time_end: '12:15', room: 's. 38', teacher: 'Spych Monika', cleanTeacher: 'Spych Monika', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true },
+  { id: 'librus_mon_5', day: 'monday', subject: 'Systemy operacyjne', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: 'Teoria i architektura systemów', isLibrus: true },
+  { id: 'librus_mon_6', day: 'monday', subject: 'Systemy operacyjne', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: 'Warsztaty praktyczne', isLibrus: true },
 
   // Wtorek
-  { id: 'librus_tue_1', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:00', time_end: '08:45', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
-  { id: 'librus_tue_2', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:50', time_end: '09:35', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
-  { id: 'librus_tue_3', day: 'tuesday', subject: 'Zajęcia z wychowawcą', time_start: '09:40', time_end: '10:25', room: 's. 1.16', teacher: 'Ziemba Joanna', type: 'Wykład', color: 'amber', notes: '' },
-  { id: 'librus_tue_4', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '10:40', time_end: '11:25', room: 's. WF', teacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: '' },
-  { id: 'librus_tue_5', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '11:30', time_end: '12:15', room: 's. WF', teacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: '' },
-  { id: 'librus_tue_6', day: 'tuesday', subject: 'Matematyka', time_start: '14:05', time_end: '14:50', room: 's. 26', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
+  { id: 'librus_tue_1', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:00', time_end: '08:45', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true },
+  { id: 'librus_tue_2', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:50', time_end: '09:35', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true },
+  { id: 'librus_tue_3', day: 'tuesday', subject: 'Zajęcia z wychowawcą', time_start: '09:40', time_end: '10:25', room: 's. 1.16', teacher: 'Ziemba Joanna', cleanTeacher: 'Ziemba Joanna', type: 'Wykład', color: 'amber', notes: 'Godzina wychowawcza', isLibrus: true },
+  { id: 'librus_tue_4', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '10:40', time_end: '11:25', room: 's. WF', teacher: 'Łysakowski Grzegorz', cleanTeacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: 'Grupa 1', isLibrus: true },
+  { id: 'librus_tue_5', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '11:30', time_end: '12:15', room: 's. WF', teacher: 'Łysakowski Grzegorz', cleanTeacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: 'Grupa 1', isLibrus: true },
+  { id: 'librus_tue_6', day: 'tuesday', subject: 'Pracownia systemów operacyjnych', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Reszka Sławomir', cleanTeacher: 'Reszka Sławomir', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true },
+  { id: 'librus_tue_7', day: 'tuesday', subject: 'Pracownia systemów operacyjnych', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Reszka Sławomir', cleanTeacher: 'Reszka Sławomir', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true },
+  { id: 'librus_tue_8', day: 'tuesday', subject: 'Matematyka', time_start: '14:05', time_end: '14:50', room: 's. 26', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true },
+  { id: 'librus_tue_9', day: 'tuesday', subject: 'Religia', time_start: '14:55', time_end: '15:40', room: 's. 24', teacher: 'Gizela Maciej', cleanTeacher: 'Gizela Maciej', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true },
 
   // Środa
-  { id: 'librus_wed_1', day: 'wednesday', subject: 'Biznes i zarządzanie', time_start: '10:40', time_end: '11:25', room: 's. 0.2', teacher: 'Sokół Paweł', type: 'Wykład', color: 'blue', notes: '' },
-  { id: 'librus_wed_2', day: 'wednesday', subject: 'Biologia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '' },
-  { id: 'librus_wed_3', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Gembiak Bartosz', type: 'Laboratorium', color: 'cyan', notes: '' },
-  { id: 'librus_wed_4', day: 'wednesday', subject: 'Historia', time_start: '14:05', time_end: '14:50', room: 's. 06', teacher: 'Wardyn Wojciech', type: 'Wykład', color: 'rose', notes: '' },
-  { id: 'librus_wed_5', day: 'wednesday', subject: 'Matematyka', time_start: '14:55', time_end: '15:40', room: 's. 26', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
+  { id: 'librus_wed_1', day: 'wednesday', subject: 'Biznes i zarządzanie', time_start: '10:40', time_end: '11:25', room: 's. 0.2', teacher: 'Sokół Paweł', cleanTeacher: 'Sokół Paweł', type: 'Wykład', color: 'blue', notes: '', isLibrus: true },
+  { id: 'librus_wed_2', day: 'wednesday', subject: 'Biologia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Łukaszczyk-Wulgaris Joanna', cleanTeacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true },
+  { id: 'librus_wed_3', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Gembiak Bartosz', cleanTeacher: 'Gembiak Bartosz', type: 'Laboratorium', color: 'cyan', notes: 'Sprzęt i diagnostyka', isLibrus: true },
+  { id: 'librus_wed_4', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Gembiak Bartosz', cleanTeacher: 'Gembiak Bartosz', type: 'Laboratorium', color: 'cyan', notes: 'Warsztaty sprzętowe', isLibrus: true },
+  { id: 'librus_wed_5', day: 'wednesday', subject: 'Historia', time_start: '14:05', time_end: '14:50', room: 's. 06', teacher: 'Wardyn Wojciech', cleanTeacher: 'Wardyn Wojciech', type: 'Wykład', color: 'rose', notes: '', isLibrus: true },
+  { id: 'librus_wed_6', day: 'wednesday', subject: 'Matematyka', time_start: '14:55', time_end: '15:40', room: 's. 26', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true },
 
   // Czwartek
-  { id: 'librus_thu_1', day: 'thursday', subject: 'Język polski', time_start: '08:00', time_end: '08:45', room: 's. 34', teacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '' },
-  { id: 'librus_thu_2', day: 'thursday', subject: 'Język angielski zawodowy', time_start: '08:50', time_end: '09:35', room: 's. Z2', teacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: '' },
-  { id: 'librus_thu_3', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: '' },
-  { id: 'librus_thu_4', day: 'thursday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 05', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
-  { 
-    id: 'librus_thu_5', 
-    day: 'thursday', 
-    subject: 'Język polski', 
-    time_start: '13:15', 
-    time_end: '14:00', 
-    room: 's. 34', 
-    teacher: 'Negowska Alicja', 
-    type: 'Wykład', 
-    color: 'rose', 
-    notes: '⚠️ NIEOBECNOŚĆ: Negowska Alicja (08:50 do 14:50)',
-    absenceAlert: {
-      isAbsent: true,
-      teacher: 'Negowska Alicja',
-      hours: '08:50 do 14:50',
-      date: '2026-09-24',
-      description: 'Nieobecność nauczyciela: Negowska Alicja (08:50 do 14:50)',
-      suggestedStatus: 'okienko_or_sub'
-    }
-  },
+  { id: 'librus_thu_1', day: 'thursday', subject: 'Język polski', time_start: '08:00', time_end: '08:45', room: 's. 34', teacher: 'Negowska Alicja', cleanTeacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true },
+  { id: 'librus_thu_2', day: 'thursday', subject: 'Język angielski zawodowy', time_start: '08:50', time_end: '09:35', room: 's. Z2', teacher: 'Ziemba Joanna', cleanTeacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: 'Grupa 1', isLibrus: true },
+  { id: 'librus_thu_3', day: 'thursday', subject: 'Język angielski', time_start: '09:40', time_end: '10:25', room: 's. Z2', teacher: 'Ziemba Joanna', cleanTeacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: 'Grupa 1', isLibrus: true },
+  { id: 'librus_thu_4', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Kryła Łukasz', cleanTeacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: 'Konfiguracja LAN', isLibrus: true },
+  { id: 'librus_thu_5', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '11:30', time_end: '12:15', room: 's. 1.16', teacher: 'Kryła Łukasz', cleanTeacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: 'Protokoły i routing', isLibrus: true },
+  { id: 'librus_thu_6', day: 'thursday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 05', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true },
+  { id: 'librus_thu_7', day: 'thursday', subject: 'Matematyka', time_start: '13:15', time_end: '14:00', room: 's. 05', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true },
+  { id: 'librus_thu_8', day: 'thursday', subject: 'Język niemiecki', time_start: '14:05', time_end: '14:50', room: 's. Z1', teacher: 'Chyła Beata', cleanTeacher: 'Chyła Beata', type: 'Lektorat', color: 'amber', notes: 'Grupa 1', isLibrus: true },
+  { id: 'librus_thu_9', day: 'thursday', subject: 'Biologia', time_start: '14:55', time_end: '15:40', room: 's. 19', teacher: 'Łukaszczyk-Wulgaris Joanna', cleanTeacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true },
 
   // Piątek
-  { id: 'librus_fri_1', day: 'friday', subject: 'Język angielski', time_start: '08:00', time_end: '08:45', room: 's. Z2', teacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: '' },
-  { id: 'librus_fri_2', day: 'friday', subject: 'Język niemiecki', time_start: '08:50', time_end: '09:35', room: 's. Z1', teacher: 'Chyła Beata', type: 'Lektorat', color: 'amber', notes: '' },
-  { id: 'librus_fri_3', day: 'friday', subject: 'Wychowanie fizyczne', time_start: '09:40', time_end: '10:25', room: 's. WF', teacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: '' },
-  { id: 'librus_fri_4', day: 'friday', subject: 'Lokalne sieci komputerowe', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Wykład', color: 'cyan', notes: '' },
-  { id: 'librus_fri_5', day: 'friday', subject: 'Chemia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '' },
-  { id: 'librus_fri_6', day: 'friday', subject: 'Edukacja obywatelska', time_start: '12:20', time_end: '13:05', room: 's. 09', teacher: 'Czarna Alicja', type: 'Wykład', color: 'rose', notes: '' }
+  { id: 'librus_fri_1', day: 'friday', subject: 'Język angielski', time_start: '08:00', time_end: '08:45', room: 's. Z2', teacher: 'Ziemba Joanna', cleanTeacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: 'Grupa 1', isLibrus: true },
+  { id: 'librus_fri_2', day: 'friday', subject: 'Język niemiecki', time_start: '08:50', time_end: '09:35', room: 's. Z1', teacher: 'Chyła Beata', cleanTeacher: 'Chyła Beata', type: 'Lektorat', color: 'amber', notes: 'Grupa 1', isLibrus: true },
+  { id: 'librus_fri_3', day: 'friday', subject: 'Wychowanie fizyczne', time_start: '09:40', time_end: '10:25', room: 's. WF', teacher: 'Łysakowski Grzegorz', cleanTeacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: 'Grupa 1', isLibrus: true },
+  { id: 'librus_fri_4', day: 'friday', subject: 'Lokalne sieci komputerowe', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Wykład', color: 'cyan', notes: 'Architektura sieciowa', isLibrus: true },
+  { id: 'librus_fri_5', day: 'friday', subject: 'Chemia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Kolasińska Paulina', cleanTeacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true },
+  { id: 'librus_fri_6', day: 'friday', subject: 'Edukacja obywatelska', time_start: '12:20', time_end: '13:05', room: 's. 09', teacher: 'Czarna Alicja', cleanTeacher: 'Czarna Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true },
+  { id: 'librus_fri_7', day: 'friday', subject: 'Język polski', time_start: '13:15', time_end: '14:00', room: 's. 34', teacher: 'Negowska Alicja', cleanTeacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true },
+  { id: 'librus_fri_8', day: 'friday', subject: 'Język polski', time_start: '14:05', time_end: '14:50', room: 's. 34', teacher: 'Negowska Alicja', cleanTeacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true }
 ];
 
 const TimetablePage = () => {
@@ -298,23 +294,7 @@ const TimetablePage = () => {
     return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
   };
 
-  // Pomocnicze funkcje korelacji nauczycieli i nakładania godzin
-  const cleanTeacher = (t) => {
-    if (!t || typeof t !== 'string') return '';
-    return t.replace(/\s*\([^)]*\)/g, '').replace(/\s*-\s*gr\s*\d+/gi, '').replace(/\s*gr\s*\.?\s*\d+/gi, '').trim().toLowerCase();
-  };
-
-  const matchTeachers = (t1, t2) => {
-    const c1 = cleanTeacher(t1);
-    const c2 = cleanTeacher(t2);
-    if (!c1 || !c2) return false;
-    if (c1 === c2 || c1.includes(c2) || c2.includes(c1)) return true;
-    const w1 = c1.split(/\s+/).filter(w => w.length > 2);
-    const w2 = c2.split(/\s+/).filter(w => w.length > 2);
-    const common = w1.filter(w => w2.includes(w));
-    return common.length >= 2 || common.some(w => w.length >= 4);
-  };
-
+  // Pomocnicze funkcje korelacji nakładania godzin
   const checkOverlap = (lStart, lEnd, rangeStr) => {
     if (!rangeStr) return true;
     const lower = String(rangeStr).toLowerCase();
@@ -326,13 +306,23 @@ const TimetablePage = () => {
     return Math.max(parseTimeToMinutes(lStart), aStart) < Math.min(parseTimeToMinutes(lEnd), aEnd);
   };
 
-  // Podstawa lekcji: z bazy lub z bufora Librusa jeśli baza jest pusta
+  // Podstawa lekcji: z bufora Librusa (priorytet nadrzędny) lub z bazy/cache jeśli bufor pusty
+  // Wszystkie nazwiska nauczycieli są natychmiast rozwijane do pełnych imion i nazwisk.
   const baseLessons = useMemo(() => {
-    if (lessons && lessons.length > 0) return lessons;
+    let source = STATIC_DEMO_TIMETABLE_LESSONS;
     if (librusData && Array.isArray(librusData.lessons) && librusData.lessons.length > 0) {
-      return librusData.lessons;
+      source = librusData.lessons;
+    } else if (lessons && lessons.length > 0) {
+      source = lessons;
     }
-    return STATIC_DEMO_TIMETABLE_LESSONS;
+    return source.map(l => {
+      const fullTeacher = resolveFullTeacherName(l.cleanTeacher || l.teacher);
+      return {
+        ...l,
+        teacher: fullTeacher || l.teacher,
+        cleanTeacher: fullTeacher || l.cleanTeacher || l.teacher
+      };
+    });
   }, [lessons, librusData]);
 
   // Wzbogacenie lekcji o aktywne absencje i alerty zastępstw
@@ -342,37 +332,63 @@ const TimetablePage = () => {
       ? librusCalendarEvents.filter(e => e && e.type === 'absence' && e.teacher)
       : STATIC_DEMO_ABSENCE_EVENTS;
 
+    // Granice bieżącego tygodnia roboczego/kalendarzowego (od poniedziałku do niedzieli)
+    const now = new Date(currentTime);
+    const day = now.getDay();
+    const diffToMon = (day === 0 ? -6 : 1) - day;
+    const monDate = new Date(now);
+    monDate.setDate(now.getDate() + diffToMon);
+    const sunDate = new Date(monDate);
+    sunDate.setDate(monDate.getDate() + 6);
+
+    const fmtDate = (d) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dt = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${dt}`;
+    };
+    const monStr = fmtDate(monDate);
+    const sunStr = fmtDate(sunDate);
+
     return baseLessons.map(lesson => {
       if (lesson.absenceAlert?.isAbsent) return lesson;
 
       const matched = absences.find(abs => {
-        if (!matchTeachers(lesson.teacher, abs.teacher)) return false;
-        let absDay = null;
+        // 1. Sprawdzenie zgodności nauczyciela (odrzucenie false positives po imieniu lub podciągach)
+        const currentTeacher = lesson.cleanTeacher || lesson.teacher;
+        if (!matchTeacherNames(currentTeacher, abs.teacher)) return false;
+
+        // 2. Weryfikacja zakresu datowego - absencje dotyczą wyłącznie bieżącego tygodnia
         if (abs.date) {
+          if (abs.date < monStr || abs.date > sunStr) return false;
+          let absDay = null;
           try {
             absDay = DAY_NAMES[new Date(abs.date + 'T12:00:00Z').getUTCDay()];
           } catch {}
+          if (absDay && absDay !== lesson.day) return false;
         }
-        if (absDay && absDay !== lesson.day) return false;
+
+        // 3. Weryfikacja nakładania się godzin lekcji i absencji
         return checkOverlap(lesson.time_start, lesson.time_end, abs.time || abs.range);
       });
 
       if (matched) {
+        const fullTeacher = resolveFullTeacherName(matched.teacher) || matched.teacher;
         return {
           ...lesson,
           absenceAlert: {
             isAbsent: true,
-            teacher: matched.teacher,
+            teacher: fullTeacher,
             hours: matched.time || 'Cały dzień',
             date: matched.date || '',
-            description: matched.description || `Nieobecność nauczyciela: ${matched.teacher}`,
+            description: matched.description || `Nieobecność nauczyciela: ${fullTeacher}`,
             suggestedStatus: 'okienko_or_sub'
           }
         };
       }
       return lesson;
     });
-  }, [baseLessons, librusCalendarEvents]);
+  }, [baseLessons, librusCalendarEvents, currentTime]);
 
   // Wykryte aktywne absencje dla aktualnie przeglądanego widoku
   const detectedAbsences = useMemo(() => {

@@ -1,5 +1,23 @@
 ## Wersja Bieżąca
-**v2.23.0**
+**v2.23.1**
+
+## v 2.23.1 — 2026-09-23
+**Typ:** PATCH  
+**Zakres:** Eliminacja defektów korelacji kadry pedagogicznej, pełne imiona i nazwiska nauczycieli w całym systemie, prymat oficjalnego planu Librus Synergia, ochrona przed kolizjami popularnych imion oraz filtracja absencji w oknie bieżącego tygodnia.
+
+### Zmiany
+- [+] Dodano: Nowy współdzielony moduł `modules/services/teacherUtils.js` z `TEACHER_INITIALS_MAP`, `resolveFullTeacherName`, `cleanTeacherName` oraz `matchTeacherNames` (z czarną listą `COMMON_FIRST_NAMES` i wymogiem korelacji dwuwyrazowej).
+- [*] Zmodyfikowano: `modules/services/librusService.js` – integracja z `teacherUtils.js`, rozdzielenie `dateRange` od godzin `time` w terminarzu, pełny import i replikacja 38 lekcji z pełnymi danymi kadry do SQLite i Cloud Firestore `timetable`.
+- [*] Zmodyfikowano: `modules/pages/TimetablePage.jsx` – nadrzędny priorytet oficjalnego planu Librusa, automatyczne rozwijanie inicjałów, zawężenie widoczności absencji kadry do bieżącego tygodnia roboczego.
+- [*] Zmodyfikowano: `modules/services/cloudSync.js` – zaktualizowano domyślny zestaw danych `INITIAL_FIRESTORE_DATA.timetable` o pełne dane personalne 38 oficjalnych jednostek lekcyjnych.
+- [+] Dodano: Nowe testy jednostkowe w `tests/librus.test.js` dla eliminacji kolizji podciągów i imion kadry (161/161 PASS).
+- [+] Dodano: Raport wydania `docs/versions/v2.23.1.md`.
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.23.1`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.23.0 — 2026-09-23
 **Typ:** MINOR  
