@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.23.1 (Stan na Wrzesień 2026)  
-**Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE)  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Plan Lekcji z Pełnymi Danymi Kadry i Korelacją Absencji /timetable, Terminarz Szkolny Librus Synergia w Kalendarzu /calendar, Odświeżony UI/UX Zakładki Ocen /grades z Wagami i Filtrami, Moduł teacherUtils.js, Vitest 161/161 PASS)
+**Wersja Systemu:** v2.23.2 (Stan na Wrzesień 2026) 
+**Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE) 
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Zero-Emoji Policy, Plan Lekcji z Pełnymi Danymi Kadry i Korelacją Absencji /timetable, Terminarz Szkolny Librus Synergia w Kalendarzu /calendar, Odświeżony UI/UX Zakładki Ocen /grades z Wagami i Filtrami, Moduł teacherUtils.js, Vitest 161/161 PASS)
 
 ---
 
@@ -30,91 +30,91 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 ```
 [Katalog Główny]
 │
-├── /.github/workflows/        ← Potoki CI/CD (GitHub Actions)
-│   ├── main.yml               ← Główny potok CI/CD produkcyjny
-│   └── ci.yml                 ← Równoległy potok weryfikacyjny pull requestów
+├── /.github/workflows/ ← Potoki CI/CD (GitHub Actions)
+│ ├── main.yml ← Główny potok CI/CD produkcyjny
+│ └── ci.yml ← Równoległy potok weryfikacyjny pull requestów
 │
-├── /tests/                    ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 158/158 PASS, 12 zestawów)
-│   ├── librus.test.js         ← Testy integracji Librus Synergia (oceny, terminarz, plan lekcji, korelacja absencji i zastępstw)
-│   ├── tts_quota.test.js      ← Testy inspekcji limitów ElevenLabs, błędu quota_exceeded i bazy głosów
-│   ├── agent_execution_trace.test.jsx ← Testy inspektora wykonania narzędzi i uziemienia Pamięci
-│   ├── autonomous_agent.test.js ← Testy agenta ciągłego, klasyfikacji intencji i pętli badawczej
-│   ├── pushbullet_finance.test.js ← Testy kasyfikatora wydatków Pushbullet i akcji SEND_PUSH
-│   ├── components.test.jsx    ← Testy komponentów Reacta (@testing-library/react + JSDOM)
-│   ├── budget.test.js         ← Testy reguły 50/30/20, alokacji, wag 0% i transferów
-│   ├── export.test.js         ← Testy serializacji RFC 4180 dla plików CSV
-│   ├── time.test.js           ← Testy obliczeń czasowych strefy Europe/Warsaw
-│   ├── osint.test.js          ← Testy klasyfikatora celów OSINT (IP, e-mail, domena, MAC)
-│   ├── wakeword.test.js       ← Testy słowa wybudzającego Hej Omni
-│   └── cloudSync.test.js      ← Testy rejestru kolekcji i detekcji środowiska
+├── /tests/ ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 158/158 PASS, 12 zestawów)
+│ ├── librus.test.js ← Testy integracji Librus Synergia (oceny, terminarz, plan lekcji, korelacja absencji i zastępstw)
+│ ├── tts_quota.test.js ← Testy inspekcji limitów ElevenLabs, błędu quota_exceeded i bazy głosów
+│ ├── agent_execution_trace.test.jsx ← Testy inspektora wykonania narzędzi i uziemienia Pamięci
+│ ├── autonomous_agent.test.js ← Testy agenta ciągłego, klasyfikacji intencji i pętli badawczej
+│ ├── pushbullet_finance.test.js ← Testy kasyfikatora wydatków Pushbullet i akcji SEND_PUSH
+│ ├── components.test.jsx ← Testy komponentów Reacta (@testing-library/react + JSDOM)
+│ ├── budget.test.js ← Testy reguły 50/30/20, alokacji, wag 0% i transferów
+│ ├── export.test.js ← Testy serializacji RFC 4180 dla plików CSV
+│ ├── time.test.js ← Testy obliczeń czasowych strefy Europe/Warsaw
+│ ├── osint.test.js ← Testy klasyfikatora celów OSINT (IP, e-mail, domena, MAC)
+│ ├── wakeword.test.js ← Testy słowa wybudzającego Hej Omni
+│ └── cloudSync.test.js ← Testy rejestru kolekcji i detekcji środowiska
 │
-├── /api/                      ← Funkcje Vercel Serverless (Node.js Gateway)
-│   ├── librus.js              ← Gateway do Librus Synergia (/grades, /calendar, /timetable, CORS *, cloud proxy/demo)
-│   ├── agent.js               ← CORS-enabled proxy do openai/gpt-oss-120b z wstrzykiwaniem kontekstu, narzędzi akcji & Live Brave Search
-│   ├── news.js                ← Serverless endpoint newsowy z integracją Brave Search News API i kategoryzacją
-│   ├── models.js              ← Dynamiczny wykaz dostępnych modeli LLM z fallbackiem
-│   ├── osint.js               ← Multi-cloud OSINT intelligence (DNS, GeoJS, Wayback, WHOIS, HIBP)
-│   └── status.js              ← Healthcheck i pomiar opóźnień (ping)
+├── /api/ ← Funkcje Vercel Serverless (Node.js Gateway)
+│ ├── librus.js ← Gateway do Librus Synergia (/grades, /calendar, /timetable, CORS *, cloud proxy/demo)
+│ ├── agent.js ← CORS-enabled proxy do openai/gpt-oss-120b z wstrzykiwaniem kontekstu, narzędzi akcji & Live Brave Search
+│ ├── news.js ← Serverless endpoint newsowy z integracją Brave Search News API i kategoryzacją
+│ ├── models.js ← Dynamiczny wykaz dostępnych modeli LLM z fallbackiem
+│ ├── osint.js ← Multi-cloud OSINT intelligence (DNS, GeoJS, Wayback, WHOIS, HIBP)
+│ └── status.js ← Healthcheck i pomiar opóźnień (ping)
 │
-├── core.server.js             ← Mózg backendu lokalnego (Express.js).
-├── core.client.jsx            ← Mózg frontendu (React 18 + React Router + ToastProvider).
-├── index.html                 ← Plik ładujący aplikację SPA.
-├── vercel.json                ← Konfiguracja routingu i rewrites Vercel.
+├── core.server.js ← Mózg backendu lokalnego (Express.js).
+├── core.client.jsx ← Mózg frontendu (React 18 + React Router + ToastProvider).
+├── index.html ← Plik ładujący aplikację SPA.
+├── vercel.json ← Konfiguracja routingu i rewrites Vercel.
 │
-├── ZASADYPRACY.md             ← Nadrzędny Rygor Operacyjny [PRIORYTET ZERO] (Protokół lokalny sesji AI, chroniony w .gitignore).
-├── ARCHITECTURE.md            ← (Ten plik) Centralne źródło prawdy o systemie.
-├── HISTORY.md                 ← Niemutowalny rejestr wersji (SemVer append-only).
-├── README.md                  ← Główna prezentacja repozytorium z diagramami Mermaid.
+├── ZASADYPRACY.md ← Nadrzędny Rygor Operacyjny [PRIORYTET ZERO] (Protokół lokalny sesji AI, chroniony w .gitignore).
+├── ARCHITECTURE.md ← (Ten plik) Centralne źródło prawdy o systemie.
+├── HISTORY.md ← Niemutowalny rejestr wersji (SemVer append-only).
+├── README.md ← Główna prezentacja repozytorium z diagramami Mermaid.
 │
-├── /modules/                  ← Główna logika i komponenty.
-│   ├── agent.js               ← System podłączający się do API LLM (lokalnie i chmurowo).
-│   ├── database.js            ← Abstrakcja nad SQLite dla środowiska lokalnego (w tym tabele timetable, librus_cache).
-│   ├── scheduler.js           ← Zaawansowany harmonogram zadań cyklicznych (w tym 2-godzinny librusSyncJob).
-│   ├── firebase.js            ← Most z chmurą Firebase Admin SDK.
-│   ├── firebaseClient.js      ← Klient frontendowy Firebase Web SDK (Auth, Firestore).
-│   ├── osint.js               ← Narzędzia rozpoznania OSINT i klasyfikator celów.
-│   │
-│   ├── /services/             ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
-│   │   ├── librusService.js   ← Integracja z librus-api v2.18.1, pobieranie ocen, średnie ważone i szczęśliwy numerek.
-│   │   ├── pushbulletService.js ← Serwis bezpośredniej integracji z Pushbullet API.
-│   │   ├── wakeWordService.js ← Serwis detekcji słowa wybudzającego "Hej Omni".
-│   │   ├── ttsService.js      ← Wielosilnikowa synteza mowy (Google Neural, ElevenLabs, OpenAI, Edge Neural).
-│   │   ├── pushbulletClassifier.js ← Kognitywny klasyfikator wydatków 50/30/20 i deduplikator powiadomień.
-│   │   ├── cloudSync.js       ← Dwukierunkowa subskrypcja kolekcji Firestore z auto-inicjalizacją.
-│   │   ├── clientAiDispatcher.js ← Autonomiczny silnik zapytań LLM przez Vercel Gateway.
-│   │   ├── budgetCalculator.js ← Czysty silnik kalkulacji budżetowych 50/30/20 i kopert.
-│   │   ├── exportService.js   ← Usługa eksportu danych do formatu CSV oraz podglądu PDF/druku.
-│   │   ├── teacherUtils.js    ← Czysty moduł normalizacji, rozwiązywania skrótów i dopasowywania danych kadry (Vite/Node).
-│   │   └── timeUtils.js       ← Narzędzia strefy czasowej Europe/Warsaw i formatowania dat.
-│   │
-│   ├── /routes/               ← Trasy API Express.
-│   │   ├── librus.js          ← Endpointy REST /api/librus (grades, refresh, status, credentials).
-│   │   └── ...
-│   │
-│   ├── /context/              ← Konteksty globalnego stanu aplikacji.
-│   │   ├── ChatContext.jsx    ← Zarządzanie wiadomościami Workera/Mentora.
-│   │   └── ToastContext.jsx   ← Pływające powiadomienia, błędy i detekcja łączności.
-│   │
-│   ├── /components/           ← Reużywalne klocki UI w React.
-│   │   ├── Sidebar.jsx        ← Lewy pasek nawigacyjny z zakładkami Plan Lekcji i Oceny (Award).
-│   │   └── ...
-│   │
-│   └── /pages/              ← Konkretne podstrony w React Router.
-│       ├── Dashboard.jsx    ← Strona startowa. Siatka wszystkich widżetów.
-│       ├── ChatPage.jsx     ← Pełnoekranowy Terminal AI.
-│       ├── GradesPage.jsx   ← Dziennik Ocen & Librus Synergia (szczęśliwy numerek, średnie ważone, widok kafelkowy i kompaktowy, wagi na pigułkach, szybkie filtry).
-│       ├── TimetablePage.jsx← Plan Lekcji & Zajęć (Live Tracker, detekcja absencji nauczycieli i zastępstw Librus, oznaczanie okienek, pobieranie z Librusa, Firestore sync).
-│       ├── CalendarPage.jsx ← Kalendarz operacyjny (tryb Osobisty oraz Szkolny Librus z KPI, kartkówkami, sprawdzianami i absencjami).
-│       ├── FinancePage.jsx  ← Finanse, budżet 50/30/20.
-│       ├── WorkoutsPage.jsx ← Dziennik sesji treningowych.
-│       ├── MemoryPage.jsx   ← Pamięć długoterminowa asystenta (Operator Brain).
-│       ├── SearchPage.jsx   ← Wyszukiwarka zintegrowana z Brave Search.
-│       └── SettingsPage.jsx ← Centrum konfiguracji poświadczeń Librus, motywów i diagnostyki.
+├── /modules/ ← Główna logika i komponenty.
+│ ├── agent.js ← System podłączający się do API LLM (lokalnie i chmurowo).
+│ ├── database.js ← Abstrakcja nad SQLite dla środowiska lokalnego (w tym tabele timetable, librus_cache).
+│ ├── scheduler.js ← Zaawansowany harmonogram zadań cyklicznych (w tym 2-godzinny librusSyncJob).
+│ ├── firebase.js ← Most z chmurą Firebase Admin SDK.
+│ ├── firebaseClient.js ← Klient frontendowy Firebase Web SDK (Auth, Firestore).
+│ ├── osint.js ← Narzędzia rozpoznania OSINT i klasyfikator celów.
+│ │
+│ ├── /services/ ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
+│ │ ├── librusService.js ← Integracja z librus-api v2.18.1, pobieranie ocen, średnie ważone i szczęśliwy numerek.
+│ │ ├── pushbulletService.js ← Serwis bezpośredniej integracji z Pushbullet API.
+│ │ ├── wakeWordService.js ← Serwis detekcji słowa wybudzającego "Hej Omni".
+│ │ ├── ttsService.js ← Wielosilnikowa synteza mowy (Google Neural, ElevenLabs, OpenAI, Edge Neural).
+│ │ ├── pushbulletClassifier.js ← Kognitywny klasyfikator wydatków 50/30/20 i deduplikator powiadomień.
+│ │ ├── cloudSync.js ← Dwukierunkowa subskrypcja kolekcji Firestore z auto-inicjalizacją.
+│ │ ├── clientAiDispatcher.js ← Autonomiczny silnik zapytań LLM przez Vercel Gateway.
+│ │ ├── budgetCalculator.js ← Czysty silnik kalkulacji budżetowych 50/30/20 i kopert.
+│ │ ├── exportService.js ← Usługa eksportu danych do formatu CSV oraz podglądu PDF/druku.
+│ │ ├── teacherUtils.js ← Czysty moduł normalizacji, rozwiązywania skrótów i dopasowywania danych kadry (Vite/Node).
+│ │ └── timeUtils.js ← Narzędzia strefy czasowej Europe/Warsaw i formatowania dat.
+│ │
+│ ├── /routes/ ← Trasy API Express.
+│ │ ├── librus.js ← Endpointy REST /api/librus (grades, refresh, status, credentials).
+│ │ └── ...
+│ │
+│ ├── /context/ ← Konteksty globalnego stanu aplikacji.
+│ │ ├── ChatContext.jsx ← Zarządzanie wiadomościami Workera/Mentora.
+│ │ └── ToastContext.jsx ← Pływające powiadomienia, błędy i detekcja łączności.
+│ │
+│ ├── /components/ ← Reużywalne klocki UI w React.
+│ │ ├── Sidebar.jsx ← Lewy pasek nawigacyjny z zakładkami Plan Lekcji i Oceny (Award).
+│ │ └── ...
+│ │
+│ └── /pages/ ← Konkretne podstrony w React Router.
+│ ├── Dashboard.jsx ← Strona startowa. Siatka wszystkich widżetów.
+│ ├── ChatPage.jsx ← Pełnoekranowy Terminal AI.
+│ ├── GradesPage.jsx ← Dziennik Ocen & Librus Synergia (szczęśliwy numerek, średnie ważone, widok kafelkowy i kompaktowy, wagi na pigułkach, szybkie filtry).
+│ ├── TimetablePage.jsx← Plan Lekcji & Zajęć (Live Tracker, detekcja absencji nauczycieli i zastępstw Librus, oznaczanie okienek, pobieranie z Librusa, Firestore sync).
+│ ├── CalendarPage.jsx ← Kalendarz operacyjny (tryb Osobisty oraz Szkolny Librus z KPI, kartkówkami, sprawdzianami i absencjami).
+│ ├── FinancePage.jsx ← Finanse, budżet 50/30/20.
+│ ├── WorkoutsPage.jsx ← Dziennik sesji treningowych.
+│ ├── MemoryPage.jsx ← Pamięć długoterminowa asystenta (Operator Brain).
+│ ├── SearchPage.jsx ← Wyszukiwarka zintegrowana z Brave Search.
+│ └── SettingsPage.jsx ← Centrum konfiguracji poświadczeń Librus, motywów i diagnostyki.
 │
-├── /data/                   ← Magazyn danych lokalnych.
-│   └── tasks.sqlite         ← Baza SQL przechowująca zadania, harmonogram lekcji, cache ocen librus_cache i logi.
+├── /data/ ← Magazyn danych lokalnych.
+│ └── tasks.sqlite ← Baza SQL przechowująca zadania, harmonogram lekcji, cache ocen librus_cache i logi.
 │
-└── /docs/                   ← Hub dokumentacji (logi wersji SemVer, błędy ERROR_DIFF, mapy architektoniczne).
+└── /docs/ ← Hub dokumentacji (logi wersji SemVer, błędy ERROR_DIFF, mapy architektoniczne).
 ```
 
 

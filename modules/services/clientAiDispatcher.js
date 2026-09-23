@@ -205,9 +205,9 @@ export function getTimetableContext(timetable = [], now = new Date()) {
     const teacherPart = l.teacher ? `(${l.teacher})` : '';
     let alertPart = '';
     if (l.absenceAlert?.isAbsent) {
-      alertPart = `⚠️ [NIEOBECNOŚĆ NAUCZYCIELA: ${l.absenceAlert.teacher}, godz. ${l.absenceAlert.hours} - zastępstwo/okienko]`;
+      alertPart = `[!] [NIEOBECNOŚĆ NAUCZYCIELA: ${l.absenceAlert.teacher}, godz. ${l.absenceAlert.hours} - zastępstwo/okienko]`;
     } else if (l.isCancelled || l.status === 'cancelled') {
-      alertPart = `❌ [ODWOŁANA - OKIENKO]`;
+      alertPart = `[X] [ODWOŁANA - OKIENKO]`;
     }
     return `• ${l.time_start || '??'} - ${l.time_end || '??'} ${roomPart} ${cleanSubj} ${teacherPart} ${alertPart}`.replace(/\s+/g, ' ').trim();
   };
@@ -1026,9 +1026,9 @@ export function parseAndExecuteAiActionsWithWidgets(text, userQuery = '') {
         lowerCleaned.includes('nie posiadam możliwości') ||
         lowerCleaned.includes('brak akcji')
       ) {
-        cleanedText = `📱 **Wysłano powiadomienie Push na Twój telefon.**\n\n- **Tytuł:** ${title}\n- **Treść:** ${body}`;
+        cleanedText = ` **Wysłano powiadomienie Push na Twój telefon.**\n\n- **Tytuł:** ${title}\n- **Treść:** ${body}`;
       } else {
-        cleanedText = `${cleanedText}\n\n📱 *(Powiadomienie Push zostało przesłane na Twój telefon: "${title}")*`;
+        cleanedText = `${cleanedText}\n\n *(Powiadomienie Push zostało przesłane na Twój telefon: "${title}")*`;
       }
     }
   }
@@ -1134,7 +1134,7 @@ export function buildExecutionTrace({
 export function generateDeterministicReport(text, isNoOpenSource, allSources, collectedSteps) {
   const sourcesCount = (allSources || []).length;
   if (isNoOpenSource) {
-    return `## 📊 TABELA PORÓWNAWCZA MODELI W CZACIE 2026 (Modele Komercyjne)
+    return `## TABELA PORÓWNAWCZA MODELI W CZACIE 2026 (Modele Komercyjne)
 
 | Model w Czacie | Dostawca / Subskrypcja | Okno kontekstowe | Limity zapytań / Wiadomości | Kluczowe atuty interfejsu (Canvas, Artifacts, Workspace) | Koszt miesięczny |
 |---|---|---|---|---|---|
@@ -1148,7 +1148,7 @@ export function generateDeterministicReport(text, isNoOpenSource, allSources, co
 
 ---
 
-## 🔬 SZCZEGÓŁOWE DANE TECHNICZNE I MOŻLIWOŚCI EKOSYSTEMÓW
+## SZCZEGÓŁOWE DANE TECHNICZNE I MOŻLIWOŚCI EKOSYSTEMÓW
 
 ### 1. OpenAI ChatGPT Plus ($20) vs ChatGPT Pro ($200)
 - **ChatGPT Plus:** Oferuje zbalansowany dostęp do GPT-4o (multimodalny model wielozadaniowy) oraz o3-mini (szybki reasoning do matematyki i kodu). Ograniczenia wiadomości (80 wiad./3h) bywają odczuwalne podczas intensywnych sesji deweloperskich. Interfejs **Canvas** rewelacyjnie sprawdza się w iteracyjnym pisaniu kodu.
@@ -1169,20 +1169,20 @@ export function generateDeterministicReport(text, isNoOpenSource, allSources, co
 
 ---
 
-## 🔮 KTO MA NAJLEPSZĄ PRZYSZŁOŚĆ I DLACZEGO (ROADMAPY 2026)
+## KTO MA NAJLEPSZĄ PRZYSZŁOŚĆ I DLACZEGO (ROADMAPY 2026)
 1. **Anthropic** wyrasta na absolutnego faworyta programistów dzięki stabilności architektury Sonnet, wprowadzeniu hybrydowego myślenia oraz naciskowi na precyzję logiczną (brak halucynacji).
 2. **OpenAI** utrzymuje dominację w kategorii "raw intelligence" dzięki serii modeli reasoningowych (o1/o3/Orion), lecz wysoki koszt planu Pro ($200) dzieli rynek na profesjonalistów i użytkowników masowych.
 3. **Google** dysponuje największą przewagą infrastrukturalną (własne TPU) i kontekstową (2M tokenów) oraz najkorzystniejszym stosunkiem ceny do możliwości (Google One 2TB + AI).
 
 ---
 
-## 💡 REKOMENDACJA INŻYNIERYJNA DLA OPERATORA
-- 💻 **Do Programowania, Refaktoryzacji i Web Devu:** **Claude.ai Pro ($20)** z Claude 3.7 Sonnet i Artifacts.
-- 📚 **Do Analizy Olbrzymich Danych, PDF-ów i Wideo:** **Gemini Advanced ($20)** z oknem 2M tokenów.
-- 🧮 **Do Złożonej Matematyki i Logiki Algorytmicznej:** **ChatGPT Pro ($200)** lub Plus z o3-mini.
-- 🌐 **Do Przeszukiwania Sieci i Raportów Branżowych:** **Perplexity Pro ($20)**.
+## REKOMENDACJA INŻYNIERYJNA DLA OPERATORA
+- **Do Programowania, Refaktoryzacji i Web Devu:** **Claude.ai Pro ($20)** z Claude 3.7 Sonnet i Artifacts.
+- **Do Analizy Olbrzymich Danych, PDF-ów i Wideo:** **Gemini Advanced ($20)** z oknem 2M tokenów.
+- **Do Złożonej Matematyki i Logiki Algorytmicznej:** **ChatGPT Pro ($200)** lub Plus z o3-mini.
+- **Do Przeszukiwania Sieci i Raportów Branżowych:** **Perplexity Pro ($20)**.
 
-### 📲 Podsumowanie wysłane na smartfon (Pushbullet):
+### Podsumowanie wysłane na smartfon (Pushbullet):
 • Zakończono 4-etapowe badanie Brave Search (${sourcesCount} źródeł)
 • Claude Pro (3.7 Sonnet): Lider programowania i Artifacts
 • Gemini Advanced: Król kontekstu 2M tokenów
@@ -1193,7 +1193,7 @@ export function generateDeterministicReport(text, isNoOpenSource, allSources, co
 [ACTION:SEND_PUSH title="OmniDaemon: Komercyjne Modele w Czacie 2026" body="• Zakończono 4-etapowe badanie Brave Search (${sourcesCount} źródeł)\n• Claude Pro (3.7 Sonnet): Lider programowania i Artifacts\n• Gemini Advanced: Król kontekstu 2M tokenów\n• ChatGPT Pro: Potęga o1/o3 do myślenia\n• Pełna tabela i dossier w zakładce OMNIDAEMON"]`;
   }
 
-  return `## 📊 TABELA PORÓWNAWCZA FRONTIER MODELI AI (2026)
+  return `## TABELA PORÓWNAWCZA FRONTIER MODELI AI (2026)
 
 | Model | Producent | Okno kontekstowe | Architektura | Specjalizacja | Status |
 |---|---|---|---|---|---|
@@ -1204,10 +1204,10 @@ export function generateDeterministicReport(text, isNoOpenSource, allSources, co
 
 ---
 
-## 🔬 SZCZEGÓŁOWA ANALIZA TECHNICZNA I WNIOSKI
+## SZCZEGÓŁOWA ANALIZA TECHNICZNA I WNIOSKI
 W oparciu o ${sourcesCount} pozyskanych źródeł Brave Search w ${collectedSteps?.length || 4} etapach badawczych, ekosystemy AI wykazują wyraźną dywersyfikację: modele hybrydowe (reasoning tokens) stają się standardem w inżynierii oprogramowania.
 
-### 📲 Podsumowanie wysłane na smartfon (Pushbullet):
+### Podsumowanie wysłane na smartfon (Pushbullet):
 • Zakończono wieloetapowe badanie Brave Search (${sourcesCount} źródeł)
 • Pełna tabela i analiza w zakładce OMNIDAEMON
 
@@ -1431,7 +1431,7 @@ export async function executeClientDeepResearch({ text, groqKey, activeModel, us
     onProgress({
       step: 0,
       total: stages.length,
-      text: `🚀 **[OMNIDAEMON] Inicjalizacja Autonomicznego Badania Ciągłego**\n• Cel: "${text}"\n• Ograniczenia: ${isNoOpenSource ? '🔴 WYKLUCZONO MODELE OPEN-SOURCE (Tylko komercyjne subskrypcje w czacie)' : 'Pełny rynek AI'}\n• Liczba etapów: ${stages.length}\n• Status: Uruchamianie procedury eksploracji sieciowej Brave Search...`,
+      text: ` **[OMNIDAEMON] Inicjalizacja Autonomicznego Badania Ciągłego**\n• Cel: "${text}"\n• Ograniczenia: ${isNoOpenSource ? '[KRYTYCZNY] WYKLUCZONO MODELE OPEN-SOURCE (Tylko komercyjne subskrypcje w czacie)' : 'Pełny rynek AI'}\n• Liczba etapów: ${stages.length}\n• Status: Uruchamianie procedury eksploracji sieciowej Brave Search...`,
       trace: {
         exploredFiles: [
           { name: 'localStorage: system_active_model', type: 'config', details: activeModel || 'openai/gpt-oss-120b' },
@@ -1449,7 +1449,7 @@ export async function executeClientDeepResearch({ text, groqKey, activeModel, us
   }
 
   sendPushNotificationClient(
-    `OmniDaemon: Start Badania 🚀`,
+    `OmniDaemon: Start Badania `,
     `• Zainicjowano badanie: ${planTitle}\n• Tryb: ${isNoOpenSource ? 'Komercyjne modele w czacie (bez open-source)' : 'Głęboki skan rynku AI 2026'}\n• Zaplanowano ${stages.length} etapy. Informuję na bieżąco!`
   ).catch(err => console.warn('[AiDispatcher] Push start error:', err.message));
 
@@ -1528,7 +1528,7 @@ export async function executeClientDeepResearch({ text, groqKey, activeModel, us
       onProgress({
         step: stageNum,
         total: stages.length,
-        text: `✅ **[OMNIDAEMON] Etap ${stageNum}/${stages.length} zakończony pomyślnie**\n• Pozyskano źródeł: ${stepSources.length} (unikalna suma bazy: ${allSources.length})\n• Wysłano powiadomienie Pushbullet na smartfon.`,
+        text: `[OK] **[OMNIDAEMON] Etap ${stageNum}/${stages.length} zakończony pomyślnie**\n• Pozyskano źródeł: ${stepSources.length} (unikalna suma bazy: ${allSources.length})\n• Wysłano powiadomienie Pushbullet na smartfon.`,
         trace: {
           exploredFiles: [
             { name: 'localStorage: system_active_model', type: 'config', details: activeModel || 'openai/gpt-oss-120b' },
@@ -1575,10 +1575,10 @@ export async function executeClientDeepResearch({ text, groqKey, activeModel, us
 Rozmawiasz z ${userName}. Zlecono zadanie badawcze: "${text}".
 Właśnie przeprowadzono autonomiczne badanie internetu za pomocą Brave Search (pozyskano ${allSources.length} unikalnych źródeł na żywo).
 
-🧠 DŁUGOTERMINOWA BAZA PAMIĘCI OPERATORA (https://void-potato-7721.web.app/memory):
+[BRAIN] DŁUGOTERMINOWA BAZA PAMIĘCI OPERATORA (https://void-potato-7721.web.app/memory):
 ${brainSummary}
 
-🚨 ŻELAZNE REGUŁY UŻYTKOWNIKA — OTWARTE ODKRYWANIE, ZERO-TRUST DLA STARYCH DANYCH & ZAPIS DO PAMIĘCI:
+[ALERT] ŻELAZNE REGUŁY UŻYTKOWNIKA — OTWARTE ODKRYWANIE, ZERO-TRUST DLA STARYCH DANYCH & ZAPIS DO PAMIĘCI:
 1. NIGDY NIE UFAJ DANYM ANI WŁASNYM ZAŁOŻENIOM Z PRZESZŁOŚCI, KTÓRYCH NIE MA W PAMIĘCI (https://void-potato-7721.web.app/memory) ANI W ZEBRANYCH ŹRÓDŁACH SIECIOWYCH BRAVE SEARCH!
 2. ZAKAZ SZUKANIA TYLKO TEGO CO JUŻ ZNASZ: Przeprowadzaj otwarte odkrywanie najnowszych modeli komercyjnych w czacie w 2026 r. na podstawie zebranych źródeł z sieci, bez faworyzowania starych baz danych.
 3. UŻYTKOWNIK WYRAŹNIE NAKAZAŁ: "chodzi mi o dostępne w chacie a nie modele opensorce":
@@ -1590,25 +1590,25 @@ Zebrane źródła Brave Search na żywo:
 ${sourcesSection}
 
 WYMAGANA STRUKTURA RAPORTU:
-1. 📊 TABELA PORÓWNAWCZA MODELI W CZACIE 2026 (Markdown):
+1. TABELA PORÓWNAWCZA MODELI W CZACIE 2026 (Markdown):
    | Model w Czacie | Dostawca / Subskrypcja | Okno kontekstowe | Limity zapytań / Wiadomości | Kluczowe atuty interfejsu (Canvas, Artifacts, Workspace) | Koszt miesięczny |
    (Tylko modele komercyjne w czacie — zakaz modeli open-source!)
-2. 🔬 SZCZEGÓŁOWE DANE TECHNICZNE I MOŻLIWOŚCI EKOSYSTEMÓW:
+2. SZCZEGÓŁOWE DANE TECHNICZNE I MOŻLIWOŚCI EKOSYSTEMÓW:
    - ChatGPT Plus vs Pro: limity modeli o1, o3-mini i GPT-4o, zniesienie limitów w planie Pro ($200), Canvas
    - Claude.ai Pro: możliwości Claude 3.7 Sonnet i regulacja czasu myślenia (extended thinking), Artifacts
    - Gemini Advanced: obsługa plików do 2M tokenów, multimodalność na żywo, integracja z Google Workspace
    - Inne platformy komercyjne: Grok 3, Copilot Pro i Perplexity Pro
-3. 🔮 KTO MA NAJLEPSZĄ PRZYSZŁOŚĆ I DLACZEGO (ROADMAPY 2026):
+3. KTO MA NAJLEPSZĄ PRZYSZŁOŚĆ I DLACZEGO (ROADMAPY 2026):
    - Porównanie kierunków rozwoju wiodących dostawców komercyjnych
    - Który ekosystem oferuje największą wartość w subskrypcji
-4. 💡 REKOMENDACJA INŻYNIERYJNA WYBORU SUBSKRYPCJI:
+4. REKOMENDACJA INŻYNIERYJNA WYBORU SUBSKRYPCJI:
    - Najlepszy model do programowania
    - Najlepszy do wielkich analiz danych
    - Najlepszy ogólny asystent codzienny
-5. 📲 PODSUMOWANIE DLA OPERATORA:
+5. PODSUMOWANIE DLA OPERATORA:
    - Wypisz w punktach zwięzłą syntezę wysyłaną na telefon (użytkownik musi widzieć treść powiadomienia w czacie!)
 
-🚨 KRYTYCZNE AKCJE KOŃCOWE (PAMIĘĆ & PUSH):
+[ALERT] KRYTYCZNE AKCJE KOŃCOWE (PAMIĘĆ & PUSH):
 Na samym końcu odpowiedzi ZAWSZE wyemituj znaczniki:
 [ACTION:REMEMBER fact="Zestawienie komercyjnych modeli w czacie 2026: ChatGPT Pro (o1/o3-mini), Claude Pro (3.7 Sonnet extended thinking), Gemini Advanced (2M tokenów), Grok 3" category="Modele AI"]
 [ACTION:SEND_PUSH title="OmniDaemon: Komercyjne Modele w Czacie 2026" body="• Zakończono badanie Brave Search (${allSources.length} źródeł)\\n• Claude Pro (3.7 Sonnet): Lider kodu i Artifacts\\n• Gemini Advanced: Król kontekstu 2M tokenów\\n• ChatGPT Pro: Potęga o1/o3-mini\\n• Pełna tabela i dossier w OmniDash"]`;
@@ -1617,10 +1617,10 @@ Na samym końcu odpowiedzi ZAWSZE wyemituj znaczniki:
 Rozmawiasz z ${userName}. Zlecono zadanie badawcze: "${text}".
 Właśnie przeprowadzono autonomiczne, ${collectedSteps.length}-etapowe przeszukanie internetu za pomocą Brave Search (pozyskano ${allSources.length} unikalnych źródeł z sieci).
 
-🧠 DŁUGOTERMINOWA BAZA PAMIĘCI OPERATORA (https://void-potato-7721.web.app/memory):
+[BRAIN] DŁUGOTERMINOWA BAZA PAMIĘCI OPERATORA (https://void-potato-7721.web.app/memory):
 ${brainSummary}
 
-🚨 ŻELAZNA ZASADA WIARYGODNOŚCI I PAMIĘCI:
+[ALERT] ŻELAZNA ZASADA WIARYGODNOŚCI I PAMIĘCI:
 1. NIGDY NIE UFAJ DANYM ANI WŁASNYM ZAŁOŻENIOM Z PRZESZŁOŚCI, KTÓRYCH NIE MA W PAMIĘCI (https://void-potato-7721.web.app/memory) ANI W WYNIKACH BRAVE SEARCH!
 2. Aktualny rok to 2026. Sporządź wyczerpujące, precyzyjne, techniczne kompendium.
 
@@ -1628,13 +1628,13 @@ Zebrane źródła Brave Search na żywo:
 ${sourcesSection}
 
 WYMAGANA STRUKTURA RAPORTU:
-1. 📊 TABELA PORÓWNAWCZA MODELI (Markdown)
-2. 🔬 SZCZEGÓŁOWE DANE TECHNICZNE
-3. 🔮 ANALIZA PRZYSZŁOŚCI, ROADMAP I EKOSYSTEMÓW 2026
-4. 💡 REKOMENDACJA INŻYNIERYJNA
-5. 📲 PODSUMOWANIE DLA OPERATORA (wypisana treść powiadomienia push w czacie)
+1. TABELA PORÓWNAWCZA MODELI (Markdown)
+2. SZCZEGÓŁOWE DANE TECHNICZNE
+3. ANALIZA PRZYSZŁOŚCI, ROADMAP I EKOSYSTEMÓW 2026
+4. REKOMENDACJA INŻYNIERYJNA
+5. PODSUMOWANIE DLA OPERATORA (wypisana treść powiadomienia push w czacie)
 
-🚨 KRYTYCZNE AKCJE KOŃCOWE (PAMIĘĆ & PUSH):
+[ALERT] KRYTYCZNE AKCJE KOŃCOWE (PAMIĘĆ & PUSH):
 Na samym końcu odpowiedzi ZAWSZE wyemituj znaczniki:
 [ACTION:REMEMBER fact="OmniDaemon Badanie: ${planTitle} — zweryfikowano dane na podstawie ${allSources.length} źródeł sieciowych." category="Modele AI"]
 [ACTION:SEND_PUSH title="OmniDaemon Badanie: ${planTitle}" body="• Zakończono badanie Brave Search (${allSources.length} źródeł)\\n• Raport i wnioski gotowe\\n• Pełne dossier w zakładce OMNIDAEMON"]`;
@@ -1723,7 +1723,7 @@ Na samym końcu odpowiedzi ZAWSZE wyemituj znaczniki:
   const { cleanedText: content, extraWidgets } = parseAndExecuteAiActionsWithWidgets(rawContent, text);
 
   // Gwarantowane wysłanie raportu końcowego na smartfon
-  const finalPushTitle = `OmniDaemon: Raport Gotowy 🏁`;
+  const finalPushTitle = `OmniDaemon: Raport Gotowy `;
   const finalPushBody = isNoOpenSource
     ? `• Ukończono pełne badanie komercyjnych modeli w czacie 2026\n• Analiza: ChatGPT Pro, Claude 3.7 Sonnet, Gemini Advanced, Grok\n• Szczegółowa tabela i rekomendacje w zakładce OMNIDAEMON`
     : `• Ukończono badanie: ${planTitle}\n• Zsyntetyzowano dane z ${allSources.length} źródeł Brave Search\n• Sprawdź pełny raport w OmniDash!`;
@@ -1797,17 +1797,17 @@ export const dispatchAiQuery = async ({ text, mode = 'worker', userName = 'Użyt
     } catch {}
 
     const statusMsg = lastJob
-      ? `### 🤖 OmniDaemon 24/7 // Raport Stanu Na Żywo
-- **Status Demon:** 🟢 AKTYWNY (Nasłuch chmurowy & Pushbullet 24/7)
+      ? `### [AI] OmniDaemon 24/7 // Raport Stanu Na Żywo
+- **Status Demon:** [NISKI] AKTYWNY (Nasłuch chmurowy & Pushbullet 24/7)
 - **Ostatnie badanie:** "${lastJob.title}"
 - **Stan postępu:** 100% (Zrealizowano)
 - **Pozyskane źródła Brave Search:** ${lastJob.sourcesCount} unikalnych źródeł
 - **Zrealizowane etapy:**
-${(lastJob.steps || []).map(s => `  • Etap ${s.step}: ${s.focus} (${s.sourcesCount} źródeł)`).join('\n')}
+${(lastJob.steps || []).map(s => ` • Etap ${s.step}: ${s.focus} (${s.sourcesCount} źródeł)`).join('\n')}
 
 *OmniDaemon jest gotowy do kolejnych badań. Możesz zlecić nowe badanie wpisując np. „zbadaj modele AI” lub wysyłając wiadomość z telefonu.*`
-      : `### 🤖 OmniDaemon 24/7 // Raport Stanu Na Żywo
-- **Status Demon:** 🟢 AKTYWNY (Nasłuch chmurowy 24/7)
+      : `### [AI] OmniDaemon 24/7 // Raport Stanu Na Żywo
+- **Status Demon:** [NISKI] AKTYWNY (Nasłuch chmurowy 24/7)
 - **Kolejka zadań:** Oczekiwanie na dyspozycję
 - **Gotowość badawcza:** Brave Search API aktywne, Groq LLM model gotowy
 
@@ -1945,9 +1945,9 @@ Ostatnie transakcje: ` + actualTxs.slice(0, 10).map(f => `${f.type === 'income' 
         ? ttCtx.tomorrowLessons.map(l => ttCtx.formatLessonLine(l)).join('\n')
         : '• Brak zaplanowanych lekcji na jutro.';
 
-      const timetableFullSummary = `📅 DZIŚ JEST: ${ttCtx.todayDayName.toUpperCase()} (${ttCtx.todayDayId}), ${context.dateStr}, godzina ${context.timeStr}.
-📍 AKTUALNA TRWAJĄCA LEKCJA: ${ttCtx.currentLessonFormatted}
-🎯 NAJBLIŻSZA NASTĘPNA LEKCJA: ${ttCtx.nextLessonFormatted}
+      const timetableFullSummary = ` DZIŚ JEST: ${ttCtx.todayDayName.toUpperCase()} (${ttCtx.todayDayId}), ${context.dateStr}, godzina ${context.timeStr}.
+ AKTUALNA TRWAJĄCA LEKCJA: ${ttCtx.currentLessonFormatted}
+ NAJBLIŻSZA NASTĘPNA LEKCJA: ${ttCtx.nextLessonFormatted}
 
 PLAN NA DZIŚ (${ttCtx.todayDayName.toUpperCase()}):
 ${todayPlanFormatted}
@@ -1970,10 +1970,10 @@ WSZYSTKIE POZOSTAŁE LEKCJE W TYGODNIU:
         : 'Brak sesji treningowych.';
 
       const sharedGroundingAndMemoryRules = `
-🧠 DŁUGOTERMINOWA BAZA PAMIĘCI OPERATORA (https://void-potato-7721.web.app/memory):
+[BRAIN] DŁUGOTERMINOWA BAZA PAMIĘCI OPERATORA (https://void-potato-7721.web.app/memory):
 ${brainSummary}
 
-🚨 ŻELAZNE REGUŁY WIARYGODNOŚCI I PAMIĘCI (ZERO-HALLUCINATION & MEMORY GROUNDING):
+[ALERT] ŻELAZNE REGUŁY WIARYGODNOŚCI I PAMIĘCI (ZERO-HALLUCINATION & MEMORY GROUNDING):
 1. NIGDY NIE UFAJ DANYM ANI WŁASNYM ZAŁOŻENIOM Z PRZESZŁOŚCI, KTÓRYCH NIE MA W PAMIĘCI (https://void-potato-7721.web.app/memory) ANI W WYNIKACH WYSZUKIWANIA LIVE! Wszelkie fakty, specyfikacje i modele muszą wynikać wyłącznie z powyższej Bazy Pamięci lub bieżących zweryfikowanych źródeł sieciowych.
 2. ZAPIS DO PAMIĘCI: Masz pełne uprawnienia i obowiązek zapisywać nowo zweryfikowane fakty, preferencje, modele AI i ustalenia w Pamięci https://void-potato-7721.web.app/memory. Aby to zrobić, wyemituj na końcu odpowiedzi:
    [ACTION:REMEMBER fact="Treść faktu do trwałego zapamiętania" category="Modele AI|Wiedza|Preferencje"]
@@ -1985,10 +1985,10 @@ Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${conte
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
 ${sharedGroundingAndMemoryRules}
 
-🚨 KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
+[ALERT] KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
 Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomieniu lub Pushbullet (np. „wyślij na telefon”, „wyślij mi to”, „przypomnij na telefonie”, „wyślij powiadomienie”, „chcę to na komórce”, „pushbullet”):
 1. PRZEANALIZUJ PYTANIE UŻYTKOWNIKA ORAZ POTRZEBNE DANE Z BAZY (np. następna lekcja, plan lekcji, pogoda, zadania, finanse).
-   - Jeśli użytkownik pyta o następną/najbliższą lekcję, ZAWSZE podawaj dane z: 🎯 NAJBLIŻSZA NASTĘPNA LEKCJA: ${ttCtx.nextLessonFormatted}.
+   - Jeśli użytkownik pyta o następną/najbliższą lekcję, ZAWSZE podawaj dane z: NAJBLIŻSZA NASTĘPNA LEKCJA: ${ttCtx.nextLessonFormatted}.
 2. W treści odpowiedzi zwięźle potwierdź, że wysyłasz powiadomienie na telefon.
 3. BEZWZGLĘDNIE, ZAWSZE I BEZ WYJĄTKU na samym końcu odpowiedzi wyemituj znacznik:
    [ACTION:SEND_PUSH title="Zwięzły Tytuł" body="Treść wiadomości wysyłana na telefon"]
@@ -2035,10 +2035,10 @@ Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${conte
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
 ${sharedGroundingAndMemoryRules}
 
-🚨 KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
+[ALERT] KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
 Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomieniu, przesłaniu na smartfon itp. (np. „wyślij na telefon”, „wyślij mi to”, „przypomnij na telefonie”, „wyślij powiadomienie”, „chcę to na komórce”, „pushbullet”):
 1. PRZEANALIZUJ PYTANIE UŻYTKOWNIKA ORAZ POTRZEBNE DANE Z BAZY (np. następna lekcja, plan lekcji, pogoda, zadania, finanse).
-   - Jeśli użytkownik pyta o następną/najbliższą lekcję, ZAWSZE podawaj dane z: 🎯 NAJBLIŻSZA NASTĘPNA LEKCJA: ${ttCtx.nextLessonFormatted}.
+   - Jeśli użytkownik pyta o następną/najbliższą lekcję, ZAWSZE podawaj dane z: NAJBLIŻSZA NASTĘPNA LEKCJA: ${ttCtx.nextLessonFormatted}.
 2. W treści odpowiedzi zwięźle potwierdź, że wysyłasz powiadomienie na telefon.
 3. BEZWZGLĘDNIE, ZAWSZE I BEZ WYJĄTKU na samym końcu odpowiedzi wyemituj znacznik:
    [ACTION:SEND_PUSH title="Zwięzły Tytuł" body="Treść wiadomości wysyłana na telefon"]
@@ -2075,10 +2075,10 @@ Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${conte
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
 ${sharedGroundingAndMemoryRules}
 
-🚨 KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
+[ALERT] KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
 Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomieniu, przesłaniu na smartfon itp. (np. „wyślij na telefon”, „wyślij mi to”, „przypomnij na telefonie”, „wyślij powiadomienie”, „chcę to na komórce”, „pushbullet”):
 1. PRZEANALIZUJ PYTANIE UŻYTKOWNIKA ORAZ POTRZEBNE DANE Z BAZY (np. następna lekcja, plan lekcji, pogoda, zadania, finanse).
-   - Jeśli użytkownik pyta o następną/najbliższą lekcję, ZAWSZE podawaj dane z: 🎯 NAJBLIŻSZA NASTĘPNA LEKCJA: ${ttCtx.nextLessonFormatted}.
+   - Jeśli użytkownik pyta o następną/najbliższą lekcję, ZAWSZE podawaj dane z: NAJBLIŻSZA NASTĘPNA LEKCJA: ${ttCtx.nextLessonFormatted}.
 2. W treści odpowiedzi zwięźle potwierdź, że wysyłasz powiadomienie na telefon.
 3. BEZWZGLĘDNIE, ZAWSZE I BEZ WYJĄTKU na samym końcu odpowiedzi wyemituj znacznik:
    [ACTION:SEND_PUSH title="Zwięzły Tytuł" body="Treść wiadomości wysyłana na telefon"]
@@ -2283,7 +2283,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
     });
 
     return {
-      content: `📱 **Zainicjowano wysyłkę powiadomienia Push na Twój telefon.**\n\n- **Tytuł:** ${title}\n- **Treść:** ${body}\n\n*Jeśli powiadomienie nie dotrze, upewnij się, że klucz Pushbullet API jest skonfigurowany w Ustawienia -> Zabezpieczenia.*`,
+      content: ` **Zainicjowano wysyłkę powiadomienia Push na Twój telefon.**\n\n- **Tytuł:** ${title}\n- **Treść:** ${body}\n\n*Jeśli powiadomienie nie dotrze, upewnij się, że klucz Pushbullet API jest skonfigurowany w Ustawienia -> Zabezpieczenia.*`,
       mentor_thoughts: `Przekazano bezpośrednie powiadomienie na telefon operatora: "${title}".`,
       widgets: []
     };
@@ -2321,7 +2321,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
       saveCloudDocument('tasks', newTask.id, newTask);
 
       return {
-        content: `[+] **Pomyślnie dodano zadanie do To-Do:**\n\n- ${priority === 'HIGH' ? '🔴' : '🟡'} **${taskTitle}** (Priorytet: ${priority})\n\nZadanie zostało natychmiast zapisane w bazie Firestore i wyświetlone w poniższym widżecie:`,
+        content: `[+] **Pomyślnie dodano zadanie do To-Do:**\n\n- ${priority === 'HIGH' ? '[KRYTYCZNY]' : '[ŚREDNI]'} **${taskTitle}** (Priorytet: ${priority})\n\nZadanie zostało natychmiast zapisane w bazie Firestore i wyświetlone w poniższym widżecie:`,
         mentor_thoughts: `Zarejestrowano zadanie "${taskTitle}" o priorytecie ${priority}.`,
         widgets: ['tasks']
       };
@@ -2341,22 +2341,22 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
     let content = '';
 
     if (pendingTasks.length === 0 && completedTasks.length === 0) {
-      content = `### 📋 Lista To-Do na dziś\n\nNie masz obecnie żadnych zadań na liście. Możesz dodać nowe zadanie wpisując polecenie (np. *"dodaj zadanie: Przygotować raport"*) lub korzystając z widżetu poniżej:`;
+      content = `### Lista To-Do na dziś\n\nNie masz obecnie żadnych zadań na liście. Możesz dodać nowe zadanie wpisując polecenie (np. *"dodaj zadanie: Przygotować raport"*) lub korzystając z widżetu poniżej:`;
     } else if (pendingTasks.length === 0) {
-      content = `### 📋 Wszystkie zadania na dziś ukończone! 🎉\n\nAktualnie nie masz żadnych zaległych zadań. Wszystkie **${completedTasks.length}** pozycje zostały zrealizowane:\n\n` +
-        completedTasks.map(t => `- ✅ ~~${t.title}~~`).join('\n') +
+      content = `### Wszystkie zadania na dziś ukończone! \n\nAktualnie nie masz żadnych zaległych zadań. Wszystkie **${completedTasks.length}** pozycje zostały zrealizowane:\n\n` +
+        completedTasks.map(t => `- [OK] ~~${t.title}~~`).join('\n') +
         `\n\nMożesz zrelaksować się lub zaplanować nowe cele poniżej:`;
     } else {
-      content = `### 📋 Zadania w systemie To-Do na dziś (${context.dateStr}):\n\n` +
+      content = `### Zadania w systemie To-Do na dziś (${context.dateStr}):\n\n` +
         `**Oczekujące na wykonanie (${pendingTasks.length}):**\n` +
         pendingTasks.map(t => {
-          const badge = t.priority === 'HIGH' ? '🔴 **[HIGH]**' : (t.priority === 'MEDIUM' ? '🟡 **[MED]**' : '⚪ **[LOW]**');
+          const badge = t.priority === 'HIGH' ? '[KRYTYCZNY] **[HIGH]**' : (t.priority === 'MEDIUM' ? '[ŚREDNI] **[MED]**' : '[-] **[LOW]**');
           return `- ${badge} **${t.title}**${t.category ? ` *(${t.category})*` : ''}`;
         }).join('\n');
 
       if (completedTasks.length > 0) {
         content += `\n\n**Ostatnio wykonane (${completedTasks.length}):**\n` +
-          completedTasks.slice(0, 5).map(t => `- ✅ ~~${t.title}~~`).join('\n');
+          completedTasks.slice(0, 5).map(t => `- [OK] ~~${t.title}~~`).join('\n');
       }
 
       content += `\n\n*Poniżej masz bezpośredni dostęp do interaktywnego widżetu To-Do — możesz natychmiast oznaczyć wykonanie lub dodać nowe pozycje:*`;
@@ -2372,7 +2372,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
   // Obsługa wiadomości / news / wydarzeń
   if (lower.includes('news') || lower.includes('wiadomoś') || lower.includes('wydarzen') || lower.includes('aktualnoś') || lower.includes('świat')) {
     return {
-      content: `### 📰 Aktualne Wydarzenia & Wiadomości IT (Brave Search Live Intel)\n\nPoniżej znajduje się najnowszy kanał depesz informacyjnych IT Intel Feed powiązany z silnikiem Brave Search:\n\n- Możesz przeglądać najświeższe artykuły bezpośrednio w widżecie poniżej.\n- Jeśli chcesz wyszukać konkretny temat ze świata, wpisz polecenie np. *"znajdź [temat]"*.`,
+      content: `### Aktualne Wydarzenia & Wiadomości IT (Brave Search Live Intel)\n\nPoniżej znajduje się najnowszy kanał depesz informacyjnych IT Intel Feed powiązany z silnikiem Brave Search:\n\n- Możesz przeglądać najświeższe artykuły bezpośrednio w widżecie poniżej.\n- Jeśli chcesz wyszukać konkretny temat ze świata, wpisz polecenie np. *"znajdź [temat]"*.`,
       mentor_thoughts: 'Odpytano moduł wiadomości i wyszukiwania Brave Search.',
       widgets: ['news']
     };
@@ -2381,7 +2381,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
   // Obsługa pogody
   if (lower.includes('pogod') || lower.includes('temperatura') || lower.includes('deszcz') || lower.includes('zimno') || lower.includes('ciepło')) {
     return {
-      content: `### ⛅ Warunki Atmosferyczne\n\nAktualne dane meteorologiczne dla Twojej lokalizacji zostały załadowane w widżecie poniżej:`,
+      content: `### Warunki Atmosferyczne\n\nAktualne dane meteorologiczne dla Twojej lokalizacji zostały załadowane w widżecie poniżej:`,
       mentor_thoughts: 'Odpytano telemetryczny moduł pogody.',
       widgets: ['weather']
     };
@@ -2390,7 +2390,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
   // Obsługa statusu systemu
   if (lower.includes('status') || lower.includes('system') || lower.includes('stan') || lower.includes('metryk')) {
     return {
-      content: `### 🛰️ OmniDash Core Status\n- **Środowisko:** ${isCloudMode ? 'Firebase & Vercel Cloud Gateway' : 'Desktop Bridge'}\n- **Model AI:** \`openai/gpt-oss-120b\`\n- **Operator:** ${userName}\n- **Zadania w To-Do:** ${pendingTasks.length} oczekujących, ${completedTasks.length} zrealizowanych\n- **Kategorie Firestore:** tasks, finances, workouts, calendar, operator_brain, chat_history\n- **Integralność bazy:** Zgodna (Live Cloud Sync)\n- **Ochrona sesji:** Aktywna (Crash Guard v2.5.0)`,
+      content: `### OmniDash Core Status\n- **Środowisko:** ${isCloudMode ? 'Firebase & Vercel Cloud Gateway' : 'Desktop Bridge'}\n- **Model AI:** \`openai/gpt-oss-120b\`\n- **Operator:** ${userName}\n- **Zadania w To-Do:** ${pendingTasks.length} oczekujących, ${completedTasks.length} zrealizowanych\n- **Kategorie Firestore:** tasks, finances, workouts, calendar, operator_brain, chat_history\n- **Integralność bazy:** Zgodna (Live Cloud Sync)\n- **Ochrona sesji:** Aktywna (Crash Guard v2.5.0)`,
       mentor_thoughts: 'Wygenerowano raport statusowy z lokalnego silnika telemetrii.',
       widgets: ['system']
     };
@@ -2455,7 +2455,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
     window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'timetable' } }));
 
     return {
-      content: `[+] **Pomyślnie dodano zajęcia do Planu Lekcji:**\n\n- 🎓 **${subject}**\n- 🗓️ Dzień: **${day}** (${startTime} - ${endTime})\n\nWpis został zsynchronizowany w bazie Cloud Firestore i jest widoczny w zakładce Plan Lekcji:`,
+      content: `[+] **Pomyślnie dodano zajęcia do Planu Lekcji:**\n\n- **${subject}**\n- Dzień: **${day}** (${startTime} - ${endTime})\n\nWpis został zsynchronizowany w bazie Cloud Firestore i jest widoczny w zakładce Plan Lekcji:`,
       mentor_thoughts: `Zapisano lekcję "${subject}" w dniu ${day} (${startTime}-${endTime}).`,
       widgets: ['timetable']
     };
@@ -2466,7 +2466,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
     const timetable = Array.isArray(context.timetable) ? context.timetable : [];
     if (timetable.length === 0) {
       return {
-        content: `### 🎓 Plan Lekcji & Zajęć Dydaktycznych\n\nW Twojej bazie Firestore nie ma jeszcze żadnych zaplanowanych zajęć. Możesz dodać pierwszą lekcję wpisując polecenie np. *"dodaj lekcję Matematyka w poniedziałek 08:00-09:30"* lub skorzystać z widżetu poniżej:`,
+        content: `### Plan Lekcji & Zajęć Dydaktycznych\n\nW Twojej bazie Firestore nie ma jeszcze żadnych zaplanowanych zajęć. Możesz dodać pierwszą lekcję wpisując polecenie np. *"dodaj lekcję Matematyka w poniedziałek 08:00-09:30"* lub skorzystać z widżetu poniżej:`,
         mentor_thoughts: 'Brak danych o planie lekcji w lokalnym cache.',
         widgets: ['timetable']
       };
@@ -2477,7 +2477,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
       thursday: 'Czwartek', friday: 'Piątek', saturday: 'Sobota', sunday: 'Niedziela'
     };
 
-    let content = `### 🎓 Harmonogram Zajęć (Plan Lekcji)\n\n` +
+    let content = `### Harmonogram Zajęć (Plan Lekcji)\n\n` +
       `Łącznie w bazie zarejestrowano **${timetable.length}** jednostek lekcyjnych:\n\n` +
       `| Dzień | Godziny | Przedmiot | Sala | Prowadzący | Typ |\n` +
       `|---|---|---|---|---|---|\n` +
@@ -2519,7 +2519,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
     window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'workouts' } }));
 
     return {
-      content: `[+] **Pomyślnie zarejestrowano trening:**\n\n- 🏋️ **${workoutTitle}** (Typ: **${type}**)\n- 📅 Data: **${newWorkout.date}**\n\nTrening został natychmiast zapisany w chmurze Firestore i widnieje w Twojej historii aktywności:`,
+      content: `[+] **Pomyślnie zarejestrowano trening:**\n\n- **${workoutTitle}** (Typ: **${type}**)\n- Data: **${newWorkout.date}**\n\nTrening został natychmiast zapisany w chmurze Firestore i widnieje w Twojej historii aktywności:`,
       mentor_thoughts: `Zapisano trening "${workoutTitle}" w kategorii ${type}.`,
       widgets: ['workouts']
     };
@@ -2528,7 +2528,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
   // Obsługa zapytań o treningi
   if (lower.includes('trening') || lower.includes('siłowni') || lower.includes('ćwiczen') || lower.includes('workout')) {
     const workouts = Array.isArray(context.workouts) ? context.workouts : [];
-    let content = `### 🏋️ Dziennik Aktywności Fizycznej (Workouts)\n\n`;
+    let content = `### Dziennik Aktywności Fizycznej (Workouts)\n\n`;
     if (workouts.length === 0) {
       content += `Nie masz jeszcze zapisanych treningów w bieżącym rejestrze. Możesz dodać nowy trening pisząc *"dodaj trening: Klatka + Triceps (Siłowy)"* lub skorzystać z widżetu:`;
     } else {
@@ -2584,7 +2584,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
     window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'finances' } }));
 
     return {
-      content: `[+] **Zarejestrowano transakcję w budżecie:**\n\n- 💰 **${isIncome ? '+' : '-'}${amount.toFixed(2)} PLN** (${category})\n- 📊 Alokacja 50/30/20: **${bucket.toUpperCase()}**\n\nWpis został zapisany w Firestore i zaktualizował wykres wydatków:`,
+      content: `[+] **Zarejestrowano transakcję w budżecie:**\n\n- **${isIncome ? '+' : '-'}${amount.toFixed(2)} PLN** (${category})\n- Alokacja 50/30/20: **${bucket.toUpperCase()}**\n\nWpis został zapisany w Firestore i zaktualizował wykres wydatków:`,
       mentor_thoughts: `Zarejestrowano transakcję ${newFinance.amount} PLN (${category}).`,
       widgets: ['finances']
     };
@@ -2617,13 +2617,13 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
     const wantsPct = totalExp > 0 ? Math.round((bWants / totalExp) * 100) : 0;
     const savingsPct = totalExp > 0 ? Math.round((bSavings / totalExp) * 100) : 0;
 
-    let content = `### 💰 Raport Finansowy & Budżet (Zasada 50/30/20)\n\n` +
+    let content = `### Raport Finansowy & Budżet (Zasada 50/30/20)\n\n` +
       `| Wskaźnik Budżetu | Wartość | Status Bilansu |\n` +
       `|---|---|---|\n` +
-      `| **Saldo Bieżące** | **${balance >= 0 ? '+' : ''}${balance.toFixed(2)} PLN** | ${balance >= 0 ? '🟢 Dodatnie' : '🔴 Ujemne'} |\n` +
+      `| **Saldo Bieżące** | **${balance >= 0 ? '+' : ''}${balance.toFixed(2)} PLN** | ${balance >= 0 ? '[NISKI] Dodatnie' : '[KRYTYCZNY] Ujemne'} |\n` +
       `| **Przychody Łącznie** | \`+${totalInc.toFixed(2)} PLN\` | Zarejestrowane wpływy |\n` +
       `| **Wydatki Skumulowane** | \`-${totalExp.toFixed(2)} PLN\` | Zarejestrowane koszty |\n\n` +
-      `#### 📊 Alokacja Koszyków 50/30/20:\n\n` +
+      `#### Alokacja Koszyków 50/30/20:\n\n` +
       `| Koszyk | Wydano | % Wydatków | Rekomendowany Cel |\n` +
       `|---|---|---|---|\n` +
       `| **Potrzeby (Needs)** | ${bNeeds.toFixed(2)} PLN | **${needsPct}%** | 50% budżetu |\n` +
@@ -2631,7 +2631,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
       `| **Oszczędności (Savings)** | ${bSavings.toFixed(2)} PLN | **${savingsPct}%** | 20% budżetu |\n\n`;
 
     if (actualTxs.length > 0) {
-      content += `#### 📋 Ostatnie Transakcje:\n\n` +
+      content += `#### Ostatnie Transakcje:\n\n` +
         `| Data | Typ | Kwota | Kategoria | Opis |\n` +
         `|---|---|---|---|---|\n` +
         actualTxs.slice(0, 5).map(t => {
@@ -2669,7 +2669,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
     window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'calendar' } }));
 
     return {
-      content: `[+] **Dodano wydarzenie do Kalendarza:**\n\n- 📅 **${title}**\n- 🗓️ Data: **${eventDate}** (10:00)\n\nWydarzenie jest widoczne w terminarzu i na siatce miesiąca:`,
+      content: `[+] **Dodano wydarzenie do Kalendarza:**\n\n- **${title}**\n- Data: **${eventDate}** (10:00)\n\nWydarzenie jest widoczne w terminarzu i na siatce miesiąca:`,
       mentor_thoughts: `Zaplanowano wydarzenie "${title}" na dzień ${eventDate}.`,
       widgets: ['calendar']
     };
@@ -2684,7 +2684,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
       deleteCloudDocument('calendar', found.id);
       window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'calendar' } }));
       return {
-        content: `[-] **Pomyślnie usunięto wydarzenie z Kalendarza:**\n\n- 🗑️ **${found.title}** (${found.event_date || 'brak daty'})\n\nWpis został usunięty z bazy Firestore i zsynchronizowany na wszystkich urządzeniach.`,
+        content: `[-] **Pomyślnie usunięto wydarzenie z Kalendarza:**\n\n- **${found.title}** (${found.event_date || 'brak daty'})\n\nWpis został usunięty z bazy Firestore i zsynchronizowany na wszystkich urządzeniach.`,
         mentor_thoughts: `Skasowano wydarzenie "${found.title}" z kalendarza.`,
         widgets: ['calendar']
       };
@@ -2700,12 +2700,12 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
   // Obsługa zapytań o Kalendarz
   if (lower.includes('kalendarz') || lower.includes('wydarzen') || lower.includes('spotkan') || lower.includes('terminarz')) {
     const calendar = Array.isArray(context.calendar) ? context.calendar : [];
-    let content = `### 📅 Harmonogram & Terminarz Kalendarza\n\n`;
+    let content = `### Harmonogram & Terminarz Kalendarza\n\n`;
     if (calendar.length === 0) {
       content += `Brak zaplanowanych wydarzeń w Twoim terminarzu. Możesz dodać spotkanie wpisując *"dodaj spotkanie z zespołem"* lub korzystając z widżetu:`;
     } else {
       content += `Zaplanowane wydarzenia w bazie Firestore (${calendar.length}):\n\n` +
-        calendar.slice(0, 6).map(e => `- 🗓️ **[${e.event_date || 'brak daty'}]** ${e.title} ${e.event_time ? `(${e.event_time})` : ''}`).join('\n') +
+        calendar.slice(0, 6).map(e => `- **[${e.event_date || 'brak daty'}]** ${e.title} ${e.event_time ? `(${e.event_time})` : ''}`).join('\n') +
         `\n\n*Poniżej znajduje się pełny kalendarz miesięczny z podglądem nadchodzących terminów:*`;
     }
     return {
@@ -2735,7 +2735,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
       window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'operator_brain' } }));
 
       return {
-        content: `[+] **Zapisano fakt w Pamięci Długoterminowej (Operator Brain):**\n\n- 🧠 *" ${fact} "*\n\nTa informacja została utrwalona w Twoim profilu (https://void-potato-7721.web.app/memory) i asystent będzie brał ją pod uwagę podczas wszystkich kolejnych rozmów.`,
+        content: `[+] **Zapisano fakt w Pamięci Długoterminowej (Operator Brain):**\n\n- [BRAIN] *" ${fact} "*\n\nTa informacja została utrwalona w Twoim profilu (https://void-potato-7721.web.app/memory) i asystent będzie brał ją pod uwagę podczas wszystkich kolejnych rozmów.`,
         mentor_thoughts: `Utrwalono fakt w Operator Brain: "${fact}".`,
         widgets: []
       };

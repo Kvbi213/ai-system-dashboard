@@ -51,7 +51,7 @@
 3. **Panel Zużycia Znaków i Szybkie Przełączanie w `SettingsPage.jsx`:**
    - Wyświetlenie w sekcji ElevenLabs estetycznego paska zużycia limitu (`Zużycie konta: 9 994 / 10 000 znaków (99.9%)`).
    - Wyróżniony baner ostrzegawczy:
-     > ⚠️ **Limit darmowego konta ElevenLabs został wyczerpany (pozostało: 6 znaków).**
+     > [!] **Limit darmowego konta ElevenLabs został wyczerpany (pozostało: 6 znaków).**
      > Wprowadź nowy klucz API ElevenLabs lub przełącz silnik na Microsoft Edge Neural (Marek/Zofia – w 100% darmowy, studyjna jakość bez limitów).
    - Przycisk szybkiej akcji `[Przełącz na bezpłatny silnik Microsoft Edge Neural (Marek Studio)]` przełączający silnik jednym kliknięciem.
 4. **Powiadomienie w Czacie (`Terminal.jsx`) oraz `VoiceInspectorHUD.jsx`:**

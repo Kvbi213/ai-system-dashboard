@@ -118,7 +118,7 @@ export default function VoiceInspectorHUD() {
           <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
             isAiSpeaking ? 'bg-red-500/20 text-red-300 border border-red-500/40 font-bold animate-pulse' : 'bg-white/10 text-textMuted'
           }`}>
-            {isAiSpeaking ? '🔇 AI MÓWI' : isListening ? 'ONLINE' : 'OFFLINE'}
+            {isAiSpeaking ? '[WYCISZONY] AI MÓWI' : isListening ? 'ONLINE' : 'OFFLINE'}
           </span>
         </div>
 
@@ -144,16 +144,16 @@ export default function VoiceInspectorHUD() {
           }`}>
             {isMuted ? (
               <>
-                <MicOff className="w-3.5 h-3.5 text-red-400 animate-pulse" /> 🔇 Wyciszony (Manualnie)
+                <MicOff className="w-3.5 h-3.5 text-red-400 animate-pulse" /> [WYCISZONY] Wyciszony (Manualnie)
               </>
             ) : isAiSpeaking ? (
               <>
-                <MicOff className="w-3.5 h-3.5 animate-pulse" /> 🔇 Wyciszony (AI mówi)
+                <MicOff className="w-3.5 h-3.5 animate-pulse" /> [WYCISZONY] Wyciszony (AI mówi)
               </>
             ) : isListening ? (
               '● Nasłuchuje (Słucham)'
             ) : isPermDenied ? (
-              '❌ Zablokowany'
+              '[X] Zablokowany'
             ) : (
               `● ${status}`
             )}
@@ -240,7 +240,7 @@ export default function VoiceInspectorHUD() {
           </div>
           {micVolume === 0 && !isAiSpeaking && (
             <p className="text-[9px] text-textMuted/70 text-center">
-              💡 Kliknij ten pasek, jeśli wskaźnik nie reaguje na Twój głos
+               Kliknij ten pasek, jeśli wskaźnik nie reaguje na Twój głos
             </p>
           )}
         </div>
@@ -259,7 +259,7 @@ export default function VoiceInspectorHUD() {
             <p className={`text-xs leading-relaxed break-words font-sans italic ${
               latestMatched ? 'text-accentPrimary font-bold not-italic' : 'text-textPrimary'
             }`}>
-              "{latestSpeech}" {latestMatched && '🎯 (WYWOŁANIE!)'}
+              "{latestSpeech}" {latestMatched && ' (WYWOŁANIE!)'}
             </p>
           ) : (
             <p className="text-[11px] text-textMuted/70 italic">

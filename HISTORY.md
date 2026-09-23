@@ -1,8 +1,26 @@
 ## Wersja Bieżąca
-**v2.23.1**
+**v2.23.2**
+
+## v 2.23.2 — 2026-09-23
+**Typ:** PATCH  
+**Zakres:** Całkowita eliminacja jakichkolwiek emotikonów graficznych i dekoracyjnych z całego repozytorium (kod źródłowy, interfejs GUI, logi systemowe, dokumentacja Markdown), wdrożenie Reguły 27 w ZASADYPRACY.md (Zero-Emoji Policy) oraz pełna spójność znaczników inżynieryjnych.
+
+### Zmiany
+- [-] Usunięto: Wszystkie emotikony graficzne i dekoracyjne z 91 plików w projekcie (zastąpiono czystymi znacznikami inżynieryjnymi [!], [OK], [X], [ODWOŁANA], [KRYTYCZNY], [ŚREDNI], [NISKI], [AI] oraz ikonami wektorowymi Lucide).
+- [*] Zmodyfikowano: `modules/components/Terminal.jsx` – oczyszczono podpowiedzi szybkich promptów QUICK_PROMPTS oraz logi LiveVoice.
+- [*] Zmodyfikowano: `modules/pages/FinancePage.jsx` oraz `modules/pages/TimetablePage.jsx` – poprawiono encje JSX dla strzałek {'->'}.
+- [*] Zmodyfikowano: `modules/services/wakeWordService.js`, `pushbulletService.js`, `autonomousAgent.js`, `pushbulletClassifier.js`, `clientAiDispatcher.js` – oczyszczono logi konsolowe, prompty i generatory odpowiedzi.
+- [*] Zmodyfikowano: `ZASADYPRACY.md` – dodano Regułę 27 definiującą bezwzględną politykę Zero-Emoji.
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.23.2`.
+- [+] Dodano: Raport wydania `docs/versions/v2.23.2.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.23.1 — 2026-09-23
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Eliminacja defektów korelacji kadry pedagogicznej, pełne imiona i nazwiska nauczycieli w całym systemie, prymat oficjalnego planu Librus Synergia, ochrona przed kolizjami popularnych imion oraz filtracja absencji w oknie bieżącego tygodnia.
 
 ### Zmiany
@@ -20,15 +38,15 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.23.0 — 2026-09-23
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Automatyczna Synchronizacja Planu Lekcji z Librus Synergia, Dynamiczna Detekcja Nieobecności Nauczycieli i Korelacja Zastępstw/Okienek w Module Planu Lekcji (`TimetablePage.jsx`), Baner Absencji, Oznaczanie Odwołanych Lekcji, Integracja z Kontekstem Kognitywnym AI (`clientAiDispatcher.js`), Pamięć Podręczna SQLite `librus_timetable_cache` oraz Zestaw Testów Vitest (158/158 PASS).
 
 ### Zmiany
 - [+] Dodano: Algorytm korelacji planu lekcji z absencjami w `modules/services/librusService.js` (`cleanTeacherName`, `matchTeacherNames`, `parseTimeToMinutes`, `checkTimeOverlap`, `fetchLibrusTimetableFromSource`, `correlateTimetableWithAbsences`, `saveTimetableToCache`, `getCachedTimetable`, `syncLibrusTimetable`, `getDemoTimetableData`).
 - [+] Dodano: Endpointy REST `GET /api/librus/timetable`, `POST /api/librus/timetable/refresh`, `POST /api/librus/timetable/import-to-schedule` w `modules/routes/librus.js` i `api/librus.js`.
 - [+] Dodano: Replikację planu lekcji i zastępstw do bazy SQLite `librus_timetable_cache` oraz Cloud Firestore `librus_cache/timetable`.
-- [+] Dodano: Nowe funkcjonalności w `modules/pages/TimetablePage.jsx`: bursztynowy baner absencji kadry na wybrany dzień/tydzień, pigułki `⚠️ ABSENCJA (${hours})`, przekreślanie nieobecnych nauczycieli, przycisk i status „Okienko / Odwołana” (`❌ OKIENKO`), szybki filtr „Tylko zmiany / absencje”, przycisk „Pobierz z Librusa” ze statusem ostatniej synchronizacji oraz wsparcie widoku siatki.
-- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` – formatowanie planu lekcji dla asystenta AI wzbogacono o adnotacje `⚠️ [NIEOBECNOŚĆ NAUCZYCIELA: ...]` oraz `❌ [ODWOŁANA - OKIENKO]`.
+- [+] Dodano: Nowe funkcjonalności w `modules/pages/TimetablePage.jsx`: bursztynowy baner absencji kadry na wybrany dzień/tydzień, pigułki `[!] ABSENCJA (${hours})`, przekreślanie nieobecnych nauczycieli, przycisk i status „Okienko / Odwołana” (`[X] OKIENKO`), szybki filtr „Tylko zmiany / absencje”, przycisk „Pobierz z Librusa” ze statusem ostatniej synchronizacji oraz wsparcie widoku siatki.
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` – formatowanie planu lekcji dla asystenta AI wzbogacono o adnotacje `[!] [NIEOBECNOŚĆ NAUCZYCIELA: ...]` oraz `[X] [ODWOŁANA - OKIENKO]`.
 - [+] Dodano: Zestaw testów jednostkowych w `tests/librus.test.js` weryfikujących sanityzację nazwisk, dopasowanie nauczycieli, nakładanie przedziałów czasowych oraz korelację planu lekcji (158/158 PASS).
 - [+] Dodano: Raport wydania `docs/versions/v2.23.0.md`.
 - [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.23.0`.
@@ -40,7 +58,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.22.0 — 2026-09-23
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Dedykowana Zakładka i Tryb „Szkolny” w Kalendarzu (`CalendarPage.jsx`) z Terminarzem Librus Synergia (Sprawdziany, Kartkówki, Nieobecności Nauczycieli), Kompleksowa Modernizacja Ergonomii i Przejrzystości Zakładki Ocen (`GradesPage.jsx`) z Widocznymi Wagami Ocen (`w:3`), Filtrem „Tylko z ocenami”, Zwartym Widokiem Wierszowym i Paskami Średnich, Rozszerzenie Serwisu i Tras Librusa oraz Zestaw Testów Vitest (147/147 PASS).
 
 ### Zmiany
@@ -59,7 +77,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.21.1 — 2026-09-22
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Eliminacja fałszywego komunikatu o błędzie HTML Rewrite w widoku Ocen (`/grades`) na hostingu produkcyjnym Firebase Hosting. Pełna separacja środowiska hybrydowego (bezpośredni odczyt Firestore w chmurze bez zapytań do nieistniejących endpointów Express).
 
 ### Zmiany
@@ -75,7 +93,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.21.0 — 2026-09-22
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Integracja Dziennika Elektronicznego Librus Synergia (`librus-api` v2.18.1), 2-Godzinny Harmonogram Odświeżania Ocen (`librusSyncJob`), Nowy Widok "Oceny" (`/grades` i `/oceny`), Obsługa Szczęśliwego Numerka, Średnich Ważonych, Detali Ocen w Oknie Modalnym, Konfiguracja Poświadczeń w Ustawieniach oraz Pamięć Podręczna SQLite.
 
 ### Zmiany
@@ -99,7 +117,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.20.0 — 2026-09-17
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Chirurgiczna Redukcja Archaicznego Web Speech API (`speakWithWebSpeech`), Permanentna Eliminacja Drewnianych Głosów Desktopowych, Wdrożenie Google Cloud Neural Text-to-Speech API (`google`) z Pakietem 1 000 000 Znaków Miesięcznie (WaveNet & Neural2), Konfiguracja Klucza i Wybór Lektorów w Ustawieniach, Odporny Studyjny Łańcuch Awaryjny.
 
 ### Zmiany
@@ -121,7 +139,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.19.9 — 2026-09-17
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Inspekcja i Monitorowanie Limitu Konta ElevenLabs (`checkElevenLabsQuota`), Eliminacja Cichej Degradacji Syntezy Mowy do Web Speech, Transparentne Powiadomienia w Ustawieniach i Terminalu (`ttsQuotaExceeded`), 1-Klikowe Przełączenie na Microsoft Edge Neural Studio oraz Odblokowanie Autoryzacji Audio Proxy w Express.
 
 ### Zmiany
@@ -142,13 +160,13 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.19.8 — 2026-09-16
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Otwarte Odkrywanie Modeli Frontier 2026 (Open Discovery Queries), Bezwzględne Uziemienie w Bazie Pamięci (`https://void-potato-7721.web.app/memory` / `operator_brain`), Autonomiczne Utrwalanie Faktów (`[ACTION:REMEMBER]`), Obowiązek Jawnej Treści Notyfikacji Push w Czacie, Uniwersalny Inspektor Wykonania Narzędzi (`AgentExecutionTrace`) w Każdej Wiadomości i Trybie Czatu, Odporna Sanityzacja Zapisów Firestore.
 
 ### Zmiany
 - [+] Dodano: Uziemienie wiedzy w pamięci długoterminowej (`operator_brain`) w promptach `deepResearchPrompt` oraz systemowych (`mentor`, `daemon`, `worker`). Wprowadzono żelazną regułę Zero-Trust dla starych danych nieobecnych w Pamięci ani w wynikach Brave Search Live.
 - [+] Dodano: Autonomiczne zapisywanie nowo zweryfikowanych faktów o modelach i preferencjach do `operator_brain` (`[ACTION:REMEMBER fact="..." category="Modele AI"]`) wraz z natychmiastową synchronizacją lokalnego cache `cloud_cache_operator_brain`.
-- [+] Dodano: Obowiązek wypisywania pełnej treści powiadomień Pushbullet w samej treści wiadomości na czacie (sekcja `📲 Podsumowanie wysłane na smartfon (Pushbullet)`).
+- [+] Dodano: Obowiązek wypisywania pełnej treści powiadomień Pushbullet w samej treści wiadomości na czacie (sekcja ` Podsumowanie wysłane na smartfon (Pushbullet)`).
 - [*] Zmodyfikowano: `modules/components/AgentExecutionTrace.jsx` – zunifikowano ekstrakcję śladu (`extractTraceFromMessage`), dzięki czemu każda odpowiedź asystenta w każdym trybie prezentuje eksplorowane bazy (w tym `operator_brain`) oraz wykonane narzędzia (`Ran Tool: ...`).
 - [*] Zmodyfikowano: `modules/services/cloudSync.js` – zabezpieczono `saveCloudDocument` przed polami `undefined`, zapewniając stabilność bazy Firestore.
 - [+] Dodano: Nowe testy jednostkowe w `tests/agent_execution_trace.test.jsx` weryfikujące ślad narzędzi i integrację z `operator_brain` (126/126 PASS).
@@ -162,7 +180,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.19.7 — 2026-09-16
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Elastyczna Klasyfikacja Intencji Badawczej w Języku Polskim (`isDeepResearchIntent`), Obsługa `onProgress` we Wszystkich Kartach Czatu (`ChatContext.jsx`), Integracja Bramy Brave Search `/api/news`, Pacing 3.5s na Etap z Powiadomieniami Push, Rygorystyczny Prompt Anty-Halucynacyjny (Zakaz Modeli Fikcyjnych i Open-Source), Auto-Healing Fallbacku Groq LLM.
 
 ### Zmiany
@@ -181,7 +199,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.19.6 — 2026-09-16
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Usunięcie Widgetu Agenta z Głównego Pulpitu, Przywrócenie Kanonicznego Układu Siatki 3-Kolumnowej (TodoList, ITNewsTicker, Routines, NewsFeed), Centralizacja Kontroli OmniDaemon w Terminalu AI.
 
 ### Zmiany
@@ -196,7 +214,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.19.5 — 2026-09-16
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Interaktywny Inspektor Wykonania Agenta AI (`AgentExecutionTrace`), Wizualizacja Eksplorowanych Plików/Baz Danych (`Explored X files`), Uruchomionych Narzędzi (`Ran <tool>`), Zrealizowanych Wyszukiwań Sieciowych (`Exploring X searches` / `Searched <query> X results`), Wskaźnik Stanu Na Żywo (`Working.`), Sanityzacja Sekretów oraz Nowe Testy Jednostkowe (125/125 PASS).
 
 ### Zmiany
@@ -224,7 +242,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.19.4 — 2026-09-16
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Eliminacja Defektu Deduplikacji Źródeł Brave Search, Auto-Healing i Sanityzacja Modeli w LocalStorage, 3-Warstwowa Odporna Synteza Raportów OmniDaemon (Direct Groq -> Vercel Gateway -> Fail-Safe Generator), Ochrona Przed Fallbackiem Asystenta.
 
 ### Zmiany
@@ -246,7 +264,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.19.3 — 2026-09-16
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Autonomiczny Multi-Stage Loop OmniDaemon, Selekcja Komercyjnych Modeli Czatu 2026 (Wykluczenie Open-Source), Powiadomienia Push Na Żywo (Start, Kamienie Milowe, Finał), Strumieniowanie do Terminala OMNIDAEMON, Serwerless Search Proxy w `api/agent.js` i Testy Jednostkowe.
 
 ### Zmiany
@@ -273,7 +291,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.19.2 — 2026-09-16
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Autonomiczny Silnik Deep Research (Brave Search), Wieloetapowa Analiza Modeli AI, Eliminacja Natychmiastowych Halucynacji w OMNIDAEMON, Uniwersalny Klasyfikator `autonomousClassifier.js`, Raportowanie Mobilne Pushbullet i Testy Jednostkowe.
 
 ### Zmiany
@@ -298,7 +316,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.19.1 — 2026-09-16
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Dedykowana Zakładka OMNIDAEMON w Terminalu (`Terminal.jsx`), Zarządzanie Stanem i Historią Chmurową w `ChatContext.jsx`, Dwukierunkowy Czat Smartfonowy Pushbullet z Obowiązkową Odpowiedzią Push (`handleMobileChatQuery`), Ochrona Przed Pętlą Echa Powiadomień (`isOwnSystemNotification`), Dedykowany Prompt Operacyjny OmniDaemon oraz Testy Jednostkowe.
 
 ### Zmiany
@@ -319,7 +337,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.19.0 — 2026-09-16
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Autonomiczny Agent Ciągły (OmniDaemon 24/7), Deep Research z Brave Search, Etapowe Raportowanie i Interaktywne Odpytywanie ze Smartfona (Pushbullet), Architektura Hybrydowa (Vercel Serverless & Node Daemon) oraz Widżet Dashboardu.
 
 ### Zmiany
@@ -350,7 +368,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.18.13 — 2026-09-16
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Obsługa Operacji Masowych na Zadaniach To-Do (`CLEAR_TASKS`, `COMPLETE_ALL_TASKS`, `DELETE_COMPLETED_TASKS`), Odznaczanie Zadań (`UNCOMPLETE_TASK`), Autonomiczny Filtr Kognitywny Intencji oraz Wyczyszczenie Zalegających Dokumentów w Cloud Firestore.
 
 ### Zmiany
@@ -376,7 +394,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.18.12 — 2026-09-16
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Odporny Parser Znaczników Akcji Push (Obsługa Zagnieżdżonych Nawiasów `[Sala]` i Wewnętrznych Cudzysłowów), Kognitywna Prekomputacja Harmonogramu Lekcji w Czasie Rzeczywistym (`getTimetableContext`) oraz Wdrożenie Pełnej Bazy 21 Głosów ElevenLabs z Dynamicznym Pobieraniem z API.
 
 ### Zmiany
@@ -396,7 +414,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.18.11 — 2026-09-15
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Jednoznaczny i Zoptymalizowany Układ Powiadomień Mobilnych Pushbullet: Wyróżniona Sala `[Sala]` Bezpośrednio po Godzinie, Słownik Skrótów Przedmiotów (`cleanSubjectName`), Usunięcie Szumu Akademickiego i Uniwersalna Integracja Formatera we Wszystkich Modułach.
 
 ### Zmiany
@@ -419,7 +437,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.18.10 — 2026-09-15
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Formatowanie Wielowierszowe Powiadomień Pushbullet na Urządzenia Mobilne (Konwersja Literalnych \n na Znaki Nowej Linii, Oczyszczanie Markdown, Transformacja Tabel na Estetyczne Listy Punktorów •).
 
 ### Zmiany
@@ -442,7 +460,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.18.9 — 2026-09-15
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Eliminacja Halucynacji Odmowy Wysyłki Push, Ustanowienie Direct Groq API jako Priorytet 1 (Natywny Browser CORS, Pełna Spójność Promptu z Akcją SEND_PUSH), Sanityzacja Kognitywna i Fallback w Dispatcherze.
 
 ### Zmiany
@@ -461,7 +479,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.18.8 — 2026-09-15
-**Typ:** MINOR / PATCH  
+**Typ:** MINOR / PATCH 
 **Zakres:** Aktualizacja Planu Lekcji 2TI (od 14.09.2026 - Grupa 1, 38 lekcji, Cloud Firestore & SQLite), Direct Client Pushbullet Service (Natywny CORS, Eliminacja Silent Fail, Precyzyjne Toasty), Dedykowany Panel Konfiguracji i Testu Pushbullet w Ustawieniach.
 
 ### Zmiany
@@ -481,7 +499,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 
 
 ## v 2.18.7 — 2026-09-15
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Auto-Recovery Dynamicznych Importów (Vite Preload Guard & ChunkLoadError Auto-Reload), Bezpośrednia Synteza ElevenLabs z Przeglądarki (Eliminacja Fałszywego Proxy HTML), Dynamiczne Próbki Głosowe w Ustawieniach z Identyfikacją Lektora oraz Serverless Endpoint `/api/tts`.
 
 ### Zmiany
@@ -500,7 +518,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.18.6 — 2026-09-14
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Studyjna Synteza Mowy ElevenLabs (API Integration, Polish Multilingual v2, Studio Voices), Manualne Wyciszanie Mikrofonu (Mute/Unmute Toggle w LiveVoiceBar, Chat Toolbarze i VoiceInspectorHUD) oraz Automatyczna Kaskada TTS.
 
 ### Zmiany
@@ -521,14 +539,14 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.18.5 — 2026-09-14
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Eliminacja Sprzężenia Akustycznego (Acoustic Self-Echo Cancellation), Aktywne Wyciszanie Mikrofonu Podczas Mowy AI, Bufor Wygaszania Pogłosu (Acoustic Tail Guard Cooldown 600ms) oraz Wizualna Sygnalizacja Stanu Wyciszenia w Interfejsie.
 
 ### Zmiany
 - [+] Dodano: Algorytm tłumienia echa akustycznego `isAcousticEcho(spokenText, aiText)` w `modules/services/wakeWordService.js`, weryfikujący podciągi i pokrycie leksykalne (>60%) wypowiedzi asystenta i neutralizujący rejestrację dźwięku emitowanego z głośników.
 - [+] Dodano: Bufor wygaszania pogłosu akustycznego (Acoustic Tail Guard Cooldown 600ms) po zakończeniu syntezy mowy `ttsService.speak` w `modules/components/Terminal.jsx`, eliminujący przechwytywanie rewerberacji fali dźwiękowej z pomieszczenia/laptopa.
 - [+] Dodano: Dedykowana sygnalizacja wyciszenia w `LiveVoiceBar` w `Terminal.jsx` z pulsującą czerwoną ikoną `MicOff`, etykietą `[MIKROFON WYCISZONY (AI MÓWI)]` oraz statusem blokady.
-- [+] Dodano: Reakcja widżetu `VoiceInspectorHUD.jsx` na zdarzenie `omniAiSpeaking` – wyświetlanie stanu `🔇 Wyciszony (AI mówi)` oraz wytłumienie wskaźnika poziomu VU do 0%.
+- [+] Dodano: Reakcja widżetu `VoiceInspectorHUD.jsx` na zdarzenie `omniAiSpeaking` – wyświetlanie stanu `[WYCISZONY] Wyciszony (AI mówi)` oraz wytłumienie wskaźnika poziomu VU do 0%.
 - [+] Dodano: 4 nowe testy jednostkowe w `tests/wakeword.test.js` badające precyzję filtrowania echa i brak fałszywych odrzuceń nowych komend.
 - [*] Zmodyfikowano: Natychmiastowy abort `liveRecognitionRef.current.abort()` i czyszczenie buforów/timerów w `handleLiveUserSpeech` w momencie rozpoczęcia przetwarzania i mówienia.
 - [*] Zmodyfikowano: Zabezpieczenie przed równoległym wznawianiem `wakeWordService` w tle podczas aktywnego trybu ciągłej rozmowy (`setLiveModeActive`).
@@ -541,7 +559,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.18.4 — 2026-09-14
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Ultra-Czuły Nasłuch Cichej Mowy i Szeptu (Matryca Fonetyczna "o mnie" / "omini" / "asystent"), Eliminacja Deadlocka `setAiSpeaking` (Trwałe Uciszenie Asystenta), Wskaźnik Poziomu Wejścia Audio Na Żywo (Live VU Meter) oraz Natychmiastowy Nasłuch w Live Voice Mode.
 
 ### Zmiany
@@ -560,7 +578,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.18.3 — 2026-09-14
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Inteligentny Detektor Pauzy VAD (750ms Debounce) w Hałasie Otoczenia, Eliminacja Blokady Sprzętowej Mikrofonu (Hardware Contention), Naprawa Pętli Ciągłego Nasłuchu w Chromium (`InvalidStateError`) oraz Przycisk Natychmiastowej Wysyłki ("Wyślij teraz") w Pasku Rozmowy Na Żywo.
 
 ### Zmiany
@@ -579,7 +597,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.18.2 — 2026-09-14
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Globalna Dostępność OmniVoice na Ekranie Blokady (`LockScreen`), Bezwzględny Brak Cache dla `index.html` w Firebase Hosting, Usunięcie Błędu 404 `noise.svg` oraz Rejestracja w `globalThis.__OMNI_VOICE__`.
 
 ### Zmiany
@@ -598,7 +616,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.18.1 — 2026-09-14
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Diagnostyka w Konsoli DevTools (`window.__OMNI_VOICE__`), Eliminacja Przestojów `no-speech` Exponential Backoff, Pływający Komponent Ekranowy `VoiceInspectorHUD` oraz Automatyczne Wznawianie Mikrofonu po Interakcji Użytkownika.
 
 ### Zmiany
@@ -617,7 +635,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.18.0 — 2026-09-14
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Zaawansowana Czułość Wykrywania Wake Word "Hej Omni" (Fonetyczna Matryca Cichej Mowy, MaxAlternatives = 5, Wyłączenie Agresywnej Bramki Szumów) oraz Dedykowany Silnik Microsoft Edge Cognitive Neural TTS (Studio 24kHz MP3, Marek / Zofia, Zero API Key).
 
 ### Zmiany
@@ -637,7 +655,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.17.0 — 2026-09-14
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Bezpośrednie Przekierowanie Wake Word "Hej Omni" do Natywnego Chatu (`/chat`), Zintegrowany Pasek Live Voice Bar w `Terminal.jsx`, Wielosilnikowa Synteza Mowy (ElevenLabs Multilingual v2, OpenAI TTS-1, Web Speech Neural Fallback) oraz Chirurgiczna Redukcja Modalu Radar Orb.
 
 ### Zmiany
@@ -657,7 +675,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.16.1 — 2026-09-14
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Optymalizacja i Stabilizacja Podsystemu Głosowego: Eliminacja Pętli Rezonansowej Web Speech API & TTS, Strażniki Stanów useRef w GlobalLiveVoiceModal, Bezkolizyjny Cichy Strumień Audio (Warm Audio Stream) w wakeWordService i Wytłumienie Akustyczne (400ms Reverberation Buffer).
 
 ### Zmiany
@@ -674,7 +692,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.16.0 — 2026-09-14
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Globalny Asystent Głosowy "Hej Omni" & Autonomiczny Tryb Ciągłej Rozmowy (Web Speech API, Automatyczny Watchdog Nasłuchu w Tle, Synteza Odpowiedzi TTS, Globalny Cyberpunk Radar Orb Modal oraz Integracja w Pasku Bocznym i Mobilnym).
 
 ### Zmiany
@@ -694,7 +712,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.15.0 — 2026-09-10
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Dwukierunkowa Integracja Pushbullet ze Smartfonem Operatora: Autonomiczny Kasyfikator Wydatków 50/30/20 z Powiadomień Mobilnych (Portfel Google, BLIK, Banki), Hybrydowa Persystencja SQLite + Cloud Firestore, Nowy Znacznik Akcji AI [ACTION:SEND_PUSH] oraz Punkty Końcowe API /api/phone/push.
 
 ### Zmiany
@@ -715,7 +733,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 
 
 ## v 2.14.1 — 2026-09-09
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Wzmocnienie Bezpieczeństwa & Zero-Leak Sanitization Repozytorium: Wykluczenie z Indeksu Gita i Zabezpieczenie Pliku ZASADYPRACY.md, Usunięcie Prywatnych Konfiguracji Chmurowych (.firebaserc, scripts/seed_real_timetable.js, docs/error.log) z Wypychania do Gita, Aktualizacja Reguł .gitignore, Pełna Normalizacja Bezwzględnych Ścieżek i Identyfikatorów Projektowych w Dokumentacji i Narzędziach.
 
 ### Zmiany
@@ -734,12 +752,12 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 
 
 ## v 2.14.0 — 2026-09-09
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Eliminacja Anomalii Spójności Danych Finansowych: Rozdzielenie Analityki Wydatków od Puli Portfela (Dwutrybowy SVG Donut Chart [Wydatki vs Cel | Pule Portfela]), Dynamiczna Repartycja Przychodów Typu Split po Zmianie Celów Budżetowych (np. 30/0/70), Pasek Automatycznej Weryfikacji Integralności Matematycznej w Cashflow Trend oraz Dynamiczny Eksport Raportów.
 
 ### Zmiany
 - [+] Dodano: Dwutrybowy przełącznik widoku Donut Chart w `FinancePage.jsx` (`[Wydatki vs Cel | Pule Portfela]`), eliminujący mylenie podziału pojedynczych wydatków (np. 23.24 PLN) z alokacją całego kapitału / przychodów (517.50 PLN).
-- [+] Dodano: Pasek weryfikacji integralności matematycznej w Cashflow Trend (`Wpływy - Wydatki = Cashflow = Dostępne w kopertach [Spójne ✅]`).
+- [+] Dodano: Pasek weryfikacji integralności matematycznej w Cashflow Trend (`Wpływy - Wydatki = Cashflow = Dostępne w kopertach [Spójne [OK]]`).
 - [+] Dodano: Nowy parametr analityczny `allocationPercentages` w silniku `modules/services/budgetCalculator.js` zwracający rzeczywisty procentowy rozkład środków w portfelu.
 - [+] Dodano: Testy jednostkowe w `tests/budget.test.js` sprawdzające automatyczne przeliczanie przychodów typu split przy zmianie reguły budżetowej oraz zachowanie stałych wartości w trybie custom. Stan testów: 39/39 PASS (100%).
 - [*] Zmodyfikowano: `budgetCalculator.js` – wpisy przychodów w trybie `split` (oraz bez jawnego trybu) są dynamicznie dzielone według aktywnych procentów budżetowych, zapobiegając blokowaniu starych snapshotów `distribution`.
@@ -753,7 +771,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.13.0 — 2026-09-09
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Certyfikacja Jakości Enterprise 10/10: Rozbudowa Testów Komponentów Reacta (@testing-library/react + JSDOM, 37/37 Testów PASS), Telemetria Czasu Rzeczywistego Server-Sent Events (SSE /api/system/stream), Przełącznik Motywów Dark/Light (Mobile & Desktop), Odporność Stanów Brzegowych (Szkielety Ładowania, Fallbacki, Retry) oraz Zunifikowany Potok CI/CD (.github/workflows/main.yml).
 
 ### Zmiany
@@ -772,7 +790,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.12.0 — 2026-09-09
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Podniesienie Projektu do Oceny Referencyjnej 10/10: Pływające Centrum Powiadomień (Toast Hub), Monitor Sieci Online/Offline, Zautomatyzowany Silnik Testów (Vitest, 30/30 PASS), Generator Raportów CSV & Druk/PDF, Potok CI/CD GitHub Actions, Czyste Silniki Obliczeniowe (Budget & Warsaw Time) oraz Przebudowa README z Diagramami Mermaid.
 
 ### Zmiany
@@ -794,7 +812,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (10/10 ENTERPRISE GRADE)
 ---
 
 ## v 2.11.5 — 2026-09-08
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Eliminacja Błędów Zwracania HTML w Endpointach API (Cloud-First Guard `isCloudEnvironment`), Nowa Funkcja Serverless `api/osint.js` na Vercel z CORS i Fallback Kliencki, Telemetria Kliencka w SystemMonitor/NetworkMonitor/ModelStatus/AgentQueue, Wyciszenie Ostrzeżeń Geolocation i Eliminacja Wywołań setState Podczas Renderowania.
 
 ### Zmiany
@@ -815,14 +833,14 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ---
 
 ## v 2.11.4 — 2026-09-08
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Eliminacja Defektu Komendy /clear & /purge, Trwały Purge Historii Chatu w Cloud Firestore (`clearChatHistoryCloud`), Strażnik Granicy Sesji (`clearedAt` Timestamp Guard) & Zapobieganie Resurekcji Wiadomości.
 
 ### Zmiany
 - [+] Dodano: Funkcję `clearChatHistoryCloud(targetMode)` w `modules/services/cloudSync.js` wykonującą natychmiastowe usunięcie wiadomości z lokalnego cache i asynchroniczne równoległe usunięcie (`deleteDoc`) z kolekcji `chat_history` w Cloud Firestore.
 - [+] Dodano: Granicę odcięcia sesji chatu (`system_chat_cleared_worker` i `system_chat_cleared_mentor`) w `localStorage`, chroniącą przed resurekcją starych komunikatów w listenerze `subscribeCollection`.
 - [+] Dodano: Ścisłe sortowanie chronologiczne i deduplikację unikalnych identyfikatorów wiadomości przy napływie aktualizacji z chmury w `ChatContext.jsx`.
-- [+] Dodano: Obsługę globalnego zdarzenia `chatCleared` integrującą czyszczenie w `ChatContext.jsx`, `CommandPalette.jsx` oraz pigułce szybkiego promptu `🧹 Wyczyść czat`.
+- [+] Dodano: Obsługę globalnego zdarzenia `chatCleared` integrującą czyszczenie w `ChatContext.jsx`, `CommandPalette.jsx` oraz pigułce szybkiego promptu ` Wyczyść czat`.
 - [+] Dodano: Stabilne klucze renderowania list wiadomości w `Terminal.jsx` (`key={msg.id || ...}`) zapobiegające anomaliom DOM.
 - [*] Zmodyfikowano: Skrypt synchronizacji `scripts/sync_bez_firebase.js` rozszerzony o pliki `ChatContext.jsx`, `CommandPalette.jsx` oraz dokumentację wersji.
 
@@ -832,7 +850,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ---
 
 ## v 2.11.3 — 2026-09-08
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Obsługa Wartości 0% w Koszykach Budżetowych (Zachcianki, Potrzeby, Oszczędności), Eliminacja Regresji Falsy Check, Ochrona Przed Dzieleniem Przez Zero w Limitach, Profile Frugal/Minimal/FIRE.
 
 ### Zmiany
@@ -849,7 +867,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ---
 
 ## v 2.11.2 — 2026-09-07
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Odporny Parser Znaczników Akcji AI (obsługa pogrubień Markdown **, grawisów `, cudzysłowów typograficznych), Trwałe Utrwalenie Pamięci Sal Lekcyjnych w SQLite i Firestore (`operator_brain`), Wielopoziomowe Usuwanie Wydarzeń z Kalendarza & Pełny Audyt Metryk Kodu.
 
 ### Zmiany
@@ -866,7 +884,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ---
 
 ## v 2.11.1 — 2026-09-07
-**Typ:** PATCH  
+**Typ:** PATCH 
 **Zakres:** Zaawansowane Usuwanie Wydarzeń w Kalendarzu (UI, Siatka Dni, Nadchodzące, Modal Szczegółów, Chat Widget), Komenda NL w AI Dispatcherze & Audyt Metryk Projektu.
 
 ### Zmiany
@@ -884,7 +902,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ---
 
 ## v 2.11.0 — 2026-09-07
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Architektura Cloud-First (Odporna na Brak Sesji OAuth na Mobile), Samodzielne Dysponowanie Środkami & Autopodział Dochodów 50/30/20, Ręczne Tworzenie Wydarzeń w Kalendarzu, Synchronizacja Strefy Czasowej (Europe/Warsaw) na Vercel Gateway.
 
 ### Zmiany
@@ -908,7 +926,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ---
 
 ## v 2.10.0 — 2026-09-07
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Natywne Renderowanie Tabel Markdown (remark-gfm), Dedykowane Inline Widżety Czatu (Plan Lekcji, Finanse, Treningi, Kalendarz), Pełna Analityka Danych w Promptach AI, Multi-Tool Action Tags & Płynna Synteza TTS.
 
 ### Zmiany
@@ -929,7 +947,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ---
 
 ## v 2.9.0 — 2026-09-07
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Integracja Wyboru Motywu i Akcentu przy Nazwie Użytkownika, Wielomodułowe Narzędzia AI (Timetable, Workouts, Finances, Calendar, Theme), Pełne Przewijanie i Ergonomia Widoków Finansów, Planu Lekcji, Treningów i Kalendarza, Serverless News API z Integracją Brave Search.
 
 ### Zmiany
@@ -950,7 +968,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ---
 
 ## v 2.8.0 — 2026-09-07
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Kompleksowa Przebudowa Architektury Mobilnej & Touch UX (Górny Pasek App Bar, Dolny Pasek Quick Bar, Wysuwana Szuflada Modułów & Motywów, Responsywność Siatek 2x2 i Modali)
 
 ### Zmiany
@@ -967,7 +985,7 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ---
 
 ## v 2.7.0 — 2026-09-07
-**Typ:** MINOR  
+**Typ:** MINOR 
 **Zakres:** Konfiguracja Widoczności Zakładek Nawigacji, Równe Wymiary Wszystkich Widżetów & Rozszerzone Presety Motywów Wizualnych (Retro CRT, Monochrome, Matrix, Synthwave, Nordic)
 
 ### Zmiany
@@ -975,13 +993,13 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 - [*] Zmodyfikowano: `Sidebar.jsx` dynamicznie filtruje pozycje menu w oparciu o stan `visibleNav` i nasłuchuje w czasie rzeczywistym zdarzenia `visibleNavChanged`. Zakładka `Ustawienia` jest trwale przypięta jako zabezpieczenie przed utratą dostępu.
 - [*] Zmodyfikowano: Ujednolicono i wyrównano wszystkie widżety w `WidgetsPage.jsx` — siatka została skonfigurowana ze sztywnym `auto-rows-[360px]` oraz jednakową wysokością kontenerów `h-[360px] flex flex-col`. Poprawiono `SystemMonitor.jsx` z `h-fit` na `h-full flex flex-col`. Wszystkie 8 widżetów ma teraz dokładnie tę samą wysokość i idealne wyrównanie w siatce.
 - [+] Dodano: Rozbudowaną paletę gotowych motywów wizualnych w `SettingsPage.jsx` z interaktywnymi kartami podglądu i 1-klikiem aktywacji:
-  - 🌌 **Dark Cyber (Domyślny)**: Głęboki grafit, neonowa zieleń.
-  - 📟 **Retro Amber CRT**: Kineskopowy bursztyn lat 80. (`#140E05` / `#FFB000`).
-  - 🏁 **Monochrome Slate**: Czysta czerń, grafit i biel (`#0A0A0C` / `#F5F5F5`).
-  - 🟢 **Matrix Terminal**: Hakerska zielona konsola (`#020B04` / `#00FF41`).
-  - 🌆 **Synthwave 80s**: Neonowa magenta i fiolet cyberpunku (`#120824` / `#FF0080`).
-  - ❄️ **Nordic Frost**: Krystaliczny chłodny błękit i arktyczny granat (`#0A131F` / `#38BDF8`).
-  - 📄 **Paper Light**: Jasny tryb produktywny (`#F4F4F5` / `#FFFFFF`).
+  - **Dark Cyber (Domyślny)**: Głęboki grafit, neonowa zieleń.
+  - **Retro Amber CRT**: Kineskopowy bursztyn lat 80. (`#140E05` / `#FFB000`).
+  - **Monochrome Slate**: Czysta czerń, grafit i biel (`#0A0A0C` / `#F5F5F5`).
+  - [NISKI] **Matrix Terminal**: Hakerska zielona konsola (`#020B04` / `#00FF41`).
+  - **Synthwave 80s**: Neonowa magenta i fiolet cyberpunku (`#120824` / `#FF0080`).
+  - **Nordic Frost**: Krystaliczny chłodny błękit i arktyczny granat (`#0A131F` / `#38BDF8`).
+  - **Paper Light**: Jasny tryb produktywny (`#F4F4F5` / `#FFFFFF`).
 - [+] Dodano: Dodatkowe opcje sterowania interfejsem w Ustawieniach: przełącznik efektu Glassmorphism (rozmycie tła), przełącznik animacji interfejsu (tryb natychmiastowy / terminalowy), tryb kompaktowy UI o wysokiej gęstości danych oraz selektor domyślnego modelu AI (`openai/gpt-oss-120b`).
 - [+] Dodano: Narzędzie kopii zapasowej konfiguracji — eksport wszystkich ustawień do pliku `omnidash-config.json` oraz natychmiastowy import JSON.
 - [*] Zmodyfikowano: Poprawiono ładowanie akcentów i modyfikatorów UI (`compact-mode`, `no-glass`, `no-animations`) przy starcie w `core.client.jsx`.
@@ -1007,8 +1025,8 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ---
 
 ## v 2.6.1 — 2026-09-07
-**Typ:** PATCH  
-**Zakres:** Plan Lekcji — Rygorystyczna Selekcja Grupy 1 (38 Jednostek Lekcyjnych) & Pełna Synchronizacja Multi-Platform  
+**Typ:** PATCH 
+**Zakres:** Plan Lekcji — Rygorystyczna Selekcja Grupy 1 (38 Jednostek Lekcyjnych) & Pełna Synchronizacja Multi-Platform 
 
 ### Zmiany
 - [*] Zmodyfikowano: Oczyszczono plan lekcji w `modules/services/cloudSync.js`, Firestore oraz SQLite — usunięto wszystkie pozycje drugiej grupy. Użytkownik przypisany jest bezwzględnie do Grupy 1 (pierwsza pozycja na każdym dzielonym bloku).
@@ -1022,12 +1040,12 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ---
 
 ## v 2.6.0 — 2026-09-07
-**Typ:** MINOR  
-**Zakres:** Nowy Moduł "Plan Lekcji" (`TimetablePage.jsx`), 7. Kategoria Cloud Firestore (`timetable`), Live Class Tracker & Kognitywna Integracja z GPT-120B  
+**Typ:** MINOR 
+**Zakres:** Nowy Moduł "Plan Lekcji" (`TimetablePage.jsx`), 7. Kategoria Cloud Firestore (`timetable`), Live Class Tracker & Kognitywna Integracja z GPT-120B 
 
 ### Zmiany
 - [+] Dodano: Nowy moduł i widok `modules/pages/TimetablePage.jsx` — tygodniowy i dzienny harmonogram zajęć dydaktycznych z dwoma trybami prezentacji (karty osi czasu i siatka tygodniowa od poniedziałku do niedzieli).
-- [+] Dodano: Live Class Tracker w `TimetablePage.jsx` automatycznie sprawdzający czas zegara systemowego z powiadomieniem `🟢 TRWAJĄCE ZAJĘCIA` (przedmiot, sala, czas, prowadzący) lub `⏱️ NAJBLIŻSZE ZAJĘCIA DZISIAJ`.
+- [+] Dodano: Live Class Tracker w `TimetablePage.jsx` automatycznie sprawdzający czas zegara systemowego z powiadomieniem `[NISKI] TRWAJĄCE ZAJĘCIA` (przedmiot, sala, czas, prowadzący) lub ` NAJBLIŻSZE ZAJĘCIA DZISIAJ`.
 - [+] Dodano: Nową 7. kolekcję Cloud Firestore `timetable` w `modules/services/cloudSync.js` z pełną dwukierunkową synchronizacją w czasie rzeczywistym i starter data.
 - [+] Dodano: Pasek statystyk planu (godziny zegarowe w tygodniu, liczba bloków, unikalne przedmioty, liczba zajęć dzisiaj).
 - [+] Dodano: Pełny CRUD w `TimetablePage.jsx` (dodawanie, edycja, usuwanie, duplikacja do następnego dnia, filtry typów i wyszukiwarka live).
@@ -1044,8 +1062,8 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ---
 
 ## v 2.5.1 — 2026-09-07
-**Typ:** PATCH  
-**Zakres:** Live Brave Search Integration (Brave API + openai/gpt-oss-120b) & Dynamiczne Proporcje Budżetu Finansów  
+**Typ:** PATCH 
+**Zakres:** Live Brave Search Integration (Brave API + openai/gpt-oss-120b) & Dynamiczne Proporcje Budżetu Finansów 
 
 ### Zmiany
 - [+] Dodano: Integrację z oficjalnym silnikiem Brave Search API (`api.search.brave.com/res/v1/news/search` oraz `web/search`) bezpośrednio w bezstanowej funkcji serverless Vercel (`api/agent.js`), zasilaną kluczem `BRAVE_SEARCH_API_KEY`.
@@ -1062,8 +1080,8 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ---
 
 ## v 2.5.0 — 2026-09-07
-**Typ:** MINOR  
-**Zakres:** Vercel Serverless AI Gateway (openai/gpt-oss-120b), Pełna Integracja 6 Kategorii Firestore & Trwały Multi-Device Sync  
+**Typ:** MINOR 
+**Zakres:** Vercel Serverless AI Gateway (openai/gpt-oss-120b), Pełna Integracja 6 Kategorii Firestore & Trwały Multi-Device Sync 
 
 ### Zmiany
 - [+] Dodano: `api/agent.js` — dedykowana bezstanowa funkcja serverless Node.js hostowana na Vercel (`https://ai-system-dashboard.vercel.app/api/agent`), eliminująca blokady CORS przeglądarki, obsługująca model `openai/gpt-oss-120b` (Groq SDK) z pulą 3500 tokenów i głębokim promptem analitycznym.
@@ -1203,8 +1221,8 @@ Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY
 ---
 
 ## v 1.10.0 — 2026-07-07
-**Typ:** MINOR  
-**Zakres:** Agent God Mode (Server-Sent Events i narzędzia zarządzające)  
+**Typ:** MINOR 
+**Zakres:** Agent God Mode (Server-Sent Events i narzędzia zarządzające) 
 
 ### Zmiany
 - [+] Dodano: Server-Sent Events (SSE) w core.server.js i GlobalEventListener w UI
@@ -1318,8 +1336,8 @@ Status: ZGODNY Z PROTOKOĹEM SYSTEM
 
 ## v 1.0.0 â€” 2026-06-15
 
-**Typ:** MAJOR  
-**Zakres:** Inicjalizacja rdzenia projektu Personal Command Center  
+**Typ:** MAJOR 
+**Zakres:** Inicjalizacja rdzenia projektu Personal Command Center 
 
 ### Zmiany
 - [+] Dodano: StrukturÄ™ katalogĂłw zgodnie z reguĹ‚ami System.

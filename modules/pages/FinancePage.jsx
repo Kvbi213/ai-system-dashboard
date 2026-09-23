@@ -282,7 +282,7 @@ const FinancePage = () => {
       fromBucket: transferData.fromBucket,
       toBucket: transferData.toBucket,
       category: 'Dysponowanie środkami',
-      description: transferData.description || `Przesunięcie: ${bucketNames[transferData.fromBucket] || transferData.fromBucket} ➔ ${bucketNames[transferData.toBucket] || transferData.toBucket}`,
+      description: transferData.description || `Przesunięcie: ${bucketNames[transferData.fromBucket] || transferData.fromBucket} -> ${bucketNames[transferData.toBucket] || transferData.toBucket}`,
       transaction_date: transferData.transaction_date,
       currency: 'PLN'
     };
@@ -775,7 +775,7 @@ const FinancePage = () => {
                 <span className="text-accentPrimary font-bold">
                   {(stats.availableNeeds + stats.availableWants + stats.availableSavings).toFixed(2)} PLN
                 </span>
-                <span className="text-emerald-400 font-bold" title="Integralność bilansu 100%">[Spójne ✅]</span>
+                <span className="text-emerald-400 font-bold" title="Integralność bilansu 100%">[Spójne [OK]]</span>
               </div>
             </div>
           </div>
@@ -867,7 +867,7 @@ const FinancePage = () => {
                       {item.category} 
                       {item.type === 'transfer' && (
                         <span className="text-[10px] px-2 py-0.5 rounded font-mono font-semibold uppercase bg-purple-500/15 text-purple-300 border border-purple-500/30">
-                          {item.fromBucket || 'wants'} ➔ {item.toBucket || 'savings'}
+                          {item.fromBucket || 'wants'} {'->'} {item.toBucket || 'savings'}
                         </span>
                       )}
                       {item.type === 'expense' && (
@@ -949,7 +949,7 @@ const FinancePage = () => {
           <div className="bg-background border border-border rounded-xl w-full max-w-md overflow-hidden shadow-2xl animate-scale-in">
             <div className="p-4 border-b border-border flex justify-between items-center bg-black/20">
               <h2 className="font-mono text-accentPrimary font-bold text-base">{t("finNewTrans", "Nowa Transakcja")}</h2>
-              <button onClick={() => setShowModal(false)} className="text-textMuted hover:text-white transition-colors">✕</button>
+              <button onClick={() => setShowModal(false)} className="text-textMuted hover:text-white transition-colors">x</button>
             </div>
             <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
               
@@ -1153,7 +1153,7 @@ const FinancePage = () => {
               <h2 className="font-mono text-purple-400 font-bold text-base flex items-center gap-2">
                 <ArrowRightLeft className="w-4 h-4" /> Dysponowanie Środkami
               </h2>
-              <button onClick={() => setShowModal(false)} className="text-textMuted hover:text-white transition-colors">✕</button>
+              <button onClick={() => setShowModal(false)} className="text-textMuted hover:text-white transition-colors">x</button>
             </div>
             <form onSubmit={handleTransferSubmit} className="p-5 flex flex-col gap-4">
               <p className="text-xs text-textMuted font-mono">
@@ -1242,7 +1242,7 @@ const FinancePage = () => {
           <div className="bg-background border border-border rounded-xl w-full max-w-md overflow-hidden shadow-2xl animate-scale-in">
             <div className="p-4 border-b border-border flex justify-between items-center bg-black/20">
               <h2 className="font-mono text-accentPrimary font-bold text-base">Konfiguracja Budżetu ({targetNeeds}/{targetWants}/{targetSavings})</h2>
-              <button onClick={() => setShowModal(false)} className="text-textMuted hover:text-white transition-colors">✕</button>
+              <button onClick={() => setShowModal(false)} className="text-textMuted hover:text-white transition-colors">x</button>
             </div>
             <form onSubmit={(e) => { handleSetupSubmit(e); setShowModal(false); }} className="p-5 flex flex-col gap-4">
               <div>
@@ -1317,7 +1317,7 @@ const FinancePage = () => {
               <div className="text-xs font-mono flex items-center justify-between px-1 py-1 rounded bg-black/20 border border-white/5">
                 <span className="text-textMuted">Suma alokacji:</span>
                 <span className={`font-bold ${((Number(setupData.needs_percent) || 0) + (Number(setupData.wants_percent) || 0) + (Number(setupData.savings_percent) || 0)) === 100 ? 'text-emerald-400' : 'text-amber-400'}`}>
-                  {((Number(setupData.needs_percent) || 0) + (Number(setupData.wants_percent) || 0) + (Number(setupData.savings_percent) || 0))}% {((Number(setupData.needs_percent) || 0) + (Number(setupData.wants_percent) || 0) + (Number(setupData.savings_percent) || 0)) === 100 ? '✓ (Zrównoważona)' : '(Zalecane 100%)'}
+                  {((Number(setupData.needs_percent) || 0) + (Number(setupData.wants_percent) || 0) + (Number(setupData.savings_percent) || 0))}% {((Number(setupData.needs_percent) || 0) + (Number(setupData.wants_percent) || 0) + (Number(setupData.savings_percent) || 0)) === 100 ? '[OK] (Zrównoważona)' : '(Zalecane 100%)'}
                 </span>
               </div>
 

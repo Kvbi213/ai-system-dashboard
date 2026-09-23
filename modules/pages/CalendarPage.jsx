@@ -800,7 +800,7 @@ const CalendarPage = () => {
                     <h4 className="text-xs font-bold text-textPrimary truncate">{se.title}</h4>
                     {se.teacher && (
                       <p className="text-[11px] text-textMuted font-mono mt-1 truncate">
-                        👤 {se.teacher}
+                         {se.teacher}
                       </p>
                     )}
                   </div>
@@ -1029,7 +1029,7 @@ const CalendarPage = () => {
                 onClick={() => setViewingSchoolEvent(null)} 
                 className="text-textMuted hover:text-white p-1"
               >
-                ✕
+                x
               </button>
             </div>
 
@@ -1103,7 +1103,7 @@ const CalendarPage = () => {
               <h2 className="font-mono text-accentPrimary font-bold text-base flex items-center gap-2">
                 <CalendarIcon className="w-4 h-4" /> Nowe Wydarzenie Osobiste
               </h2>
-              <button onClick={() => setShowAddModal(false)} className="text-textMuted hover:text-white transition-colors">✕</button>
+              <button onClick={() => setShowAddModal(false)} className="text-textMuted hover:text-white transition-colors">x</button>
             </div>
             <form onSubmit={handleAddEvent} className="p-5 flex flex-col gap-4">
               <div>
@@ -1208,7 +1208,7 @@ const CalendarPage = () => {
               <h2 className="font-mono text-accentPrimary font-bold text-base flex items-center gap-2">
                 <CalendarIcon className="w-4 h-4" /> Szczegóły Wydarzenia Osobistego
               </h2>
-              <button onClick={() => setViewingEvent(null)} className="text-textMuted hover:text-white transition-colors">✕</button>
+              <button onClick={() => setViewingEvent(null)} className="text-textMuted hover:text-white transition-colors">x</button>
             </div>
             
             <div className="p-5 flex flex-col gap-4">

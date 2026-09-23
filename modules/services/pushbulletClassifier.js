@@ -277,11 +277,11 @@ Zwróć WYŁĄCZNIE obiekt JSON w formacie:
  */
 export function formatExpenseConfirmation(expense) {
   const bucketMap = {
-    needs: 'Potrzeby 🍎',
-    wants: 'Zachcianki 🎮',
-    savings: 'Oszczędności 🏦'
+    needs: 'Potrzeby ',
+    wants: 'Zachcianki ',
+    savings: 'Oszczędności '
   };
   const bucketLabel = bucketMap[expense.bucket] || expense.bucket;
   const merchantLabel = expense.merchant ? ` (${expense.merchant})` : '';
-  return `Zarejestrowano wydatek: ${expense.amount.toFixed(2)} ${expense.currency}${merchantLabel} ➔ ${bucketLabel} [${expense.category}]`;
+  return `Zarejestrowano wydatek: ${expense.amount.toFixed(2)} ${expense.currency}${merchantLabel} -> ${bucketLabel} [${expense.category}]`;
 }

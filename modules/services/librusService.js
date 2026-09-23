@@ -1024,8 +1024,8 @@ export function correlateTimetableWithAbsences(lessons, calendarEvents = []) {
         ...lesson,
         absenceAlert: alertInfo,
         notes: lesson.notes 
-          ? `${lesson.notes} | ⚠️ NIEOBECNOŚĆ: ${matchedAbsence.teacher} (${alertInfo.hours})`
-          : `⚠️ NIEOBECNOŚĆ: ${matchedAbsence.teacher} (${alertInfo.hours})`
+          ? `${lesson.notes} | [!] NIEOBECNOŚĆ: ${matchedAbsence.teacher} (${alertInfo.hours})`
+          : `[!] NIEOBECNOŚĆ: ${matchedAbsence.teacher} (${alertInfo.hours})`
       };
 
       detectedSubstitutions.push({
@@ -1251,7 +1251,7 @@ export function getDemoTimetableData() {
       teacher: 'Negowska Alicja', 
       type: 'Wykład', 
       color: 'rose', 
-      notes: '⚠️ NIEOBECNOŚĆ: Negowska Alicja (08:50 do 14:50)',
+      notes: '[!] NIEOBECNOŚĆ: Negowska Alicja (08:50 do 14:50)',
       absenceAlert: {
         isAbsent: true,
         teacher: 'Negowska Alicja',

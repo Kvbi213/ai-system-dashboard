@@ -208,7 +208,7 @@ export function startPushbulletListener() {
 
             // D. Potwierdzenie zwrotne na telefon operatora
             const confirmText = formatExpenseConfirmation(classified);
-            sendPushNotification('OmniDash Auto-Finanse 💳', confirmText).catch(() => {});
+            sendPushNotification('OmniDash Auto-Finanse [FINANSE]', confirmText).catch(() => {});
           }
         }
       }
@@ -336,7 +336,7 @@ export async function handleMobileChatQuery(content, options = {}) {
   console.log(`[+] PUSHBULLET MOBILE CHAT: Odsyłanie odpowiedzi na telefon: "${aiText.substring(0, 80)}..."`);
   const pushRes = options.mockPush 
     ? { success: true, iden: 'mock_pb_push_123' } 
-    : await sendPushNotification('OmniDash AI 🤖', aiText);
+    : await sendPushNotification('OmniDash AI [AI]', aiText);
 
   return {
     userMsg,

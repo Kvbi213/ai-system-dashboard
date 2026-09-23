@@ -1,9 +1,9 @@
 # ERROR_DIFF: Pushbullet Mobile Notification Newline & Table Formatting
 
-**Identyfikator:** `ERROR_DIFF_2026-09-15_pushbullet_newline_and_table_formatting`  
-**Data wystąpienia:** 2026-09-15  
-**Status:** SUCCESS  
-**Priorytet:** KRYTYCZNY  
+**Identyfikator:** `ERROR_DIFF_2026-09-15_pushbullet_newline_and_table_formatting` 
+**Data wystąpienia:** 2026-09-15 
+**Status:** SUCCESS 
+**Priorytet:** KRYTYCZNY 
 
 ---
 

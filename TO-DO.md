@@ -1,13 +1,13 @@
-# 📌 REJESTR ROZWOJU I ZADAŃ SYSTEMOWYCH :: TO-DO.md
+# REJESTR ROZWOJU I ZADAŃ SYSTEMOWYCH :: TO-DO.md
 
-> **Projekt:** OmniDash Personal Assistant System (v2.20.0+)  
-> **Zarządzanie:** Protokół Antigravity (NANO v3.2)  
-> **Status:** AKTYWNY | MAPA DROGOWA ROZWOJU  
-> **Data aktualizacji:** 2026-09-20  
+> **Projekt:** OmniDash Personal Assistant System (v2.20.0+) 
+> **Zarządzanie:** Protokół Antigravity (NANO v3.2) 
+> **Status:** AKTYWNY | MAPA DROGOWA ROZWOJU 
+> **Data aktualizacji:** 2026-09-20 
 
 ---
 
-## 📊 TABELA ZBIORCZA ZADAŃ (ROADMAP SPRINT)
+## TABELA ZBIORCZA ZADAŃ (ROADMAP SPRINT)
 
 | ID | Moduł / Obszar | Zadanie Operacyjne | Priorytet | Kategoria | Szacowany Czas | Status |
 | :-: | :--- | :--- | :-: | :-: | :-: | :-: |
@@ -20,9 +20,9 @@
 
 ---
 
-## 🛠️ SZCZEGÓŁOWE SPECYFIKACJE ZADAŃ
+## SZCZEGÓŁOWE SPECYFIKACJE ZADAŃ
 
-### 1. [TODO-01] 🎙️ Głos 2.0: Mechanizm Wtrącania Się (Barge-in) & Dźwięki Systemowe
+### 1. [TODO-01] [MIC] Głos 2.0: Mechanizm Wtrącania Się (Barge-in) & Dźwięki Systemowe
 - **Cel:** Likwidacja sztuczności w trybie ciągłej rozmowy głosowej (*Live Voice Mode*). Gdy Omni odtwarza mowę przez TTS (Google Neural / Edge / ElevenLabs), a operator zacznie mówić, system natychmiast wycisza mowę i przełącza się na odbiór audio operatora.
 - **Zakres techniczny:**
   1. **Detekcja Mowy w Trakcie Odtwarzania (Barge-in):** Utrzymanie aktywnego nasłuchu `SpeechRecognition` w trakcie odtwarzania audio. Wykrycie głosu operatora natychmiast wywołuje `ttsService.stop()`, resetuje stan odtwarzacza i rozpoczyna transkrypcję nowego zapytania.
@@ -44,7 +44,7 @@
 
 ---
 
-### 2. [TODO-02] 🌅 Autonomiczny Briefing Poranny & Wieczorny na Smartfon (Pushbullet Digest)
+### 2. [TODO-02] Autonomiczny Briefing Poranny & Wieczorny na Smartfon (Pushbullet Digest)
 - **Cel:** Przejście asystenta OmniDash w tryb proaktywnego zarządzania dniem operatora bez konieczności otwierania przeglądarki.
 - **Zakres techniczny:**
   1. **Poranny Raport Operacyjny (Domyślnie godz. 07:15):**
@@ -72,15 +72,15 @@
 
 ---
 
-### 3. [TODO-03] 📲 Headless Remote: Zdalne Sterowanie ze Smartfona przez Pushbullet
+### 3. [TODO-03] Headless Remote: Zdalne Sterowanie ze Smartfona przez Pushbullet
 - **Cel:** Umożliwienie operatorowi zarządzania zadaniami, finansami i pamięcią asystenta bezpośrednio z telefonu (z aplikacji Pushbullet lub SMS/Note) bez wchodzenia na stronę www.
 - **Zakres techniczny:**
   1. **Nasłuchiwanie Strumienia WebSocket:** Wykorzystanie istniejącego połączenia `wss://stream.pushbullet.com` do wyłapywania notatek tekstowych tworzonych przez operatora na telefonie.
   2. **Parser Kognitywny Poleceń:** Rozpoznawanie prefiksu `Omni:` lub pytań bezpośrednich:
-     - `Omni: kupić mleko i baterie` ➔ narzędzie `ADD_TO_DO` (dodanie do tabeli `tasks` z priorytetem MEDIUM).
-     - `Omni: wydatek 38 zł obiad` ➔ narzędzie finansowe (rejestracja w koszyku Potrzeby w SQLite i Firestore).
-     - `Omni: zapamiętaj, że klucze zapasowe są w garażu` ➔ narzędzie `[ACTION:REMEMBER]` w `operator_brain`.
-     - `Omni: jaki mam plan na dziś?` ➔ wygenerowanie odpowiedzi i odesłanie planu w powiadomieniu zwrotnym.
+     - `Omni: kupić mleko i baterie` -> narzędzie `ADD_TO_DO` (dodanie do tabeli `tasks` z priorytetem MEDIUM).
+     - `Omni: wydatek 38 zł obiad` -> narzędzie finansowe (rejestracja w koszyku Potrzeby w SQLite i Firestore).
+     - `Omni: zapamiętaj, że klucze zapasowe są w garażu` -> narzędzie `[ACTION:REMEMBER]` w `operator_brain`.
+     - `Omni: jaki mam plan na dziś?` -> wygenerowanie odpowiedzi i odesłanie planu w powiadomieniu zwrotnym.
   3. **Błyskawiczny Push Zwrotny:** Odesłanie potwierdzenia na telefon w 1-2 sekundy: `[+] Omni: Zapisano wydatek 38,00 PLN (Kategoria: Potrzeby).`.
 - **Powiązane komponenty i pliki:**
   - `modules/services/pushbulletService.js` (obsługa zdarzeń typu note/push)
@@ -92,13 +92,13 @@
 
 ---
 
-### 4. [TODO-04] 📈 Predykcja Tempa Wydatków (Run-rate) & Detekcja Subskrypcji
+### 4. [TODO-04] Predykcja Tempa Wydatków (Run-rate) & Detekcja Subskrypcji
 - **Cel:** Proaktywne ostrzeganie operatora przed wyczerpaniem środków w koszykach budżetu 50/30/20 przed końcem miesiąca.
 - **Zakres techniczny:**
   1. **Wskaźnik Burn-rate i Prognoza Wyczerpania:**
-     - Obliczanie średniego dziennego tempa wydatków w bieżącym miesiącu:  
+     - Obliczanie średniego dziennego tempa wydatków w bieżącym miesiącu: 
        `Średni wydatek dzienny = Suma wydatków w koszyku / Dzień miesiąca`.
-     - Ekstrapolacja do końca miesiąca i estymacja dnia krytycznego:  
+     - Ekstrapolacja do końca miesiąca i estymacja dnia krytycznego: 
        *"Przy obecnym tempie wydatków koszyk Zachcianki wyczerpie się za 6 dni (26 września)"*.
      - Wizualny wskaźnik ryzyka (kolory: zielony, żółty, czerwony) w kafelkach na podstronie Finanse.
   2. **Kognitywna Detekcja Subskrypcji i Opłat Stałych:**
@@ -114,7 +114,7 @@
 
 ---
 
-### 5. [TODO-05] 🎯 Moduł Nawyków i Rutyn Dnia (Habits & Streaks)
+### 5. [TODO-05] Moduł Nawyków i Rutyn Dnia (Habits & Streaks)
 - **Cel:** Budowanie i monitorowanie codziennych nawyków wspierających produktywność i zdrowie operatora.
 - **Zakres techniczny:**
   1. **Model Danych Nawyków:**
@@ -136,7 +136,7 @@
 
 ---
 
-### 6. [TODO-06] 📱 Pełna Instalowalna Aplikacja PWA z Buforowaniem Offline
+### 6. [TODO-06] Pełna Instalowalna Aplikacja PWA z Buforowaniem Offline
 - **Cel:** Zamiana interfejsu przeglądarkowego w pełnoprawną aplikację mobilną działającą na smartfonie na pełnym ekranie (Standalone).
 - **Zakres techniczny:**
   1. **Web App Manifest (`public/manifest.json`):**
@@ -159,7 +159,7 @@
 
 ---
 
-## 📈 REJESTR STATUSU REALIZACJI
+## REJESTR STATUSU REALIZACJI
 
 ```
 [ ] TODO-01: Głos 2.0 (Barge-in & Dźwięki systemowe)

@@ -717,7 +717,7 @@ const TimetablePage = () => {
             <CheckCircle2 className="w-4 h-4 shrink-0 text-accentPrimary" />
             <span>{toastMessage}</span>
           </div>
-          <button onClick={() => setToastMessage(null)} className="text-accentPrimary/70 hover:text-accentPrimary text-xs">✕</button>
+          <button onClick={() => setToastMessage(null)} className="text-accentPrimary/70 hover:text-accentPrimary text-xs">x</button>
         </div>
       )}
 
@@ -731,7 +731,7 @@ const TimetablePage = () => {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-400">
-                  ⚠️ Wykryto Zmiany w Planie / Nieobecności Nauczycieli
+                  [!] Wykryto Zmiany w Planie / Nieobecności Nauczycieli
                 </span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
                   {detectedAbsences.length} {detectedAbsences.length === 1 ? 'zajęcia z absencją' : 'zajęć z absencją'}
@@ -782,7 +782,7 @@ const TimetablePage = () => {
               <div className="flex items-center gap-2">
                 <span className={`w-2.5 h-2.5 rounded-full ${activeLesson ? 'bg-emerald-400 animate-ping' : 'bg-accentPrimary'}`}></span>
                 <span className="text-xs font-mono font-bold tracking-wider text-textMuted uppercase">
-                  {activeLesson ? '🟢 TRWAJĄCE ZAJĘCIA' : (nextLesson ? '⏱️ NAJBLIŻSZE ZAJĘCIA DZISIAJ' : '🏖️ BRAK ZAJĘĆ W TEJ CHWILI')}
+                  {activeLesson ? '[NISKI] TRWAJĄCE ZAJĘCIA' : (nextLesson ? ' NAJBLIŻSZE ZAJĘCIA DZISIAJ' : ' BRAK ZAJĘĆ W TEJ CHWILI')}
                 </span>
               </div>
               <span className="text-[11px] font-mono text-textMuted">
@@ -1092,7 +1092,7 @@ const TimetablePage = () => {
                                   )}
                                   {isCancelled && (
                                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/50 font-bold">
-                                      ❌ OKIENKO
+                                      [X] OKIENKO
                                     </span>
                                   )}
                                 </div>
@@ -1140,7 +1140,7 @@ const TimetablePage = () => {
                                     <span>Nauczyciel nieobecny w tych godzinach!</span>
                                   </div>
                                   <div className="text-[10px] text-textMuted">
-                                    {lesson.absenceAlert.teacher} ({lesson.absenceAlert.hours}) ➔ Możliwe okienko lub zastępstwo.
+                                    {lesson.absenceAlert.teacher} ({lesson.absenceAlert.hours}) {'->'} Możliwe okienko lub zastępstwo.
                                   </div>
                                 </div>
                               )}
@@ -1256,7 +1256,7 @@ const TimetablePage = () => {
                               <div className="flex items-center justify-between text-[10px] font-mono font-bold opacity-80 mb-0.5">
                                 <span>{lesson.time_start} - {lesson.time_end}</span>
                                 {hasAbsence && (
-                                  <span className="text-amber-400 text-[9px] font-bold animate-pulse">⚠️ ABSENCJA</span>
+                                  <span className="text-amber-400 text-[9px] font-bold animate-pulse">[!] ABSENCJA</span>
                                 )}
                               </div>
                               <div className="text-xs font-bold text-textPrimary line-clamp-2 leading-tight">
@@ -1309,7 +1309,7 @@ const TimetablePage = () => {
                 onClick={() => setShowModal(false)}
                 className="text-textMuted hover:text-textPrimary text-sm font-mono p-1"
               >
-                ✕
+                x
               </button>
             </div>
 

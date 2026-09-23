@@ -85,7 +85,7 @@ describe('AgentExecutionTrace Component & Helper Logic Suite', () => {
   it('should extract trace correctly from message text (extractTraceFromMessage)', () => {
     const msg = {
       role: 'ai',
-      content: '🚀 **[OMNIDAEMON] Inicjalizacja Autonomicznego Badania Ciągłego**\nWyszukiwanie Brave Search: `topowe komercyjne modele ai 2026`\nTABELA PORÓWNAWCZA MODELI'
+      content: '**[OMNIDAEMON] Inicjalizacja Autonomicznego Badania Ciągłego**\nWyszukiwanie Brave Search: `topowe komercyjne modele ai 2026`\nTABELA PORÓWNAWCZA MODELI'
     };
 
     const trace = extractTraceFromMessage(msg);

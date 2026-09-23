@@ -1,9 +1,9 @@
 # ERROR_DIFF: Pushbullet Room & Subject Unambiguous Layout & Universal Formatter Integration
 
-**Identyfikator:** `ERROR_DIFF_2026-09-15_pushbullet_room_and_subject_unambiguous_layout`  
-**Data wystąpienia:** 2026-09-15  
-**Status:** SUCCESS  
-**Priorytet:** KRYTYCZNY  
+**Identyfikator:** `ERROR_DIFF_2026-09-15_pushbullet_room_and_subject_unambiguous_layout` 
+**Data wystąpienia:** 2026-09-15 
+**Status:** SUCCESS 
+**Priorytet:** KRYTYCZNY 
 
 ---
 
@@ -39,11 +39,11 @@ Wada ergonomii wizualnej na urządzeniach mobilnych (Mobile UX Clutter) oraz nie
 1. **Architektura Ergonomicznego Wiersza Lekcji (`• HH:MM [Sala] Przedmiot (Nauczyciel)`):**
    - Sala lekcyjna przeniesiona bezpośrednio po przedziale czasowym w czytelnym nawiasie kwadratowym `[Sala 1.16]`, `[Hala]`, `[Sala 26]`. Uczeń natychmiast widzi godzinę i salę bez konieczności szukania na końcu zawiniętego wiersza.
    - Słownik standaryzacji i skracania długich nazw (`cleanSubjectName`):
-     - `Pracownia urządzeń techniki komputerowej` ➔ `Pracownia UTK`
-     - `Pracownia systemów operacyjnych` ➔ `Pracownia SO`
-     - `Wychowanie fizyczne` ➔ `WF`
-     - `Zajęcia z wychowawcą` ➔ `Godz. wychowawcza`
-     - `Urządzenia techniki komputerowej` ➔ `Urządzenia TK`
+     - `Pracownia urządzeń techniki komputerowej` -> `Pracownia UTK`
+     - `Pracownia systemów operacyjnych` -> `Pracownia SO`
+     - `Wychowanie fizyczne` -> `WF`
+     - `Zajęcia z wychowawcą` -> `Godz. wychowawcza`
+     - `Urządzenia techniki komputerowej` -> `Urządzenia TK`
    - Odsianie zbędnego szumu akademickiego (usuwanie dopisków `Laboratorium`, `Wykład`, `Ćwiczenia`, `Inne`).
    - Bezpieczna ekstrakcja inicjałów nauczyciela z polskich znaków diakrytycznych (`PW`, `GŁ`, `ZJ`, `SR`, `ZB`).
 2. **Uniwersalna Integracja Formatera na Wszystkich Ścieżkach:**

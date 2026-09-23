@@ -10,7 +10,7 @@ import {
 describe('Wake Word Service ("Hej Omni")', () => {
   describe('normalizeSpeechText', () => {
     it('powinien normalizować tekst do małych liter i usuwać zbędne znaki', () => {
-      expect(normalizeSpeechText('  Hej, Omni!  ')).toBe('hej omni');
+      expect(normalizeSpeechText(' Hej, Omni! ')).toBe('hej omni');
       expect(normalizeSpeechText('HEY... OMNI???')).toBe('hey omni');
       expect(normalizeSpeechText('')).toBe('');
       expect(normalizeSpeechText(null)).toBe('');
@@ -119,12 +119,12 @@ describe('Wake Word Service ("Hej Omni")', () => {
     });
 
     it('powinien usuwać emotikony', () => {
-      const input = 'Temperatura wynosi 22°C ☀️ i jest bezchmurnie 🚀!';
+      const input = 'Temperatura wynosi 22°C \u2600\uFE0F i jest bezchmurnie \uD83D\uDE80!';
       const output = cleanTextForSpeech(input);
       expect(output).toContain('Temperatura wynosi 22°C');
       expect(output).toContain('jest bezchmurnie');
-      expect(output).not.toContain('☀️');
-      expect(output).not.toContain('🚀');
+      expect(output).not.toContain('\u2600');
+      expect(output).not.toContain('\uD83D\uDE80');
     });
   });
 

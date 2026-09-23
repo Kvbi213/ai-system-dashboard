@@ -21,7 +21,7 @@ async function performLiveBraveSearch(query) {
     if (newsRes.ok) {
       const data = await newsRes.json();
       if (Array.isArray(data.results) && data.results.length > 0) {
-        return data.results.map((r, i) => `${i + 1}. [${r.title}] (${r.url})\n   ${r.description || ''}`).join('\n\n');
+        return data.results.map((r, i) => `${i + 1}. [${r.title}] (${r.url})\n ${r.description || ''}`).join('\n\n');
       }
     }
 
@@ -38,7 +38,7 @@ async function performLiveBraveSearch(query) {
       const webData = await webRes.json();
       const results = webData.web?.results || [];
       if (results.length > 0) {
-        return results.map((r, i) => `${i + 1}. [${r.title}] (${r.url})\n   ${r.description || ''}`).join('\n\n');
+        return results.map((r, i) => `${i + 1}. [${r.title}] (${r.url})\n ${r.description || ''}`).join('\n\n');
       }
     }
   } catch (err) {
@@ -615,11 +615,11 @@ ${txsList}`
 
     const todayStr = todayLessons.length > 0
       ? todayLessons.map(l => formatLessonItem(l)).join('\n')
-      : '  Brak zajęć dydaktycznych na dziś.';
+      : ' Brak zajęć dydaktycznych na dziś.';
 
     const tomorrowStr = tomorrowLessons.length > 0
       ? tomorrowLessons.map(l => formatLessonItem(l)).join('\n')
-      : '  Brak zajęć dydaktycznych na jutro.';
+      : ' Brak zajęć dydaktycznych na jutro.';
 
     const allLessonsStr = timetable.length > 0
       ? timetable.map(l => {
@@ -631,9 +631,9 @@ ${txsList}`
       : 'Brak wpisów w planie lekcji.';
 
     const timetableSummary = `
-📅 DZIŚ JEST: ${todayDayName.toUpperCase()} (${todayDayId}), ${dateStr}, godzina ${timeStr}.
-📍 AKTUALNA TRWAJĄCA LEKCJA: ${currentLessonFormatted}
-🎯 NAJBLIŻSZA NASTĘPNA LEKCJA: ${nextLessonFormatted}
+ DZIŚ JEST: ${todayDayName.toUpperCase()} (${todayDayId}), ${dateStr}, godzina ${timeStr}.
+ AKTUALNA TRWAJĄCA LEKCJA: ${currentLessonFormatted}
+ NAJBLIŻSZA NASTĘPNA LEKCJA: ${nextLessonFormatted}
 
 PLAN NA DZIŚ (${todayDayName.toUpperCase()}):
 ${todayStr}
@@ -666,7 +666,7 @@ ${allLessonsStr}`.trim();
       : 'Brak wpisów w pamięci długoterminowej.';
 
     const liveIntelBlock = liveWebIntel 
-      ? `\n🌐 AKTUALNE WYNIKI WYSZUKIWANIA ZE ŚWIATA NA ŻYWO (BRAVE SEARCH LIVE INTEL):\n${liveWebIntel}\n` 
+      ? `\n AKTUALNE WYNIKI WYSZUKIWANIA ZE ŚWIATA NA ŻYWO (BRAVE SEARCH LIVE INTEL):\n${liveWebIntel}\n` 
       : '';
 
     // Wybór promptu systemowego w zależności od trybu
@@ -675,7 +675,7 @@ ${allLessonsStr}`.trim();
 Aktualny czas systemowy (Polska / Warszawa): ${dateStr}, godzina ${timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${dateStr}, godzina ${timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
 
-🚨 KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
+[ALERT] KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
 Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomieniu, przesłaniu na smartfon itp. (np. „wyślij na telefon”, „wyślij mi to”, „przypomnij na telefonie”, „wyślij powiadomienie”, „chcę to na komórce”, „pushbullet”):
 1. PRZEANALIZUJ PYTANIE UŻYTKOWNIKA ORAZ POTRZEBNE DANE Z BAZY (np. następna lekcja, plan lekcji, pogoda, zadania, finanse).
 2. W treści odpowiedzi zwięźle potwierdź, że wysyłasz powiadomienie na telefon.
@@ -737,29 +737,29 @@ Gdy użytkownik prosi Cię o dodanie, modyfikację lub usunięcie danych w syste
 KRYTYCZNA REGUŁA SKŁADNI: Znaczniki akcji emituj ZAWSZE na samym końcu w czystej postaci [ACTION:NAZWA klucz="wartość"]. BEZWZGLĘDNY ZAKAZ pogrubiania (** ani grawisów) wewnątrz ani wokół znaczników.
 
 BIEŻĄCY STAN PAMIĘCI I BAZY DANYCH UŻYTKOWNIKA (Live Firestore Sync):
-📋 ZADANIA TO-DO:
+ ZADANIA TO-DO:
 ${tasksSummary}
 
-🎓 PLAN LEKCJI & HARMONOGRAM ZAJĘĆ (TIMETABLE):
+ PLAN LEKCJI & HARMONOGRAM ZAJĘĆ (TIMETABLE):
 ${timetableSummary}
 
-💰 FINANSE & BUDŻET 50/30/20:
+ FINANSE & BUDŻET 50/30/20:
 ${financesSummary}
 
-🏋️ TRENINGI & AKTYWNOŚĆ:
+ TRENINGI & AKTYWNOŚĆ:
 ${workoutsSummary}
 
-📅 KALENDARZ & TERMINY:
+ KALENDARZ & TERMINY:
 ${calendarSummary}
 
-🧠 PAMIĘĆ DŁUGOTERMINOWA (OPERATOR BRAIN):
+[BRAIN] PAMIĘĆ DŁUGOTERMINOWA (OPERATOR BRAIN):
 ${brainSummary}
 ${liveIntelBlock}`
       : `Jesteś OMNI EXEC — wysoko wyspecjalizowanym inżynieryjnym systemem wykonawczym (Core Worker Engine) w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy (Polska / Warszawa): ${dateStr}, godzina ${timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${dateStr}, godzina ${timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
 
-🚨 KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
+[ALERT] KRYTYCZNA REGUŁA OPERACYJNA — WYSYŁANIE NA TELEFON (PUSHBULLET API):
 Gdy użytkownik w jakikolwiek sposób wspomni o wysłaniu na telefon, powiadomieniu, przesłaniu na smartfon itp. (np. „wyślij na telefon”, „wyślij mi to”, „przypomnij na telefonie”, „wyślij powiadomienie”, „chcę to na komórce”, „pushbullet”):
 1. PRZEANALIZUJ PYTANIE UŻYTKOWNIKA ORAZ POTRZEBNE DANE Z BAZY (np. następna lekcja, plan lekcji, pogoda, zadania, finanse).
 2. W treści odpowiedzi zwięźle potwierdź, że wysyłasz powiadomienie na telefon.
@@ -823,22 +823,22 @@ Gdy użytkownik prosi Cię o dodanie, modyfikację lub usunięcie danych w syste
 KRYTYCZNA REGUŁA SKŁADNI: Znaczniki akcji emituj ZAWSZE na samym końcu w czystej postaci [ACTION:NAZWA klucz="wartość"]. BEZWZGLĘDNY ZAKAZ pogrubiania (** ani grawisów) wewnątrz ani wokół znaczników.
 
 BIEŻĄCY STAN PAMIĘCI I BAZY DANYCH UŻYTKOWNIKA (Live Firestore Sync):
-📋 ZADANIA TO-DO:
+ ZADANIA TO-DO:
 ${tasksSummary}
 
-🎓 PLAN LEKCJI & HARMONOGRAM ZAJĘĆ (TIMETABLE):
+ PLAN LEKCJI & HARMONOGRAM ZAJĘĆ (TIMETABLE):
 ${timetableSummary}
 
-💰 FINANSE & BUDŻET 50/30/20:
+ FINANSE & BUDŻET 50/30/20:
 ${financesSummary}
 
-🏋️ TRENINGI & AKTYWNOŚĆ:
+ TRENINGI & AKTYWNOŚĆ:
 ${workoutsSummary}
 
-📅 KALENDARZ & TERMINY:
+ KALENDARZ & TERMINY:
 ${calendarSummary}
 
-🧠 PAMIĘĆ DŁUGOTERMINOWA (OPERATOR BRAIN):
+[BRAIN] PAMIĘĆ DŁUGOTERMINOWA (OPERATOR BRAIN):
 ${brainSummary}
 ${liveIntelBlock}`;
 

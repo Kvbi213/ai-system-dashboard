@@ -258,7 +258,7 @@ const Sidebar = () => {
       </header>
 
       {/* ========================================================= */}
-      {/* 2. MOBILNY DOLNY PASEK SZYBKIEJ NAWIGACJI (BOTTOM BAR)     */}
+      {/* 2. MOBILNY DOLNY PASEK SZYBKIEJ NAWIGACJI (BOTTOM BAR) */}
       {/* ========================================================= */}
       <div className="flex md:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface/95 backdrop-blur-md border-t border-border z-40 items-center justify-around px-1 pb-[env(safe-area-inset-bottom,0px)] select-none">
         {mobileQuickTabs.map((item) => {
@@ -307,7 +307,7 @@ const Sidebar = () => {
       </div>
 
       {/* ========================================================= */}
-      {/* 3. MOBILNA SZUFLADA NAWIGACJI (MOBILE DRAWER / SHEET)     */}
+      {/* 3. MOBILNA SZUFLADA NAWIGACJI (MOBILE DRAWER / SHEET) */}
       {/* ========================================================= */}
       {isMobileDrawerOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden flex-col justify-end animate-fade-in">
@@ -459,7 +459,7 @@ const Sidebar = () => {
       )}
 
       {/* ========================================================= */}
-      {/* 4. KLASYCZNY BOCZNY PASEK DESKTOP (MD:FLEX)               */}
+      {/* 4. KLASYCZNY BOCZNY PASEK DESKTOP (MD:FLEX) */}
       {/* ========================================================= */}
       <nav id="tour-sidebar" className={`hidden md:flex w-full ${isCollapsed ? 'md:w-20' : 'md:w-64'} h-full glass-panel border-r border-border flex-col items-start py-8 flex-shrink-0 z-40 transition-all duration-300 relative group`}>
         

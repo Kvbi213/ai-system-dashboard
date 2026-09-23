@@ -368,23 +368,23 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
             if (fs.existsSync(bugsFilePath)) {
               content = fs.readFileSync(bugsFilePath, 'utf8');
             } else {
-              content = "# Rejestr Błędów i Zadań Naprawczych (BUGS)\n\n## 🔴 Krytyczne Błędy do Naprawy\n*(brak)*\n\n## 🟡 Oczekujące Poprawki\n*(brak)*\n\n## 🟢 Zrealizowane (Archiwum)\n*(brak)*\n";
+              content = "# Rejestr Błędów i Zadań Naprawczych (BUGS)\n\n## [KRYTYCZNY] Krytyczne Błędy do Naprawy\n*(brak)*\n\n## [ŚREDNI] Oczekujące Poprawki\n*(brak)*\n\n## [NISKI] Zrealizowane (Archiwum)\n*(brak)*\n";
             }
             
             const timestamp = new Date().toLocaleDateString('pl-PL', { timeZone: 'Europe/Warsaw' }) + ' ' + new Date().toLocaleTimeString('pl-PL', { timeZone: 'Europe/Warsaw', hour: '2-digit', minute: '2-digit' });
             const entry = `- **[Dodano: ${timestamp}]** ${args.bug_description}\n`;
             
             if (args.severity === 'krytyczne') {
-               if (content.includes("## 🔴 Krytyczne Błędy do Naprawy\n*(brak)*")) {
-                 content = content.replace("## 🔴 Krytyczne Błędy do Naprawy\n*(brak)*", "## 🔴 Krytyczne Błędy do Naprawy\n" + entry);
+               if (content.includes("## [KRYTYCZNY] Krytyczne Błędy do Naprawy\n*(brak)*")) {
+                 content = content.replace("## [KRYTYCZNY] Krytyczne Błędy do Naprawy\n*(brak)*", "## [KRYTYCZNY] Krytyczne Błędy do Naprawy\n" + entry);
                } else {
-                 content = content.replace("## 🔴 Krytyczne Błędy do Naprawy\n", "## 🔴 Krytyczne Błędy do Naprawy\n" + entry);
+                 content = content.replace("## [KRYTYCZNY] Krytyczne Błędy do Naprawy\n", "## [KRYTYCZNY] Krytyczne Błędy do Naprawy\n" + entry);
                }
             } else {
-               if (content.includes("## 🟡 Oczekujące Poprawki\n*(brak)*")) {
-                 content = content.replace("## 🟡 Oczekujące Poprawki\n*(brak)*", "## 🟡 Oczekujące Poprawki\n" + entry);
+               if (content.includes("## [ŚREDNI] Oczekujące Poprawki\n*(brak)*")) {
+                 content = content.replace("## [ŚREDNI] Oczekujące Poprawki\n*(brak)*", "## [ŚREDNI] Oczekujące Poprawki\n" + entry);
                } else {
-                 content = content.replace("## 🟡 Oczekujące Poprawki\n", "## 🟡 Oczekujące Poprawki\n" + entry);
+                 content = content.replace("## [ŚREDNI] Oczekujące Poprawki\n", "## [ŚREDNI] Oczekujące Poprawki\n" + entry);
                }
             }
             
@@ -508,7 +508,7 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
         const workerOptions = { ...options, isDelegated: true };
         const workerResponse = await processUserIntent(`[Zlecenie od Mentora działającego w imieniu użytkownika ${userName}]: ${parsed.delegate_to_worker}`, 'worker', workerOptions);
         
-        parsed.agent_response += `\n\n---\n**🤖 Akcja Workera (Zlecona przez Mentora):**\n${workerResponse.agent_response}`;
+        parsed.agent_response += `\n\n---\n**[AI] Akcja Workera (Zlecona przez Mentora):**\n${workerResponse.agent_response}`;
         
         if (workerResponse.widgets && workerResponse.widgets.length > 0) {
             parsed.widgets = [...new Set([...(parsed.widgets || []), ...workerResponse.widgets])];

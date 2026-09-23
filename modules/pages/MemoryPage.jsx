@@ -145,7 +145,7 @@ const MemoryPage = () => {
               <h2 className="font-mono text-accentPrimary font-bold text-sm flex items-center gap-2">
                 <BrainCircuit className="w-4 h-4" /> Nowy Wpis Pamięci Długoterminowej
               </h2>
-              <button onClick={() => setShowAddModal(false)} className="text-textMuted hover:text-white transition-colors">✕</button>
+              <button onClick={() => setShowAddModal(false)} className="text-textMuted hover:text-white transition-colors">x</button>
             </div>
             <form onSubmit={handleAddFact} className="p-5 flex flex-col gap-4">
               <div>

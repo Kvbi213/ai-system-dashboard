@@ -185,7 +185,7 @@ export async function sendPushNotificationClient(title, body) {
       window.dispatchEvent(new CustomEvent('toastTriggered', {
         detail: {
           type: 'error',
-          message: '⚠️ Pushbullet: Brak klucza API. Skonfiguruj klucz w Ustawienia -> Zabezpieczenia.'
+          message: '[!] Pushbullet: Brak klucza API. Skonfiguruj klucz w Ustawienia -> Zabezpieczenia.'
         }
       }));
     }
@@ -201,7 +201,7 @@ export async function sendPushNotificationClient(title, body) {
     const errorMsg = 'Pusta treść powiadomienia (body jest wymagane).';
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('toastTriggered', {
-        detail: { type: 'error', message: '⚠️ Pushbullet: Pusta treść powiadomienia.' }
+        detail: { type: 'error', message: '[!] Pushbullet: Pusta treść powiadomienia.' }
       }));
     }
     return { success: false, error: errorMsg };
@@ -229,7 +229,7 @@ export async function sendPushNotificationClient(title, body) {
         window.dispatchEvent(new CustomEvent('toastTriggered', {
           detail: {
             type: 'info',
-            message: `📱 Wysłano powiadomienie na Twój telefon: ${payloadTitle}`
+            message: ` Wysłano powiadomienie na Twój telefon: ${payloadTitle}`
           }
         }));
       }
@@ -252,7 +252,7 @@ export async function sendPushNotificationClient(title, body) {
       window.dispatchEvent(new CustomEvent('toastTriggered', {
         detail: {
           type: 'error',
-          message: `❌ Błąd Pushbullet (${response.status}): ${errorDetail}`
+          message: `[X] Błąd Pushbullet (${response.status}): ${errorDetail}`
         }
       }));
     }
@@ -266,7 +266,7 @@ export async function sendPushNotificationClient(title, body) {
       window.dispatchEvent(new CustomEvent('toastTriggered', {
         detail: {
           type: 'error',
-          message: `❌ Błąd sieci Pushbullet: ${netErr.message}`
+          message: `[X] Błąd sieci Pushbullet: ${netErr.message}`
         }
       }));
     }
@@ -311,7 +311,7 @@ export async function testPushbulletConnection(customApiKey) {
       },
       body: JSON.stringify({
         type: 'note',
-        title: 'OmniDash: Test Połączenia 📲',
+        title: 'OmniDash: Test Połączenia ',
         body: `Połączenie z telefonem działa poprawnie!\nZalogowano: ${userData.name || userData.email}\nCzas: ${new Date().toLocaleTimeString('pl-PL')}`
       })
     });

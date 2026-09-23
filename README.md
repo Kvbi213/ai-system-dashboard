@@ -1,6 +1,6 @@
 <div align="center">
   
-# 🌌 OmniDash AI System Dashboard
+# OmniDash AI System Dashboard
 ### Zaawansowany Hybrydowy Hub Dowodzenia Napędzany Sztuczną Inteligencją
 
 [![Version](https://img.shields.io/badge/Wersja-2.19.1-00F0FF?style=for-the-badge&logo=semver&logoColor=black)](https://github.com/Kvbi213/ai-system-dashboard)
@@ -14,36 +14,36 @@
 
 *Zunifikowany, wysoce zoptymalizowany ekosystem zarządzania osobistego i analityki operacyjnej z autonomicznym agentem AI, architekturą Cloud-First, pełną synchronizacją Firestore, telemetrią czasu rzeczywistego (SSE) oraz natywnym wsparciem strefy czasowej Europe/Warsaw.*
 
-**[📑 Dokumentacja Architektury](ARCHITECTURE.md)** • **[📜 Rejestr Zmian](HISTORY.md)**
+**[ Dokumentacja Architektury](ARCHITECTURE.md)** • **[ Rejestr Zmian](HISTORY.md)**
 
 </div>
 
 ---
 
-## 🖥️ Makieta Wizualna Interfejsu (Visual Layout Preview)
+## Makieta Wizualna Interfejsu (Visual Layout Preview)
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ 🌌 OmniDash AI Command Hub     [🔍 Szukaj Ctrl+K]   [☀/🌙 Motyw]   [Warszawa 14:32]   [● ONLINE]     │
+│ OmniDash AI Command Hub [ Szukaj Ctrl+K] [/ Motyw] [Warszawa 14:32] [● ONLINE] │
 ├────────────────┬──────────────────────────────────────────────────────────────────────────────────────┤
-│ 📊 Pulpit      │ ┌──────────────────────┐ ┌──────────────────────┐ ┌────────────────────────────────┐ │
-│ 🤖 Asystent AI │ │ ● SSE LIVE STREAM    │ │ Open-Meteo Weather   │ │ ⚡ Wiadomości IT (Live Ticker) │ │
-│ 🎓 Plan Lekcji │ │ CPU: 12%  RAM: 42%   │ │ 21°C  Słonecznie     │ │ [AI] GPT-120B reasoning update│ │
-│ 💰 Finanse     │ │ Heap: 32MB Uptime: 4h│ │ Wiatr: 14 km/h       │ │ [Sec] Zero Trust Architecture│ │
-│ 🏋 Treningi    │ └──────────────────────┘ └──────────────────────┘ └────────────────────────────────┘ │
-│ 📅 Kalendarz   │ ┌──────────────────────────────────────────────────┐ ┌─────────────────────────────┐ │
-│ 🧠 Pamięć AI   │ │ 💰 Budżet Kopertowy 50 / 30 / 20                 │ │ 📋 Lista Zadań (To-Do)      │ │
-│ 🎯 OSINT Hub   │ │ Potrzeby: 50% | Zachcianki: 30% | Oszczędn.: 20% │ │ [x] Wdrożenie potoku CI/CD  │ │
-│ 🖥 Serwer      │ │ Bilans: +1 420 PLN   [Eksport CSV] [Drukuj PDF]  │ │ [ ] Przegląd logów audytu   │ │
+│ Pulpit │ ┌──────────────────────┐ ┌──────────────────────┐ ┌────────────────────────────────┐ │
+│ [AI] Asystent AI │ │ ● SSE LIVE STREAM │ │ Open-Meteo Weather │ │ Wiadomości IT (Live Ticker) │ │
+│ Plan Lekcji │ │ CPU: 12% RAM: 42% │ │ 21°C Słonecznie │ │ [AI] GPT-120B reasoning update│ │
+│ Finanse │ │ Heap: 32MB Uptime: 4h│ │ Wiatr: 14 km/h │ │ [Sec] Zero Trust Architecture│ │
+│ Treningi │ └──────────────────────┘ └──────────────────────┘ └────────────────────────────────┘ │
+│ Kalendarz │ ┌──────────────────────────────────────────────────┐ ┌─────────────────────────────┐ │
+│ [BRAIN] Pamięć AI │ │ Budżet Kopertowy 50 / 30 / 20 │ │ Lista Zadań (To-Do) │ │
+│ OSINT Hub │ │ Potrzeby: 50% | Zachcianki: 30% | Oszczędn.: 20% │ │ [x] Wdrożenie potoku CI/CD │ │
+│ Serwer │ │ Bilans: +1 420 PLN [Eksport CSV] [Drukuj PDF] │ │ [ ] Przegląd logów audytu │ │
 │ ────────────── │ └──────────────────────────────────────────────────┘ └─────────────────────────────┘ │
-│ ⚙ Ustawienia   │ ┌──────────────────────────────────────────────────────────────────────────────────┐ │
-│ 🌙 Tryb Ciemny │ │ 🤖 Autonomiczny Agent AI (Worker / Mentor) — Temporal Anchoring Europe/Warsaw    │ │
+│ Ustawienia │ ┌──────────────────────────────────────────────────────────────────────────────────┐ │
+│ Tryb Ciemny │ │ [AI] Autonomiczny Agent AI (Worker / Mentor) — Temporal Anchoring Europe/Warsaw │ │
 └────────────────┴─┴──────────────────────────────────────────────────────────────────────────────────┴─┘
 ```
 
 ---
 
-## 📖 Spis Treści
+## Spis Treści
 1. [Wprowadzenie i Filozofia](#-wprowadzenie-i-filozofia)
 2. [Architektura Systemu (Mermaid Diagrams)](#-architektura-systemu)
 3. [Telemetria Czasu Rzeczywistego (SSE) & Motywy](#-telemetria-czasu-rzeczywistego-sse--motywy)
@@ -59,7 +59,7 @@
 
 ---
 
-## 💡 Wprowadzenie i Filozofia
+## Wprowadzenie i Filozofia
 
 **OmniDash** to platforma klasy **Enterprise Dashboard**, łącząca natychmiastową responsywność interfejsu (Glassmorphism / Tailwind CSS) z rozproszonym środowiskiem chmurowym (**Cloud-First Hybrid Mesh**).
 
@@ -67,7 +67,7 @@ Głównym założeniem projektu jest eliminacja tarcia w codziennym zarządzaniu
 
 ---
 
-## 🏛️ Architektura Systemu
+## Architektura Systemu
 
 ### 1. Hybrydowa Topologia Chmurowa (Cloud-First Hybrid Mesh)
 
@@ -140,7 +140,7 @@ sequenceDiagram
 
 ---
 
-## ⚡ Telemetria Czasu Rzeczywistego (SSE) & Motywy
+## Telemetria Czasu Rzeczywistego (SSE) & Motywy
 
 1. **Strumień Server-Sent Events (`/api/system/stream`)**:
    - Backend Express dostarcza nieprzerwany strumień telemetrii `text/event-stream` co 2 sekundy (użycie procesora, RAM, sterty V8, platformy oraz czasu bezawaryjnej pracy `uptime`).
@@ -153,7 +153,7 @@ sequenceDiagram
 
 ---
 
-## ✨ Kluczowe Moduły i Funkcjonalności
+## Kluczowe Moduły i Funkcjonalności
 
 | Moduł | Ścieżka | Opis i Możliwości |
 | :--- | :--- | :--- |
@@ -169,7 +169,7 @@ sequenceDiagram
 
 ---
 
-## 🧠 Silnik Kognitywny AI i Temporal Anchoring
+## [BRAIN] Silnik Kognitywny AI i Temporal Anchoring
 
 Jednym z kluczowych atutów OmniDash jest **bezwzględna precyzja czasowa**:
 - **Temporal Context Injection**: Przy każdym zapytaniu do bramy API, klient generuje precyzyjny nagłówek czasowy w strefie `Europe/Warsaw` (godzina, minuta, data bezwzględna, polska i angielska nazwa dnia tygodnia).
@@ -178,7 +178,7 @@ Jednym z kluczowych atutów OmniDash jest **bezwzględna precyzja czasowa**:
 
 ---
 
-## 💰 System Finansowy 50/30/20 & Eksport Raportów
+## System Finansowy 50/30/20 & Eksport Raportów
 
 Moduł finansowy został zaprojektowany w oparciu o czysty, testowalny silnik matematyczny (`modules/services/budgetCalculator.js`):
 - **Reguła 50/30/20 & Własne Wagi**: Standardowy podział na Potrzeby (50%), Zachcianki (30%) i Oszczędności (20%) z możliwością dowolnej modyfikacji (np. 70/0/30).
@@ -190,7 +190,7 @@ Moduł finansowy został zaprojektowany w oparciu o czysty, testowalny silnik ma
 
 ---
 
-## 🔐 Zmienne Środowiskowe (.env.example Breakdown)
+## Zmienne Środowiskowe (.env.example Breakdown)
 
 | Zmienna | Wymagana | Domyślna Wartość | Opis i Źródło Klucza |
 | :--- | :---: | :--- | :--- |
@@ -210,7 +210,7 @@ Moduł finansowy został zaprojektowany w oparciu o czysty, testowalny silnik ma
 
 ---
 
-## 🧪 Automatyczne Testy Jednostkowe i Integracyjne
+## Automatyczne Testy Jednostkowe i Integracyjne
 
 Projekt wyposażony jest w zautomatyzowany runner testów **Vitest** (`npm test`) zintegrowany ze środowiskiem **JSDOM** i biblioteką **@testing-library/react**:
 
@@ -234,7 +234,7 @@ npm run test:watch
 
 ---
 
-## 🔄 Potok CI/CD (GitHub Actions)
+## Potok CI/CD (GitHub Actions)
 
 Projekt posiada dwa zunifikowane pliki potoków w katalogu `.github/workflows/`:
 - `.github/workflows/main.yml` (Główny potok CI/CD produkcyjny)
@@ -250,7 +250,7 @@ Kroki potoku przy każdym `push` i `pull_request` do gałęzi `main`:
 
 ---
 
-## 🚀 Instalacja i Uruchomienie
+## Instalacja i Uruchomienie
 
 ### Wymagania Wstępne
 - **Node.js** >= `20.0.0`
@@ -288,7 +288,7 @@ npm run build
 
 ---
 
-## 🛠️ Poradnik Rozwiązywania Problemów (Troubleshooting)
+## Poradnik Rozwiązywania Problemów (Troubleshooting)
 
 ### 1. Błąd zajętego portu 5000 (`EADDRINUSE: address already in use :::5000`)
 - **Przyczyna:** Poprzednia instancja serwera Express nadal działa w tle.
@@ -310,7 +310,7 @@ npm run build
 
 ---
 
-## 🛠️ Stos Technologiczny
+## Stos Technologiczny
 
 - **Warstwa Wizualna:** React 18, React Router v7, Tailwind CSS 3, Lucide React, i18next, React-Markdown.
 - **Środowisko Testowe:** Vitest 2.x, @testing-library/react, JSDOM.
@@ -320,6 +320,6 @@ npm run build
 
 ---
 
-## 📄 Licencja
+## Licencja
 
 Projekt dystrybuowany na licencji **MIT**. Zobacz plik [LICENSE](LICENSE), aby dowiedzieć się więcej.

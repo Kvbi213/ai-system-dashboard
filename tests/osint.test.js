@@ -11,7 +11,7 @@ describe('OSINT Target Detection & Classifier Engine', () => {
     expect(res2.type).toBe('ip');
     expect(res2.value).toBe('8.8.8.8');
 
-    const res3 = detectTargetType('  1.1.1.1  ');
+    const res3 = detectTargetType(' 1.1.1.1 ');
     expect(res3.type).toBe('ip');
     expect(res3.value).toBe('1.1.1.1');
   });

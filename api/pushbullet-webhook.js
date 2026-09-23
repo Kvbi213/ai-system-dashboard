@@ -87,14 +87,14 @@ export default async function handler(req, res) {
 
       // 1. Sprawdzenie zapytania o stan
       if (isStatusInquiry(content)) {
-        const msg = `• Stan: Aktywny w chmurze Vercel ☁️\n• Połączenie: Pushbullet Webhook Active\n• Brak zablokowanych procesów.\n• Wyślij "zbadaj [temat]" aby zlecić zadanie.`;
-        await sendServerlessPush(apiKey, '[OmniAgent Cloud 🤖] Stan na Żywo', msg);
+        const msg = `• Stan: Aktywny w chmurze Vercel \n• Połączenie: Pushbullet Webhook Active\n• Brak zablokowanych procesów.\n• Wyślij "zbadaj [temat]" aby zlecić zadanie.`;
+        await sendServerlessPush(apiKey, '[OmniAgent Cloud [AI]] Stan na Żywo', msg);
         return res.status(200).json({ received: true, action: 'status_inquiry_replied' });
       }
 
       // 2. Polecenie zatrzymania
       if (isAbortCommand(content)) {
-        await sendServerlessPush(apiKey, '[OmniAgent Cloud 🤖] Zatrzymano ⏹️', 'Zatrzymano procesy agenta w chmurze.');
+        await sendServerlessPush(apiKey, '[OmniAgent Cloud [AI]] Zatrzymano ⏹', 'Zatrzymano procesy agenta w chmurze.');
         return res.status(200).json({ received: true, action: 'aborted' });
       }
 
@@ -103,7 +103,7 @@ export default async function handler(req, res) {
       if (task) {
         await sendServerlessPush(
           apiKey,
-          '[OmniAgent Cloud 🤖] Przyjęto Cel Badawczy',
+          '[OmniAgent Cloud [AI]] Przyjęto Cel Badawczy',
           `Rozpoczynam wieloetapowe badanie w sieci (Brave Search) dla:\n"${task}"\nBędę raportował postępy.`
         );
 
@@ -146,7 +146,7 @@ export default async function handler(req, res) {
             if (i === 0 && steps.length > 1 && allResults.length > 0) {
               await sendServerlessPush(
                 apiKey,
-                `[OmniAgent 🤖] Etap 1/${steps.length}`,
+                `[OmniAgent [AI]] Etap 1/${steps.length}`,
                 `• Zbadano: ${step.focus}\n• Pozyskano ${allResults.length} źródeł.\n• Przechodzę do analizy roadmap i szczegółów.`
               );
             }
@@ -173,7 +173,7 @@ Pisz profesjonalnie, technicznie, po polsku.`
               },
               {
                 role: 'user',
-                content: `Cel: "${task}"\n\nZebrane źródła (${allResults.length}):\n${allResults.map((r, i) => `${i + 1}. [${r.title}] (${r.url})\n   ${r.description}`).join('\n\n')}`
+                content: `Cel: "${task}"\n\nZebrane źródła (${allResults.length}):\n${allResults.map((r, i) => `${i + 1}. [${r.title}] (${r.url})\n ${r.description}`).join('\n\n')}`
               }
             ],
             temperature: 0.3,
@@ -181,7 +181,7 @@ Pisz profesjonalnie, technicznie, po polsku.`
           });
 
           const finalReport = completion.choices?.[0]?.message?.content || 'Brak danych z syntezy.';
-          await sendServerlessPush(apiKey, `[OmniAgent 🤖] Raport: ${task.substring(0, 30)}`, finalReport);
+          await sendServerlessPush(apiKey, `[OmniAgent [AI]] Raport: ${task.substring(0, 30)}`, finalReport);
         }
 
         return res.status(200).json({ received: true, action: 'task_executed' });
@@ -217,7 +217,7 @@ Pisz profesjonalnie, technicznie, po polsku.`
       }
 
       // BEZWZGLĘDNE ODESŁANIE ODPOWIEDZI PRZEZ PUSHBULLET
-      await sendServerlessPush(apiKey, 'OmniDash AI 🤖', aiResponseText);
+      await sendServerlessPush(apiKey, 'OmniDash AI [AI]', aiResponseText);
 
       return res.status(200).json({ received: true, action: 'mobile_chat_replied', response: aiResponseText });
     } catch (err) {

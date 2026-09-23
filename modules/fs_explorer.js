@@ -20,7 +20,7 @@ export async function readProjectFile(relativePath) {
         const content = await fs.readFile(fullPath, 'utf-8');
         return { success: true, path: relativePath, content };
     } catch (error) {
-        console.error(` ❌ [FS EXPLORER] Błąd odczytu pliku ${relativePath}:`, error.message);
+        console.error(` [X] [FS EXPLORER] Błąd odczytu pliku ${relativePath}:`, error.message);
         return { success: false, error: error.message };
     }
 }

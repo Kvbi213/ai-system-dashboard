@@ -22,14 +22,14 @@ import { ttsService } from '../services/ttsService';
 import { wakeWordService, isAcousticEcho } from '../services/wakeWordService';
 
 const QUICK_PROMPTS = [
-  { label: '📋 Zadania To-Do', text: 'witam serdecznie co mamy dziś w todo?' },
-  { label: '🎓 Plan lekcji', text: 'jaki mam dzisiaj plan lekcji i zajęcia?' },
-  { label: '💰 Stan finansów', text: 'podsumuj moje finanse i budżet 50/30/20' },
-  { label: '🏋️ Treningi', text: 'pokaż moje ostatnie treningi i aktywność' },
-  { label: '☀️ Pogoda i prognoza', text: 'jaka jest dzisiaj pogoda i prognoza?' },
-  { label: '📰 Wiadomości IT & AI', text: 'podsumuj najważniejsze wydarzenia technologiczne i AI' },
-  { label: '🛰️ Status systemu', text: 'podaj aktualny stan i telemetrię systemu OmniDash' },
-  { label: '🧹 Wyczyść czat', text: '/clear' },
+  { label: ' Zadania To-Do', text: 'witam serdecznie co mamy dziś w todo?' },
+  { label: ' Plan lekcji', text: 'jaki mam dzisiaj plan lekcji i zajęcia?' },
+  { label: ' Stan finansów', text: 'podsumuj moje finanse i budżet 50/30/20' },
+  { label: ' Treningi', text: 'pokaż moje ostatnie treningi i aktywność' },
+  { label: ' Pogoda i prognoza', text: 'jaka jest dzisiaj pogoda i prognoza?' },
+  { label: ' Wiadomości IT & AI', text: 'podsumuj najważniejsze wydarzenia technologiczne i AI' },
+  { label: ' Status systemu', text: 'podaj aktualny stan i telemetrię systemu OmniDash' },
+  { label: ' Wyczyść czat', text: '/clear' },
 ];
 
 const CodeBlock = ({ language, value }) => {
@@ -475,7 +475,7 @@ const Terminal = () => {
     setIsManualMuted(nextMuted);
 
     if (nextMuted) {
-      console.log('[Terminal LiveVoice 🔇] Mikrofon wyciszony manualnie przez operatora');
+      console.log('[Terminal LiveVoice [WYCISZONY]] Mikrofon wyciszony manualnie przez operatora');
       if (vadTimeoutRef.current) {
         clearTimeout(vadTimeoutRef.current);
         vadTimeoutRef.current = null;
@@ -499,7 +499,7 @@ const Terminal = () => {
       setLiveTranscript('');
       liveTranscriptRef.current = '';
     } else {
-      console.log('[Terminal LiveVoice 🎙️] Mikrofon odciszony przez operatora – wznawianie nasłuchu');
+      console.log('[Terminal LiveVoice [MIC]] Mikrofon odciszony przez operatora – wznawianie nasłuchu');
       if (isLiveModeRef.current && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
         startLiveListeningLoop();
       }
@@ -621,7 +621,7 @@ const Terminal = () => {
         isAcousticCooldownRef.current ||
         ttsService.isSpeaking()
       ) {
-        console.log('[LiveVoice 🔇 Muted] Zignorowano dźwięk – mikrofon wyciszony');
+        console.log('[LiveVoice [WYCISZONY] Muted] Zignorowano dźwięk – mikrofon wyciszony');
         try { recognition.abort(); } catch {}
         isListeningRef.current = false;
         setIsListening(false);
@@ -649,7 +649,7 @@ const Terminal = () => {
         (Date.now() - aiSpeechEndTimeRef.current < 5000) &&
         isAcousticEcho(currentSpeech, lastAiResponseTextRef.current)
       ) {
-        console.warn('[LiveVoice 🛡️ Echo Cancellation] Odrzucono echo z głośników:', currentSpeech);
+        console.warn('[LiveVoice Echo Cancellation] Odrzucono echo z głośników:', currentSpeech);
         setLiveTranscript('');
         liveTranscriptRef.current = '';
         return;
@@ -692,13 +692,13 @@ const Terminal = () => {
               (Date.now() - aiSpeechEndTimeRef.current < 5000) &&
               isAcousticEcho(speechToSend, lastAiResponseTextRef.current)
             ) {
-              console.warn('[LiveVoice 🛡️ VAD Echo Cancel] Odrzucono echo w VAD:', speechToSend);
+              console.warn('[LiveVoice VAD Echo Cancel] Odrzucono echo w VAD:', speechToSend);
               setLiveTranscript('');
               liveTranscriptRef.current = '';
               return;
             }
 
-            console.log('[LiveVoice ⚡ VAD Auto-Send on Pause]:', speechToSend);
+            console.log('[LiveVoice VAD Auto-Send on Pause]:', speechToSend);
             if (vadTimeoutRef.current) clearTimeout(vadTimeoutRef.current);
             try { recognition.abort(); } catch {}
             isListeningRef.current = false;
@@ -1102,7 +1102,7 @@ const Terminal = () => {
               className="text-amber-400/70 hover:text-amber-200 p-1"
               title="Zamknij"
             >
-              ✕
+              x
             </button>
           </div>
         </div>

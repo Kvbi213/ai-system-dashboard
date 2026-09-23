@@ -44,7 +44,7 @@ router.post('/push', async (req, res) => {
 
 router.post('/test', async (req, res) => {
   try {
-    const result = await sendPushNotification('OmniDash Test 📲', 'To jest testowe powiadomienie z systemu OmniDash.');
+    const result = await sendPushNotification('OmniDash Test ', 'To jest testowe powiadomienie z systemu OmniDash.');
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

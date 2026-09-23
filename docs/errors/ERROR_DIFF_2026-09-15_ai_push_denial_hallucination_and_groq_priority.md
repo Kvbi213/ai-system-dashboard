@@ -1,9 +1,9 @@
 # ERROR_DIFF: AI Push Denial Hallucination & Direct Groq Priority
 
-**Identyfikator:** `ERROR_DIFF_2026-09-15_ai_push_denial_hallucination_and_groq_priority`  
-**Data wystąpienia:** 2026-09-15  
-**Status:** SUCCESS  
-**Priorytet:** KRYTYCZNY  
+**Identyfikator:** `ERROR_DIFF_2026-09-15_ai_push_denial_hallucination_and_groq_priority` 
+**Data wystąpienia:** 2026-09-15 
+**Status:** SUCCESS 
+**Priorytet:** KRYTYCZNY 
 
 ---
 

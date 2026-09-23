@@ -841,7 +841,7 @@ const SettingsPage = () => {
       <main className="flex-1 overflow-y-auto space-y-4 min-h-0 pr-1 pb-10">
         
         {/* ======================================================== */}
-        {/* TAB 1: PERSONALIZACJA & STYL                            */}
+        {/* TAB 1: PERSONALIZACJA & STYL */}
         {/* ======================================================== */}
         {activeTab === 'personalization' && (
           <div className="space-y-4 animate-soft-enter" style={{ animationDelay: '100ms' }}>
@@ -1115,14 +1115,14 @@ const SettingsPage = () => {
                   color: saved ? '#00FF66' : 'var(--color-accent-primary-hex)',
                 }}
               >
-                {saved ? t('newsPrefsSaved', '✓ ZAPISANO PREFERENCJE') : t('newsPrefsSave', 'ZAPISZ PREFERENCJE NEWSÓW')}
+                {saved ? t('newsPrefsSaved', '[OK] ZAPISANO PREFERENCJE') : t('newsPrefsSave', 'ZAPISZ PREFERENCJE NEWSÓW')}
               </button>
             </section>
           </div>
         )}
 
         {/* ======================================================== */}
-        {/* TAB 2: NAWIGACJA & ZAKŁADKI                             */}
+        {/* TAB 2: NAWIGACJA & ZAKŁADKI */}
         {/* ======================================================== */}
         {activeTab === 'navigation' && (
           <div className="space-y-4 animate-soft-enter" style={{ animationDelay: '100ms' }}>
@@ -1226,7 +1226,7 @@ const SettingsPage = () => {
         )}
 
         {/* ======================================================== */}
-        {/* TAB 3: SYSTEM & AI                                      */}
+        {/* TAB 3: SYSTEM & AI */}
         {/* ======================================================== */}
         {activeTab === 'system' && (
           <div className="space-y-4 animate-soft-enter" style={{ animationDelay: '100ms' }}>
@@ -1495,7 +1495,7 @@ const SettingsPage = () => {
                         {(elevenQuota.isExceeded || elevenQuota.remaining <= 10) && (
                           <div className="mt-3 p-3 rounded-lg bg-red-950/50 border border-red-500/40 text-xs text-red-200 space-y-2 animate-fade-in">
                             <p className="text-[11px] leading-relaxed">
-                              ⚠️ <strong>Limit bezpłatnego konta ElevenLabs (10 000 znaków) został wyczerpany.</strong> Żądania syntezy mowy ElevenLabs są odrzucane z kodem 401 Quota Exceeded, co powoduje odtwarzanie podstawowego głosu przeglądarki.
+                              [!] <strong>Limit bezpłatnego konta ElevenLabs (10 000 znaków) został wyczerpany.</strong> Żądania syntezy mowy ElevenLabs są odrzucane z kodem 401 Quota Exceeded, co powoduje odtwarzanie podstawowego głosu przeglądarki.
                             </p>
                             <div className="pt-1 flex items-center gap-2">
                               <button
@@ -1840,7 +1840,7 @@ const SettingsPage = () => {
         )}
 
         {/* ======================================================== */}
-        {/* TAB 4: PRYWATNOŚĆ                                       */}
+        {/* TAB 4: PRYWATNOŚĆ */}
         {/* ======================================================== */}
         {activeTab === 'privacy' && (
           <div className="space-y-4 animate-soft-enter" style={{ animationDelay: '100ms' }}>
@@ -1876,7 +1876,7 @@ const SettingsPage = () => {
         )}
 
         {/* ======================================================== */}
-        {/* TAB 5: BAZY & BEZPIECZEŃSTWO                            */}
+        {/* TAB 5: BAZY & BEZPIECZEŃSTWO */}
         {/* ======================================================== */}
         {activeTab === 'security' && (
           <div className="space-y-4 animate-soft-enter" style={{ animationDelay: '100ms' }}>
@@ -1988,13 +1988,13 @@ const SettingsPage = () => {
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-3">
                     {[
-                      { id: 'tasks', name: 'Zadania To-Do', icon: '📋' },
-                      { id: 'timetable', name: 'Plan Lekcji', icon: '🎓' },
-                      { id: 'finances', name: 'Finanse & Budżet', icon: '💰' },
-                      { id: 'workouts', name: 'Treningi', icon: '🏋️' },
-                      { id: 'calendar', name: 'Kalendarz', icon: '📅' },
-                      { id: 'operator_brain', name: 'Operator Brain', icon: '🧠' },
-                      { id: 'chat_history', name: 'Historia Chatu', icon: '💬' },
+                      { id: 'tasks', name: 'Zadania To-Do', icon: '' },
+                      { id: 'timetable', name: 'Plan Lekcji', icon: '' },
+                      { id: 'finances', name: 'Finanse & Budżet', icon: '' },
+                      { id: 'workouts', name: 'Treningi', icon: '' },
+                      { id: 'calendar', name: 'Kalendarz', icon: '' },
+                      { id: 'operator_brain', name: 'Operator Brain', icon: '[BRAIN]' },
+                      { id: 'chat_history', name: 'Historia Chatu', icon: '' },
                     ].map(col => (
                       <div key={col.id} className="p-2.5 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between">
                         <div className="flex items-center gap-2">

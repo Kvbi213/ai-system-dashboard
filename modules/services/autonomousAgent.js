@@ -126,7 +126,7 @@ export async function createAgentJob(goal, options = {}) {
   // Powiadomienie wstępne na telefon
   if (options.notify_mode !== 'none') {
     const initialMsg = `Rozpoczęto zadanie badawcze: "${plan.title}"\n• Zaplanowano etapów: ${totalSteps}\n• Krok 1: ${plan.steps[0].focus}`;
-    await sendPushNotification(`[OmniAgent 🤖] Przyjęto Cel`, initialMsg).catch(() => {});
+    await sendPushNotification(`[OmniAgent [AI]] Przyjęto Cel`, initialMsg).catch(() => {});
   }
 
   return { jobId, plan };
@@ -154,7 +154,7 @@ export async function handleStatusInquiry() {
   const job = await getActiveJob();
   if (!job) {
     const emptyMsg = `Aktualnie brak aktywnych zadań w kolejce.\n• Wszystkie badania zakończone.\n• Możesz zlecić nowe zadanie pisząc np. "Omni: zbadaj..."`;
-    await sendPushNotification(`[OmniAgent 🤖] Raport Stanu`, emptyMsg).catch(() => {});
+    await sendPushNotification(`[OmniAgent [AI]] Raport Stanu`, emptyMsg).catch(() => {});
     return { status: 'idle', message: emptyMsg };
   }
 
@@ -167,7 +167,7 @@ export async function handleStatusInquiry() {
 
   const statusMsg = `• Zadanie: ${log.title || job.goal}\n• Status: W TRAKCIE (${progress}%)\n• Bieżący etap: ${currentStep}\n• Zebrane źródła: ${sourcesCount}\n• Iteracja: ${job.iteration_count || 0}/${job.max_iterations || 10}`;
 
-  await sendPushNotification(`[OmniAgent 🤖] Stan Pracy na Żywo`, statusMsg).catch(() => {});
+  await sendPushNotification(`[OmniAgent [AI]] Stan Pracy na Żywo`, statusMsg).catch(() => {});
   return { status: 'executing', job, message: statusMsg };
 }
 
@@ -178,7 +178,7 @@ export async function abortActiveJob() {
   const job = await getActiveJob();
   if (!job) {
     const msg = `Brak aktywnego zadania do zatrzymania.`;
-    await sendPushNotification(`[OmniAgent 🤖] Status`, msg).catch(() => {});
+    await sendPushNotification(`[OmniAgent [AI]] Status`, msg).catch(() => {});
     return { success: false, message: msg };
   }
 
@@ -190,7 +190,7 @@ export async function abortActiveJob() {
   } catch (err) {}
 
   const confirmMsg = `Zadanie "${job.goal}" zostało natychmiast zatrzymane (Emergency Stop).`;
-  await sendPushNotification(`[OmniAgent 🤖] Zatrzymano Pracę ⏹️`, confirmMsg).catch(() => {});
+  await sendPushNotification(`[OmniAgent [AI]] Zatrzymano Pracę ⏹`, confirmMsg).catch(() => {});
   return { success: true, message: confirmMsg };
 }
 
@@ -240,7 +240,7 @@ export async function runNextAgentStep(providedJob = null) {
 Badany cel: "${job.goal}"
 Aktualny obszar badania: "${stepData.focus}"
 Wyniki z internetu:
-${searchResults.map((r, i) => `${i + 1}. [${r.title}] (${r.url})\n   ${r.description}`).join('\n\n')}
+${searchResults.map((r, i) => `${i + 1}. [${r.title}] (${r.url})\n ${r.description}`).join('\n\n')}
 
 Przygotuj zwięzłą syntezę (maksymalnie 3 kluczowe punkty/fakty). Pisz konkretnie i technicznie po polsku.`;
 
@@ -275,7 +275,7 @@ Przygotuj zwięzłą syntezę (maksymalnie 3 kluczowe punkty/fakty). Pisz konkre
 
   // 3. Powiadomienie etapowe na telefon (Milestone Push)
   if (job.notify_mode === 'milestones' || job.notify_mode === 'stream') {
-    const milestoneTitle = `[OmniAgent 🤖] Etap ${stepNumber}/${totalSteps}`;
+    const milestoneTitle = `[OmniAgent [AI]] Etap ${stepNumber}/${totalSteps}`;
     const milestoneBody = `• Obszar: ${stepData.focus}\n${stepSummary}\n• Postęp: ${nextProgress}%`;
     await sendPushNotification(milestoneTitle, milestoneBody).catch(() => {});
   }
@@ -326,7 +326,7 @@ Raport musi być konkretny, czytelny, z punktorami.`;
   } catch (err) {}
 
   // Wysłanie raportu końcowego na smartfon
-  const reportPushTitle = `[OmniAgent 🤖] Raport Końcowy: ${log.title || 'Badanie'}`;
+  const reportPushTitle = `[OmniAgent [AI]] Raport Końcowy: ${log.title || 'Badanie'}`;
   await sendPushNotification(reportPushTitle, finalReport).catch(() => {});
 
   // Zapis raportu końcowego do Cloud Firestore dla OMNIDAEMON chat_history

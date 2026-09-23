@@ -2,10 +2,10 @@
 
 Ten plik służy jako główny notatnik do spisywania błędów (bugów), uwag i rzeczy do poprawy w systemie. Możesz w każdej chwili napisać do mnie "zapisz błąd..." i umieszczę go tutaj, byśmy mogli do niego wrócić.
 
-## 🔴 Krytyczne Błędy do Naprawy
+## [KRYTYCZNY] Krytyczne Błędy do Naprawy
 *(brak)*
 
-## 🟡 Oczekujące Poprawki / Nowe Funkcje
+## [ŚREDNI] Oczekujące Poprawki / Nowe Funkcje
 - [x] Wymyślić oryginalną nazwę dla projektu. (OmniDash)
 - [x] Dodać zakładkę "Finanse" (zarządzanie budżetem wspierane przez AI).
 - [x] Dodać zakładkę "Treningi" (wspierane przez AI).
@@ -15,7 +15,7 @@ Ten plik służy jako główny notatnik do spisywania błędów (bugów), uwag i
 - [ ] Łatwiejsza konfiguracja początkowa (np. ominięcie płatnego Brave API, autoryzacja kontem Google).
 - [ ] Wsparcie dla innych dostawców modeli AI (NVIDIA API, Google AI Studio itp).
 
-## 🟢 Zrealizowane (Archiwum)
+## [NISKI] Zrealizowane (Archiwum)
 - **[Naprawione]** Odczyt czasu z powiadomień Pushbullet był przesunięty o 2h (problem z UTC vs Local Time). Zostało to poprawione bezpośrednio w silniku odczytu bazy w `agent.js`.
 - **[Naprawione]** Tryb głosowy live renderował tagi markdown jako płaski tekst. Zostało to poprawione poprzez zastosowanie `ReactMarkdown` w komponencie `Terminal.jsx`.
 - **[Naprawione]** Brakowało możliwości zmiany głosu w trybie głosowym - dodano opcję wyboru (Męski/Damski) i suwak prędkości w głównych ustawieniach.

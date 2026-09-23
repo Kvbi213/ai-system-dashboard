@@ -177,7 +177,7 @@ class WakeWordService {
     if (typeof window === 'undefined') return;
     localStorage.setItem('system_wake_word_enabled', enabled ? 'true' : 'false');
     this.notifyStatus(enabled ? (this.isListening ? 'listening' : 'idle') : 'disabled');
-    console.log(`%c[OmniVoice ⚙️] Nasłuch w tle: ${enabled ? 'WŁĄCZONY' : 'WYŁĄCZONY'}`, 'color: #38BDF8; font-weight: bold;');
+    console.log(`%c[OmniVoice ] Nasłuch w tle: ${enabled ? 'WŁĄCZONY' : 'WYŁĄCZONY'}`, 'color: #38BDF8; font-weight: bold;');
     if (enabled) {
       this.start();
     } else {
@@ -268,7 +268,7 @@ class WakeWordService {
       window.removeEventListener('click', onUserInteract);
       window.removeEventListener('keydown', onUserInteract);
       window.removeEventListener('pointerdown', onUserInteract);
-      console.log('%c[OmniVoice 🔄] Wykryto interakcję użytkownika – ponowna próba aktywacji mikrofonu...', 'color: #00FF66;');
+      console.log('%c[OmniVoice ] Wykryto interakcję użytkownika – ponowna próba aktywacji mikrofonu...', 'color: #00FF66;');
       if (!this.isListening && !this.isPaused && this.isEnabled()) {
         this.start();
       }
@@ -291,15 +291,15 @@ class WakeWordService {
         audio: {
           echoCancellation: true,
           noiseSuppression: false, // WAŻNE: wyłączenie programowej bramki szumów – zapobiega wyciszaniu szeptu!
-          autoGainControl: true,   // Wzmocnienie cichej mowy
+          autoGainControl: true, // Wzmocnienie cichej mowy
           channelCount: 1
         }
       });
-      console.log('%c[OmniVoice 🎤] Strumień mikrofonu podtrzymany pomyślnie.', 'color: #00FF66; font-size: 11px;');
+      console.log('%c[OmniVoice [MIC]] Strumień mikrofonu podtrzymany pomyślnie.', 'color: #00FF66; font-size: 11px;');
       this.setupAudioMeter();
     } catch (err) {
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        console.warn('%c[OmniVoice ⚠️] Brak uprawnień do mikrofonu (getUserMedia rejected). Zezwól na dostęp w przeglądarce.', 'color: #FFB800;');
+        console.warn('%c[OmniVoice [!]] Brak uprawnień do mikrofonu (getUserMedia rejected). Zezwól na dostęp w przeglądarce.', 'color: #FFB800;');
         this.status = 'permission-denied';
         this.notifyStatus('permission-denied');
         this.attachAutoRecoveryOnUserInteraction();
@@ -311,7 +311,7 @@ class WakeWordService {
     try {
       if (this.audioContext && this.audioContext.state === 'suspended') {
         await this.audioContext.resume();
-        console.log('[OmniVoice 🔊] AudioContext odblokowany pomyślnie.');
+        console.log('[OmniVoice ] AudioContext odblokowany pomyślnie.');
       }
       if (!this.micStream) {
         await this.acquireSilentAudioStream(true);
@@ -405,7 +405,7 @@ class WakeWordService {
   initRecognition() {
     if (!this.isSupported()) {
       this.status = 'unsupported';
-      console.warn('%c[OmniVoice ⚠️] Ta przeglądarka nie obsługuje SpeechRecognition (użyj Chrome, Edge lub Opery).', 'color: #FF3366;');
+      console.warn('%c[OmniVoice [!]] Ta przeglądarka nie obsługuje SpeechRecognition (użyj Chrome, Edge lub Opery).', 'color: #FF3366;');
       return;
     }
 
@@ -439,7 +439,7 @@ class WakeWordService {
         this.notifyStatus('listening');
         if (!this.hasLoggedStart) {
           console.log(
-            '%c[OmniVoice 🎙️] NASŁUCH AKTYWNY! Mikrofon nasłuchuje w tle. Powiedz "Hej Omni", aby wywołać asystenta.',
+            '%c[OmniVoice [MIC]] NASŁUCH AKTYWNY! Mikrofon nasłuchuje w tle. Powiedz "Hej Omni", aby wywołać asystenta.',
             'color: #00FF66; font-weight: bold; font-size: 11px;'
           );
           this.hasLoggedStart = true;
@@ -462,7 +462,7 @@ class WakeWordService {
 
             // Logowanie usłyszanej frazy w DevTools
             console.log(
-              `%c[OmniVoice 👂] %c"${transcript}" %c${matched ? '🎯 DOPASOWANIE ("Hej Omni")' : ''} %c${isFinal ? '(final)' : '(interim)'}`,
+              `%c[OmniVoice ] %c"${transcript}" %c${matched ? ' DOPASOWANIE ("Hej Omni")' : ''} %c${isFinal ? '(final)' : '(interim)'}`,
               'color: #38BDF8; font-weight: bold;',
               'color: #FFFFFF; font-style: italic;',
               matched ? 'background: #00FF66; color: #000; font-weight: bold; padding: 1px 4px; border-radius: 2px;' : 'color: #64748B;',
@@ -500,7 +500,7 @@ class WakeWordService {
           this.status = 'permission-denied';
           this.notifyStatus('permission-denied');
           console.error(
-            '%c[OmniVoice ❌ BRAK UPRAWNIEŃ DO MIKROFONU] %cPrzeglądarka zablokowała mikrofon (not-allowed).\n%cKliknij ikonę kłódki/suwaków w pasku adresu przeglądarki i ustaw Mikrofon na "Zezwalaj" (Allow), a następnie kliknij w dowolnym miejscu na stronie.',
+            '%c[OmniVoice [X] BRAK UPRAWNIEŃ DO MIKROFONU] %cPrzeglądarka zablokowała mikrofon (not-allowed).\n%cKliknij ikonę kłódki/suwaków w pasku adresu przeglądarki i ustaw Mikrofon na "Zezwalaj" (Allow), a następnie kliknij w dowolnym miejscu na stronie.',
             'background: #EF4444; color: #fff; font-weight: bold; padding: 2px 6px; border-radius: 2px;',
             'color: #EF4444; font-weight: bold;',
             'color: #FBBF24;'
@@ -512,7 +512,7 @@ class WakeWordService {
         // 4. Błąd usługi Google Speech (np. Brave Shields)
         if (event.error === 'service-not-allowed' || event.error === 'network') {
           console.error(
-            `%c[OmniVoice ❌ BŁĄD USŁUGI ROZPOZNAWANIA MOWY (${event.error})] %cGoogle Speech API nie odpowiada.\nJeśli używasz przeglądarki Brave, wyłącz tarczę (Brave Shields) dla tej strony, aby zezwolić na serwery rozpoznawania mowy.`,
+            `%c[OmniVoice [X] BŁĄD USŁUGI ROZPOZNAWANIA MOWY (${event.error})] %cGoogle Speech API nie odpowiada.\nJeśli używasz przeglądarki Brave, wyłącz tarczę (Brave Shields) dla tej strony, aby zezwolić na serwery rozpoznawania mowy.`,
             'background: #EF4444; color: #fff; font-weight: bold; padding: 2px 6px; border-radius: 2px;',
             'color: #EF4444;',
             'color: #FBBF24;'
@@ -523,7 +523,7 @@ class WakeWordService {
           return;
         }
 
-        console.warn(`[OmniVoice ⚠️] Zdarzenie błędu rozpoznawania: ${event.error}`);
+        console.warn(`[OmniVoice [!]] Zdarzenie błędu rozpoznawania: ${event.error}`);
         this.consecutiveErrors++;
         const delay = Math.min(1000 * Math.pow(1.3, this.consecutiveErrors), 5000);
         this.scheduleRestart(delay);
@@ -545,7 +545,7 @@ class WakeWordService {
       };
     } catch (err) {
       this.status = 'error';
-      console.error('[OmniVoice ❌] Błąd inicjalizacji SpeechRecognition:', err);
+      console.error('[OmniVoice [X]] Błąd inicjalizacji SpeechRecognition:', err);
     }
   }
 
@@ -562,7 +562,7 @@ class WakeWordService {
 
   handleWakeWordDetected(transcript, payload) {
     console.log(
-      `%c[OmniVoice 🎯 WYKRYTO SŁOWO WYBUDZAJĄCE!] %c"${transcript}"%c${payload ? ` -> Zapytanie: "${payload}"` : ''} -> Przekierowanie do /chat`,
+      `%c[OmniVoice WYKRYTO SŁOWO WYBUDZAJĄCE!] %c"${transcript}"%c${payload ? ` -> Zapytanie: "${payload}"` : ''} -> Przekierowanie do /chat`,
       'background: #00FF66; color: #000; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 12px;',
       'color: #00FF66; font-weight: bold;',
       'color: #38BDF8;'
@@ -711,24 +711,24 @@ class WakeWordService {
       }),
       history: this.history,
       start: () => {
-        console.log('[OmniVoice 🚀] Wymuszone uruchomienie nasłuchu przez DevTools...');
+        console.log('[OmniVoice ] Wymuszone uruchomienie nasłuchu przez DevTools...');
         return this.start();
       },
       stop: () => {
-        console.log('[OmniVoice 🛑] Zatrzymanie nasłuchu przez DevTools...');
+        console.log('[OmniVoice ] Zatrzymanie nasłuchu przez DevTools...');
         return this.stop();
       },
       restart: () => {
-        console.log('[OmniVoice 🔄] Restartowanie nasłuchu...');
+        console.log('[OmniVoice ] Restartowanie nasłuchu...');
         this.stop();
         return this.start();
       },
       testWakeWord: (phrase = 'hej omni') => {
-        console.log(`%c[OmniVoice 🧪 Test Wywołania] %cSymulacja wypowiedzenia: "${phrase}"`, 'background: #8B5CF6; color: #fff; font-weight: bold; padding: 2px 6px; border-radius: 2px;', 'color: #C084FC;');
+        console.log(`%c[OmniVoice Test Wywołania] %cSymulacja wypowiedzenia: "${phrase}"`, 'background: #8B5CF6; color: #fff; font-weight: bold; padding: 2px 6px; border-radius: 2px;', 'color: #C084FC;');
         this.handleWakeWordDetected(phrase, extractWakeWordPayload(phrase));
       },
       requestMic: async () => {
-        console.log('[OmniVoice 🎤] Prośba o dostęp do mikrofonu (getUserMedia)...');
+        console.log('[OmniVoice [MIC]] Prośba o dostęp do mikrofonu (getUserMedia)...');
         await this.resumeAudioContext();
         await this.acquireSilentAudioStream(true);
         this.start();
@@ -741,12 +741,12 @@ class WakeWordService {
       showInspector: () => {
         localStorage.setItem('system_voice_debug_visible', 'true');
         window.dispatchEvent(new CustomEvent('toggleVoiceInspector', { detail: { visible: true } }));
-        console.log('[OmniVoice 🔍] Pływający wskaźnik na ekranie został WŁĄCZONY.');
+        console.log('[OmniVoice ] Pływający wskaźnik na ekranie został WŁĄCZONY.');
       },
       hideInspector: () => {
         localStorage.setItem('system_voice_debug_visible', 'false');
         window.dispatchEvent(new CustomEvent('toggleVoiceInspector', { detail: { visible: false } }));
-        console.log('[OmniVoice 🔍] Pływający wskaźnik na ekranie został UKRYTY.');
+        console.log('[OmniVoice ] Pływający wskaźnik na ekranie został UKRYTY.');
       },
       help: () => {
         console.log(
@@ -776,7 +776,7 @@ class WakeWordService {
 
     setTimeout(() => {
       console.log(
-        '%c[OmniVoice 🎙️ DevTools Active] %cPodgląd asystenta głosowego zainicjalizowany.\nWpisz %cwindow.__OMNI_VOICE__.help()%c w konsoli, aby sprawdzić diagnostykę lub przetestować mikrofon.',
+        '%c[OmniVoice [MIC] DevTools Active] %cPodgląd asystenta głosowego zainicjalizowany.\nWpisz %cwindow.__OMNI_VOICE__.help()%c w konsoli, aby sprawdzić diagnostykę lub przetestować mikrofon.',
         'color: #00FF66; font-weight: bold; font-size: 11px;',
         'color: #94A3B8;',
         'color: #38BDF8; font-weight: bold; background: rgba(56, 189, 248, 0.15); padding: 1px 5px; border-radius: 3px;',

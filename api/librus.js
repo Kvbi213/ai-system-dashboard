@@ -95,7 +95,7 @@ export default async function handler(req, res) {
             teacher: 'Negowska Alicja', 
             type: 'Wykład', 
             color: 'rose', 
-            notes: '⚠️ NIEOBECNOŚĆ: Negowska Alicja (08:50 do 14:50)',
+            notes: '[!] NIEOBECNOŚĆ: Negowska Alicja (08:50 do 14:50)',
             absenceAlert: {
               isAbsent: true,
               teacher: 'Negowska Alicja',

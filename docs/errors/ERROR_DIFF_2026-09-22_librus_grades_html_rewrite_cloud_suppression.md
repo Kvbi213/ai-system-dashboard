@@ -48,7 +48,7 @@
 
 ## 3. POST-MORTEM
 
-- **STATUS:** ✅ ROZWIĄZANY (VERIFIED & DEPLOYED).
+- **STATUS:** [OK] ROZWIĄZANY (VERIFIED & DEPLOYED).
 - **APPROACH:** Prawidłowa separacja architektury hybrydowej (lokalny Express + chmurowy Firestore Realtime Database).
 - **IMPROVED:** Eliminacja fałszywych alertów, zerowe niepotrzebne żądania HTTP na hostingu statycznym, natychmiastowe ładowanie danych.
 - **BROKE:** Brak regresji. Wszystkie 143 testy jednostkowe zakończone sukcesem (`143 passed`).

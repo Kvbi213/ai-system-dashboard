@@ -157,10 +157,10 @@ describe('Autonomiczny Agent Ciągły (OmniDaemon 24/7) - Klasyfikatory i Narzę
   describe('6. Ochrona przed Pętlą Echa Powiadomień (isOwnSystemNotification)', () => {
     it('wykrywa powiadomienia wygenerowane przez system OmniDash', async () => {
       const { isOwnSystemNotification } = await import('../modules/pushbullet.js');
-      expect(isOwnSystemNotification('OmniDash AI 🤖', 'Raport gotowy')).toBe(true);
-      expect(isOwnSystemNotification('OmniAgent Cloud 🤖', 'Zadanie przyjęte')).toBe(true);
+      expect(isOwnSystemNotification('OmniDash AI', 'Raport gotowy')).toBe(true);
+      expect(isOwnSystemNotification('OmniAgent Cloud', 'Zadanie przyjęte')).toBe(true);
       expect(isOwnSystemNotification('OmniDaemon 24/7', 'Demon aktywny')).toBe(true);
-      expect(isOwnSystemNotification('OmniDash Auto-Finanse 💳', 'Zapisano wydatek')).toBe(true);
+      expect(isOwnSystemNotification('OmniDash Auto-Finanse', 'Zapisano wydatek')).toBe(true);
     });
 
     it('przepuszcza wiadomości od operatora i aplikacji zewnętrznych', async () => {
@@ -197,7 +197,7 @@ describe('Autonomiczny Agent Ciągły (OmniDaemon 24/7) - Klasyfikatory i Narzę
     it('zwraca null dla pustych lub nieprawidłowych zapytań', async () => {
       const { handleMobileChatQuery } = await import('../modules/pushbullet.js');
       expect(await handleMobileChatQuery('')).toBeNull();
-      expect(await handleMobileChatQuery('   ')).toBeNull();
+      expect(await handleMobileChatQuery(' ')).toBeNull();
       expect(await handleMobileChatQuery(null)).toBeNull();
     });
   });

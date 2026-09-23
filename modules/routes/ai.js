@@ -244,7 +244,7 @@ router.post('/models/active', (req, res) => {
     const agentPath = path.resolve(rootDir, 'modules/agent.js');
     let content = fs.readFileSync(agentPath, 'utf8');
     const regex = /export const MODEL_FALLBACK_CHAIN = \[([\s\S]*?)\];/;
-    const newArrayStr = "export const MODEL_FALLBACK_CHAIN = [\n  " + MODEL_FALLBACK_CHAIN.map(m => `'${m}'`).join(',\n  ') + "\n];";
+    const newArrayStr = "export const MODEL_FALLBACK_CHAIN = [\n " + MODEL_FALLBACK_CHAIN.map(m => `'${m}'`).join(',\n ') + "\n];";
     content = content.replace(regex, newArrayStr);
     fs.writeFileSync(agentPath, content, 'utf8');
   } catch (err) {
