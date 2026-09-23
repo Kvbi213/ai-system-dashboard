@@ -5,7 +5,13 @@ import {
   computeGradeStats, 
   getDemoGradesData,
   parseCalendarEvent,
-  getDemoCalendarData
+  getDemoCalendarData,
+  cleanTeacherName,
+  matchTeacherNames,
+  parseTimeToMinutes,
+  checkTimeOverlap,
+  correlateTimetableWithAbsences,
+  getDemoTimetableData
 } from '../modules/services/librusService.js';
 
 describe('Librus Synergia Integration Service', () => {
@@ -153,6 +159,125 @@ Komentarz: Dział 3`;
     });
   });
 
+  describe('cleanTeacherName', () => {
+    it('should strip class/group annotations and titles', () => {
+      expect(cleanTeacherName('Becker Adam (2 TI gr.2)')).toBe('Becker Adam');
+      expect(cleanTeacherName('mgr inż. Kowalski Jan')).toBe('Kowalski Jan');
+      expect(cleanTeacherName('dr Nowak Anna (gr. 1)')).toBe('Nowak Anna');
+    });
+
+    it('should return empty string for null or non-string input', () => {
+      expect(cleanTeacherName(null)).toBe('');
+      expect(cleanTeacherName(undefined)).toBe('');
+      expect(cleanTeacherName('')).toBe('');
+    });
+  });
+
+  describe('matchTeacherNames', () => {
+    it('should match identical and reversed teacher names', () => {
+      expect(matchTeacherNames('Negowska Alicja', 'Negowska Alicja')).toBe(true);
+      expect(matchTeacherNames('Negowska Alicja', 'Alicja Negowska')).toBe(true);
+      expect(matchTeacherNames('Becker Adam (2 TI gr.2)', 'Becker Adam')).toBe(true);
+    });
+
+    it('should match single unique surname (>= 4 chars)', () => {
+      expect(matchTeacherNames('Wojnarowski Przemysław', 'Wojnarowski')).toBe(true);
+    });
+
+    it('should return false for completely different teachers', () => {
+      expect(matchTeacherNames('Bahr Zbigniew', 'Negowska Alicja')).toBe(false);
+      expect(matchTeacherNames('Nowak Jan', 'Kowalski Piotr')).toBe(false);
+    });
+  });
+
+  describe('checkTimeOverlap and parseTimeToMinutes', () => {
+    it('should parse HH:MM to minutes from midnight', () => {
+      expect(parseTimeToMinutes('08:00')).toBe(480);
+      expect(parseTimeToMinutes('13:15')).toBe(795);
+      expect(parseTimeToMinutes('14:50')).toBe(890);
+    });
+
+    it('should detect overlap when lesson is inside absence period', () => {
+      // Lekcja 13:15 - 14:00, nieobecność 08:50 do 14:50 -> nakłada się!
+      expect(checkTimeOverlap('13:15', '14:00', '08:50 do 14:50')).toBe(true);
+    });
+
+    it('should detect absence when range is Cały dzień or empty', () => {
+      expect(checkTimeOverlap('08:00', '08:45', 'Cały dzień')).toBe(true);
+      expect(checkTimeOverlap('08:00', '08:45', '')).toBe(true);
+    });
+
+    it('should return false when lesson is completely before or after absence', () => {
+      // Lekcja 08:00 - 08:45, nieobecność od 08:50 do 14:50 -> brak nakładania!
+      expect(checkTimeOverlap('08:00', '08:45', '08:50 do 14:50')).toBe(false);
+      // Lekcja 15:00 - 15:45, nieobecność od 08:50 do 14:50 -> brak nakładania!
+      expect(checkTimeOverlap('15:00', '15:45', '08:50 do 14:50')).toBe(false);
+    });
+  });
+
+  describe('correlateTimetableWithAbsences', () => {
+    const mockLessons = [
+      {
+        id: 'lesson_1',
+        day: 'thursday',
+        subject: 'Język polski',
+        time_start: '08:00',
+        time_end: '08:45',
+        teacher: 'Negowska Alicja',
+        notes: ''
+      },
+      {
+        id: 'lesson_2',
+        day: 'thursday',
+        subject: 'Język polski',
+        time_start: '13:15',
+        time_end: '14:00',
+        teacher: 'Negowska Alicja',
+        notes: ''
+      },
+      {
+        id: 'lesson_3',
+        day: 'thursday',
+        subject: 'Matematyka',
+        time_start: '12:20',
+        time_end: '13:05',
+        teacher: 'Bahr Zbigniew',
+        notes: ''
+      }
+    ];
+
+    const mockCalendarAbsence = [
+      {
+        type: 'absence',
+        date: '2026-09-24', // czwartek
+        teacher: 'Negowska Alicja',
+        time: '08:50 do 14:50',
+        description: 'Nieobecność nauczyciela: Negowska Alicja'
+      }
+    ];
+
+    it('should correlate only the overlapping lesson of the absent teacher', () => {
+      const result = correlateTimetableWithAbsences(mockLessons, mockCalendarAbsence);
+      expect(result.lessons.length).toBe(3);
+
+      // Lekcja 1 (08:00 - 08:45) nie nakłada się na 08:50 - 14:50
+      expect(result.lessons[0].absenceAlert).toBeUndefined();
+
+      // Lekcja 2 (13:15 - 14:00) nakłada się na 08:50 - 14:50
+      expect(result.lessons[1].absenceAlert).toBeDefined();
+      expect(result.lessons[1].absenceAlert.isAbsent).toBe(true);
+      expect(result.lessons[1].absenceAlert.hours).toBe('08:50 do 14:50');
+      expect(result.lessons[1].notes).toContain('NIEOBECNOŚĆ');
+
+      // Lekcja 3 (Bahr Zbigniew) - inny nauczyciel, brak alertu
+      expect(result.lessons[2].absenceAlert).toBeUndefined();
+
+      // Wykryto 1 zastępstwo/okienko
+      expect(result.detectedSubstitutions.length).toBe(1);
+      expect(result.detectedSubstitutions[0].lessonId).toBe('lesson_2');
+    });
+  });
+
   describe('getDemoCalendarData', () => {
     it('should return valid demo school calendar events', () => {
       const demo = getDemoCalendarData();
@@ -164,4 +289,19 @@ Komentarz: Dział 3`;
       expect(demo.events[0]).toHaveProperty('category');
     });
   });
+
+  describe('getDemoTimetableData', () => {
+    it('should provide full weekly demo schedule with decorated absences', () => {
+      const data = getDemoTimetableData();
+      expect(data.isDemo).toBe(true);
+      expect(data.lessons.length).toBeGreaterThan(15);
+      expect(data.hours.length).toBeGreaterThan(5);
+      expect(data.substitutions.length).toBeGreaterThan(0);
+
+      const absentLesson = data.lessons.find(l => l.absenceAlert && l.absenceAlert.isAbsent);
+      expect(absentLesson).toBeDefined();
+      expect(absentLesson.teacher).toBe('Negowska Alicja');
+    });
+  });
 });
+

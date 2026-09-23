@@ -3,10 +3,13 @@ import axios from 'axios';
 import { 
   GraduationCap, Plus, Trash2, Edit2, Clock, MapPin, User, 
   Search, Filter, Calendar, BookOpen, ChevronRight, Copy, 
-  Sparkles, CheckCircle, AlertCircle, LayoutGrid, List, RefreshCw
+  Sparkles, CheckCircle, AlertCircle, LayoutGrid, List, RefreshCw,
+  AlertTriangle, UserX, CheckCircle2
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { subscribeCollection, saveCloudDocument, deleteCloudDocument, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
+import { doc, onSnapshot, getDoc } from 'firebase/firestore';
+import { firestore } from '../firebaseClient.js';
 
 const DAYS = [
   { id: 'monday', label: 'Poniedziałek', short: 'Pon', dayIndex: 1 },
@@ -80,10 +83,99 @@ const COLOR_MAP = {
   }
 };
 
+const STATIC_DEMO_ABSENCE_EVENTS = [
+  {
+    id: 9003,
+    date: '2026-09-24',
+    type: 'absence',
+    category: 'Nieobecność nauczyciela',
+    title: 'Nieobecność: Negowska Alicja',
+    teacher: 'Negowska Alicja',
+    time: '08:50 do 14:50',
+    description: 'Nieobecność nauczyciela: Negowska Alicja (08:50 do 14:50)'
+  },
+  {
+    id: 9004,
+    date: '2026-09-23',
+    type: 'absence',
+    category: 'Nieobecność nauczyciela',
+    title: 'Nieobecność: Wojnarowski Przemysław',
+    teacher: 'Wojnarowski Przemysław',
+    time: '12:20 do 15:40',
+    description: 'Nieobecność nauczyciela: Wojnarowski Przemysław (12:20 do 15:40)'
+  }
+];
+
+const STATIC_DEMO_TIMETABLE_LESSONS = [
+  // Poniedziałek
+  { id: 'librus_mon_1', day: 'monday', subject: 'Informatyka', time_start: '08:50', time_end: '09:35', room: 's. 17', teacher: 'Becker Adam (2 TI gr.2)', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia' },
+  { id: 'librus_mon_2', day: 'monday', subject: 'Informatyka', time_start: '09:40', time_end: '10:25', room: 's. 17', teacher: 'Becker Adam (2 TI gr.2)', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia' },
+  { id: 'librus_mon_3', day: 'monday', subject: 'Chemia', time_start: '10:40', time_end: '11:25', room: 's. 31', teacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '' },
+  { id: 'librus_mon_4', day: 'monday', subject: 'Edukacja zdrowotna', time_start: '11:30', time_end: '12:15', room: 's. 38', teacher: 'Spych Monika', type: 'Wykład', color: 'emerald', notes: '' },
+  { id: 'librus_mon_5', day: 'monday', subject: 'Systemy operacyjne', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
+  { id: 'librus_mon_6', day: 'monday', subject: 'Systemy operacyjne', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
+
+  // Wtorek
+  { id: 'librus_tue_1', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:00', time_end: '08:45', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
+  { id: 'librus_tue_2', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:50', time_end: '09:35', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
+  { id: 'librus_tue_3', day: 'tuesday', subject: 'Zajęcia z wychowawcą', time_start: '09:40', time_end: '10:25', room: 's. 1.16', teacher: 'Ziemba Joanna', type: 'Wykład', color: 'amber', notes: '' },
+  { id: 'librus_tue_4', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '10:40', time_end: '11:25', room: 's. WF', teacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: '' },
+  { id: 'librus_tue_5', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '11:30', time_end: '12:15', room: 's. WF', teacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: '' },
+  { id: 'librus_tue_6', day: 'tuesday', subject: 'Matematyka', time_start: '14:05', time_end: '14:50', room: 's. 26', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
+
+  // Środa
+  { id: 'librus_wed_1', day: 'wednesday', subject: 'Biznes i zarządzanie', time_start: '10:40', time_end: '11:25', room: 's. 0.2', teacher: 'Sokół Paweł', type: 'Wykład', color: 'blue', notes: '' },
+  { id: 'librus_wed_2', day: 'wednesday', subject: 'Biologia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '' },
+  { id: 'librus_wed_3', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Gembiak Bartosz', type: 'Laboratorium', color: 'cyan', notes: '' },
+  { id: 'librus_wed_4', day: 'wednesday', subject: 'Historia', time_start: '14:05', time_end: '14:50', room: 's. 06', teacher: 'Wardyn Wojciech', type: 'Wykład', color: 'rose', notes: '' },
+  { id: 'librus_wed_5', day: 'wednesday', subject: 'Matematyka', time_start: '14:55', time_end: '15:40', room: 's. 26', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
+
+  // Czwartek
+  { id: 'librus_thu_1', day: 'thursday', subject: 'Język polski', time_start: '08:00', time_end: '08:45', room: 's. 34', teacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '' },
+  { id: 'librus_thu_2', day: 'thursday', subject: 'Język angielski zawodowy', time_start: '08:50', time_end: '09:35', room: 's. Z2', teacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: '' },
+  { id: 'librus_thu_3', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: '' },
+  { id: 'librus_thu_4', day: 'thursday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 05', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
+  { 
+    id: 'librus_thu_5', 
+    day: 'thursday', 
+    subject: 'Język polski', 
+    time_start: '13:15', 
+    time_end: '14:00', 
+    room: 's. 34', 
+    teacher: 'Negowska Alicja', 
+    type: 'Wykład', 
+    color: 'rose', 
+    notes: '⚠️ NIEOBECNOŚĆ: Negowska Alicja (08:50 do 14:50)',
+    absenceAlert: {
+      isAbsent: true,
+      teacher: 'Negowska Alicja',
+      hours: '08:50 do 14:50',
+      date: '2026-09-24',
+      description: 'Nieobecność nauczyciela: Negowska Alicja (08:50 do 14:50)',
+      suggestedStatus: 'okienko_or_sub'
+    }
+  },
+
+  // Piątek
+  { id: 'librus_fri_1', day: 'friday', subject: 'Język angielski', time_start: '08:00', time_end: '08:45', room: 's. Z2', teacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: '' },
+  { id: 'librus_fri_2', day: 'friday', subject: 'Język niemiecki', time_start: '08:50', time_end: '09:35', room: 's. Z1', teacher: 'Chyła Beata', type: 'Lektorat', color: 'amber', notes: '' },
+  { id: 'librus_fri_3', day: 'friday', subject: 'Wychowanie fizyczne', time_start: '09:40', time_end: '10:25', room: 's. WF', teacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: '' },
+  { id: 'librus_fri_4', day: 'friday', subject: 'Lokalne sieci komputerowe', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Wykład', color: 'cyan', notes: '' },
+  { id: 'librus_fri_5', day: 'friday', subject: 'Chemia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '' },
+  { id: 'librus_fri_6', day: 'friday', subject: 'Edukacja obywatelska', time_start: '12:20', time_end: '13:05', room: 's. 09', teacher: 'Czarna Alicja', type: 'Wykład', color: 'rose', notes: '' }
+];
+
 const TimetablePage = () => {
   const { t } = useTranslation();
 
   const [lessons, setLessons] = useState([]);
+  const [librusData, setLibrusData] = useState(null);
+  const [librusCalendarEvents, setLibrusCalendarEvents] = useState([]);
+  const [isSyncingLibrus, setIsSyncingLibrus] = useState(false);
+  const [librusLastSync, setLibrusLastSync] = useState(null);
+  const [absenceFilterOnly, setAbsenceFilterOnly] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
+
   const [selectedDay, setSelectedDay] = useState('all'); // 'all' | 'monday' | ...
   const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'grid'
   const [searchQuery, setSearchQuery] = useState('');
@@ -112,10 +204,10 @@ const TimetablePage = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // 1. Subskrypcja Cloud Firestore
+  // 1. Subskrypcja Cloud Firestore dla tabeli timetable
   useEffect(() => {
     const unsub = subscribeCollection(CLOUD_COLLECTIONS.TIMETABLE || 'timetable', (data) => {
-      if (Array.isArray(data)) {
+      if (Array.isArray(data) && data.length > 0) {
         setLessons(data);
       }
     });
@@ -138,6 +230,56 @@ const TimetablePage = () => {
     return () => unsub();
   }, []);
 
+  // 2. Subskrypcja Librus Timetable & Calendar w Firestore (oraz API fallback)
+  useEffect(() => {
+    if (firestore) {
+      try {
+        const unsubTT = onSnapshot(doc(firestore, 'librus_cache', 'timetable'), (snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            if (data) {
+              setLibrusData(data);
+              setLibrusLastSync(data.lastSync || null);
+            }
+          }
+        }, () => {});
+
+        const unsubCal = onSnapshot(doc(firestore, 'librus_cache', 'calendar'), (snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            if (data && Array.isArray(data.events)) {
+              setLibrusCalendarEvents(data.events);
+            }
+          }
+        }, () => {});
+
+        return () => {
+          unsubTT();
+          unsubCal();
+        };
+      } catch {}
+    }
+
+    if (!isCloudEnvironment()) {
+      axios.get('/api/librus/timetable')
+        .then(res => {
+          if (res.data?.success && res.data.lessons) {
+            setLibrusData(res.data);
+            setLibrusLastSync(res.data.lastSync || null);
+          }
+        })
+        .catch(() => {});
+
+      axios.get('/api/librus/calendar')
+        .then(res => {
+          if (res.data?.success && Array.isArray(res.data.events)) {
+            setLibrusCalendarEvents(res.data.events);
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
+
   // Określenie dzisiejszego dnia
   const todayDayId = useMemo(() => {
     const dayNum = currentTime.getDay(); // 0 = nd, 1 = pon...
@@ -151,15 +293,101 @@ const TimetablePage = () => {
 
   const parseTimeToMinutes = (timeStr) => {
     if (!timeStr) return 0;
-    const [h, m] = timeStr.split(':').map(Number);
-    return (h || 0) * 60 + (m || 0);
+    const match = String(timeStr).match(/(\d{1,2}):(\d{2})/);
+    if (!match) return 0;
+    return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
   };
 
+  // Pomocnicze funkcje korelacji nauczycieli i nakładania godzin
+  const cleanTeacher = (t) => {
+    if (!t || typeof t !== 'string') return '';
+    return t.replace(/\s*\([^)]*\)/g, '').replace(/\s*-\s*gr\s*\d+/gi, '').replace(/\s*gr\s*\.?\s*\d+/gi, '').trim().toLowerCase();
+  };
+
+  const matchTeachers = (t1, t2) => {
+    const c1 = cleanTeacher(t1);
+    const c2 = cleanTeacher(t2);
+    if (!c1 || !c2) return false;
+    if (c1 === c2 || c1.includes(c2) || c2.includes(c1)) return true;
+    const w1 = c1.split(/\s+/).filter(w => w.length > 2);
+    const w2 = c2.split(/\s+/).filter(w => w.length > 2);
+    const common = w1.filter(w => w2.includes(w));
+    return common.length >= 2 || common.some(w => w.length >= 4);
+  };
+
+  const checkOverlap = (lStart, lEnd, rangeStr) => {
+    if (!rangeStr) return true;
+    const lower = String(rangeStr).toLowerCase();
+    if (lower.includes('cały dzień') || lower === '' || lower === 'brak') return true;
+    const times = rangeStr.match(/(\d{1,2}:\d{2})/g);
+    if (!times || times.length < 2) return true;
+    const aStart = parseTimeToMinutes(times[0]);
+    const aEnd = parseTimeToMinutes(times[1]);
+    return Math.max(parseTimeToMinutes(lStart), aStart) < Math.min(parseTimeToMinutes(lEnd), aEnd);
+  };
+
+  // Podstawa lekcji: z bazy lub z bufora Librusa jeśli baza jest pusta
+  const baseLessons = useMemo(() => {
+    if (lessons && lessons.length > 0) return lessons;
+    if (librusData && Array.isArray(librusData.lessons) && librusData.lessons.length > 0) {
+      return librusData.lessons;
+    }
+    return STATIC_DEMO_TIMETABLE_LESSONS;
+  }, [lessons, librusData]);
+
+  // Wzbogacenie lekcji o aktywne absencje i alerty zastępstw
+  const enrichedLessons = useMemo(() => {
+    const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const absences = (librusCalendarEvents && librusCalendarEvents.length > 0)
+      ? librusCalendarEvents.filter(e => e && e.type === 'absence' && e.teacher)
+      : STATIC_DEMO_ABSENCE_EVENTS;
+
+    return baseLessons.map(lesson => {
+      if (lesson.absenceAlert?.isAbsent) return lesson;
+
+      const matched = absences.find(abs => {
+        if (!matchTeachers(lesson.teacher, abs.teacher)) return false;
+        let absDay = null;
+        if (abs.date) {
+          try {
+            absDay = DAY_NAMES[new Date(abs.date + 'T12:00:00Z').getUTCDay()];
+          } catch {}
+        }
+        if (absDay && absDay !== lesson.day) return false;
+        return checkOverlap(lesson.time_start, lesson.time_end, abs.time || abs.range);
+      });
+
+      if (matched) {
+        return {
+          ...lesson,
+          absenceAlert: {
+            isAbsent: true,
+            teacher: matched.teacher,
+            hours: matched.time || 'Cały dzień',
+            date: matched.date || '',
+            description: matched.description || `Nieobecność nauczyciela: ${matched.teacher}`,
+            suggestedStatus: 'okienko_or_sub'
+          }
+        };
+      }
+      return lesson;
+    });
+  }, [baseLessons, librusCalendarEvents]);
+
+  // Wykryte aktywne absencje dla aktualnie przeglądanego widoku
+  const detectedAbsences = useMemo(() => {
+    return enrichedLessons.filter(l => {
+      if (!l.absenceAlert?.isAbsent) return false;
+      if (selectedDay !== 'all') return l.day === selectedDay;
+      return true;
+    });
+  }, [enrichedLessons, selectedDay]);
+
   const todayUpcomingLessons = useMemo(() => {
-    return lessons
+    return enrichedLessons
       .filter(l => l.day === todayDayId)
       .sort((a, b) => parseTimeToMinutes(a.time_start) - parseTimeToMinutes(b.time_start));
-  }, [lessons, todayDayId]);
+  }, [enrichedLessons, todayDayId]);
 
   // Obliczenie aktualnie trwającej lekcji i następnej dzisiaj
   const { activeLesson, nextLesson } = useMemo(() => {
@@ -179,35 +407,38 @@ const TimetablePage = () => {
     }
 
     return { activeLesson: active, nextLesson: next };
-  }, [lessons, todayDayId, currentMinutes]);
+  }, [todayUpcomingLessons, currentMinutes]);
 
   // Statystyki tygodniowe
   const stats = useMemo(() => {
-    const totalLessons = lessons.length;
+    const totalLessons = enrichedLessons.length;
     let totalMinutes = 0;
     const subjects = new Set();
 
-    lessons.forEach(l => {
+    enrichedLessons.forEach(l => {
       const dur = Math.max(0, parseTimeToMinutes(l.time_end) - parseTimeToMinutes(l.time_start));
       totalMinutes += dur;
       if (l.subject) subjects.add(l.subject.trim());
     });
 
     const hours = (totalMinutes / 60).toFixed(1);
-    const todayCount = lessons.filter(l => l.day === todayDayId).length;
+    const todayCount = enrichedLessons.filter(l => l.day === todayDayId).length;
+    const totalAbsencesCount = enrichedLessons.filter(l => l.absenceAlert?.isAbsent).length;
 
     return {
       totalLessons,
       totalHours: hours,
       uniqueSubjects: subjects.size,
-      todayCount
+      todayCount,
+      totalAbsencesCount
     };
-  }, [lessons, todayDayId]);
+  }, [enrichedLessons, todayDayId]);
 
   // Filtrowanie lekcji
   const filteredLessons = useMemo(() => {
-    return lessons
+    return enrichedLessons
       .filter(l => {
+        if (absenceFilterOnly && !l.absenceAlert?.isAbsent) return false;
         if (selectedDay !== 'all' && l.day !== selectedDay) return false;
         if (typeFilter !== 'all' && l.type !== typeFilter) return false;
         if (searchQuery.trim() !== '') {
@@ -226,7 +457,49 @@ const TimetablePage = () => {
         if (dayA !== dayB) return dayA - dayB;
         return parseTimeToMinutes(a.time_start) - parseTimeToMinutes(b.time_start);
       });
-  }, [lessons, selectedDay, typeFilter, searchQuery]);
+  }, [enrichedLessons, selectedDay, typeFilter, searchQuery, absenceFilterOnly]);
+
+  const handleSyncLibrusTimetable = async () => {
+    setIsSyncingLibrus(true);
+    try {
+      if (!isCloudEnvironment()) {
+        const resp = await axios.post('/api/librus/timetable/import-to-schedule');
+        if (resp.data?.success && resp.data.data) {
+          setLibrusData(resp.data.data);
+          setLibrusLastSync(resp.data.data.lastSync || new Date().toISOString());
+          if (Array.isArray(resp.data.data.lessons)) {
+            setLessons(resp.data.data.lessons);
+          }
+          const subsCount = resp.data.data.substitutions?.length || 0;
+          setToastMessage(`[+] Zsynchronizowano plan z Librusa! Wykryto ${subsCount} zmian/zastępstw.`);
+          setTimeout(() => setToastMessage(null), 4000);
+        }
+      } else {
+        // Środowisko chmurowe — odświeżenie ze snapshota Firestore
+        if (firestore) {
+          const snap = await getDoc(doc(firestore, 'librus_cache', 'timetable'));
+          if (snap.exists() && snap.data()) {
+            setLibrusData(snap.data());
+            setLibrusLastSync(snap.data().lastSync || new Date().toISOString());
+            if (Array.isArray(snap.data().lessons)) {
+              setLessons(snap.data().lessons);
+            }
+          }
+          const snapCal = await getDoc(doc(firestore, 'librus_cache', 'calendar'));
+          if (snapCal.exists() && snapCal.data()?.events) {
+            setLibrusCalendarEvents(snapCal.data().events);
+          }
+        }
+        setToastMessage('[+] Odświeżono plan lekcji i zastępstwa z chmury Librus.');
+        setTimeout(() => setToastMessage(null), 4000);
+      }
+    } catch (err) {
+      setToastMessage(`[!] Błąd synchronizacji: ${err.message}`);
+      setTimeout(() => setToastMessage(null), 4000);
+    } finally {
+      setIsSyncingLibrus(false);
+    }
+  };
 
   const handleOpenAddModal = (defaultDay = 'monday') => {
     setEditingLesson(null);
@@ -292,6 +565,28 @@ const TimetablePage = () => {
     await deleteCloudDocument('timetable', idStr);
     if (!isCloudEnvironment()) {
       try { await axios.delete(`/api/timetable/${idStr}`); } catch {}
+    }
+  };
+
+  const handleToggleCancelled = async (lesson) => {
+    const isNowCancelled = !(lesson.isCancelled || lesson.status === 'cancelled');
+    const updated = {
+      ...lesson,
+      isCancelled: isNowCancelled,
+      status: isNowCancelled ? 'cancelled' : 'active'
+    };
+    setLessons(prev => {
+      const exists = prev.some(l => String(l.id) === String(lesson.id));
+      if (exists) {
+        return prev.map(l => String(l.id) === String(lesson.id) ? updated : l);
+      }
+      return [...prev, updated];
+    });
+    await saveCloudDocument('timetable', String(lesson.id), updated);
+    if (!isCloudEnvironment()) {
+      try {
+        await axios.put(`/api/timetable/${lesson.id}`, updated);
+      } catch {}
     }
   };
 
@@ -379,6 +674,17 @@ const TimetablePage = () => {
           </div>
 
           <button
+            onClick={handleSyncLibrusTimetable}
+            disabled={isSyncingLibrus}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-accentPrimary/40 bg-accentPrimary/10 text-accentPrimary hover:bg-accentPrimary/20 text-xs font-mono font-bold transition-all active:scale-95 disabled:opacity-50"
+            title="Pobierz oficjalny plan lekcji i zastępstwa z Librusa"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncingLibrus ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isSyncingLibrus ? 'Pobieranie...' : 'Pobierz z Librusa'}</span>
+            <span className="sm:hidden">Librus</span>
+          </button>
+
+          <button
             onClick={() => handleOpenAddModal(selectedDay !== 'all' ? selectedDay : 'monday')}
             className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-accentPrimary text-background font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(var(--color-accent-primary),0.3)] hover:brightness-110 active:scale-95 transition-all shrink-0"
           >
@@ -387,6 +693,69 @@ const TimetablePage = () => {
           </button>
         </div>
       </header>
+
+      {/* Powiadomienie Toast */}
+      {toastMessage && (
+        <div className="p-3 rounded-xl bg-accentPrimary/20 border border-accentPrimary/40 text-accentPrimary text-xs font-mono flex items-center justify-between animate-fade-in shadow-lg flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-accentPrimary" />
+            <span>{toastMessage}</span>
+          </div>
+          <button onClick={() => setToastMessage(null)} className="text-accentPrimary/70 hover:text-accentPrimary text-xs">✕</button>
+        </div>
+      )}
+
+      {/* Banner Zmian w Planie / Nieobecności Nauczycieli */}
+      {detectedAbsences.length > 0 && (
+        <div className="p-3.5 sm:p-4 rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-surface/80 to-purple-500/10 backdrop-blur-md shadow-[0_0_20px_rgba(245,158,11,0.15)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in flex-shrink-0">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center shrink-0 text-amber-400">
+              <AlertTriangle className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-400">
+                  ⚠️ Wykryto Zmiany w Planie / Nieobecności Nauczycieli
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                  {detectedAbsences.length} {detectedAbsences.length === 1 ? 'zajęcia z absencją' : 'zajęć z absencją'}
+                </span>
+                {librusLastSync && (
+                  <span className="text-[10px] font-mono text-textMuted/70">
+                    Sync: {new Date(librusLastSync).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-textMuted mt-1">
+                Librus Synergia zgłasza nieobecność kadry pedagogicznej. Lekcje z oznaczonymi nauczycielami mogą zostać odwołane (okienko) lub posiadać wyznaczone zastępstwo:
+              </p>
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {detectedAbsences.map((l, i) => (
+                  <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono bg-black/40 border border-amber-500/30 text-amber-200">
+                    <UserX className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <strong className="text-amber-300">{l.absenceAlert?.teacher || l.teacher}</strong>
+                    <span className="text-textMuted">({l.subject} • {l.time_start}-{l.time_end})</span>:
+                    <span className="text-amber-400 font-semibold">{l.absenceAlert?.hours || 'Cały dzień'}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+            <button
+              onClick={() => setAbsenceFilterOnly(prev => !prev)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all border ${
+                absenceFilterOnly 
+                  ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.4)]' 
+                  : 'bg-surface text-amber-400 border-amber-500/30 hover:bg-amber-500/10'
+              }`}
+            >
+              {absenceFilterOnly ? 'Pokaż wszystkie lekcje' : 'Filtruj tylko zastępstwa'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 2. Statystyki & Trwające Zajęcia (Live Tracker) - Zwijalne */}
       {showStats && (
@@ -670,27 +1039,44 @@ const TimetablePage = () => {
                           currentMinutes >= parseTimeToMinutes(lesson.time_start) && 
                           currentMinutes <= parseTimeToMinutes(lesson.time_end);
                         const duration = Math.max(0, parseTimeToMinutes(lesson.time_end) - parseTimeToMinutes(lesson.time_start));
+                        const hasAbsence = !!lesson.absenceAlert?.isAbsent;
+                        const isCancelled = lesson.isCancelled || lesson.status === 'cancelled';
 
                         return (
                           <div
                             key={lesson.id}
                             className={`glass-panel p-4 rounded-xl border transition-all duration-200 hover:-translate-y-0.5 relative group flex flex-col justify-between ${
-                              isNow 
-                                ? 'border-emerald-500/70 shadow-[0_0_20px_rgba(16,185,129,0.2)] bg-emerald-950/10' 
-                                : `${style.border} ${style.glow} hover:border-white/30`
+                              isCancelled
+                                ? 'border-dashed border-white/20 bg-surface/20 opacity-75'
+                                : hasAbsence
+                                  ? 'border-amber-500/70 shadow-[0_0_20px_rgba(245,158,11,0.25)] bg-amber-950/15 ring-1 ring-amber-500/40'
+                                  : isNow 
+                                    ? 'border-emerald-500/70 shadow-[0_0_20px_rgba(16,185,129,0.2)] bg-emerald-950/10' 
+                                    : `${style.border} ${style.glow} hover:border-white/30`
                             }`}
                           >
                             <div>
                               {/* Pasek górny karty */}
                               <div className="flex items-center justify-between gap-2 mb-2">
-                                <div className="flex items-center gap-1.5">
-                                  <span className={`w-2 h-2 rounded-full ${style.dot}`}></span>
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className={`w-2 h-2 rounded-full ${hasAbsence ? 'bg-amber-400 animate-pulse' : style.dot}`}></span>
                                   <span className={`text-[10px] font-mono px-2 py-0.5 rounded-md border font-semibold ${style.badge}`}>
                                     {lesson.type || 'Zajęcia'}
                                   </span>
                                   {isNow && (
                                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-500 text-background font-bold animate-pulse">
                                       LIVE
+                                    </span>
+                                  )}
+                                  {hasAbsence && (
+                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/50 font-bold flex items-center gap-1 animate-pulse">
+                                      <AlertTriangle className="w-3 h-3 text-amber-400" />
+                                      ABSENCJA ({lesson.absenceAlert.hours})
+                                    </span>
+                                  )}
+                                  {isCancelled && (
+                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/50 font-bold">
+                                      ❌ OKIENKO
                                     </span>
                                   )}
                                 </div>
@@ -708,7 +1094,7 @@ const TimetablePage = () => {
                                 </span>
                               </div>
 
-                              <h3 className="text-base font-bold text-textPrimary tracking-tight leading-snug mb-3">
+                              <h3 className={`text-base font-bold text-textPrimary tracking-tight leading-snug mb-3 ${isCancelled ? 'line-through text-textMuted/60' : ''}`}>
                                 {lesson.subject}
                               </h3>
 
@@ -723,10 +1109,25 @@ const TimetablePage = () => {
                                 {lesson.teacher && (
                                   <div className="flex items-center gap-2">
                                     <User className="w-3.5 h-3.5 text-textMuted/70 shrink-0" />
-                                    <span>{lesson.teacher}</span>
+                                    <span className={hasAbsence ? 'line-through text-amber-400/80 font-medium' : ''}>
+                                      {lesson.teacher}
+                                    </span>
                                   </div>
                                 )}
                               </div>
+
+                              {/* Alert nieobecności nauczyciela */}
+                              {hasAbsence && (
+                                <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-200 mb-3 font-mono leading-relaxed">
+                                  <div className="flex items-center gap-1.5 font-bold text-amber-300 mb-0.5">
+                                    <UserX className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                                    <span>Nauczyciel nieobecny w tych godzinach!</span>
+                                  </div>
+                                  <div className="text-[10px] text-textMuted">
+                                    {lesson.absenceAlert.teacher} ({lesson.absenceAlert.hours}) ➔ Możliwe okienko lub zastępstwo.
+                                  </div>
+                                </div>
+                              )}
 
                               {/* Notatki */}
                               {lesson.notes && (
@@ -743,6 +1144,19 @@ const TimetablePage = () => {
                               </span>
 
                               <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                                {hasAbsence && (
+                                  <button
+                                    onClick={() => handleToggleCancelled(lesson)}
+                                    className={`px-2 py-1 text-[10px] font-mono rounded-lg transition-colors border ${
+                                      isCancelled 
+                                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30' 
+                                        : 'bg-white/5 hover:bg-rose-500/20 text-textMuted hover:text-rose-300 border-white/10'
+                                    }`}
+                                    title={isCancelled ? 'Przywróć lekcję' : 'Oznacz jako odwołaną (okienko)'}
+                                  >
+                                    {isCancelled ? 'Przywróć' : 'Okienko?'}
+                                  </button>
+                                )}
                                 <button
                                   onClick={() => handleDuplicate(lesson)}
                                   className="p-1.5 text-textMuted hover:text-accentPrimary hover:bg-white/5 rounded-lg transition-colors"
@@ -808,20 +1222,37 @@ const TimetablePage = () => {
                       ) : (
                         dayLessons.map(lesson => {
                           const style = COLOR_MAP[lesson.color] || COLOR_MAP.indigo;
+                          const hasAbsence = !!lesson.absenceAlert?.isAbsent;
+                          const isCancelled = lesson.isCancelled || lesson.status === 'cancelled';
+
                           return (
                             <div
                               key={lesson.id}
                               onClick={() => handleOpenEditModal(lesson)}
-                              className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:scale-[1.02] ${style.badge} ${style.border}`}
+                              className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:scale-[1.02] relative ${
+                                isCancelled
+                                  ? 'border-dashed border-white/20 bg-surface/20 opacity-60 line-through'
+                                  : hasAbsence
+                                    ? 'border-amber-500/70 bg-amber-950/25 shadow-[0_0_12px_rgba(245,158,11,0.25)] ring-1 ring-amber-500/30'
+                                    : `${style.badge} ${style.border}`
+                              }`}
                             >
-                              <div className="text-[10px] font-mono font-bold opacity-80 mb-0.5">
-                                {lesson.time_start} - {lesson.time_end}
+                              <div className="flex items-center justify-between text-[10px] font-mono font-bold opacity-80 mb-0.5">
+                                <span>{lesson.time_start} - {lesson.time_end}</span>
+                                {hasAbsence && (
+                                  <span className="text-amber-400 text-[9px] font-bold animate-pulse">⚠️ ABSENCJA</span>
+                                )}
                               </div>
                               <div className="text-xs font-bold text-textPrimary line-clamp-2 leading-tight">
                                 {lesson.subject}
                               </div>
+                              {lesson.teacher && (
+                                <div className={`text-[10px] font-mono mt-0.5 truncate ${hasAbsence ? 'text-amber-300 font-semibold' : 'text-textMuted'}`}>
+                                  {lesson.teacher}
+                                </div>
+                              )}
                               {lesson.room && (
-                                <div className="text-[10px] text-textMuted font-mono mt-1 flex items-center gap-1">
+                                <div className="text-[10px] text-textMuted font-mono mt-0.5 flex items-center gap-1">
                                   <MapPin className="w-2.5 h-2.5 shrink-0" /> {lesson.room}
                                 </div>
                               )}

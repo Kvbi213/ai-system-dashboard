@@ -203,7 +203,13 @@ export function getTimetableContext(timetable = [], now = new Date()) {
     const cleanSubj = cleanSubjectName(l.subject);
     const roomPart = l.room ? `[${l.room}]` : '';
     const teacherPart = l.teacher ? `(${l.teacher})` : '';
-    return `• ${l.time_start || '??'} - ${l.time_end || '??'} ${roomPart} ${cleanSubj} ${teacherPart}`.replace(/\s+/g, ' ').trim();
+    let alertPart = '';
+    if (l.absenceAlert?.isAbsent) {
+      alertPart = `⚠️ [NIEOBECNOŚĆ NAUCZYCIELA: ${l.absenceAlert.teacher}, godz. ${l.absenceAlert.hours} - zastępstwo/okienko]`;
+    } else if (l.isCancelled || l.status === 'cancelled') {
+      alertPart = `❌ [ODWOŁANA - OKIENKO]`;
+    }
+    return `• ${l.time_start || '??'} - ${l.time_end || '??'} ${roomPart} ${cleanSubj} ${teacherPart} ${alertPart}`.replace(/\s+/g, ' ').trim();
   };
 
   const currentLessonFormatted = ongoingLesson ? formatLessonLine(ongoingLesson) : 'Brak (trwa przerwa lub czas wolny poza zajęciami)';

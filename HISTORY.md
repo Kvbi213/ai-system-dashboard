@@ -1,5 +1,25 @@
 ## Wersja Bieżąca
-**v2.22.0**
+**v2.23.0**
+
+## v 2.23.0 — 2026-09-23
+**Typ:** MINOR  
+**Zakres:** Automatyczna Synchronizacja Planu Lekcji z Librus Synergia, Dynamiczna Detekcja Nieobecności Nauczycieli i Korelacja Zastępstw/Okienek w Module Planu Lekcji (`TimetablePage.jsx`), Baner Absencji, Oznaczanie Odwołanych Lekcji, Integracja z Kontekstem Kognitywnym AI (`clientAiDispatcher.js`), Pamięć Podręczna SQLite `librus_timetable_cache` oraz Zestaw Testów Vitest (158/158 PASS).
+
+### Zmiany
+- [+] Dodano: Algorytm korelacji planu lekcji z absencjami w `modules/services/librusService.js` (`cleanTeacherName`, `matchTeacherNames`, `parseTimeToMinutes`, `checkTimeOverlap`, `fetchLibrusTimetableFromSource`, `correlateTimetableWithAbsences`, `saveTimetableToCache`, `getCachedTimetable`, `syncLibrusTimetable`, `getDemoTimetableData`).
+- [+] Dodano: Endpointy REST `GET /api/librus/timetable`, `POST /api/librus/timetable/refresh`, `POST /api/librus/timetable/import-to-schedule` w `modules/routes/librus.js` i `api/librus.js`.
+- [+] Dodano: Replikację planu lekcji i zastępstw do bazy SQLite `librus_timetable_cache` oraz Cloud Firestore `librus_cache/timetable`.
+- [+] Dodano: Nowe funkcjonalności w `modules/pages/TimetablePage.jsx`: bursztynowy baner absencji kadry na wybrany dzień/tydzień, pigułki `⚠️ ABSENCJA (${hours})`, przekreślanie nieobecnych nauczycieli, przycisk i status „Okienko / Odwołana” (`❌ OKIENKO`), szybki filtr „Tylko zmiany / absencje”, przycisk „Pobierz z Librusa” ze statusem ostatniej synchronizacji oraz wsparcie widoku siatki.
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` – formatowanie planu lekcji dla asystenta AI wzbogacono o adnotacje `⚠️ [NIEOBECNOŚĆ NAUCZYCIELA: ...]` oraz `❌ [ODWOŁANA - OKIENKO]`.
+- [+] Dodano: Zestaw testów jednostkowych w `tests/librus.test.js` weryfikujących sanityzację nazwisk, dopasowanie nauczycieli, nakładanie przedziałów czasowych oraz korelację planu lekcji (158/158 PASS).
+- [+] Dodano: Raport wydania `docs/versions/v2.23.0.md`.
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.23.0`.
+- [*] Zmodyfikowano: `ARCHITECTURE.md` – zaktualizowano wersję i architekturę pamięci podręcznej planu lekcji.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.22.0 — 2026-09-23
 **Typ:** MINOR  

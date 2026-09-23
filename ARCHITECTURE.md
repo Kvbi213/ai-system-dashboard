@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.22.0 (Stan na Wrzesień 2026)  
+**Wersja Systemu:** v2.23.0 (Stan na Wrzesień 2026)  
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE)  
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Terminarz Szkolny Librus Synergia w Kalendarzu /calendar, Odświeżony UI/UX Zakładki Ocen /grades z Wagami i Filtrami, SQLite librus_calendar_cache, Vitest 147/147 PASS)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Plan Lekcji z Korelacją Absencji i Zastępstw Librus /timetable, Terminarz Szkolny Librus Synergia w Kalendarzu /calendar, Odświeżony UI/UX Zakładki Ocen /grades z Wagami i Filtrami, SQLite librus_timetable_cache, Vitest 158/158 PASS)
 
 ---
 
@@ -34,8 +34,8 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   ├── main.yml               ← Główny potok CI/CD produkcyjny
 │   └── ci.yml                 ← Równoległy potok weryfikacyjny pull requestów
 │
-├── /tests/                    ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 139/139 PASS, 12 zestawów)
-│   ├── librus.test.js         ← Testy integracji Librus Synergia, parserów ocen i statystyk
+├── /tests/                    ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 158/158 PASS, 12 zestawów)
+│   ├── librus.test.js         ← Testy integracji Librus Synergia (oceny, terminarz, plan lekcji, korelacja absencji i zastępstw)
 │   ├── tts_quota.test.js      ← Testy inspekcji limitów ElevenLabs, błędu quota_exceeded i bazy głosów
 │   ├── agent_execution_trace.test.jsx ← Testy inspektora wykonania narzędzi i uziemienia Pamięci
 │   ├── autonomous_agent.test.js ← Testy agenta ciągłego, klasyfikacji intencji i pętli badawczej
@@ -49,7 +49,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   └── cloudSync.test.js      ← Testy rejestru kolekcji i detekcji środowiska
 │
 ├── /api/                      ← Funkcje Vercel Serverless (Node.js Gateway)
-│   ├── librus.js              ← Gateway do ocen Librus Synergia (CORS *, cloud proxy/demo)
+│   ├── librus.js              ← Gateway do Librus Synergia (/grades, /calendar, /timetable, CORS *, cloud proxy/demo)
 │   ├── agent.js               ← CORS-enabled proxy do openai/gpt-oss-120b z wstrzykiwaniem kontekstu, narzędzi akcji & Live Brave Search
 │   ├── news.js                ← Serverless endpoint newsowy z integracją Brave Search News API i kategoryzacją
 │   ├── models.js              ← Dynamiczny wykaz dostępnych modeli LLM z fallbackiem
@@ -101,9 +101,9 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   └── /pages/              ← Konkretne podstrony w React Router.
 │       ├── Dashboard.jsx    ← Strona startowa. Siatka wszystkich widżetów.
 │       ├── ChatPage.jsx     ← Pełnoekranowy Terminal AI.
-│       ├── GradesPage.jsx   ← Dziennik Ocen & Librus Synergia (szczęśliwy numerek, średnie ważone, widok semestralny, modal detali).
-│       ├── TimetablePage.jsx← Plan Lekcji & Zajęć (Live Tracker, widok osi czasu i siatki, CRUD, Firestore sync).
-│       ├── CalendarPage.jsx ← Kalendarz operacyjny i terminarz zdarzeń.
+│       ├── GradesPage.jsx   ← Dziennik Ocen & Librus Synergia (szczęśliwy numerek, średnie ważone, widok kafelkowy i kompaktowy, wagi na pigułkach, szybkie filtry).
+│       ├── TimetablePage.jsx← Plan Lekcji & Zajęć (Live Tracker, detekcja absencji nauczycieli i zastępstw Librus, oznaczanie okienek, pobieranie z Librusa, Firestore sync).
+│       ├── CalendarPage.jsx ← Kalendarz operacyjny (tryb Osobisty oraz Szkolny Librus z KPI, kartkówkami, sprawdzianami i absencjami).
 │       ├── FinancePage.jsx  ← Finanse, budżet 50/30/20.
 │       ├── WorkoutsPage.jsx ← Dziennik sesji treningowych.
 │       ├── MemoryPage.jsx   ← Pamięć długoterminowa asystenta (Operator Brain).
@@ -145,6 +145,11 @@ Backend to lekka aplikacja oparta na Express.js. Działa na porcie `5000`. Pełn
 | `/api/firebase/data/:col` | `GET` | URL param: `col` | Bezpośredni odczyt dokumentów z kolekcji Firestore w chmurze. |
 | `/api/librus/grades` | `GET` | `?demo=true` | Pobieranie ocen z pamięci podręcznej SQLite / Synergii wraz ze szczęśliwym numerkiem i średnimi. |
 | `/api/librus/refresh` | `POST` | - | Wymuszenie natychmiastowej synchronizacji ocen i szczęśliwego numerka z serwerów Librusa. |
+| `/api/librus/calendar` | `GET` | `?month=&year=` | Pobieranie wydarzeń terminarza szkolnego (sprawdziany, kartkówki, absencje nauczycieli). |
+| `/api/librus/calendar/refresh`| `POST` | `month`, `year` | Wymuszenie synchronizacji terminarza szkolnego z serwerów Librusa. |
+| `/api/librus/timetable` | `GET` | `?from=&to=` | Pobieranie planu lekcji z nałożonymi alertami absencji nauczycieli. |
+| `/api/librus/timetable/refresh`| `POST` | `from`, `to` | Wymuszenie synchronizacji planu lekcji z serwerów Librusa. |
+| `/api/librus/timetable/import-to-schedule` | `POST` | `lessons` | Bezpośredni import pobranego planu z Synergii do głównej tabeli harmonogramu timetable. |
 | `/api/librus/status` | `GET` | - | Status autoryzacji, maskowany login, czas ostatniej synchronizacji i metryki. |
 | `/api/librus/credentials` | `POST` | `login`, `password`, `syncNow` | Zapisanie poświadczeń konta Librus Synergia w .env i pamięci systemu. |
 | `/api/librus/test-auth` | `POST` | `login`, `password` | Jednorazowy test poprawności danych logowania bez ich zapisywania. |
@@ -180,6 +185,18 @@ System bazuje na plikowej bazie SQLite (`/data/tasks.sqlite`), która tworzy si�
    - `last_sync`: DATETIME DEFAULT CURRENT_TIMESTAMP
    - `status`: TEXT ('ok', 'error', 'pending')
    - `error_message`: TEXT (ewentualny komunikat błędu)
+
+4. **`librus_calendar_cache`**
+   - `id`: INTEGER PRIMARY KEY CHECK (id = 1)
+   - `data`: TEXT (zserializowany JSON z wydarzeniami terminarza, kartkówkami, sprawdzianami i nieobecnościami nauczycieli)
+   - `last_sync`: DATETIME DEFAULT CURRENT_TIMESTAMP
+   - `status`: TEXT ('ok', 'error', 'pending')
+
+5. **`librus_timetable_cache`**
+   - `id`: INTEGER PRIMARY KEY CHECK (id = 1)
+   - `data`: TEXT (zserializowany JSON z planem lekcji i skorelowanymi zastępstwami/absencjami)
+   - `last_sync`: DATETIME DEFAULT CURRENT_TIMESTAMP
+   - `status`: TEXT ('ok', 'error', 'pending')
 
 *Moduł `database.js` udostępnia promisyfikowane funkcje `executeQuery` i `executeRun`, co pozwala używać składni `async/await` w całym kodzie backendu.*
 

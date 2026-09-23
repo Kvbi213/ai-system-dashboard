@@ -8,7 +8,10 @@ import {
   getDemoGradesData,
   getCachedCalendar,
   syncLibrusCalendar,
-  getDemoCalendarData
+  getDemoCalendarData,
+  getCachedTimetable,
+  syncLibrusTimetable,
+  getDemoTimetableData
 } from '../services/librusService.js';
 
 const router = express.Router();
@@ -157,6 +160,107 @@ router.post('/calendar/refresh', async (req, res) => {
     res.json({
       success: true,
       message: 'Zsynchronizowano terminarz z Librus Synergia.',
+      data: result.data
+    });
+  } else {
+    res.status(502).json({
+      success: false,
+      error: result.error
+    });
+  }
+});
+
+/**
+ * GET /api/librus/timetable
+ * Pobiera plan lekcji z nałożonymi informacjami o nieobecnościach nauczycieli i zastępstwach.
+ */
+router.get('/timetable', async (req, res) => {
+  const creds = getLibrusCredentials();
+  const forceDemo = req.query.demo === 'true';
+
+  if (forceDemo) {
+    return res.json({
+      success: true,
+      isConfigured: creds.isConfigured,
+      ...getDemoTimetableData()
+    });
+  }
+
+  const cached = await getCachedTimetable();
+  if (cached) {
+    return res.json({
+      success: true,
+      isConfigured: creds.isConfigured,
+      ...cached
+    });
+  }
+
+  // Jeśli brak w cache, ale są poświadczenia — zsynchronizuj
+  if (creds.isConfigured) {
+    const syncRes = await syncLibrusTimetable();
+    if (syncRes.success) {
+      return res.json({
+        success: true,
+        isConfigured: true,
+        ...syncRes.data
+      });
+    }
+  }
+
+  // Fallback demo
+  res.json({
+    success: true,
+    isConfigured: creds.isConfigured,
+    ...getDemoTimetableData()
+  });
+});
+
+/**
+ * POST /api/librus/timetable/refresh
+ * Wymusza natychmiastowe odświeżenie planu lekcji i skorelowanie z nieobecnościami.
+ */
+router.post('/timetable/refresh', async (req, res) => {
+  const creds = getLibrusCredentials();
+  if (!creds.isConfigured) {
+    return res.status(400).json({
+      success: false,
+      error: 'Brak skonfigurowanych poświadczeń Librus Synergia.'
+    });
+  }
+
+  const result = await syncLibrusTimetable({ importToMainSchedule: req.body?.importToMainSchedule === true });
+  if (result.success) {
+    res.json({
+      success: true,
+      message: 'Zsynchronizowano plan lekcji i zastępstwa z Librus Synergia.',
+      data: result.data
+    });
+  } else {
+    res.status(502).json({
+      success: false,
+      error: result.error
+    });
+  }
+});
+
+/**
+ * POST /api/librus/timetable/import-to-schedule
+ * Importuje oficjalny plan z Librusa do aktywnego planu zajęć aplikacji.
+ */
+router.post('/timetable/import-to-schedule', async (req, res) => {
+  const creds = getLibrusCredentials();
+  if (!creds.isConfigured) {
+    return res.status(400).json({
+      success: false,
+      error: 'Brak skonfigurowanych poświadczeń Librus Synergia.'
+    });
+  }
+
+  const result = await syncLibrusTimetable({ importToMainSchedule: true });
+  if (result.success) {
+    res.json({
+      success: true,
+      message: 'Zaimportowano oficjalny plan lekcji do aktywnego harmonogramu OmniDash.',
       data: result.data
     });
   } else {

@@ -62,6 +62,67 @@ export default async function handler(req, res) {
       });
     }
 
+    if (subpath === 'timetable' || req.url.includes('/timetable')) {
+      return res.status(200).json({
+        success: true,
+        isConfigured: !!(login && password),
+        isDemo: true,
+        lastSync: new Date().toISOString(),
+        hours: [
+          '08:00 - 08:45',
+          '08:50 - 09:35',
+          '09:40 - 10:25',
+          '10:40 - 11:25',
+          '11:30 - 12:15',
+          '12:20 - 13:05',
+          '13:15 - 14:00',
+          '14:05 - 14:50',
+          '14:55 - 15:40'
+        ],
+        lessons: [
+          { id: 'librus_mon_1', day: 'monday', subject: 'Informatyka', time_start: '08:50', time_end: '09:35', room: 's. 17', teacher: 'Becker Adam (2 TI gr.2)', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia' },
+          { id: 'librus_mon_2', day: 'monday', subject: 'Informatyka', time_start: '09:40', time_end: '10:25', room: 's. 17', teacher: 'Becker Adam (2 TI gr.2)', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia' },
+          { id: 'librus_tue_1', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:00', time_end: '08:45', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
+          { id: 'librus_wed_1', day: 'wednesday', subject: 'Biznes i zarządzanie', time_start: '10:40', time_end: '11:25', room: 's. 0.2', teacher: 'Sokół Paweł', type: 'Wykład', color: 'blue', notes: '' },
+          { id: 'librus_thu_1', day: 'thursday', subject: 'Język polski', time_start: '08:00', time_end: '08:45', room: 's. 34', teacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '' },
+          { 
+            id: 'librus_thu_5', 
+            day: 'thursday', 
+            subject: 'Język polski', 
+            time_start: '13:15', 
+            time_end: '14:00', 
+            room: 's. 34', 
+            teacher: 'Negowska Alicja', 
+            type: 'Wykład', 
+            color: 'rose', 
+            notes: '⚠️ NIEOBECNOŚĆ: Negowska Alicja (08:50 do 14:50)',
+            absenceAlert: {
+              isAbsent: true,
+              teacher: 'Negowska Alicja',
+              hours: '08:50 do 14:50',
+              date: new Date().toISOString().split('T')[0],
+              description: 'Nieobecność nauczyciela: Negowska Alicja (08:50 do 14:50)',
+              suggestedStatus: 'okienko_or_sub'
+            }
+          },
+          { id: 'librus_fri_1', day: 'friday', subject: 'Język angielski', time_start: '08:00', time_end: '08:45', room: 's. Z2', teacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: '' }
+        ],
+        substitutions: [
+          {
+            lessonId: 'librus_thu_5',
+            day: 'thursday',
+            subject: 'Język polski',
+            time_start: '13:15',
+            time_end: '14:00',
+            teacher: 'Negowska Alicja',
+            absenceTeacher: 'Negowska Alicja',
+            absenceHours: '08:50 do 14:50',
+            absenceDate: new Date().toISOString().split('T')[0]
+          }
+        ]
+      });
+    }
+
     // Jeśli brak poświadczeń na Vercel lub żądanie demo
     if (!login || !password || req.query.demo === 'true') {
       return res.status(200).json({

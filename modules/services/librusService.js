@@ -298,6 +298,24 @@ export async function fetchLibrusFromSource(login, password) {
     console.warn(`[!] ALERT :: LIBRUS :: Pominięto synchronizację terminarza: ${cErr.message}`);
   }
 
+  // Pobierz plan lekcji i skoreluj go z nieobecnościami nauczycieli
+  let timetablePayload = null;
+  try {
+    const rawTt = await fetchLibrusTimetableFromSource(client);
+    const correlated = correlateTimetableWithAbsences(rawTt.lessons, calendarPayload?.events || []);
+    timetablePayload = {
+      hours: rawTt.hours,
+      table: rawTt.table,
+      lessons: correlated.lessons,
+      substitutions: correlated.detectedSubstitutions,
+      lastSync: new Date().toISOString()
+    };
+    await saveTimetableToCache(timetablePayload);
+    console.log(`[+] SUCCESS :: LIBRUS :: Zapisano i skorelowano plan lekcji (${correlated.lessons.length} lekcji, ${correlated.detectedSubstitutions.length} zastępstw/absencji).`);
+  } catch (tErr) {
+    console.warn(`[!] ALERT :: LIBRUS :: Pominięto synchronizację planu lekcji: ${tErr.message}`);
+  }
+
   // Replikacja ocen do Firebase Firestore (dostęp dla void-potato-7721.web.app)
   try {
     const { getFirestoreDb } = await import('../firebase.js');
@@ -313,7 +331,12 @@ export async function fetchLibrusFromSource(login, password) {
     console.warn(`[!] ALERT :: LIBRUS :: Pominięto replikację ocen do Firestore: ${fErr.message}`);
   }
 
-  return { ...payload, calendar: calendarPayload?.events || [] };
+  return { 
+    ...payload, 
+    calendar: calendarPayload?.events || [],
+    timetable: timetablePayload?.lessons || [],
+    substitutions: timetablePayload?.substitutions || []
+  };
 }
 
 /**
@@ -801,6 +824,474 @@ export function getDemoCalendarData() {
         time: 'Lekcja 3 (09:45)',
         subject: 'Język polski',
         description: 'Dziady cz. III oraz Kordian — motyw prometeizmu i tyrteizmu'
+      }
+    ]
+  };
+}
+
+/**
+ * Czyści nazwę nauczyciela z dopisków grup, klas, sal, np. 'Becker Adam (2 TI gr.2)' -> 'Becker Adam'.
+ */
+export function cleanTeacherName(rawTeacher) {
+  if (!rawTeacher || typeof rawTeacher !== 'string') return '';
+  return rawTeacher
+    .replace(/\s*\([^)]*\)/g, '')
+    .replace(/\s*-\s*gr\s*\d+/gi, '')
+    .replace(/\s*gr\s*\.?\s*\d+/gi, '')
+    .replace(/(?:^|\s)(?:mgr|inż|dr|prof|hab|p)\.?(?=\s|$)/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Sprawdza czy dwie reprezentacje nazwiska/imienia nauczyciela odnoszą się do tej samej osoby.
+ */
+export function matchTeacherNames(teacherA, teacherB) {
+  const cleanA = cleanTeacherName(teacherA).toLowerCase();
+  const cleanB = cleanTeacherName(teacherB).toLowerCase();
+  if (!cleanA || !cleanB) return false;
+  if (cleanA === cleanB) return true;
+
+  // Sprawdź czy którekolwiek zawiera drugie
+  if (cleanA.includes(cleanB) || cleanB.includes(cleanA)) return true;
+
+  // Rozbij na tokeny (np. 'Negowska', 'Alicja')
+  const wordsA = cleanA.split(/\s+/).filter(w => w.length > 2);
+  const wordsB = cleanB.split(/\s+/).filter(w => w.length > 2);
+
+  // Jeśli mają chociaż 2 wspólne słowa (imię i nazwisko w dowolnej kolejności)
+  const common = wordsA.filter(w => wordsB.includes(w));
+  if (common.length >= 2) return true;
+
+  // Jeśli mają 1 wspólne słowo o długości >= 4 (np. unikalne nazwisko 'Negowska', 'Wojnarowski')
+  if (common.some(w => w.length >= 4)) return true;
+
+  return false;
+}
+
+/**
+ * Parsuje string czasu 'HH:MM' do minut od północy.
+ */
+export function parseTimeToMinutes(timeStr) {
+  if (!timeStr || typeof timeStr !== 'string') return 0;
+  const match = timeStr.match(/(\d{1,2}):(\d{2})/);
+  if (!match) return 0;
+  return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
+}
+
+/**
+ * Sprawdza czy godziny lekcji nakładają się na godziny absencji.
+ */
+export function checkTimeOverlap(lessonStartStr, lessonEndStr, absenceRangeStr) {
+  if (!absenceRangeStr || typeof absenceRangeStr !== 'string') return true;
+  const lower = absenceRangeStr.toLowerCase().trim();
+  if (lower.includes('cały dzień') || lower === '' || lower === 'brak') return true;
+
+  // Wyodrębnij godziny z absencji np. '08:50 do 14:50' lub '08:50 - 14:50'
+  const timeMatches = absenceRangeStr.match(/(\d{1,2}:\d{2})/g);
+  if (!timeMatches || timeMatches.length < 2) return true;
+
+  const absStart = parseTimeToMinutes(timeMatches[0]);
+  const absEnd = parseTimeToMinutes(timeMatches[1]);
+
+  const lStart = parseTimeToMinutes(lessonStartStr);
+  const lEnd = parseTimeToMinutes(lessonEndStr);
+
+  // Nakładanie przedziałów [lStart, lEnd] i [absStart, absEnd]
+  return Math.max(lStart, absStart) < Math.min(lEnd, absEnd);
+}
+
+/**
+ * Pobiera tygodniowy plan lekcji z Librus Synergia i normalizuje strukturę.
+ */
+export async function fetchLibrusTimetableFromSource(client, from, to) {
+  const rawTimetable = await client.calendar.getTimetable(from, to);
+  if (!rawTimetable || !rawTimetable.table) {
+    return { hours: [], table: {}, lessons: [] };
+  }
+
+  const DAY_KEYS_MAP = {
+    Monday: 'monday',
+    Tuesday: 'tuesday',
+    Wednesday: 'wednesday',
+    Thursday: 'thursday',
+    Friday: 'friday',
+    Saturday: 'saturday',
+    Sunday: 'sunday'
+  };
+
+  const allLessons = [];
+  const normalizedTable = {};
+
+  const capitalize = (str) => {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
+  const determineColor = (subject) => {
+    const s = (subject || '').toLowerCase();
+    if (s.includes('informatyk') || s.includes('systemy') || s.includes('sieci') || s.includes('komputer')) return 'cyan';
+    if (s.includes('matematyk') || s.includes('fizyk')) return 'indigo';
+    if (s.includes('angielski') || s.includes('niemiecki')) return 'amber';
+    if (s.includes('polski') || s.includes('histori')) return 'rose';
+    if (s.includes('chem') || s.includes('biolog') || s.includes('zdrowotna')) return 'emerald';
+    if (s.includes('wychowanie fiz') || s.includes('wf')) return 'purple';
+    return 'blue';
+  };
+
+  const determineType = (subject) => {
+    const s = (subject || '').toLowerCase();
+    if (s.includes('pracownia') || s.includes('laboratorium')) return 'Laboratorium';
+    if (s.includes('ćwiczenia') || s.includes('wf') || s.includes('fizyczne')) return 'Ćwiczenia';
+    if (s.includes('projekt')) return 'Projekt';
+    if (s.includes('angielski') || s.includes('niemiecki')) return 'Lektorat';
+    return 'Wykład';
+  };
+
+  for (const [dayName, lessonsList] of Object.entries(rawTimetable.table)) {
+    const dayId = DAY_KEYS_MAP[dayName] || dayName.toLowerCase();
+    normalizedTable[dayId] = [];
+
+    (lessonsList || []).forEach((item, idx) => {
+      if (!item || !item.subject) return;
+
+      // Rozbij time np. '08:50 - 09:35'
+      const times = (item.time || '').replace(/\u00a0/g, ' ').split(/\s*-\s*/);
+      const timeStart = (times[0] || '08:00').trim();
+      const timeEnd = (times[1] || '08:45').trim();
+
+      const cleanTeacher = cleanTeacherName(item.teacher);
+      const subjectFormatted = capitalize(item.subject.trim());
+      const lessonId = `librus_${dayId}_${idx}_${timeStart.replace(':', '')}`;
+
+      const lessonObj = {
+        id: lessonId,
+        day: dayId,
+        subject: subjectFormatted,
+        time_start: timeStart,
+        time_end: timeEnd,
+        room: item.room ? (item.room.startsWith('s.') ? item.room : `s. ${item.room}`) : '',
+        teacher: item.teacher || '',
+        cleanTeacher: cleanTeacher,
+        type: determineType(item.subject),
+        color: determineColor(item.subject),
+        notes: item.teacher ? `Nauczyciel: ${item.teacher}` : '',
+        isLibrus: true
+      };
+
+      normalizedTable[dayId].push(lessonObj);
+      allLessons.push(lessonObj);
+    });
+  }
+
+  return {
+    hours: rawTimetable.hours || [],
+    table: normalizedTable,
+    lessons: allLessons
+  };
+}
+
+/**
+ * Koreluje plan lekcji z nieobecnościami nauczycieli i zmianami w terminarzu.
+ */
+export function correlateTimetableWithAbsences(lessons, calendarEvents = []) {
+  if (!Array.isArray(lessons)) return { lessons: [], detectedSubstitutions: [] };
+
+  const DAY_INDEX_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const absenceEvents = (calendarEvents || []).filter(e => e && e.type === 'absence' && e.teacher);
+  const detectedSubstitutions = [];
+
+  const correlatedLessons = lessons.map(lesson => {
+    let matchedAbsence = null;
+
+    for (const abs of absenceEvents) {
+      // 1. Sprawdź czy nauczyciel pasuje
+      if (!matchTeacherNames(lesson.teacher || lesson.cleanTeacher, abs.teacher)) {
+        continue;
+      }
+
+      // 2. Sprawdź dzień tygodnia na podstawie daty absencji
+      let absDayOfWeek = null;
+      if (abs.date) {
+        try {
+          const d = new Date(abs.date + 'T12:00:00Z');
+          absDayOfWeek = DAY_INDEX_NAMES[d.getUTCDay()];
+        } catch {}
+      }
+
+      if (absDayOfWeek && absDayOfWeek !== lesson.day) {
+        continue; // Zdarzenie z innego dnia tygodnia
+      }
+
+      // 3. Sprawdź czy godziny lekcji nakładają się na godziny absencji
+      const isOverlap = checkTimeOverlap(lesson.time_start, lesson.time_end, abs.time || abs.range || '');
+      if (isOverlap) {
+        matchedAbsence = abs;
+        break;
+      }
+    }
+
+    if (matchedAbsence) {
+      const alertInfo = {
+        isAbsent: true,
+        teacher: matchedAbsence.teacher,
+        hours: matchedAbsence.time || 'Cały dzień',
+        date: matchedAbsence.date || '',
+        description: matchedAbsence.description || `Nieobecność nauczyciela: ${matchedAbsence.teacher}`,
+        suggestedStatus: 'okienko_or_sub'
+      };
+
+      const enriched = {
+        ...lesson,
+        absenceAlert: alertInfo,
+        notes: lesson.notes 
+          ? `${lesson.notes} | ⚠️ NIEOBECNOŚĆ: ${matchedAbsence.teacher} (${alertInfo.hours})`
+          : `⚠️ NIEOBECNOŚĆ: ${matchedAbsence.teacher} (${alertInfo.hours})`
+      };
+
+      detectedSubstitutions.push({
+        lessonId: lesson.id,
+        day: lesson.day,
+        subject: lesson.subject,
+        time_start: lesson.time_start,
+        time_end: lesson.time_end,
+        teacher: lesson.teacher,
+        absenceTeacher: matchedAbsence.teacher,
+        absenceHours: alertInfo.hours,
+        absenceDate: matchedAbsence.date
+      });
+
+      return enriched;
+    }
+
+    return lesson;
+  });
+
+  return {
+    lessons: correlatedLessons,
+    detectedSubstitutions
+  };
+}
+
+/**
+ * Zapisuje plan lekcji z buforem zastępstw do SQLite oraz replikuje do Firestore (librus_cache/timetable).
+ */
+export async function saveTimetableToCache(payload) {
+  try {
+    await executeRun(`
+      CREATE TABLE IF NOT EXISTS librus_timetable_cache (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        data TEXT NOT NULL,
+        last_sync DATETIME DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'ok',
+        error_message TEXT
+      )
+    `);
+    await executeRun(
+      `INSERT OR REPLACE INTO librus_timetable_cache (id, data, last_sync, status, error_message)
+       VALUES (1, ?, datetime('now'), 'ok', NULL)`,
+      [JSON.stringify(payload)]
+    );
+  } catch (err) {
+    console.error('[!] ERROR :: LIBRUS :: Błąd zapisu librus_timetable_cache w SQLite:', err.message);
+  }
+
+  // Replikacja do Firestore (dokument librus_cache/timetable - dozwolona kolekcja w firestore.rules)
+  try {
+    const { getFirestoreDb } = await import('../firebase.js');
+    const firestoreDb = getFirestoreDb ? getFirestoreDb() : null;
+    if (firestoreDb) {
+      await firestoreDb.collection('librus_cache').doc('timetable').set({
+        ...payload,
+        updated_at: new Date().toISOString()
+      });
+      console.log(`[+] SUCCESS :: LIBRUS :: Zreplikowano plan lekcji i zastępstwa do Firestore (librus_cache/timetable).`);
+    }
+  } catch (fErr) {
+    console.warn(`[!] ALERT :: LIBRUS :: Pominięto replikację planu lekcji do Firestore: ${fErr.message}`);
+  }
+}
+
+/**
+ * Zwraca zbuforowany plan lekcji i zastępstwa z SQLite.
+ */
+export async function getCachedTimetable() {
+  try {
+    const rows = await executeQuery('SELECT * FROM librus_timetable_cache WHERE id = 1');
+    if (rows && rows.length > 0) {
+      const row = rows[0];
+      const parsedData = JSON.parse(row.data);
+      return {
+        cached: true,
+        lastSync: row.last_sync,
+        status: row.status,
+        ...parsedData
+      };
+    }
+  } catch (err) {
+    console.error('[!] ERROR :: LIBRUS :: Błąd odczytu librus_timetable_cache:', err.message);
+  }
+  return null;
+}
+
+/**
+ * Wymusza synchronizację planu lekcji z Librusa, korelując go z aktualnymi nieobecnościami.
+ */
+export async function syncLibrusTimetable(options = {}) {
+  const creds = getLibrusCredentials();
+  if (!creds.isConfigured) {
+    return { success: false, error: 'Brak skonfigurowanych poświadczeń Librus Synergia.' };
+  }
+
+  try {
+    const LibrusClass = (await import('librus-api')).default;
+    const client = new LibrusClass();
+    await client.authorize(creds.login, creds.password);
+
+    // 1. Pobierz terminarz dla zdarzeń nieobecności
+    const calPayload = await fetchLibrusCalendarFromSource(client);
+    await saveCalendarToCache(calPayload);
+
+    // 2. Pobierz plan lekcji
+    const rawTt = await fetchLibrusTimetableFromSource(client);
+
+    // 3. Skoreluj lekcje z nieobecnościami nauczycieli
+    const correlated = correlateTimetableWithAbsences(rawTt.lessons, calPayload?.events || []);
+
+    const timetablePayload = {
+      hours: rawTt.hours,
+      table: rawTt.table,
+      lessons: correlated.lessons,
+      substitutions: correlated.detectedSubstitutions,
+      lastSync: new Date().toISOString()
+    };
+
+    await saveTimetableToCache(timetablePayload);
+
+    // 4. Opcjonalny import do aktywnego planu zajęć aplikacji (tabela `timetable`)
+    if (options.importToMainSchedule) {
+      try {
+        await executeRun(`DELETE FROM timetable WHERE id LIKE 'librus_%'`);
+        for (const l of correlated.lessons) {
+          await executeRun(
+            `INSERT OR REPLACE INTO timetable (id, day, subject, time_start, time_end, room, teacher, type, color, notes)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [l.id, l.day, l.subject, l.time_start, l.time_end, l.room || '', l.teacher || '', l.type || 'Wykład', l.color || 'indigo', l.notes || '']
+          );
+        }
+        console.log(`[+] SUCCESS :: LIBRUS :: Zaimportowano ${correlated.lessons.length} lekcji do tabeli timetable.`);
+      } catch (impErr) {
+        console.warn(`[!] ALERT :: LIBRUS :: Błąd importu do tabeli timetable: ${impErr.message}`);
+      }
+    }
+
+    return { success: true, data: timetablePayload };
+  } catch (err) {
+    console.error(`[!] ERROR :: LIBRUS :: Błąd synchronizacji planu lekcji:`, err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Zwraca realistyczne dane demonstracyjne planu lekcji wraz z nałożonymi absencjami.
+ */
+export function getDemoTimetableData() {
+  const demoLessons = [
+    // Poniedziałek
+    { id: 'librus_mon_1', day: 'monday', subject: 'Informatyka', time_start: '08:50', time_end: '09:35', room: 's. 17', teacher: 'Becker Adam (2 TI gr.2)', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia' },
+    { id: 'librus_mon_2', day: 'monday', subject: 'Informatyka', time_start: '09:40', time_end: '10:25', room: 's. 17', teacher: 'Becker Adam (2 TI gr.2)', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia' },
+    { id: 'librus_mon_3', day: 'monday', subject: 'Chemia', time_start: '10:40', time_end: '11:25', room: 's. 31', teacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '' },
+    { id: 'librus_mon_4', day: 'monday', subject: 'Edukacja zdrowotna', time_start: '11:30', time_end: '12:15', room: 's. 38', teacher: 'Spych Monika', type: 'Wykład', color: 'emerald', notes: '' },
+    { id: 'librus_mon_5', day: 'monday', subject: 'Systemy operacyjne', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_mon_6', day: 'monday', subject: 'Systemy operacyjne', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
+
+    // Wtorek
+    { id: 'librus_tue_1', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:00', time_end: '08:45', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_tue_2', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:50', time_end: '09:35', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_tue_3', day: 'tuesday', subject: 'Zajęcia z wychowawcą', time_start: '09:40', time_end: '10:25', room: 's. 1.16', teacher: 'Ziemba Joanna', type: 'Wykład', color: 'amber', notes: '' },
+    { id: 'librus_tue_4', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '10:40', time_end: '11:25', room: 's. WF', teacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: '' },
+    { id: 'librus_tue_5', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '11:30', time_end: '12:15', room: 's. WF', teacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: '' },
+    { id: 'librus_tue_6', day: 'tuesday', subject: 'Matematyka', time_start: '14:05', time_end: '14:50', room: 's. 26', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
+
+    // Środa
+    { id: 'librus_wed_1', day: 'wednesday', subject: 'Biznes i zarządzanie', time_start: '10:40', time_end: '11:25', room: 's. 0.2', teacher: 'Sokół Paweł', type: 'Wykład', color: 'blue', notes: '' },
+    { id: 'librus_wed_2', day: 'wednesday', subject: 'Biologia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '' },
+    { id: 'librus_wed_3', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Gembiak Bartosz', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_wed_4', day: 'wednesday', subject: 'Historia', time_start: '14:05', time_end: '14:50', room: 's. 06', teacher: 'Wardyn Wojciech', type: 'Wykład', color: 'rose', notes: '' },
+    { id: 'librus_wed_5', day: 'wednesday', subject: 'Matematyka', time_start: '14:55', time_end: '15:40', room: 's. 26', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
+
+    // Czwartek
+    { 
+      id: 'librus_thu_1', 
+      day: 'thursday', 
+      subject: 'Język polski', 
+      time_start: '08:00', 
+      time_end: '08:45', 
+      room: 's. 34', 
+      teacher: 'Negowska Alicja', 
+      type: 'Wykład', 
+      color: 'rose', 
+      notes: ''
+    },
+    { id: 'librus_thu_2', day: 'thursday', subject: 'Język angielski zawodowy', time_start: '08:50', time_end: '09:35', room: 's. Z2', teacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: '' },
+    { id: 'librus_thu_3', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_thu_4', day: 'thursday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 05', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
+    { 
+      id: 'librus_thu_5', 
+      day: 'thursday', 
+      subject: 'Język polski', 
+      time_start: '13:15', 
+      time_end: '14:00', 
+      room: 's. 34', 
+      teacher: 'Negowska Alicja', 
+      type: 'Wykład', 
+      color: 'rose', 
+      notes: '⚠️ NIEOBECNOŚĆ: Negowska Alicja (08:50 do 14:50)',
+      absenceAlert: {
+        isAbsent: true,
+        teacher: 'Negowska Alicja',
+        hours: '08:50 do 14:50',
+        date: '2026-09-24',
+        description: 'Nieobecność nauczyciela: Negowska Alicja (08:50 do 14:50)',
+        suggestedStatus: 'okienko_or_sub'
+      }
+    },
+
+    // Piątek
+    { id: 'librus_fri_1', day: 'friday', subject: 'Język angielski', time_start: '08:00', time_end: '08:45', room: 's. Z2', teacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: '' },
+    { id: 'librus_fri_2', day: 'friday', subject: 'Język niemiecki', time_start: '08:50', time_end: '09:35', room: 's. Z1', teacher: 'Chyła Beata', type: 'Lektorat', color: 'amber', notes: '' },
+    { id: 'librus_fri_3', day: 'friday', subject: 'Wychowanie fizyczne', time_start: '09:40', time_end: '10:25', room: 's. WF', teacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: '' },
+    { id: 'librus_fri_4', day: 'friday', subject: 'Lokalne sieci komputerowe', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Wykład', color: 'cyan', notes: '' },
+    { id: 'librus_fri_5', day: 'friday', subject: 'Chemia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '' },
+    { id: 'librus_fri_6', day: 'friday', subject: 'Edukacja obywatelska', time_start: '12:20', time_end: '13:05', room: 's. 09', teacher: 'Czarna Alicja', type: 'Wykład', color: 'rose', notes: '' }
+  ];
+
+  return {
+    isDemo: true,
+    lastSync: new Date().toISOString(),
+    hours: [
+      '08:00 - 08:45',
+      '08:50 - 09:35',
+      '09:40 - 10:25',
+      '10:40 - 11:25',
+      '11:30 - 12:15',
+      '12:20 - 13:05',
+      '13:15 - 14:00',
+      '14:05 - 14:50',
+      '14:55 - 15:40'
+    ],
+    lessons: demoLessons,
+    substitutions: [
+      {
+        lessonId: 'librus_thu_5',
+        day: 'thursday',
+        subject: 'Język polski',
+        time_start: '13:15',
+        time_end: '14:00',
+        teacher: 'Negowska Alicja',
+        absenceTeacher: 'Negowska Alicja',
+        absenceHours: '08:50 do 14:50',
+        absenceDate: '2026-09-24'
       }
     ]
   };
