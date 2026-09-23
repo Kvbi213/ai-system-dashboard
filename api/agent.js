@@ -494,6 +494,8 @@ export default async function handler(req, res) {
     const workouts = Array.isArray(context.workouts) ? context.workouts : [];
     const brain = Array.isArray(context.operatorBrain) ? context.operatorBrain : [];
     const timetable = Array.isArray(context.timetable) ? context.timetable : [];
+    const librusCalendar = Array.isArray(context.librusCalendar) ? context.librusCalendar : [];
+    const librusGrades = context.librusGrades || null;
 
     // Precyzyjna obsługa czasu i strefy czasowej (Polska / Europe/Warsaw)
     const clientTs = clientTimestamp ? Number(clientTimestamp) : null;
@@ -665,6 +667,33 @@ ${allLessonsStr}`.trim();
       ? brain.slice(0, 10).map(b => `- [${b.category || 'Wiedza'}] ${b.fact || b.content}`).join('\n')
       : 'Brak wpisów w pamięci długoterminowej.';
 
+    // 7. Terminarz szkolny Librus Synergia (sprawdziany, kartkówki, absencje nauczycieli) - ŚCIŚLE READ-ONLY
+    const librusCalendarSummary = librusCalendar.length > 0
+      ? librusCalendar.slice(0, 20).map(e => {
+          const typeLabel = e.type === 'sprawdzian' ? '[SPRAWDZIAN]' : e.type === 'kartkowka' ? '[KARTKÓWKA]' : e.type === 'absence' ? '[ABSENCJA NAUCZYCIELA]' : e.type === 'wywiadowka' ? '[WYWIADÓWKA]' : '[SZKOŁA]';
+          const teacherPart = e.teacher ? ` | Nauczyciel: ${e.teacher}` : '';
+          const timePart = e.time ? ` (${e.time})` : '';
+          return `- [${e.date || 'brak daty'}] ${typeLabel} ${e.title}${timePart}${teacherPart}`;
+        }).join('\n')
+      : 'Brak zarejestrowanych wydarzeń w terminarzu szkolnym Librus.';
+
+    // 8. Oceny i statystyki szkolne Librus Synergia - ŚCIŚLE READ-ONLY
+    let librusGradesSummary = 'Brak zbuforowanych ocen w dzienniku Librus.';
+    if (librusGrades && Array.isArray(librusGrades.subjects) && librusGrades.subjects.length > 0) {
+      const overallAvg = librusGrades.overallAverage || 'b/d';
+      const luckyNum = librusGrades.luckyNumber ? `Szczęśliwy numerek: ${librusGrades.luckyNumber}` : 'Szczęśliwy numerek: brak';
+      const subjectsList = librusGrades.subjects.map(s => {
+        const avg = s.computedAverage || s.average || 'b/d';
+        const allGrades = (s.sem1Grades || []).concat(s.sem2Grades || []).map(g => {
+          const w = g.details?.weight ? ` (waga ${g.details.weight})` : '';
+          return `${g.value}${w}`;
+        }).join(', ');
+        return `• ${s.name}: średnia ${avg} | Oceny: ${allGrades || 'brak'}`;
+      }).join('\n');
+
+      librusGradesSummary = `ŚREDNIA OGÓLNA: ${overallAvg} | ${luckyNum}\nPRZEDMIOTY I OCENY:\n${subjectsList}`;
+    }
+
     const liveIntelBlock = liveWebIntel 
       ? `\n AKTUALNE WYNIKI WYSZUKIWANIA ZE ŚWIATA NA ŻYWO (BRAVE SEARCH LIVE INTEL):\n${liveWebIntel}\n` 
       : '';
@@ -699,6 +728,7 @@ KRYTYCZNE REGUŁY OPERACYJNE:
 6. SPÓJNOŚĆ BAZY SYSTEMU (PLAN LEKCJI vs KALENDARZ): Plan lekcji (Timetable) to dedykowany moduł i dane lekcji już w nim są! NIGDY nie proponuj dodawania istniejącej lekcji z planu zajęć do kalendarza (ADD_EVENT). Kalendarz służy wyłącznie do odrębnych wydarzeń (egzaminy, wizyty lekarskie, spotkania).
 7. ZAWSZE GDY PREZENTUJESZ ZESTAWIENIA, TABELE WYNIKÓW, PROGNOZY POGODY, PORÓWNANIA, FINANSE CZY HARMONOGRAMY, STOSUJ STANDARDOWE TABELE MARKDOWN (GitHub Flavored Markdown z nagłówkami i separatorami |---|---|). System posiada pełny renderer remark-gfm i wyświetla tabele w elegancki, responsywny sposób!
 8. Używaj bogatego formatowania: nagłówki H3/H4, listy, pogrubienia, cytaty.
+9. RYGOR LIBRUS SYNERGIA (ŚCIŚLE READ-ONLY): Dane z systemu Librus (terminarz, sprawdziany, kartkówki, absencje nauczycieli oraz dziennik ocen) są WYŁĄCZNIE DO WGLĄDU. Ani system, ani asystent AI NIE POSIADAJĄ uprawnień ani akcji do edycji, dodawania ani modyfikacji oficjalnych rekordów szkolnych. NIGDY nie emituj żadnych akcji modyfikacji danych Librusa.
 
 DOSTĘPNE NARZĘDZIA AKCJI I INTERAKCJI Z SYSTEMEM (SYSTEM ACTION TAGS):
 Gdy użytkownik prosi Cię o dodanie, modyfikację lub usunięcie danych w systemie, wyemituj na samym końcu odpowiedzi odpowiedni znacznik akcji:
@@ -742,6 +772,12 @@ ${tasksSummary}
 
  PLAN LEKCJI & HARMONOGRAM ZAJĘĆ (TIMETABLE):
 ${timetableSummary}
+
+ TERMINARZ SZKOLNY LIBRUS SYNERGIA (READ-ONLY):
+${librusCalendarSummary}
+
+ DZIENNIK OCEN LIBRUS SYNERGIA (READ-ONLY):
+${librusGradesSummary}
 
  FINANSE & BUDŻET 50/30/20:
 ${financesSummary}
@@ -828,6 +864,12 @@ ${tasksSummary}
 
  PLAN LEKCJI & HARMONOGRAM ZAJĘĆ (TIMETABLE):
 ${timetableSummary}
+
+ TERMINARZ SZKOLNY LIBRUS SYNERGIA (READ-ONLY):
+${librusCalendarSummary}
+
+ DZIENNIK OCEN LIBRUS SYNERGIA (READ-ONLY):
+${librusGradesSummary}
 
  FINANSE & BUDŻET 50/30/20:
 ${financesSummary}

@@ -13,6 +13,7 @@ import {
   correlateTimetableWithAbsences,
   getDemoTimetableData
 } from '../modules/services/librusService.js';
+import { agentTools } from '../modules/ai/tools.js';
 
 describe('Librus Synergia Integration Service', () => {
   describe('parseGradeNumeric', () => {
@@ -325,5 +326,45 @@ Komentarz: Dział 3`;
       expect(absentLesson.teacher).toBe('Negowska Alicja');
     });
   });
+
+  describe('AI Agent Librus Tools (Read-Only Safety & Schema)', () => {
+    it('should define GET_LIBRUS_GRADES and GET_LIBRUS_CALENDAR in agentTools', () => {
+      const gradesTool = agentTools.find(t => t.function?.name === 'GET_LIBRUS_GRADES');
+      const calTool = agentTools.find(t => t.function?.name === 'GET_LIBRUS_CALENDAR');
+
+      expect(gradesTool).toBeDefined();
+      expect(calTool).toBeDefined();
+      expect(gradesTool.function.description).toContain('read-only');
+      expect(calTool.function.description).toContain('read-only');
+    });
+
+    it('should enforce zero write/mutation tools for Librus', () => {
+      const mutatingLibrusTools = agentTools.filter(t => {
+        const name = t.function?.name || '';
+        return (name.includes('LIBRUS') || name.includes('GRADE')) && 
+               (name.startsWith('ADD_') || name.startsWith('UPDATE_') || name.startsWith('DELETE_') || name.startsWith('SET_'));
+      });
+      expect(mutatingLibrusTools.length).toBe(0);
+    });
+
+    it('should configure GET_LIBRUS_GRADES strictly for read-only filtering without mutating fields', () => {
+      const gradesTool = agentTools.find(t => t.function?.name === 'GET_LIBRUS_GRADES');
+      const props = Object.keys(gradesTool.function.parameters.properties);
+      expect(props).toContain('subject');
+      expect(props).not.toContain('grade');
+      expect(props).not.toContain('value');
+      expect(props).not.toContain('action');
+    });
+
+    it('should configure GET_LIBRUS_CALENDAR strictly for read-only query parameters', () => {
+      const calTool = agentTools.find(t => t.function?.name === 'GET_LIBRUS_CALENDAR');
+      const props = Object.keys(calTool.function.parameters.properties);
+      expect(props).toContain('type');
+      expect(props).toContain('date_from');
+      expect(props).not.toContain('title');
+      expect(props).not.toContain('event');
+    });
+  });
 });
+
 

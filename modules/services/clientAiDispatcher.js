@@ -125,6 +125,18 @@ function getClientContextSummary() {
     timetable = Array.isArray(INITIAL_FIRESTORE_DATA?.timetable) ? INITIAL_FIRESTORE_DATA.timetable : [];
   }
 
+  let librusCalendar = [];
+  try {
+    const rawLibrusCal = localStorage.getItem('cloud_cache_librus_calendar');
+    if (rawLibrusCal) librusCalendar = JSON.parse(rawLibrusCal);
+  } catch {}
+
+  let librusGrades = null;
+  try {
+    const rawLibrusGrades = localStorage.getItem('cloud_cache_librus_grades');
+    if (rawLibrusGrades) librusGrades = JSON.parse(rawLibrusGrades);
+  } catch {}
+
   const now = new Date();
   const timeZone = 'Europe/Warsaw';
   const dateStr = now.toLocaleDateString('pl-PL', { timeZone, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -139,6 +151,8 @@ function getClientContextSummary() {
     workouts: Array.isArray(workouts) ? workouts : [],
     operatorBrain: Array.isArray(operatorBrain) ? operatorBrain : [],
     timetable: Array.isArray(timetable) ? timetable : [],
+    librusCalendar: Array.isArray(librusCalendar) ? librusCalendar : [],
+    librusGrades,
     dateStr,
     timeStr,
     timeZone
@@ -1969,6 +1983,30 @@ WSZYSTKIE POZOSTAŁE LEKCJE W TYGODNIU:
         ? `Zarejestrowano ${context.workouts.length} treningów. Ostatnie: ` + context.workouts.slice(0, 5).map(w => `[${w.date || 'b/d'}] ${w.title} (${w.type || 'Siłowy'})`).join(', ')
         : 'Brak sesji treningowych.';
 
+      const librusCalendarSummary = (context.librusCalendar || []).length > 0
+        ? context.librusCalendar.slice(0, 15).map(e => {
+            const typeLabel = e.type === 'sprawdzian' ? '[SPRAWDZIAN]' : e.type === 'kartkowka' ? '[KARTKÓWKA]' : e.type === 'absence' ? '[ABSENCJA NAUCZYCIELA]' : e.type === 'wywiadowka' ? '[WYWIADÓWKA]' : '[SZKOŁA]';
+            const teacherPart = e.teacher ? ` | Nauczyciel: ${e.teacher}` : '';
+            const timePart = e.time ? ` (${e.time})` : '';
+            return `- [${e.date || 'brak daty'}] ${typeLabel} ${e.title}${timePart}${teacherPart}`;
+          }).join('\n')
+        : 'Brak zarejestrowanych wydarzeń w terminarzu szkolnym Librus.';
+
+      let librusGradesSummary = 'Brak zbuforowanych ocen w dzienniku Librus.';
+      if (context.librusGrades && Array.isArray(context.librusGrades.subjects) && context.librusGrades.subjects.length > 0) {
+        const overallAvg = context.librusGrades.overallAverage || 'b/d';
+        const luckyNum = context.librusGrades.luckyNumber ? `Szczęśliwy numerek: ${context.librusGrades.luckyNumber}` : 'Szczęśliwy numerek: brak';
+        const subjectsList = context.librusGrades.subjects.map(s => {
+          const avg = s.computedAverage || s.average || 'b/d';
+          const allGrades = (s.sem1Grades || []).concat(s.sem2Grades || []).map(g => {
+            const w = g.details?.weight ? ` (waga ${g.details.weight})` : '';
+            return `${g.value}${w}`;
+          }).join(', ');
+          return `• ${s.name}: średnia ${avg} | Oceny: ${allGrades || 'brak'}`;
+        }).join('\n');
+        librusGradesSummary = `ŚREDNIA OGÓLNA: ${overallAvg} | ${luckyNum}\nPRZEDMIOTY I OCENY:\n${subjectsList}`;
+      }
+
       const sharedGroundingAndMemoryRules = `
 [BRAIN] DŁUGOTERMINOWA BAZA PAMIĘCI OPERATORA (https://void-potato-7721.web.app/memory):
 ${brainSummary}
@@ -1977,7 +2015,8 @@ ${brainSummary}
 1. NIGDY NIE UFAJ DANYM ANI WŁASNYM ZAŁOŻENIOM Z PRZESZŁOŚCI, KTÓRYCH NIE MA W PAMIĘCI (https://void-potato-7721.web.app/memory) ANI W WYNIKACH WYSZUKIWANIA LIVE! Wszelkie fakty, specyfikacje i modele muszą wynikać wyłącznie z powyższej Bazy Pamięci lub bieżących zweryfikowanych źródeł sieciowych.
 2. ZAPIS DO PAMIĘCI: Masz pełne uprawnienia i obowiązek zapisywać nowo zweryfikowane fakty, preferencje, modele AI i ustalenia w Pamięci https://void-potato-7721.web.app/memory. Aby to zrobić, wyemituj na końcu odpowiedzi:
    [ACTION:REMEMBER fact="Treść faktu do trwałego zapamiętania" category="Modele AI|Wiedza|Preferencje"]
-3. JAWNA TREŚĆ POWIADOMIENIA PUSH W CZACIE: Gdy wysyłasz powiadomienie na telefon za pomocą [ACTION:SEND_PUSH title="..." body="..."], BEZWZGLĘDNIE podaj pełną treść tego powiadomienia również bezpośrednio w tekście wiadomości czatu (użytkownik musi widzieć treść notyfikacji na ekranie)!`;
+3. JAWNA TREŚĆ POWIADOMIENIA PUSH W CZACIE: Gdy wysyłasz powiadomienie na telefon za pomocą [ACTION:SEND_PUSH title="..." body="..."], BEZWZGLĘDNIE podaj pełną treść tego powiadomienia również bezpośrednio w tekście wiadomości czatu (użytkownik musi widzieć treść notyfikacji na ekranie)!
+4. RYGOR LIBRUS SYNERGIA (ŚCIŚLE READ-ONLY): Dane z systemu Librus (terminarz, sprawdziany, kartkówki, absencje nauczycieli oraz oceny) są WYŁĄCZNIE DO WGLĄDU. Asystent AI i system NIE MAJĄ uprawnień ani akcji do edycji, dodawania ani modyfikacji oficjalnych rekordów szkolnych. NIGDY nie emituj żadnych akcji modyfikacji danych Librusa.`;
 
       const systemPrompt = mode === 'mentor'
         ? `Jesteś OMNI MIND — inteligentnym mentorem i analitykiem w systemie OmniDash. Rozmawiasz z ${userName}.
@@ -2028,7 +2067,11 @@ ${financesSummary}
 Treningi:
 ${workoutsSummary}
 Kalendarz:
-${calendarSummary}`
+${calendarSummary}
+Terminarz szkolny Librus Synergia (READ-ONLY):
+${librusCalendarSummary}
+Dziennik ocen Librus Synergia (READ-ONLY):
+${librusGradesSummary}`
         : (mode === 'daemon'
           ? `Jesteś OMNIDAEMON — autonomicznym, całodobowym demonem operacyjnym (OmniDaemon 24/7 Engine) w OmniDash. Rozmawiasz z ${userName}. Prowadzisz badania w tle, odpowiadasz na wiadomości ze smartfona i raportujesz stan.
 Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
@@ -2069,7 +2112,11 @@ ${financesSummary}
 Treningi:
 ${workoutsSummary}
 Kalendarz:
-${calendarSummary}`
+${calendarSummary}
+Terminarz szkolny Librus Synergia (READ-ONLY):
+${librusCalendarSummary}
+Dziennik ocen Librus Synergia (READ-ONLY):
+${librusGradesSummary}`
           : `Jesteś OMNI EXEC — wysoko wyspecjalizowanym inżynieryjnym systemem wykonawczym (Core Worker Engine) w OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
@@ -2118,7 +2165,11 @@ ${financesSummary}
 Treningi:
 ${workoutsSummary}
 Kalendarz:
-${calendarSummary}`);
+${calendarSummary}
+Terminarz szkolny Librus Synergia (READ-ONLY):
+${librusCalendarSummary}
+Dziennik ocen Librus Synergia (READ-ONLY):
+${librusGradesSummary}`);
 
       const candidateModels = [
         activeModel,
@@ -2229,7 +2280,9 @@ ${calendarSummary}`);
         finances: context.finances,
         workouts: context.workouts,
         operatorBrain: context.operatorBrain,
-        timetable: context.timetable
+        timetable: context.timetable,
+        librusCalendar: context.librusCalendar,
+        librusGrades: context.librusGrades
       },
       clientTimestamp: Date.now(),
       clientTimeStr: context.timeStr,
@@ -2283,7 +2336,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
     });
 
     return {
-      content: ` **Zainicjowano wysyłkę powiadomienia Push na Twój telefon.**\n\n- **Tytuł:** ${title}\n- **Treść:** ${body}\n\n*Jeśli powiadomienie nie dotrze, upewnij się, że klucz Pushbullet API jest skonfigurowany w Ustawienia -> Zabezpieczenia.*`,
+      content: `[+] **Zainicjowano wysyłkę powiadomienia Push na Twój telefon.**\n\n- **Tytuł:** ${title}\n- **Treść:** ${body}\n\n*Jeśli powiadomienie nie dotrze, upewnij się, że klucz Pushbullet API jest skonfigurowany w Ustawienia -> Zabezpieczenia.*`,
       mentor_thoughts: `Przekazano bezpośrednie powiadomienie na telefon operatora: "${title}".`,
       widgets: []
     };
@@ -2343,7 +2396,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
     if (pendingTasks.length === 0 && completedTasks.length === 0) {
       content = `### Lista To-Do na dziś\n\nNie masz obecnie żadnych zadań na liście. Możesz dodać nowe zadanie wpisując polecenie (np. *"dodaj zadanie: Przygotować raport"*) lub korzystając z widżetu poniżej:`;
     } else if (pendingTasks.length === 0) {
-      content = `### Wszystkie zadania na dziś ukończone! \n\nAktualnie nie masz żadnych zaległych zadań. Wszystkie **${completedTasks.length}** pozycje zostały zrealizowane:\n\n` +
+      content = `### Wszystkie zadania na dziś ukończone! [OK]\n\nAktualnie nie masz żadnych zaległych zadań. Wszystkie **${completedTasks.length}** pozycje zostały zrealizowane:\n\n` +
         completedTasks.map(t => `- [OK] ~~${t.title}~~`).join('\n') +
         `\n\nMożesz zrelaksować się lub zaplanować nowe cele poniżej:`;
     } else {
@@ -2495,6 +2548,101 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
       content,
       mentor_thoughts: `Przeanalizowano plan lekcji: wygenerowano zestawienie ${timetable.length} kursów.`,
       widgets: ['timetable']
+    };
+  }
+
+  // Obsługa zapytań o terminarz szkolny Librus (sprawdziany, kartkówki, absencje nauczycieli)
+  if (
+    lower.includes('sprawdzian') ||
+    lower.includes('kartkówk') ||
+    lower.includes('nieobecnoś') ||
+    (lower.includes('librus') && (lower.includes('kalendarz') || lower.includes('terminarz') || lower.includes('wydarzen'))) ||
+    lower.includes('terminarz szkolny')
+  ) {
+    const events = Array.isArray(context.librusCalendar) ? context.librusCalendar : [];
+    if (events.length === 0) {
+      return {
+        content: `### Terminarz Szkolny Librus Synergia [READ-ONLY]\n\nBrak zbuforowanych wydarzeń szkolnych z systemu Librus w pamięci podręcznej przeglądarki.\n\n> [!] **Wskazówka:** Przejdź do zakładki **Kalendarz** lub **Plan Lekcji**, aby zsynchronizować terminarz i sprawdzić aktualne sprawdziany, kartkówki oraz nieobecności nauczycieli.`,
+        mentor_thoughts: 'Brak wpisów w pamięci podręcznej terminarza Librus.',
+        widgets: ['calendar']
+      };
+    }
+
+    let filtered = events;
+    if (lower.includes('sprawdzian')) {
+      filtered = events.filter(e => e.type === 'sprawdzian');
+    } else if (lower.includes('kartkówk')) {
+      filtered = events.filter(e => e.type === 'kartkowka');
+    } else if (lower.includes('nieobecnoś')) {
+      filtered = events.filter(e => e.type === 'absence');
+    }
+
+    if (filtered.length === 0) {
+      filtered = events;
+    }
+
+    const tableRows = filtered.slice(0, 15).map(e => {
+      const typeLabel = e.type === 'sprawdzian' ? '[SPRAWDZIAN]' : e.type === 'kartkowka' ? '[KARTKÓWKA]' : e.type === 'absence' ? '[ABSENCJA NAUCZYCIELA]' : e.type === 'wywiadowka' ? '[WYWIADÓWKA]' : '[SZKOŁA]';
+      const teacher = e.teacher || '—';
+      const time = e.time ? ` (${e.time})` : '';
+      return `| \`${e.date || 'B/D'}\` | **${typeLabel}** | **${e.title || 'Wydarzenie'}${time}** | ${teacher} |`;
+    }).join('\n');
+
+    const content = `### Terminarz Szkolny Librus Synergia [READ-ONLY]\n\n` +
+      `Łącznie zbuforowano **${events.length}** wydarzeń w terminarzu szkolnym:\n\n` +
+      `| Data | Typ | Wydarzenie / Zakres | Nauczyciel |\n` +
+      `|---|---|---|---|\n` +
+      tableRows +
+      `\n\n> [!] **Rygor bezpieczeństwa:** Dane z Librusa prezentowane są w trybie **READ-ONLY** (wyłącznie do wglądu, bez możliwości edycji).`;
+
+    return {
+      content,
+      mentor_thoughts: `Przeanalizowano terminarz szkolny Librus (${events.length} pozycji).`,
+      widgets: ['calendar']
+    };
+  }
+
+  // Obsługa zapytań o oceny i średnią Librus (dziennik ocen, szczęśliwy numerek)
+  if (
+    lower.includes('ocen') ||
+    lower.includes('stopni') ||
+    lower.includes('średni') ||
+    lower.includes('szczęśliwy numerek') ||
+    (lower.includes('librus') && (lower.includes('stopie') || lower.includes('przedmiot')))
+  ) {
+    const gradesData = context.librusGrades;
+    if (!gradesData || !Array.isArray(gradesData.subjects) || gradesData.subjects.length === 0) {
+      return {
+        content: `### Dziennik Ocen Librus Synergia [READ-ONLY]\n\nBrak zbuforowanych ocen z oficjalnego dziennika Librus w pamięci podręcznej przeglądarki.\n\n> [!] **Wskazówka:** Przejdź do zakładki **Oceny**, aby załadować aktualne oceny z Librus Synergia.`,
+        mentor_thoughts: 'Brak zbuforowanych ocen Librus.',
+        widgets: []
+      };
+    }
+
+    const overallAvg = gradesData.overallAverage || 'b/d';
+    const luckyNum = gradesData.luckyNumber ? `**${gradesData.luckyNumber}**` : 'brak';
+
+    const subjectsRows = gradesData.subjects.map(s => {
+      const avg = s.computedAverage || s.average || '—';
+      const allGrades = (s.sem1Grades || []).concat(s.sem2Grades || []).map(g => {
+        const w = g.details?.weight ? ` (waga ${g.details.weight})` : '';
+        return `\`${g.value}\`${w}`;
+      }).join(', ');
+      return `| **${s.name}** | \`${avg}\` | ${allGrades || 'brak ocen'} |`;
+    }).join('\n');
+
+    const content = `### Dziennik Ocen Librus Synergia [READ-ONLY]\n\n` +
+      `- **Średnia Ogólna Ocen:** **${overallAvg}**\n` +
+      `- **Szczęśliwy Numerek:** ${luckyNum}\n\n` +
+      `| Przedmiot | Średnia | Oceny i Wagi |\n` +
+      `|---|---|---|\n` +
+      subjectsRows +
+      `\n\n> [!] **Rygor bezpieczeństwa:** Oceny z systemu Librus są prezentowane w trybie **READ-ONLY** (wyłącznie wgląd, zero edycji danych).`;
+
+    return {
+      content,
+      mentor_thoughts: `Przeanalizowano dziennik ocen Librus (średnia ogólna: ${overallAvg}, ${gradesData.subjects.length} przedmiotów).`,
+      widgets: []
     };
   }
 

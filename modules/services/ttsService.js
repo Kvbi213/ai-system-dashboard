@@ -15,6 +15,37 @@ const isCloudEnvironment = () => {
          (host !== 'localhost' && host !== '127.0.0.1');
 };
 
+export const BROWSER_DEFAULT_VOICES = [
+  { id: 'Google polski', name: 'Google polski (Chrome / Web Speech - Bezpłatny)', lang: 'pl-PL' },
+  { id: 'default', name: 'Domyślny głos systemowy (pl-PL)', lang: 'pl-PL' }
+];
+
+export function getBrowserVoices() {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    return BROWSER_DEFAULT_VOICES;
+  }
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) {
+    return BROWSER_DEFAULT_VOICES;
+  }
+  const mapped = voices.map(v => ({
+    id: v.name,
+    name: `${v.name} (${v.lang})${v.default ? ' [Domyślny]' : ''}`,
+    lang: v.lang,
+    isPolish: Boolean(v.lang?.startsWith('pl') || v.name?.toLowerCase().includes('polski') || v.name?.toLowerCase().includes('polish'))
+  }));
+
+  mapped.sort((a, b) => {
+    if (a.id === 'Google polski') return -1;
+    if (b.id === 'Google polski') return 1;
+    if (a.isPolish && !b.isPolish) return -1;
+    if (!a.isPolish && b.isPolish) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  return mapped;
+}
+
 export const EDGE_DEFAULT_VOICES = [
   { id: 'pl-PL-MarekNeural', name: 'Marek (Męski - Studio Neural / Naturalny)' },
   { id: 'pl-PL-ZofiaNeural', name: 'Zofia (Damski - Studio Neural / Ciepły)' },
@@ -197,7 +228,8 @@ class TTSService {
   getEngine() {
     if (typeof localStorage !== 'undefined') {
       const stored = localStorage.getItem('system_tts_engine');
-      if (stored && stored !== 'web') return stored; // 'elevenlabs' | 'google' | 'edge' | 'openai'
+      if (stored === 'web') return 'browser';
+      if (stored) return stored; // 'browser' | 'elevenlabs' | 'google' | 'edge' | 'openai'
     }
     // Domyślnie ElevenLabs jeśli skonfigurowany jest klucz, następnie Google Cloud lub Edge Neural
     if (this.getElevenLabsKey()) return 'elevenlabs';
@@ -240,6 +272,9 @@ class TTSService {
   getVoiceId() {
     if (typeof localStorage === 'undefined') return '';
     const engine = this.getEngine();
+    if (engine === 'browser') {
+      return localStorage.getItem('system_browser_voice_id') || 'Google polski';
+    }
     if (engine === 'google') {
       return localStorage.getItem('system_google_voice_id') || GOOGLE_DEFAULT_VOICES[0].id;
     }
@@ -290,6 +325,92 @@ class TTSService {
   }
 
   /**
+   * Synteza za pomocą natywnego Web Speech API przeglądarki (Darmowy Google Chrome / Google polski / Brak Limitów)
+   */
+  speakWithBrowserTTS(text, voiceId, { onStart, onEnd, onError } = {}) {
+    return new Promise((resolve, reject) => {
+      if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+        const err = new Error('Przeglądarka nie wspiera Web Speech API (speechSynthesis).');
+        if (onError) onError(err);
+        reject(err);
+        return;
+      }
+
+      try {
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        this.currentUtterance = utterance;
+
+        const voices = window.speechSynthesis.getVoices();
+        let selectedVoice = null;
+        if (voiceId) {
+          selectedVoice = voices.find(v => v.name === voiceId || v.voiceURI === voiceId);
+        }
+        if (!selectedVoice) {
+          selectedVoice = voices.find(v => v.name === 'Google polski') ||
+                          voices.find(v => v.lang && v.lang.startsWith('pl')) ||
+                          voices.find(v => v.default) ||
+                          voices[0] ||
+                          null;
+        }
+
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+          utterance.lang = selectedVoice.lang || 'pl-PL';
+        } else {
+          utterance.lang = 'pl-PL';
+        }
+
+        const rate = typeof localStorage !== 'undefined' ? parseFloat(localStorage.getItem('system_voice_rate') || '1.0') : 1.0;
+        utterance.rate = isNaN(rate) ? 1.0 : Math.min(2.0, Math.max(0.5, rate));
+
+        let hasEnded = false;
+        const safeEnd = () => {
+          if (hasEnded) return;
+          hasEnded = true;
+          this._isSpeaking = false;
+          this.currentUtterance = null;
+          if (onEnd) onEnd();
+          resolve();
+        };
+
+        utterance.onstart = () => {
+          this._isSpeaking = true;
+          if (onStart) onStart();
+        };
+
+        utterance.onend = () => {
+          safeEnd();
+        };
+
+        utterance.onerror = (event) => {
+          if (event.error === 'interrupted' || event.error === 'canceled') {
+            safeEnd();
+            return;
+          }
+          this._isSpeaking = false;
+          this.currentUtterance = null;
+          const err = new Error(`Błąd Web Speech API: ${event.error || 'Nieznany błąd syntezy'}`);
+          if (onError) onError(err);
+          reject(err);
+        };
+
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        this._isSpeaking = false;
+        this.currentUtterance = null;
+        if (onError) onError(err);
+        reject(err);
+      }
+    });
+  }
+
+  /**
    * Główna metoda odtwarzająca mowę z automatycznym wyborem silnika i fallbackiem
    */
   async speak(text, { engine: explicitEngine, voiceId: explicitVoiceId, apiKey: explicitApiKey, onStart, onEnd, onError } = {}) {
@@ -301,7 +422,18 @@ class TTSService {
     }
 
     let engine = explicitEngine || this.getEngine();
-    if (engine === 'web') engine = 'edge';
+    if (engine === 'web') engine = 'browser';
+
+    // 0. DARMOWY SILNIK PRZEGLĄDARKI GOOGLE CHROME (WEB SPEECH API)
+    if (engine === 'browser') {
+      const voiceId = explicitVoiceId || this.getVoiceId();
+      try {
+        await this.speakWithBrowserTTS(clean, voiceId, { onStart, onEnd, onError });
+        return;
+      } catch (err) {
+        console.warn('[TTSService] Błąd Browser Web Speech TTS:', err.message);
+      }
+    }
 
     // 1. SILNIK ELEVENLABS (STUDIO HYPER-REALISTIC QUALITY)
     if (engine === 'elevenlabs') {
@@ -340,6 +472,15 @@ class TTSService {
         } catch (edgeErr) {
           console.warn('[TTSService] Błąd Edge TTS fallback:', edgeErr.message);
         }
+
+        // Rezerwowy 3: Darmowy silnik przeglądarki Chrome / Web Speech (Google polski)
+        try {
+          console.info('[TTSService] Uruchomienie rezerwowego darmowego silnika Chrome (Web Speech).');
+          await this.speakWithBrowserTTS(clean, localStorage.getItem('system_browser_voice_id') || 'Google polski', { onStart, onEnd, onError });
+          return;
+        } catch (bErr) {
+          console.warn('[TTSService] Błąd Browser TTS fallback:', bErr.message);
+        }
       }
     }
 
@@ -358,6 +499,13 @@ class TTSService {
           return;
         } catch (edgeErr) {
           console.warn('[TTSService] Błąd rezerwowego Edge TTS:', edgeErr.message);
+        }
+
+        try {
+          await this.speakWithBrowserTTS(clean, localStorage.getItem('system_browser_voice_id') || 'Google polski', { onStart, onEnd, onError });
+          return;
+        } catch (bErr) {
+          console.warn('[TTSService] Błąd Browser TTS fallback:', bErr.message);
         }
       }
     }
@@ -379,6 +527,13 @@ class TTSService {
             console.warn('[TTSService] Błąd rezerwowego Google TTS:', gErr.message);
           }
         }
+
+        try {
+          await this.speakWithBrowserTTS(clean, localStorage.getItem('system_browser_voice_id') || 'Google polski', { onStart, onEnd, onError });
+          return;
+        } catch (bErr) {
+          console.warn('[TTSService] Błąd Browser TTS fallback:', bErr.message);
+        }
       }
     }
 
@@ -398,18 +553,30 @@ class TTSService {
         } catch (edgeErr) {
           console.warn('[TTSService] Błąd rezerwowego Edge TTS:', edgeErr.message);
         }
+
+        try {
+          await this.speakWithBrowserTTS(clean, localStorage.getItem('system_browser_voice_id') || 'Google polski', { onStart, onEnd, onError });
+          return;
+        } catch (bErr) {
+          console.warn('[TTSService] Błąd Browser TTS fallback:', bErr.message);
+        }
       }
     }
 
-    // Zero drewnianych głosów Web Speech! Emitujemy błąd systemowy zamiast odtwarzania robotycznego głosu.
-    const failError = new Error('Wszystkie dostępne silniki studyjnej syntezy mowy zgłosiły błąd.');
+    // Ostateczna próba odtworzenia za pomocą przeglądarki Web Speech jeśli cokolwiek innego zawiodło
+    try {
+      await this.speakWithBrowserTTS(clean, localStorage.getItem('system_browser_voice_id') || 'Google polski', { onStart, onEnd, onError });
+      return;
+    } catch {}
+
+    const failError = new Error('Wszystkie dostępne silniki syntezy mowy zgłosiły błąd.');
     console.error('[TTSService] Niepowodzenie syntezy mowy AI:', failError);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('systemAlert', {
         detail: {
           type: 'error',
           title: 'Błąd Syntezy Mowy AI',
-          message: 'Nie udało się odtworzyć mowy z dostępnych silników studyjnych (ElevenLabs / Google Cloud / Edge Neural). Sprawdź połączenie i klucze API w Ustawieniach.'
+          message: 'Nie udało się odtworzyć mowy z dostępnych silników (Google Chrome / ElevenLabs / Google Cloud / Edge Neural). Sprawdź ustawienia audio.'
         }
       }));
     }

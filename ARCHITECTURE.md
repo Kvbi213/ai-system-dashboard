@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.23.3 (Stan na Wrzesień 2026) 
+**Wersja Systemu:** v2.24.0 (Stan na Wrzesień 2026) 
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE) 
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Eliminacja ReferenceError w SettingsPage, Zero-Emoji Policy, Plan Lekcji z Pełnymi Danymi Kadry i Korelacją Absencji /timetable, Terminarz Szkolny Librus Synergia w Kalendarzu /calendar, Vitest 161/161 PASS)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Darmowy Silnik Syntezy Mowy Google Chrome Web Speech TTS, Dostęp Kognitywny AI do Terminarza Szkolnego i Dziennika Ocen Librus Synergia w Rygorze Ściśle READ-ONLY, Vitest 166/166 PASS)
 
 ---
 
@@ -154,6 +154,8 @@ Backend to lekka aplikacja oparta na Express.js. Działa na porcie `5000`. Pełn
 | `/api/librus/status` | `GET` | - | Status autoryzacji, maskowany login, czas ostatniej synchronizacji i metryki. |
 | `/api/librus/credentials` | `POST` | `login`, `password`, `syncNow` | Zapisanie poświadczeń konta Librus Synergia w .env i pamięci systemu. |
 | `/api/librus/test-auth` | `POST` | `login`, `password` | Jednorazowy test poprawności danych logowania bez ich zapisywania. |
+| `/api/voice/tts` | `POST` | `engine`, `text`, `voiceId`, `apiKey` | Wielosilnikowa synteza mowy (Edge Neural, ElevenLabs, Google Cloud Neural, Browser Web Speech). |
+| `/api/voice/transcribe` | `POST` | `audioData`, `language` | Transkrypcja nagrań audio mikrofonu z użyciem Groq Whisper API. |
 
 ---
 
@@ -234,6 +236,8 @@ Agent w trybie `worker` potrafi sam zidentyfikować potrzebę użycia narzędzia
 - `executeWebSearch`: Odpytywanie Brave o najświeższe fakty.
 - `ADD_TO_DO`, `DELETE_TO_DO`, `UPDATE_TO_DO`: Bezpośrednia modyfikacja bazy danych sqlite z poziomu "rozmowy" poprzez NLP.
 - `GET_ALL_TASKS`: Skanowanie pełnej listy zadań do celów zarządczych.
+- `GET_LIBRUS_GRADES` [READ-ONLY]: Pobieranie ocen, średnich ważonych i szczęśliwego numerka ze zbuforowanego dziennika Librus Synergia.
+- `GET_LIBRUS_CALENDAR` [READ-ONLY]: Pobieranie terminarza szkolnego (sprawdziany, kartkówki, absencje nauczycieli). Dostęp ściśle odczytowy.
 
 ---
 

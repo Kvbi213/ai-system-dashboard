@@ -193,8 +193,14 @@ const GradesPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cloud_cache_librus_grades');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return null;
+  });
+  const [loading, setLoading] = useState(() => !localStorage.getItem('cloud_cache_librus_grades'));
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [useDemo, setUseDemo] = useState(false);
@@ -312,6 +318,17 @@ const GradesPage = () => {
       console.debug('[Firestore] Inicjalizacja subskrypcji librus pominięta:', e);
     }
   }, [useDemo]);
+
+  // Synchronizacja pamięci podręcznej przeglądarki dla asystenta AI (READ-ONLY)
+  useEffect(() => {
+    if (data && Array.isArray(data.subjects) && data.subjects.length > 0) {
+      try {
+        localStorage.setItem('cloud_cache_librus_grades', JSON.stringify(data));
+      } catch (err) {
+        console.debug('[Librus] Błąd zapisu cache ocen do localStorage:', err);
+      }
+    }
+  }, [data]);
 
   // Wymuszenie odświeżenia przez serwer
   const handleForceRefresh = async () => {

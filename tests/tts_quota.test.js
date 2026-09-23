@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { checkElevenLabsQuota, ttsService, ELEVENLABS_DEFAULT_VOICES, GOOGLE_DEFAULT_VOICES } from '../modules/services/ttsService.js';
+import { checkElevenLabsQuota, ttsService, ELEVENLABS_DEFAULT_VOICES, GOOGLE_DEFAULT_VOICES, BROWSER_DEFAULT_VOICES } from '../modules/services/ttsService.js';
 
 const localStorageMock = (() => {
   let store = {};
@@ -136,15 +136,23 @@ describe('TTS Service & ElevenLabs Quota Management', () => {
     });
   });
 
-  describe('4. Google Cloud Neural TTS & Eliminacja Web Speech', () => {
-    it('całkowicie usuwa speakWithWebSpeech z obiektu ttsService', () => {
-      expect(ttsService.speakWithWebSpeech).toBeUndefined();
+  describe('4. Google Cloud Neural TTS & Google Chrome Browser Web Speech TTS', () => {
+    it('udostępnia funkcję speakWithBrowserTTS w obiekcie ttsService', () => {
+      expect(typeof ttsService.speakWithBrowserTTS).toBe('function');
     });
 
-    it('migruje silnik web na bezpieczny domyślny silnik studyjny', () => {
+    it('obsługuje silnik browser oraz migruje legacy web na silnik browser', () => {
+      localStorage.setItem('system_tts_engine', 'browser');
+      expect(ttsService.getEngine()).toBe('browser');
+
       localStorage.setItem('system_tts_engine', 'web');
-      expect(ttsService.getEngine()).not.toBe('web');
-      expect(['edge', 'elevenlabs', 'google']).toContain(ttsService.getEngine());
+      expect(ttsService.getEngine()).toBe('browser');
+    });
+
+    it('zawiera darmowy głos Google polski w domyślnych głosach przeglądarkowych', () => {
+      const voiceIds = BROWSER_DEFAULT_VOICES.map(v => v.id);
+      expect(voiceIds).toContain('Google polski');
+      expect(BROWSER_DEFAULT_VOICES.length).toBeGreaterThanOrEqual(2);
     });
 
     it('zawiera zweryfikowane głosy Google WaveNet i Neural2', () => {

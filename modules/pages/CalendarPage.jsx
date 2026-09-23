@@ -77,7 +77,13 @@ const CalendarPage = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Wydarzenia szkolne z Librusa (terminarz, kartkówki, sprawdziany, nieobecności nauczycieli)
-  const [schoolEvents, setSchoolEvents] = useState([]);
+  const [schoolEvents, setSchoolEvents] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cloud_cache_librus_calendar');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return [];
+  });
   const [schoolFilter, setSchoolFilter] = useState('all'); // 'all' | 'sprawdzian' | 'kartkowka' | 'absence'
   const [isRefreshingSchool, setIsRefreshingSchool] = useState(false);
   const [schoolLastSync, setSchoolLastSync] = useState(null);
@@ -204,6 +210,17 @@ const CalendarPage = () => {
       } catch {}
     }
   }, []);
+
+  // Synchronizacja pamięci podręcznej przeglądarki dla asystenta AI (READ-ONLY)
+  useEffect(() => {
+    if (Array.isArray(schoolEvents) && schoolEvents.length > 0) {
+      try {
+        localStorage.setItem('cloud_cache_librus_calendar', JSON.stringify(schoolEvents));
+      } catch (err) {
+        console.debug('[Librus] Błąd zapisu terminarza do localStorage:', err);
+      }
+    }
+  }, [schoolEvents]);
 
   // Wymuszenie synchronizacji terminarza szkolnego
   const handleRefreshSchoolCalendar = async () => {

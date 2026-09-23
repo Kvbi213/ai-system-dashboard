@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
 import { initializeAllFirestoreCollections, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
 import { wakeWordService } from '../services/wakeWordService';
-import { ttsService, EDGE_DEFAULT_VOICES, ELEVENLABS_DEFAULT_VOICES, OPENAI_DEFAULT_VOICES, GOOGLE_DEFAULT_VOICES, fetchElevenLabsVoices, checkElevenLabsQuota } from '../services/ttsService';
+import { ttsService, EDGE_DEFAULT_VOICES, ELEVENLABS_DEFAULT_VOICES, OPENAI_DEFAULT_VOICES, GOOGLE_DEFAULT_VOICES, BROWSER_DEFAULT_VOICES, getBrowserVoices, fetchElevenLabsVoices, checkElevenLabsQuota } from '../services/ttsService';
 import { getPushbulletApiKey, setPushbulletApiKey, testPushbulletConnection } from '../services/pushbulletService';
 
 const Toggle = ({ value, onChange }) => (
@@ -183,14 +183,17 @@ const SettingsPage = () => {
   // Zaawansowany TTS
   const [ttsEngine, setTtsEngine] = useState(() => {
     const stored = localStorage.getItem('system_tts_engine');
-    if (stored && stored !== 'web') return stored;
+    if (stored === 'web') return 'browser';
+    if (stored) return stored;
     const envKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ELEVENLABS_API_KEY) || '';
     const hasKey = localStorage.getItem('system_elevenlabs_api_key') || envKey;
     const googleKey = localStorage.getItem('system_google_tts_api_key') || (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GOOGLE_TTS_API_KEY) || '';
     if (hasKey) return 'elevenlabs';
     if (googleKey) return 'google';
-    return 'edge';
+    return 'browser';
   });
+  const [browserVoiceId, setBrowserVoiceId] = useState(() => localStorage.getItem('system_browser_voice_id') || 'Google polski');
+  const [browserVoicesList, setBrowserVoicesList] = useState(() => getBrowserVoices());
   const [edgeVoiceId, setEdgeVoiceId] = useState(() => localStorage.getItem('system_edge_voice_id') || EDGE_DEFAULT_VOICES[0].id);
   const [elevenLabsKey, setElevenLabsKey] = useState(() => {
     const envKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ELEVENLABS_API_KEY) || '';
@@ -398,6 +401,29 @@ const SettingsPage = () => {
     ttsService.setEngine(val);
   };
 
+  const updateBrowserVoiceId = (val) => {
+    setBrowserVoiceId(val);
+    localStorage.setItem('system_browser_voice_id', val);
+  };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      const updateVoices = () => {
+        const v = getBrowserVoices();
+        if (v && v.length > 0) {
+          setBrowserVoicesList(v);
+        }
+      };
+      updateVoices();
+      window.speechSynthesis.onvoiceschanged = updateVoices;
+      return () => {
+        if (window.speechSynthesis.onvoiceschanged === updateVoices) {
+          window.speechSynthesis.onvoiceschanged = null;
+        }
+      };
+    }
+  }, []);
+
   const updateEdgeVoiceId = (val) => {
     setEdgeVoiceId(val);
     localStorage.setItem('system_edge_voice_id', val);
@@ -517,13 +543,15 @@ const SettingsPage = () => {
     }
     setIsTestingVoice(true);
 
-    const activeVoiceId = ttsEngine === 'elevenlabs' 
-      ? elevenVoiceId 
-      : ttsEngine === 'google'
-        ? googleVoiceId
-        : ttsEngine === 'edge' 
-          ? edgeVoiceId 
-          : openAiVoiceId;
+    const activeVoiceId = ttsEngine === 'browser'
+      ? browserVoiceId
+      : ttsEngine === 'elevenlabs' 
+        ? elevenVoiceId 
+        : ttsEngine === 'google'
+          ? googleVoiceId
+          : ttsEngine === 'edge' 
+            ? edgeVoiceId 
+            : openAiVoiceId;
 
     const activeApiKey = ttsEngine === 'elevenlabs'
       ? (elevenLabsKey || ttsService.getElevenLabsKey())
@@ -534,7 +562,10 @@ const SettingsPage = () => {
           : undefined;
 
     let voiceLabel = '';
-    if (ttsEngine === 'elevenlabs') {
+    if (ttsEngine === 'browser') {
+      const found = browserVoicesList.find(v => v.id === activeVoiceId);
+      voiceLabel = found ? found.name.split(' (')[0] : 'Google Chrome';
+    } else if (ttsEngine === 'elevenlabs') {
       const found = elevenVoicesList.find(v => v.id === activeVoiceId) || ELEVENLABS_DEFAULT_VOICES.find(v => v.id === activeVoiceId);
       voiceLabel = found ? found.name.split(' (')[0] : 'ElevenLabs';
     } else if (ttsEngine === 'google') {
@@ -1296,7 +1327,23 @@ const SettingsPage = () => {
                   </div>
                   <p className="text-xs text-textMuted mb-3">Wybierz dostawcę realistycznej syntezy mowy dla odpowiedzi asystenta.</p>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateTtsEngine('browser')}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        ttsEngine === 'browser'
+                          ? 'border-accentPrimary bg-accentPrimary/15 shadow-md shadow-accentPrimary/10'
+                          : 'border-border bg-surface/60 hover:bg-white/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs font-mono text-textPrimary">Google Chrome</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono font-bold">DARMOWY</span>
+                      </div>
+                      <p className="text-[11px] text-textMuted mt-1">Darmowy głos przeglądarki (Google polski, Web Speech).</p>
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => updateTtsEngine('edge')}
@@ -1362,6 +1409,39 @@ const SettingsPage = () => {
                     </button>
                   </div>
                 </div>
+
+                {/* BROWSER / CHROME WEB SPEECH CONFIG */}
+                {ttsEngine === 'browser' && (
+                  <div className="p-4 rounded-xl border border-accentPrimary/40 bg-accentPrimary/5 space-y-3 animate-fade-in">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Volume2 className="w-4 h-4 text-accentPrimary" />
+                        <span className="text-xs font-bold font-mono text-textPrimary">Google Chrome Web Speech API (Natywny)</span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold">
+                        BEZ LIMITÓW / ZERO API KEY
+                      </span>
+                    </div>
+                    <p className="text-xs text-textMuted">
+                      Darmowy syntezator mowy z przeglądarki internetowej (Google polski / Web Speech). Działa bez kluczy API, bez limitu znaków i w 100% lokalnie w Google Chrome.
+                    </p>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-textPrimary font-sans mb-1.5">
+                        Wybór Głosu Przeglądarki ({browserVoicesList.length} wykrytych lektorów)
+                      </label>
+                      <select
+                        value={browserVoiceId}
+                        onChange={(e) => updateBrowserVoiceId(e.target.value)}
+                        className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-xs font-mono text-textPrimary focus:outline-none focus:border-accentPrimary"
+                      >
+                        {browserVoicesList.map(v => (
+                          <option key={v.id} value={v.id}>{v.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
 
                 {/* EDGE NEURAL CONFIG */}
                 {ttsEngine === 'edge' && (
@@ -1497,14 +1577,22 @@ const SettingsPage = () => {
                             <p className="text-[11px] leading-relaxed">
                               [!] <strong>Limit bezpłatnego konta ElevenLabs (10 000 znaków) został wyczerpany.</strong> Żądania syntezy mowy ElevenLabs są odrzucane z kodem 401 Quota Exceeded, co powoduje odtwarzanie podstawowego głosu przeglądarki.
                             </p>
-                            <div className="pt-1 flex items-center gap-2">
+                            <div className="pt-1 flex flex-wrap items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => updateTtsEngine('browser')}
+                                className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black rounded-lg font-bold text-xs transition-colors flex items-center gap-1.5 shadow-sm"
+                              >
+                                <Volume2 className="w-3.5 h-3.5 text-black" />
+                                Przełącz na Darmowy Głos Google Chrome (Web Speech – Bez Limitu)
+                              </button>
                               <button
                                 type="button"
                                 onClick={() => updateTtsEngine('edge')}
                                 className="px-3 py-1.5 bg-accentPrimary hover:bg-accentPrimary/90 text-black rounded-lg font-bold text-xs transition-colors flex items-center gap-1.5 shadow-sm"
                               >
                                 <Sparkles className="w-3.5 h-3.5 text-black" />
-                                Przełącz na Microsoft Edge Neural (Marek / Zofia Studio – Bez Limitu)
+                                Przełącz na Microsoft Edge Neural
                               </button>
                             </div>
                           </div>

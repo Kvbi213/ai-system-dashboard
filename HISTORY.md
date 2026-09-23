@@ -1,5 +1,27 @@
 ## Wersja Bieżąca
-**v2.23.3**
+**v2.24.0**
+
+## v 2.24.0 — 2026-09-23
+**Typ:** MINOR  
+**Zakres:** Implementacja darmowego silnika syntezy mowy Google Chrome Browser Web Speech TTS (`Google polski`) bez limitu znaków, dodanie narzędzi AI i kontekstu kognitywnego dla terminarza szkolnego i ocen Librus Synergia w rygorze ŚCIŚLE READ-ONLY, korelacja pamięci podręcznej w `CalendarPage.jsx` i `GradesPage.jsx` oraz pełna weryfikacja testowa (166/166 PASS).
+
+### Zmiany
+- [+] Dodano: Silnik syntezy mowy `browser` w `modules/services/ttsService.js` (`speakWithBrowserTTS`, `BROWSER_DEFAULT_VOICES`, `getBrowserVoices`), ochrona Garbage Collection dla instancji `SpeechSynthesisUtterance`, priorytet głosu `Google polski` oraz fallback przy wyczerpaniu limitu ElevenLabs (401 quota_exceeded) i błędzie Google Cloud TTS.
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` – kafelek silnika `Google Chrome [DARMOWY]`, lista głosów z eventem `onvoiceschanged`, testowanie głosu i 1-klikowy przycisk przełączenia w banerze ElevenLabs.
+- [+] Dodano: Narzędzia odczytu dla agenta AI w `modules/ai/tools.js`: `GET_LIBRUS_GRADES` oraz `GET_LIBRUS_CALENDAR` (zerowa tolerancja dla akcji mutujących – ściśle read-only).
+- [*] Zmodyfikowano: `modules/agent.js` – integracja odczytu terminarza i ocen z pamięci podręcznej SQLite/Firestore dla lokalnego OmniMind.
+- [*] Zmodyfikowano: `api/agent.js` – rozszerzenie bramy Vercel Serverless Gateway o sekcje terminarza i ocen Librusa oraz twardą regułę bezpieczeństwa 9 (zakaz mutacji rekordów Librus).
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` – przekazywanie terminarza i ocen do promptów kognitywnych oraz deterministyczne handlery fallback offline dla sprawdzianów, kartkówek, absencji i ocen.
+- [*] Zmodyfikowano: `modules/pages/GradesPage.jsx` oraz `modules/pages/CalendarPage.jsx` – automatyczna dwukierunkowa synchronizacja pamięci podręcznej przeglądarki (`cloud_cache_librus_grades`, `cloud_cache_librus_calendar`).
+- [+] Dodano: Nowy zestaw testów bezpieczeństwa i schematów narzędzi AI w `tests/librus.test.js` (30/30 PASS).
+- [*] Zmodyfikowano: `tests/tts_quota.test.js` – weryfikacja silnika `browser`, funkcji `speakWithBrowserTTS` i obecności głosu `Google polski` (10/10 PASS).
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.24.0`.
+- [+] Dodano: Raport wydania `docs/versions/v2.24.0.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.23.3 — 2026-09-23
 **Typ:** PATCH  

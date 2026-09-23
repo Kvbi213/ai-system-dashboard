@@ -8,6 +8,7 @@ import { readProjectFile, scanProjectDirectory } from './fs_explorer.js';
 import { learnFact, getUserProfile } from './memory.js';
 import { performOSINTScan } from './osint.js';
 import { sendPushNotification } from './pushbullet.js';
+import { getCachedCalendar, getCachedGrades } from './services/librusService.js';
 import fs from 'fs';
 import dotenv from 'dotenv';
 
@@ -94,7 +95,7 @@ export async function processUserIntent(text, mode = 'worker', options = {}) {
   try {
     const userName = options.userName || 'Użytkownik';
     const today = new Date().toLocaleDateString('pl-PL', { timeZone: 'Europe/Warsaw' });
-    const [weatherData, tasks, logs, userProfile, calendarEvents, notifications, financeBalance, recentFinances, financeSettings, bucketSpending, workouts] = await Promise.all([
+    const [weatherData, tasks, logs, userProfile, calendarEvents, notifications, financeBalance, recentFinances, financeSettings, bucketSpending, workouts, librusCalendar, librusGrades] = await Promise.all([
       fetchWeather().catch(() => null),
       executeQuery('SELECT id, title, status, priority, target_date, category FROM tasks ORDER BY created_at DESC LIMIT 10'),
       executeQuery('SELECT type, content, created_at FROM system_logs ORDER BY created_at DESC LIMIT 5'),
@@ -105,7 +106,9 @@ export async function processUserIntent(text, mode = 'worker', options = {}) {
       executeQuery('SELECT type, amount, category, description, transaction_date FROM finances ORDER BY transaction_date DESC LIMIT 3'),
       executeQuery('SELECT * FROM finance_settings ORDER BY id DESC LIMIT 1'),
       executeQuery('SELECT bucket, SUM(CASE WHEN type="income" THEN amount ELSE -amount END) as balance FROM finances WHERE bucket IS NOT NULL AND strftime("%Y-%m", transaction_date) = strftime("%Y-%m", "now") GROUP BY bucket'),
-      executeQuery('SELECT * FROM workouts ORDER BY date DESC LIMIT 5')
+      executeQuery('SELECT * FROM workouts ORDER BY date DESC LIMIT 5'),
+      getCachedCalendar().catch(() => null),
+      getCachedGrades().catch(() => null)
     ]);
 
     const systemContext = `
@@ -121,6 +124,11 @@ RECENT FINANCES: ${JSON.stringify(recentFinances)}
 RECENT WORKOUTS: ${JSON.stringify(workouts || [])}
 UNREAD PHONE NOTIFICATIONS COUNT: ${notifications[0]?.count || 0} (Użyj narzędzia GET_PHONE_NOTIFICATIONS, by je przeczytać)
 NEWS PREFERENCES: Operator preferuje wiadomości z kategorii: ${options.newsCategories ? options.newsCategories.join(', ') : 'ai, security'}. Kiedy używasz narzędzia executeWebSearch by pobrać newsy, zawsze buduj zapytanie (query) tak, by zawierało nazwy tych preferowanych kategorii!
+
+[LIBRUS SYNERGIA - TERMINARZ SZKOLNY & OCENY (TRYB ŚCIŚLE READ-ONLY / BRAK MOŻLIWOŚCI EDYCJI)]
+TERMINARZ SZKOLNY (LIBRUS): ${JSON.stringify((librusCalendar?.events || []).slice(0, 15))}
+DZIENNIK OCEN (LIBRUS): Średnia ogólna: ${librusGrades?.overallAverage || 'b/d'}, Szczęśliwy numerek: ${librusGrades?.luckyNumber || 'b/d'}, Przedmioty: ${JSON.stringify((librusGrades?.subjects || []).map(s => ({ name: s.name, avg: s.computedAverage || s.average, recentGrades: (s.sem1Grades || []).concat(s.sem2Grades || []).slice(-3).map(g => g.value) })))}
+RYGOR BEZPIECZEŃSTWA LIBRUS: Dane z Librusa (oceny i terminarz) są WYŁĄCZNIE DO ODCZYTU. Ani asystent AI, ani żaden proces nie ma uprawnień do edycji lub modyfikacji oficjalnych rekordów Librus.
 
 [OPERATOR PROFILE / LONG-TERM MEMORY]
 Wiedza o użytkowniku zebrana podczas wcześniejszych interakcji:
@@ -392,6 +400,32 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
             toolResultsText += `\nNarzędzie ADD_BUG_REPORT zwróciło: Sukces, dodano raport do pliku BUGS.md`;
           } catch (e) {
             toolResultsText += `\nNarzędzie ADD_BUG_REPORT zwróciło: Error - ${e.message}`;
+          }
+        } else if (toolCall.function.name === 'GET_LIBRUS_GRADES') {
+          const grades = await getCachedGrades();
+          if (grades && grades.subjects) {
+            let result = grades;
+            if (args.subject) {
+              const sSub = grades.subjects.filter(s => s.name?.toLowerCase().includes(args.subject.toLowerCase()));
+              result = { ...grades, subjects: sSub };
+            }
+            toolResultsText += `\nNarzędzie GET_LIBRUS_GRADES (READ-ONLY) zwróciło: ${JSON.stringify(result)}`;
+          } else {
+            toolResultsText += `\nNarzędzie GET_LIBRUS_GRADES: Brak zbuforowanych ocen w bazie.`;
+          }
+        } else if (toolCall.function.name === 'GET_LIBRUS_CALENDAR') {
+          const cal = await getCachedCalendar();
+          if (cal && Array.isArray(cal.events)) {
+            let filtered = cal.events;
+            if (args.type && args.type !== 'all') {
+              filtered = filtered.filter(e => e.type === args.type);
+            }
+            if (args.date_from) {
+              filtered = filtered.filter(e => (e.date || '') >= args.date_from);
+            }
+            toolResultsText += `\nNarzędzie GET_LIBRUS_CALENDAR (READ-ONLY) zwróciło: ${JSON.stringify(filtered)}`;
+          } else {
+            toolResultsText += `\nNarzędzie GET_LIBRUS_CALENDAR: Brak zbuforowanego terminarza w bazie.`;
           }
         }
       }

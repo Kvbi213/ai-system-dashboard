@@ -404,5 +404,44 @@ export const agentTools = [
               required: ["title", "body"]
           }
       }
+  },
+  {
+      type: "function",
+      function: {
+          name: "GET_LIBRUS_GRADES",
+          description: "Pobiera oceny i statystyki szkolne z oficjalnego dziennika Librus Synergia (przedmioty, poszczególne oceny z wagami i komentarzami, średnie ważone z przedmiotów, ogólna średnia ocen, szczęśliwy numerek). Dostęp WYŁĄCZNIE W TRYBIE ODCZYTU (read-only, brak możliwości modyfikacji).",
+          parameters: {
+              type: "object",
+              properties: {
+                  subject: {
+                      type: "string",
+                      description: "Opcjonalna nazwa przedmiotu (np. 'Matematyka', 'Język polski') do przefiltrowania ocen. Pozostaw puste, by pobrać wszystkie przedmioty."
+                  }
+              },
+              required: []
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
+          name: "GET_LIBRUS_CALENDAR",
+          description: "Pobiera terminarz szkolny z oficjalnego systemu Librus Synergia (sprawdziany, kartkówki, prace klasowe, wywiadówki, zebrania oraz absencje/nieobecności nauczycieli). Dostęp WYŁĄCZNIE W TRYBIE ODCZYTU (read-only, brak możliwości modyfikacji).",
+          parameters: {
+              type: "object",
+              properties: {
+                  type: {
+                      type: "string",
+                      enum: ["all", "sprawdzian", "kartkowka", "absence", "wywiadowka"],
+                      description: "Opcjonalny filtr typu zdarzenia: 'sprawdzian', 'kartkowka', 'absence' (nieobecności nauczycieli), 'wywiadowka' lub 'all'."
+                  },
+                  date_from: {
+                      type: "string",
+                      description: "Opcjonalna data początkowa w formacie YYYY-MM-DD"
+                  }
+              },
+              required: []
+          }
+      }
   }
 ];
