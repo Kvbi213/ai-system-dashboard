@@ -2011,7 +2011,7 @@ WSZYSTKIE POZOSTAŁE LEKCJE W TYGODNIU:
         const subjectsList = context.librusGrades.subjects.map(s => {
           const avg = s.computedAverage || s.average || 'b/d';
           const allGrades = (s.sem1Grades || []).concat(s.sem2Grades || []).map(g => {
-            const w = g.details?.weight ? ` (waga ${g.details.weight})` : '';
+            const w = (g.details?.weight !== undefined && g.details?.weight !== null && g.details?.weight !== '') ? ` (waga ${g.details.weight})` : '';
             return `${g.value}${w}`;
           }).join(', ');
           return `• ${s.name}: średnia ${avg} | Oceny: ${allGrades || 'brak'}`;
@@ -2639,7 +2639,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
     const subjectsRows = gradesData.subjects.map(s => {
       const avg = s.computedAverage || s.average || '—';
       const allGrades = (s.sem1Grades || []).concat(s.sem2Grades || []).map(g => {
-        const w = g.details?.weight ? ` (waga ${g.details.weight})` : '';
+        const w = (g.details?.weight !== undefined && g.details?.weight !== null && g.details?.weight !== '') ? ` (waga ${g.details.weight})` : '';
         return `\`${g.value}\`${w}`;
       }).join(', ');
       return `| **${s.name}** | \`${avg}\` | ${allGrades || 'brak ocen'} |`;

@@ -244,6 +244,7 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
           } else if (args.task_id) {
             let ids = Array.isArray(args.task_id) ? args.task_id : (typeof args.task_id === 'string' && args.task_id.includes(',') ? args.task_id.split(',') : [args.task_id]);
             const deletedDetails = [];
+            const notFoundIds = [];
             for (const rawId of ids) {
               const id = parseInt(rawId, 10);
               if (!isNaN(id) && id > 0) {
@@ -252,11 +253,15 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
                   await executeRun('DELETE FROM tasks WHERE id = ?', [id]);
                   await executeRun("INSERT INTO system_logs (type, content) VALUES ('TASK_DELETE', ?)", [`Usunięto zadanie #${id} ("${existing[0].title}")`]);
                   deletedDetails.push(`#${id} ("${existing[0].title}")`);
+                } else {
+                  notFoundIds.push(id);
                 }
               }
             }
-            if (deletedDetails.length > 0) {
+            if (deletedDetails.length > 0 && notFoundIds.length === 0) {
               toolResultsText += `\nNarzędzie DELETE_TO_DO zwróciło: Success, usunięto zadania: ${deletedDetails.join(', ')}`;
+            } else if (deletedDetails.length > 0 && notFoundIds.length > 0) {
+              toolResultsText += `\nNarzędzie DELETE_TO_DO zwróciło: Częściowy sukces - usunięto: ${deletedDetails.join(', ')}, nie odnaleziono w bazie zadań o ID: ${notFoundIds.join(', ')}`;
             } else {
               toolResultsText += `\nNarzędzie DELETE_TO_DO: Błąd - podane ID zadań (${args.task_id}) nie zostały odnalezione w bazie.`;
             }

@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.28.1 (Stan na Wrzesień 2026) 
+**Wersja Systemu:** v2.29.0 (Stan na Wrzesień 2026) 
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE) 
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Zero-Trust Security Hardening, Strict Firestore Rules, Exact CORS Whitelist, Timing-Safe Auth, SSRF Shield, Vitest 202/202 PASS)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Zero-Trust Security Hardening, Strict Firestore Rules, Exact CORS Whitelist, Timing-Safe Auth, SSRF Shield, Golden Dataset, Vitest 212/212 PASS)
 
 ---
 
@@ -11,7 +11,7 @@ System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-
 
 **Główne Paradygmaty:**
 1. **Multi-Cloud & Cloud-First Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (Prywatna Instancja Produkcyjna `void-potato-7721`), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`/api/agent`, `api/news`, `api/models`, `api/status`, `api/osint`, `api/pushbullet-webhook`, `api/gcp/budget-webhook`). Wszystkie operacje na telefonach, tabletach i desktopie natychmiast synchronizują się z chmurą przy wykorzystaniu transparentnej autoryzacji Firebase Anonymous Auth oraz Google OAuth.
-2. **Quality Gate & Automated Testing (202/202 PASS):** Zintegrowany silnik testowy Vitest (`npm test`) z 15 dedykowanymi zestawami testowymi weryfikującymi bezpieczeństwo Zero-Trust, ochronę SSRF, limitowanie budżetu Google Cloud i Pub/Sub, geolokalizację GPS, wywiad drogowy CANARD/GITD i alerty GDDKiA, integrację Librus Synergia, algorytm budżetowy, klasyfikację celów OSINT, strefę czasową `Europe/Warsaw`, eksport CSV, rejestr synchronizacji chmurowej, klasyfikator i parser powiadomień Pushbullet, autonomicznego agenta ciągłego oraz renderowanie komponentów Reacta z `@testing-library/react` i `jsdom`.
+2. **Quality Gate & Automated Testing (212/212 PASS):** Zintegrowany silnik testowy Vitest (`npm test`) z 16 dedykowanymi zestawami testowymi weryfikującymi bezpieczeństwo Zero-Trust, ochronę SSRF, zbiór wzorcowy Librus (Golden Dataset), limitowanie budżetu Google Cloud i Pub/Sub, geolokalizację GPS, wywiad drogowy CANARD/GITD i alerty GDDKiA, integrację Librus Synergia, algorytm budżetowy, klasyfikację celów OSINT, strefę czasową `Europe/Warsaw`, eksport CSV, rejestr synchronizacji chmurowej, klasyfikator i parser powiadomień Pushbullet, autonomicznego agenta ciągłego oraz renderowanie komponentów Reacta z `@testing-library/react` i `jsdom`.
 3. **Bidirectional Pushbullet Integration & Autonomous Expense Tracking:** Dwukierunkowa integracja ze smartfonem operatora. System nasłuchuje powiadomień płatniczych i bankowych ze strumienia WebSocket (`wss://stream.pushbullet.com`), deduplikuje je w oknie 60s, kognitywnie wyodrębnia kwotę i przypisuje do koszyka 50/30/20 (Needs vs Wants vs Savings), automatycznie rejestruje wydatek w SQLite i Firestore oraz wysyła potwierdzenie na telefon. Dodatkowo asystent AI może wysyłać wiadomości i zadania na smartfon operatora znacznikiem `[ACTION:SEND_PUSH]`.
 4. **Real-time SSE Telemetry & Dual Mode:** Backend Express dostarcza strumień Server-Sent Events (`/api/system/stream`) emitujący metryki CPU/RAM/Heap/Uptime co 2 sekundy. W chmurze komponent `SystemMonitor` automatycznie przechodzi w tryb telemetrii przeglądarkowej ze wskaźnikami `● SSE LIVE` i `● CLIENT`.
 5. **Instant Theme Toggle:** Szybki przełącznik trybu jasnego/ciemnego (Sun/Moon) umieszczony w widocznym miejscu w nagłówku mobilnym oraz stopce menu bocznego na desktopie, zintegrowany z pamięcią `localStorage` i 7 paletami kolorystycznymi.
@@ -38,8 +38,11 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │ ├── main.yml ← Główny potok CI/CD produkcyjny
 │ └── ci.yml ← Równoległy potok weryfikacyjny pull requestów
 │
-├── /tests/ ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 197/197 PASS, 15 zestawów)
-│ ├── security_audit.test.js ← Testy reguł Zero-Trust: authMiddleware, x-system-pin, tarcza plików fs_explorer
+├── /tests/ ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 212/212 PASS, 16 zestawów)
+│ ├── fixtures/ ← Wzorcowe zbiory danych (Golden Datasets)
+│ │ └── librus/grades_golden.json ← Wzorcowy zestaw ocen Librus z wagami 0-3 i ocenami nienumerycznymi
+│ ├── librus_golden.test.js ← Testy warstwowe kalkulacji ocen na zestawie wzorcowym (ochrona wagi 0, modyfikatory +/-)
+│ ├── security_audit.test.js ← Testy reguł Zero-Trust: authMiddleware, segregacja poświadczeń, tarcza SSRF, fs_explorer
 │ ├── gcp_budget.test.js ← Testy parsowania Pub/Sub Base64, kalkulacji progów budżetu GCP, alertów Pushbullet i narzędzi AI
 │ ├── traffic.test.js ← Testy geolokalizacji GPS, odległości Haversine, skanera wypadków 10km, fotoradarów CANARD/GITD na korytarzu Starogard-Gdańsk i routingu OSRM/Google
 │ ├── librus.test.js ← Testy integracji Librus Synergia (oceny, terminarz, plan lekcji, korelacja absencji i zastępstw)

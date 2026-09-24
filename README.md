@@ -3,9 +3,9 @@
 # OmniDash AI System Dashboard
 ### Zaawansowany Hybrydowy Hub Dowodzenia i Analityki Osobistej
 
-[![Wersja](https://img.shields.io/badge/Wersja-2.28.1-00F0FF?style=for-the-badge&logo=semver&logoColor=black)](https://github.com/Kvbi213/ai-system-dashboard)
+[![Wersja](https://img.shields.io/badge/Wersja-2.29.0-00F0FF?style=for-the-badge&logo=semver&logoColor=black)](https://github.com/Kvbi213/ai-system-dashboard)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-10B981?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/Kvbi213/ai-system-dashboard/actions)
-[![Testy](https://img.shields.io/badge/Testy-202%2F202%20Passed-10B981?style=for-the-badge&logo=vitest&logoColor=white)](https://github.com/Kvbi213/ai-system-dashboard)
+[![Testy](https://img.shields.io/badge/Testy-212%2F212%20Passed-10B981?style=for-the-badge&logo=vitest&logoColor=white)](https://github.com/Kvbi213/ai-system-dashboard)
 [![Bezpieczeństwo](https://img.shields.io/badge/Architektura-Zero--Trust-6366F1?style=for-the-badge&logo=auth0&logoColor=white)](#)
 [![Hosting](https://img.shields.io/badge/Hosting-Firebase_Cloud-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://void-potato-7721.web.app)
 [![GCP Budget Guard](https://img.shields.io/badge/GCP_Guard-Pub%2FSub_Push-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)](#)
@@ -14,7 +14,7 @@
 
 *Zunifikowany, wysoce zoptymalizowany ekosystem zarządzania osobistego, analityki operacyjnej i telemetrycznej z autonomicznym agentem AI, architekturą Cloud-First, pełną synchronizacją Firestore, automatycznym bezpiecznikiem budżetowym Google Cloud, wywiadem drogowym CANARD i natywnym kotwiczeniem czasowym Europe/Warsaw.*
 
-**[Dokumentacja Architektury](ARCHITECTURE.md)** • **[Rejestr Wdań i Zmian](HISTORY.md)** • **[Zasady Pracy](ZASADYPRACY.md)**
+**[Dokumentacja Architektury](ARCHITECTURE.md)** • **[Rejestr Wydań i Zmian](HISTORY.md)** • **[Zasady Pracy](ZASADYPRACY.md)**
 
 </div>
 

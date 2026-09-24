@@ -53,6 +53,15 @@ const getAverageBadgeStyle = (avg) => {
   return 'bg-rose-500/15 text-rose-400 border-rose-500/40 shadow-[0_0_10px_rgba(244,63,94,0.2)]';
 };
 
+// Bezpieczne wyciąganie wagi oceny (waga 0 nie może być zastępowana przez 1)
+const getGradeWeight = (details) => {
+  if (details?.weight !== undefined && details?.weight !== null && details?.weight !== '') {
+    const num = Number(details.weight);
+    if (!isNaN(num)) return num;
+  }
+  return 1;
+};
+
 // Wbudowane dane demonstracyjne (fallback offline / tryb demonstracyjny)
 const STATIC_DEMO_DATA = {
   isDemo: true,
@@ -892,13 +901,13 @@ const GradesPage = () => {
                           key={`c-g-${g.id || gIdx}`}
                           onClick={() => setSelectedGrade({ ...g, subjectName: subject.name })}
                           className={`px-2 py-0.5 rounded-md border font-mono flex items-center gap-1 transition-all cursor-pointer active:scale-95 text-xs ${getGradeBadgeStyle(g.value)} ${
-                            (g.details?.weight || 1) >= 3 ? 'border-2 font-black' : ''
+                            getGradeWeight(g.details) >= 3 ? 'border-2 font-black' : ''
                           }`}
-                          title={`${g.value} • ${g.details?.category || 'Ocena'} (Waga: ${g.details?.weight || 1})`}
+                          title={`${g.value} • ${g.details?.category || 'Ocena'} (Waga: ${getGradeWeight(g.details)})`}
                         >
                           <span className="font-bold">{g.value}</span>
                           <span className="text-[9px] font-mono opacity-70">
-                            w:{g.details?.weight !== undefined && g.details?.weight !== null && g.details?.weight !== '' ? g.details.weight : 1}
+                            w:{getGradeWeight(g.details)}
                           </span>
                         </button>
                       ))
@@ -981,7 +990,7 @@ const GradesPage = () => {
                         <span className="text-[11px] font-mono text-textMuted/60 italic">Brak ocen</span>
                       ) : (
                         sem1List.map((g, gIdx) => {
-                          const w = g.details?.weight || 1;
+                          const w = getGradeWeight(g.details);
                           return (
                             <button
                               key={g.id || gIdx}
@@ -1022,7 +1031,7 @@ const GradesPage = () => {
                         <span className="text-[11px] font-mono text-textMuted/60 italic">Brak ocen</span>
                       ) : (
                         sem2List.map((g, gIdx) => {
-                          const w = g.details?.weight || 1;
+                          const w = getGradeWeight(g.details);
                           return (
                             <button
                               key={g.id || gIdx}
@@ -1104,7 +1113,7 @@ const GradesPage = () => {
                 <div>
                   <span className="text-textMuted text-[10px] block uppercase">Waga oceny</span>
                   <span className="text-emerald-400 font-bold">
-                    {selectedGrade.details?.weight || 1}
+                    {getGradeWeight(selectedGrade.details)}
                   </span>
                 </div>
                 <div>

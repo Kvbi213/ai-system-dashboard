@@ -187,9 +187,13 @@ export function computeGradeStats(subjects = []) {
       let weights = 0;
       for (const g of gradesList) {
         if (g.numericValue !== null && g.details?.inAverage !== false) {
-          const w = g.details?.weight || 1;
-          sum += g.numericValue * w;
-          weights += w;
+          const w = (g.details?.weight !== undefined && g.details?.weight !== null && !isNaN(Number(g.details.weight)))
+            ? Number(g.details.weight)
+            : 1;
+          if (w > 0) {
+            sum += g.numericValue * w;
+            weights += w;
+          }
         }
       }
       return weights > 0 ? parseFloat((sum / weights).toFixed(2)) : null;

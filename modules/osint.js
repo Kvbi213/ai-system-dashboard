@@ -18,13 +18,29 @@ export const detectTargetType = (target) => {
 
 export const isPrivateOrReservedIP = (ip) => {
   if (!ip || typeof ip !== 'string') return false;
-  const clean = ip.trim().toLowerCase();
+  let clean = ip.trim().toLowerCase();
+
+  // Obsługa IPv4-mapped IPv6 (np. ::ffff:127.0.0.1, ::ffff:192.168.1.1)
+  if (clean.startsWith('::ffff:')) {
+    clean = clean.replace('::ffff:', '');
+  }
+
+  // Loopback (127.0.0.0/8, ::1, localhost)
   if (clean === 'localhost' || clean === '127.0.0.1' || /^127\./.test(clean) || clean === '::1') return true;
+  // Bieżąca sieć / nieokreślona (0.0.0.0/8)
+  if (/^0\./.test(clean) || clean === '0.0.0.0' || clean === '::') return true;
+  // RFC 1918 Private ranges
   if (/^10\./.test(clean)) return true;
   if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(clean)) return true;
   if (/^192\.168\./.test(clean)) return true;
+  // Link-local / Cloud metadata (169.254.0.0/16)
   if (/^169\.254\./.test(clean)) return true;
-  if (clean === '0.0.0.0' || clean.startsWith('fc00:') || clean.startsWith('fe80:')) return true;
+  
+  // IPv6 ULA (fc00::/7 - pokrywa zakresy fc.. oraz fd..)
+  if (/^f[cd][0-9a-f]{2}:/i.test(clean) || clean.startsWith('fc00:') || clean.startsWith('fd00:')) return true;
+  // IPv6 Link-Local (fe80::/10 - zakres fe80.. do febf..)
+  if (/^fe[89ab][0-9a-f]:/i.test(clean) || clean.startsWith('fe80:')) return true;
+
   return false;
 };
 
@@ -45,18 +61,23 @@ export const performOSINTScan = async (rawTarget) => {
     if (type === 'ip' || type === 'domain') {
       let ipToScan = target;
       
-      // Rozwi�zywanie IP dla domeny
+      // Rozwiązywanie IP dla domeny (weryfikacja WSZYSTKICH zwróconych adresów IPv4 i IPv6)
       if (type === 'domain') {
         try {
-          const addresses = await dns.resolve4(target);
-          if (addresses && addresses.length > 0) {
-            ipToScan = addresses[0];
-            results.resolved_ip = ipToScan;
-            if (isPrivateOrReservedIP(ipToScan)) {
+          const addresses4 = await dns.resolve4(target).catch(() => []);
+          const addresses6 = await dns.resolve6(target).catch(() => []);
+          const allAddresses = [...addresses4, ...addresses6];
+
+          if (allAddresses.length > 0) {
+            const privateAddress = allAddresses.find(addr => isPrivateOrReservedIP(addr));
+            if (privateAddress) {
               results.blocked = true;
-              results.error = 'Odmowa skanowania: domena wskazuje na prywatny adres sieciowy (blokada SSRF).';
+              results.resolved_ip = privateAddress;
+              results.error = `Odmowa skanowania: domena wskazuje na prywatny/zarezerwowany adres sieciowy (${privateAddress}) (blokada SSRF).`;
               return results;
             }
+            ipToScan = addresses4[0] || addresses6[0];
+            results.resolved_ip = ipToScan;
           }
         } catch (e) { console.error("DNS Resolve Error", e); }
       }

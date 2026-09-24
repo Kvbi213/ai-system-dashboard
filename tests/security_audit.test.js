@@ -88,6 +88,31 @@ describe('Security Audit & Zero-Trust Hardening (v2.28.1)', () => {
       expect(nextCalled).toBe(true);
       activeSessions.delete(mockToken);
     });
+    it('should reject requests attempting to authenticate with SESSION_SECRET as an API key', () => {
+      process.env.SESSION_SECRET = 'random_cookie_secret_not_an_api_key_12345';
+      let statusCode = 0;
+      let errorBody = null;
+      let nextCalled = false;
+
+      const req = {
+        path: '/secure/data',
+        headers: { 'x-internal-key': 'random_cookie_secret_not_an_api_key_12345' }
+      };
+      const res = {
+        status: (code) => {
+          statusCode = code;
+          return {
+            json: (data) => { errorBody = data; }
+          };
+        }
+      };
+      const next = () => { nextCalled = true; };
+
+      authMiddleware(req, res, next);
+      expect(nextCalled).toBe(false);
+      expect(statusCode).toBe(401);
+      expect(errorBody).toEqual({ error: 'Brak autoryzacji' });
+    });
   });
 
   describe('AI Agent File System Guard (readProjectFile)', () => {
@@ -115,15 +140,42 @@ describe('Security Audit & Zero-Trust Hardening (v2.28.1)', () => {
   });
 
   describe('OSINT SSRF Prevention (isPrivateOrReservedIP)', () => {
-    it('should detect loopback, private RFC1918, and cloud metadata addresses', () => {
+    it('should detect loopback, private RFC1918, zero-net, and cloud metadata addresses', () => {
       expect(isPrivateOrReservedIP('127.0.0.1')).toBe(true);
       expect(isPrivateOrReservedIP('localhost')).toBe(true);
+      expect(isPrivateOrReservedIP('0.0.0.0')).toBe(true);
+      expect(isPrivateOrReservedIP('0.1.2.3')).toBe(true);
+      expect(isPrivateOrReservedIP('::')).toBe(true);
       expect(isPrivateOrReservedIP('10.0.0.1')).toBe(true);
-      expect(isPrivateOrReservedIP('172.16.0.5')).toBe(true);
       expect(isPrivateOrReservedIP('192.168.1.1')).toBe(true);
       expect(isPrivateOrReservedIP('169.254.169.254')).toBe(true); // AWS / GCP metadata
+    });
+
+    it('should strictly enforce RFC 1918 boundaries for 172.16.0.0/12 range', () => {
+      expect(isPrivateOrReservedIP('172.16.0.1')).toBe(true);
+      expect(isPrivateOrReservedIP('172.24.10.20')).toBe(true);
+      expect(isPrivateOrReservedIP('172.31.255.255')).toBe(true);
+      // Publiczne adresy poza zakresem 172.16.0.0/12
+      expect(isPrivateOrReservedIP('172.15.255.255')).toBe(false);
+      expect(isPrivateOrReservedIP('172.32.0.1')).toBe(false);
+    });
+
+    it('should detect IPv6 loopback, IPv6 ULA, link-local, and IPv4-mapped IPv6', () => {
+      expect(isPrivateOrReservedIP('::1')).toBe(true);
+      expect(isPrivateOrReservedIP('fc00::1')).toBe(true);
+      expect(isPrivateOrReservedIP('fd12:3456:789a::1')).toBe(true);
+      expect(isPrivateOrReservedIP('fe80::1')).toBe(true);
+      expect(isPrivateOrReservedIP('fe80::200:5efe:10.0.0.1')).toBe(true);
+      expect(isPrivateOrReservedIP('::ffff:127.0.0.1')).toBe(true);
+      expect(isPrivateOrReservedIP('::ffff:192.168.1.1')).toBe(true);
+      expect(isPrivateOrReservedIP('::ffff:8.8.8.8')).toBe(false);
+    });
+
+    it('should allow benign public internet addresses', () => {
       expect(isPrivateOrReservedIP('8.8.8.8')).toBe(false);
       expect(isPrivateOrReservedIP('1.1.1.1')).toBe(false);
+      expect(isPrivateOrReservedIP('93.184.216.34')).toBe(false);
+      expect(isPrivateOrReservedIP('2606:2800:220:1:248:1893:25c8:1946')).toBe(false);
     });
 
     it('should block scanning private IPs and metadata endpoints in performOSINTScan', async () => {

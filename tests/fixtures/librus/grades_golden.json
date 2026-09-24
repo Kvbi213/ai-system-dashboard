@@ -1,0 +1,112 @@
+{
+  "description": "Złoty zestaw testowy (Golden Dataset) ocen Librus Synergia do walidacji obliczeń statystycznych",
+  "version": "1.0.0",
+  "expectedMetrics": {
+    "totalSubjects": 4,
+    "gradedSubjectsCount": 3,
+    "overallAverage": 4.81,
+    "highestAverage": {
+      "subject": "Informatyka",
+      "average": 5.50
+    },
+    "lowestAverage": {
+      "subject": "Język polski",
+      "average": 4.25
+    }
+  },
+  "subjects": [
+    {
+      "name": "matematyka",
+      "semester": [
+        {
+          "grades": [
+            {
+              "id": "mat-1",
+              "value": "5",
+              "info": "Kategoria: Sprawdzian\nData: 2026-09-10\nNauczyciel: J. Kowalski\nWaga: 2\nLicz do średniej: tak"
+            },
+            {
+              "id": "mat-2",
+              "value": "4",
+              "info": "Kategoria: Kartkówka\nData: 2026-09-15\nNauczyciel: J. Kowalski\nWaga: 1\nLicz do średniej: tak"
+            },
+            {
+              "id": "mat-3",
+              "value": "6",
+              "info": "Kategoria: Diagnoza wstępna\nData: 2026-09-18\nNauczyciel: J. Kowalski\nWaga: 0\nLicz do średniej: tak"
+            },
+            {
+              "id": "mat-4",
+              "value": "np",
+              "info": "Kategoria: Praca domowa\nData: 2026-09-20\nNauczyciel: J. Kowalski\nWaga: 1\nLicz do średniej: nie"
+            }
+          ]
+        },
+        {
+          "grades": []
+        }
+      ]
+    },
+    {
+      "name": "informatyka",
+      "semester": [
+        {
+          "grades": [
+            {
+              "id": "inf-1",
+              "value": "5+",
+              "info": "Kategoria: Projekt webowy\nData: 2026-09-12\nNauczyciel: A. Nowak\nWaga: 3\nLicz do średniej: tak"
+            }
+          ]
+        },
+        {
+          "grades": []
+        }
+      ]
+    },
+    {
+      "name": "język polski",
+      "semester": [
+        {
+          "grades": [
+            {
+              "id": "pol-1",
+              "value": "4+",
+              "info": "Kategoria: Wypracowanie\nData: 2026-09-14\nNauczyciel: M. Wiśniewska\nWaga: 2\nLicz do średniej: tak"
+            },
+            {
+              "id": "pol-2",
+              "value": "4-",
+              "info": "Kategoria: Odpowiedź\nData: 2026-09-22\nNauczyciel: M. Wiśniewska\nWaga: 1\nLicz do średniej: tak"
+            }
+          ]
+        },
+        {
+          "grades": []
+        }
+      ]
+    },
+    {
+      "name": "wychowanie fizyczne",
+      "semester": [
+        {
+          "grades": [
+            {
+              "id": "wf-1",
+              "value": "-",
+              "info": "Kategoria: Brak stroju\nData: 2026-09-08\nNauczyciel: P. Zieliński\nWaga: 0\nLicz do średniej: nie"
+            },
+            {
+              "id": "wf-2",
+              "value": "bz",
+              "info": "Kategoria: Zwolnienie\nData: 2026-09-15\nNauczyciel: P. Zieliński\nWaga: 0\nLicz do średniej: nie"
+            }
+          ]
+        },
+        {
+          "grades": []
+        }
+      ]
+    }
+  ]
+}

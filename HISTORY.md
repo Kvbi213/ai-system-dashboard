@@ -1,5 +1,23 @@
 ## Wersja Bieżąca
-**v2.28.1**
+**v2.29.0**
+
+## v 2.29.0 — 2026-09-24
+**Typ:** MINOR  
+**Zakres:** Eliminacja Defektu Wagi 0 Librus, Wzorcowy Zbiór Danych (Golden Dataset), Wzmocnienie Tarczy SSRF OSINT, Segregacja Poświadczeń w Auth & Atomowe Usuwanie Zadań: bezpieczna obsługa wag ocen (w tym 0) w `modules/services/librusService.js`, `modules/pages/GradesPage.jsx`, `api/agent.js` oraz `modules/services/clientAiDispatcher.js`, wdrożenie golden dataset `tests/fixtures/librus/grades_golden.json` i nowego zestawu testów `tests/librus_golden.test.js`, usunięcie `SESSION_SECRET` jako klucza API w `modules/routes/auth.js`, tarcza anty-SSRF dla IPv6 ULA, Link-Local, IPv4-mapped i ścisłych granic RFC1918 172.16/12 w `modules/osint.js`, częściowe raportowanie w `DELETE_TO_DO` oraz rozszerzenie testów do 212/212 PASS w 16 pakietach testowych.
+
+### Zmiany
+- [*] Zmodyfikowano: `modules/services/librusService.js` – eliminacja operatora `|| 1` na rzecz bezpiecznego odczytu `waga ?? 1` oraz ignorowanie ocen o wadze 0 w iloczynie i mianowniku średniej ważonej.
+- [*] Zmodyfikowano: `modules/pages/GradesPage.jsx` – implementacja `getGradeWeight` chroniącej wagę 0 w pigułkach ocen, kartach i oknie modalnym.
+- [*] Zmodyfikowano: `api/agent.js`, `modules/services/clientAiDispatcher.js` – precyzyjne przekazywanie `(waga 0)` do promptów modeli LLM.
+- [+] Dodano: `tests/fixtures/librus/grades_golden.json` oraz `tests/librus_golden.test.js` – złoty zestaw danych testowych i 6 testów warstwowych weryfikujących matematyczną czystość obliczeń.
+- [*] Zmodyfikowano: `modules/routes/auth.js` – segregacja poświadczeń: usunięcie `SESSION_SECRET` z listy akceptowanych kluczy nagłówków systemowych.
+- [*] Zmodyfikowano: `modules/osint.js` – zaawansowane filtrowanie SSRF: obsługa IPv6 ULA (`fc00::/7`), Link-Local (`fe80::/10`), IPv4-mapped (`::ffff:127.0.0.1`), rygorystyczne granice RFC 1918 (`172.16.0.0/12`) oraz weryfikacja wszystkich zwróconych adresów IPv4 i IPv6.
+- [*] Zmodyfikowano: `modules/agent.js` – szczegółowe raportowanie stanów częściowych w narzędziu `DELETE_TO_DO` (lista usuniętych i brakujących ID).
+- [*] Zmodyfikowano: `tests/security_audit.test.js` – rozszerzenie testów bezpieczeństwa do 16 testów (sprawdzanie odrzucenia `SESSION_SECRET`, pełna macierz adresów SSRF).
+- [*] Zmodyfikowano: `package.json`, `ARCHITECTURE.md`, `README.md` – podniesienie wersji do `v2.29.0` (212/212 PASS w 16 pakietach).
+- [+] Dodano: Raport wydania `docs/versions/v2.29.0.md`.
+
+---
 
 ## v 2.28.1 — 2026-09-24
 **Typ:** PATCH  

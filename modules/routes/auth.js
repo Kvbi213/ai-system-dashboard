@@ -64,7 +64,6 @@ export const authMiddleware = (req, res, next) => {
     const candidateBuf = Buffer.from(String(candidate));
     const validKeys = [
       process.env.INTERNAL_SERVICE_KEY,
-      process.env.SESSION_SECRET,
       process.env.DASHBOARD_PIN
     ].filter(Boolean);
 
