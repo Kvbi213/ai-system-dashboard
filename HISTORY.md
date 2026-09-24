@@ -3,20 +3,18 @@
 
 ## v 2.26.1 — 2026-09-24
 **Typ:** PATCH  
-**Zakres:** Przełączenie całego ekosystemu OmniDash na docelowy projekt produkcyjny Google Cloud & Firebase `omnidash-509607` (Project Number: `790737563652`). Rejestracja aplikacji webowej OmniDash Web, aktualizacja konfiguracji SDK w `.env` i `.firebaserc`, spięcie Google Cloud Pub/Sub Budget Guard (`projects/omnidash-509607/topics/omni-budget-alerts`), dynamiczne linki w Settings UI, asercje w testach jednostkowych (190/190 PASS) i pomyślny build produkcyjny.
+**Zakres:** Architektoniczne rozdzielenie i precyzyjne spięcie środowiska: zachowanie bazy Cloud Firestore, uwierzytelniania, pamięci i hostingu na istniejącym projekcie Firebase `void-potato-7721` oraz podpięcie projektu Google Cloud Console `omnidash-509607` jako dedykowanego celu dla Google Cloud Billing & Pub/Sub Budget Guard (`projects/omnidash-509607/topics/omni-budget-alerts`, subskrypcja push, 190/190 PASS).
 
 ### Zmiany
-- [*] Zmodyfikowano: `.firebaserc` – ustawiono projekt domyślny `default: "omnidash-509607"` oraz zachowano `legacy: "void-potato-7721"`.
-- [*] Zmodyfikowano: `.env` – wprowadzono poświadczenia Firebase Web App projektu `omnidash-509607` (`VITE_FIREBASE_API_KEY`, `FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_STORAGE_BUCKET`).
-- [*] Zmodyfikowano: `modules/services/gcpBudgetService.js` – dynamiczny projekt bazowy z `FIREBASE_PROJECT_ID` (domyślnie `omnidash-509607`), temat Pub/Sub `projects/omnidash-509607/topics/omni-budget-alerts`, subskrypcja `projects/omnidash-509607/subscriptions/omni-budget-push` oraz precyzyjne powiadomienia Pushbullet.
-- [*] Zmodyfikowano: `modules/routes/gcpBudget.js` – trasa `/api/gcp/config` generuje dynamiczne parametry i instrukcje gcloud dla `omnidash-509607`.
-- [*] Zmodyfikowano: `api/gcp/budget-webhook.js` – punkt końcowy serverless raportuje aktywność dla `omnidash-509607`.
-- [*] Zmodyfikowano: `modules/ai/tools.js` – opis narzędzia `GET_GCP_BUDGET_STATUS` wskazuje projekt `omnidash-509607`.
-- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` – sekcja "Google Cloud Console & Limitowanie Budżetu (Pub/Sub Guard)" dynamicznie prezentuje identyfikator `omnidash-509607`, bezpośrednie linki do konsoli GCP Billing oraz gotowe komendy `gcloud` CLI dla tematu i subskrypcji.
-- [*] Zmodyfikowano: `scripts/setup_gcp_pubsub.js` – generator poleceń gcloud i diagnostyka projektu GCP `omnidash-509607`.
-- [*] Zmodyfikowano: `scripts/deploy_hosting.js` – wdrożenie na Firebase Hosting kierowane do `omnidash-509607`.
-- [*] Zmodyfikowano: `tests/gcp_budget.test.js` – zaktualizowano asercje testowe dla subskrypcji, stanu projektu i narzędzia asystenta AI (8/8 PASS).
-- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.26.1`.
+- [*] Zmodyfikowano: `.firebaserc` – przywrócono `default: "void-potato-7721"` (aktywny hosting i Firestore) oraz dodano alias `omnidash: "omnidash-509607"`.
+- [*] Zmodyfikowano: `.env` – precyzyjnie rozdzielono zmienne: `FIREBASE_PROJECT_ID=void-potato-7721` (z kluczami Firebase SDK) oraz `GCP_PROJECT_ID=omnidash-509607` (do monitorowania limitów budżetu w Google Cloud Console).
+- [*] Zmodyfikowano: `modules/services/gcpBudgetService.js` – uniezależniono projekt monitorowanego budżetu `GCP_PROJECT_ID` (`omnidash-509607`) od instancji bazodanowej Firestore (`void-potato-7721`), przywracając pełną bezbłędną łączność z chmurą.
+- [*] Zmodyfikowano: `modules/routes/gcpBudget.js` – dynamiczna trasa `/api/gcp/config` generuje parametry dla projektu GCP `omnidash-509607` z adresem push-endpointu na domenie produkcyjnej Firebase Hosting.
+- [*] Zmodyfikowano: `api/gcp/budget-webhook.js` – serverless webhook raportuje aktywność w odniesieniu do projektu `GCP_PROJECT_ID`.
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` – sekcja GCP Budget Guard w Ustawieniach precyzyjnie rozróżnia hosting webhooka oraz monitorowany projekt Google Cloud Console `omnidash-509607`.
+- [*] Zmodyfikowano: `scripts/setup_gcp_pubsub.js` – skrypt CLI generuje komendy `gcloud` dla projektu GCP `omnidash-509607` wskazując endpoint w `void-potato-7721.web.app`.
+- [*] Zmodyfikowano: `scripts/deploy_hosting.js` – wdrożenie na Firebase Hosting kierowane do `void-potato-7721`.
+- [*] Zmodyfikowano: `package.json` – wersja `2.26.1`.
 - [+] Dodano: Raport wydania `docs/versions/v2.26.1.md`.
 
 ### Audyt

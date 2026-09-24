@@ -18,28 +18,15 @@ console.log('================================================================');
 import dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(rootDir, '.env') });
 
-const saPath = path.resolve(rootDir, 'firebase-service-account.json');
-let projectId = process.env.FIREBASE_PROJECT_ID || 'omnidash-509607';
-let clientEmail = 'nieznany';
+let projectId = process.env.GCP_PROJECT_ID || 'omnidash-509607';
+let firebaseHostingProject = process.env.FIREBASE_PROJECT_ID || 'void-potato-7721';
 
-if (fs.existsSync(saPath)) {
-  try {
-    const sa = JSON.parse(fs.readFileSync(saPath, 'utf8'));
-    projectId = sa.project_id || projectId;
-    clientEmail = sa.client_email || clientEmail;
-    console.log(`[+] SUCCESS: Znaleziono poświadczenia Google Service Account.`);
-    console.log(`    • Projekt GCP: ${projectId}`);
-    console.log(`    • Konto serwisowe: ${clientEmail}`);
-  } catch (err) {
-    console.warn(`[!] Ostrzeżenie przy odczycie service account: ${err.message}`);
-  }
-} else {
-  console.log(`[*] Używanie domyślnego identyfikatora projektu: ${projectId}`);
-}
+console.log(`[*] Projekt Google Cloud (Budżety i Pub/Sub): ${projectId}`);
+console.log(`[*] Projekt Firebase (Baza Firestore i Hosting): ${firebaseHostingProject}`);
 
 const TOPIC_NAME = 'omni-budget-alerts';
 const SUBSCRIPTION_NAME = 'omni-budget-push';
-const PUSH_ENDPOINT = `https://${projectId}.web.app/api/gcp/budget-webhook`;
+const PUSH_ENDPOINT = `https://${firebaseHostingProject}.web.app/api/gcp/budget-webhook`;
 
 console.log('\n--- PARAMETRY ARCHITEKTURY PUB/SUB ---');
 console.log(`• ID Projektu GCP:              ${projectId}`);

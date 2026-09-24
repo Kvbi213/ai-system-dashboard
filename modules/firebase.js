@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "../");
 
 export const ALLOWED_OWNER_EMAIL = process.env.FIREBASE_OWNER_EMAIL || "owner@omnidash.local";
-export const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || "omnidash-509607";
+export const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || "void-potato-7721";
 
 let db = null;
 let auth = null;

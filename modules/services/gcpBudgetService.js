@@ -5,10 +5,10 @@
  */
 
 import { executeQuery, executeRun } from '../database.js';
-import { getFirestoreDb, isFirebaseConnected, FIREBASE_PROJECT_ID } from '../firebase.js';
+import { getFirestoreDb, isFirebaseConnected } from '../firebase.js';
 import { sendPushNotificationClient, getPushbulletApiKey } from './pushbulletService.js';
 
-const ACTIVE_GCP_PROJECT = FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'omnidash-509607';
+const ACTIVE_GCP_PROJECT = process.env.GCP_PROJECT_ID || 'omnidash-509607';
 
 // Domyślny stan budżetu
 const DEFAULT_BUDGET_STATE = {
