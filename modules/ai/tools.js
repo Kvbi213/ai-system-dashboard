@@ -443,5 +443,76 @@ export const agentTools = [
               required: []
           }
       }
+  },
+  {
+      type: "function",
+      function: {
+          name: "GET_CURRENT_LOCATION",
+          description: "Pobiera bardzo dokładną geolokalizację GPS operatora (szerokość i długość geograficzna, miasto, ulica, powiat, dokładność pomiaru w metrach). Użyj tego narzędzia zawsze, gdy użytkownik pyta o swoją aktualną pozycję, gdzie się znajduje lub gdy potrzebujesz punktu startowego do analizy trasy lub zasięgu.",
+          parameters: {
+              type: "object",
+              properties: {},
+              required: []
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
+          name: "GET_TRAFFIC_ALERTS",
+          description: "Sprawdza czy w wyznaczonym promieniu (np. 10 km od aktualnej pozycji użytkownika) lub na wybranej drodze/trasie nie ma wypadków, kolizji, zablokowanych pasów, robót drogowych lub korków. Integruje dane GDDKiA oraz wywiad drogowy live (w stylu Janosika).",
+          parameters: {
+              type: "object",
+              properties: {
+                  radius_km: {
+                      type: "number",
+                      description: "Promień poszukiwań w kilometrach (domyślnie 10 km, np. 5, 10, 25)."
+                  },
+                  road_name: {
+                      type: "string",
+                      description: "Opcjonalna nazwa drogi lub trasy (np. 'A1', 'DK91', 'S6', 'DK22')."
+                  }
+              },
+              required: []
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
+          name: "GET_SPEED_CAMERAS",
+          description: "Sprawdza liczbę i dokładne lokalizacje fotoradarów stacjonarnych, odcinkowych pomiarów prędkości (OPP) oraz kamer przejazdu na czerwonym świetle w zadanym promieniu (np. 10 km) lub na trasie do wybranego miasta (np. 'do Gdańska', 'do Warszawy', 'do Gdyni').",
+          parameters: {
+              type: "object",
+              properties: {
+                  destination: {
+                      type: "string",
+                      description: "Miasto docelowe lub trasa (np. 'Gdańsk', 'Warszawa', 'Toruń', 'Gdynia'). Pozostaw puste, jeśli zapytanie dotyczy fotoradarów w promieniu wokół bieżącej pozycji."
+                  },
+                  radius_km: {
+                      type: "number",
+                      description: "Promień poszukiwań w km wokół aktualnej pozycji (domyślnie 10 km), gdy brak określonego miasta docelowego."
+                  }
+              },
+              required: []
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
+          name: "CALCULATE_ROUTE",
+          description: "Wyznacza optymalną trasę samochodową z bieżącej lokalizacji użytkownika do celu (np. 'Gdańsk'), zwracając dystans w kilometrach, szacowany czas dojazdu, optymalne drogi (autostrady, drogi ekspresowe i krajowe) oraz pełne zestawienie wszystkich fotoradarów i utrudnień na tej trasie (integracja Google Maps & OSRM & Janosik).",
+          parameters: {
+              type: "object",
+              properties: {
+                  destination: {
+                      type: "string",
+                      description: "Miasto lub adres docelowy (np. 'Gdańsk', 'Gdynia', 'Warszawa', 'Tczew')."
+                  }
+              },
+              required: ["destination"]
+          }
+      }
   }
 ];

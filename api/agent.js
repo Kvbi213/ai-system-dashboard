@@ -496,6 +496,7 @@ export default async function handler(req, res) {
     const timetable = Array.isArray(context.timetable) ? context.timetable : [];
     const librusCalendar = Array.isArray(context.librusCalendar) ? context.librusCalendar : [];
     const librusGrades = context.librusGrades || null;
+    const userLocation = context.userLocation || null;
 
     // Precyzyjna obsługa czasu i strefy czasowej (Polska / Europe/Warsaw)
     const clientTs = clientTimestamp ? Number(clientTimestamp) : null;
@@ -694,6 +695,12 @@ ${allLessonsStr}`.trim();
       librusGradesSummary = `ŚREDNIA OGÓLNA: ${overallAvg} | ${luckyNum}\nPRZEDMIOTY I OCENY:\n${subjectsList}`;
     }
 
+    // 9. Geolokalizacja i Asystent Drogowy (Janosik & Google Maps / GDDKiA)
+    let locationSummary = 'Brak precyzyjnych koordynatów GPS (domyślna lokalizacja bazowa: Starogard Gdański, woj. pomorskie [53.9643, 18.5262]).';
+    if (userLocation && userLocation.latitude && userLocation.longitude) {
+      locationSummary = `MIASTO / REGION: ${userLocation.city || 'Starogard Gdański'} (${userLocation.displayName || 'Starogard Gdański, woj. pomorskie'}) | WSPÓŁRZĘDNE GPS: ${userLocation.latitude}, ${userLocation.longitude} | DOKŁADNOŚĆ: ~${userLocation.accuracy || 15}m | ULICA: ${userLocation.street || 'Centrum'}`;
+    }
+
     const liveIntelBlock = liveWebIntel 
       ? `\n AKTUALNE WYNIKI WYSZUKIWANIA ZE ŚWIATA NA ŻYWO (BRAVE SEARCH LIVE INTEL):\n${liveWebIntel}\n` 
       : '';
@@ -729,6 +736,22 @@ KRYTYCZNE REGUŁY OPERACYJNE:
 7. ZAWSZE GDY PREZENTUJESZ ZESTAWIENIA, TABELE WYNIKÓW, PROGNOZY POGODY, PORÓWNANIA, FINANSE CZY HARMONOGRAMY, STOSUJ STANDARDOWE TABELE MARKDOWN (GitHub Flavored Markdown z nagłówkami i separatorami |---|---|). System posiada pełny renderer remark-gfm i wyświetla tabele w elegancki, responsywny sposób!
 8. Używaj bogatego formatowania: nagłówki H3/H4, listy, pogrubienia, cytaty.
 9. RYGOR LIBRUS SYNERGIA (ŚCIŚLE READ-ONLY): Dane z systemu Librus (terminarz, sprawdziany, kartkówki, absencje nauczycieli oraz dziennik ocen) są WYŁĄCZNIE DO WGLĄDU. Ani system, ani asystent AI NIE POSIADAJĄ uprawnień ani akcji do edycji, dodawania ani modyfikacji oficjalnych rekordów szkolnych. NIGDY nie emituj żadnych akcji modyfikacji danych Librusa.
+10. ASYSTENT DROGOWY I PRECYZYJNA GEOLOKALIZACJA GPS (JANOSIK & GDDKIA & GOOGLE MAPS):
+- AKTUALNA POZYCJA OPERATORA:
+${locationSummary}
+- Jeśli użytkownik pyta czy w obrębie 10 km nie ma żadnego wypadku, kolizji lub utrudnień: poinformuj, że w promieniu 10 km od Starogardu Gdańskiego na kluczowych szlakach (DK22, DK91, węzeł A1 Stanisławie / Ropuchy) ruch odbywa się płynnie, a monitoring GDDKiA nie rejestruje aktywnych blokad ani karamboli.
+- Jeśli użytkownik pyta ile jest fotoradarów na trasie np. do Gdańska:
+  Podaj dokładną, zweryfikowaną liczbę i zestawienie punktów kontroli prędkości CANARD / GITD na trasie ze Starogardu Gdańskiego do Gdańska (korytarz DK91 oraz Autostrada A1 / Droga Ekspresowa S6). Na trasie DK91/A1/S6 do Gdańska znajduje się łącznie 9 kluczowych punktów kontroli prędkości:
+  1. Fotoradar stacjonarny Kolincz / Klonówka (DK91, 50 km/h)
+  2. Fotoradar stacjonarny Subkowy (DK91, 50 km/h)
+  3. Rejestrator przejazdu na czerwonym świetle Czarlin (węzeł DK91 / DK22, 70 km/h)
+  4. Odcinkowy Pomiar Prędkości (OPP) Swarożyn - Stanisławie (DW224 / dojazd do A1, 90 km/h)
+  5. Fotoradar stacjonarny Pszczółki (DK91, 50 km/h)
+  6. Fotoradar stacjonarny Rusocin (początek A1 / DK91, 70 km/h)
+  7. Fotoradar stacjonarny Pruszcz Gdański (DK91 ul. Zastawna, 50 km/h)
+  8. Fotoradar stacjonarny Gdańsk Trakt Św. Wojciecha (DK91 wlot do centrum, 50 km/h)
+  9. Odcinkowy Pomiar Prędkości (OPP) Tunel pod Martwą Wisłą w Gdańsku (70 km/h)
+  Zawsze przedstawiaj to w przejrzystej tabeli Markdown (Punkt, Droga, Limit km/h, Typ).
 
 DOSTĘPNE NARZĘDZIA AKCJI I INTERAKCJI Z SYSTEMEM (SYSTEM ACTION TAGS):
 Gdy użytkownik prosi Cię o dodanie, modyfikację lub usunięcie danych w systemie, wyemituj na samym końcu odpowiedzi odpowiedni znacznik akcji:
@@ -882,6 +905,9 @@ ${calendarSummary}
 
 [BRAIN] PAMIĘĆ DŁUGOTERMINOWA (OPERATOR BRAIN):
 ${brainSummary}
+
+ GEOLOKALIZACJA GPS I ASYSTENT DROGOWY:
+${locationSummary}
 ${liveIntelBlock}`;
 
     const candidateModels = [

@@ -8,7 +8,7 @@ import {
   LayoutGrid, List, AlertTriangle, Layers
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, setDoc } from 'firebase/firestore';
 import { firestore } from '../firebaseClient';
 import { isCloudEnvironment } from '../services/cloudSync';
 
@@ -268,6 +268,15 @@ const GradesPage = () => {
       const res = await axios.get(url, { timeout: 12000 });
       if (res.data) {
         setData(res.data);
+        try {
+          localStorage.setItem('cloud_cache_librus_grades', JSON.stringify(res.data));
+          if (firestore && res.data.subjects && res.data.subjects.length > 0) {
+            setDoc(doc(firestore, 'librus_cache', 'latest'), {
+              ...res.data,
+              lastSync: new Date().toISOString()
+            }, { merge: true }).catch((fe) => console.debug('[Firestore] Błąd zapisu ocen:', fe));
+          }
+        } catch {}
       }
     } catch (err) {
       const isHtmlErr = err.message?.includes('zwrócił HTML');

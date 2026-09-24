@@ -17,11 +17,11 @@ const rootDir = path.resolve(__dirname, '../../');
 const router = express.Router();
 
 router.post('/agent', apiLimiter, async (req, res) => {
-  const { text, mode, newsCategories, userName } = req.body;
+  const { text, mode, newsCategories, userName, userLocation } = req.body;
   if (!text) return res.status(400).json({ error: 'Brak tekstu wejściowego.' });
   console.log(`[*] INFO: Otrzymano zapytanie do agenta: ${text} [Tryb: ${mode || 'worker'}] od: ${userName || 'Użytkownik'}`);
   try {
-    const result = await processUserIntent(text, mode, { newsCategories, userName });
+    const result = await processUserIntent(text, mode, { newsCategories, userName, userLocation });
     res.json(result);
   } catch (err) {
     logError('POST /api/agent', err);

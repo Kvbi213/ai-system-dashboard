@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { subscribeCollection, saveCloudDocument, deleteCloudDocument, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
-import { doc, onSnapshot, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, setDoc } from 'firebase/firestore';
 import { firestore } from '../firebaseClient.js';
 import { 
   resolveFullTeacherName, 
@@ -262,6 +262,9 @@ const TimetablePage = () => {
           if (res.data?.success && res.data.lessons) {
             setLibrusData(res.data);
             setLibrusLastSync(res.data.lastSync || null);
+            if (firestore) {
+              setDoc(doc(firestore, 'librus_cache', 'timetable'), res.data, { merge: true }).catch(() => {});
+            }
           }
         })
         .catch(() => {});
@@ -270,6 +273,12 @@ const TimetablePage = () => {
         .then(res => {
           if (res.data?.success && Array.isArray(res.data.events)) {
             setLibrusCalendarEvents(res.data.events);
+            if (firestore) {
+              setDoc(doc(firestore, 'librus_cache', 'calendar'), {
+                events: res.data.events,
+                lastSync: res.data.lastSync || new Date().toISOString()
+              }, { merge: true }).catch(() => {});
+            }
           }
         })
         .catch(() => {});

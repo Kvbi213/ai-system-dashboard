@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.24.0 (Stan na Wrzesień 2026) 
+**Wersja Systemu:** v2.25.0 (Stan na Wrzesień 2026) 
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE) 
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Darmowy Silnik Syntezy Mowy Google Chrome Web Speech TTS, Dostęp Kognitywny AI do Terminarza Szkolnego i Dziennika Ocen Librus Synergia w Rygorze Ściśle READ-ONLY, Vitest 166/166 PASS)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Geolokalizacja Wysokiej Precyzji GPS, Wywiad Drogowy Janosik/CANARD/GITD & OSRM/Google Maps, Trwały Zapis Dziennika Librus w Cloud Firestore, Vitest 182/182 PASS)
 
 ---
 
@@ -11,7 +11,7 @@ System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-
 
 **Główne Paradygmaty:**
 1. **Multi-Cloud & Cloud-First Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (Prywatna Instancja Produkcyjna), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`/api/agent`, `api/news`, `api/models`, `api/status`, `api/osint`, `api/pushbullet-webhook`, `api/cron/agent`). Wszystkie operacje na telefonach, tabletach i desktopie natychmiast synchronizują się z chmurą bez wymogu logowania Google OAuth.
-2. **Quality Gate & Automated Testing (110/110 PASS):** Zintegrowany silnik testowy Vitest (`npm test`) z 9 dedykowanymi zestawami testowymi weryfikującymi algorytm budżetowy, klasyfikację celów OSINT, strefę czasową `Europe/Warsaw`, eksport CSV, rejestr synchronizacji chmurowej, klasyfikator i parser powiadomień Pushbullet, autonomicznego agenta ciągłego oraz renderowanie komponentów Reacta z `@testing-library/react` i `jsdom`.
+2. **Quality Gate & Automated Testing (182/182 PASS):** Zintegrowany silnik testowy Vitest (`npm test`) z 13 dedykowanymi zestawami testowymi weryfikującymi geolokalizację GPS, wywiad drogowy CANARD/GITD i alerty GDDKiA, integrację Librus Synergia, algorytm budżetowy, klasyfikację celów OSINT, strefę czasową `Europe/Warsaw`, eksport CSV, rejestr synchronizacji chmurowej, klasyfikator i parser powiadomień Pushbullet, autonomicznego agenta ciągłego oraz renderowanie komponentów Reacta z `@testing-library/react` i `jsdom`.
 3. **Bidirectional Pushbullet Integration & Autonomous Expense Tracking:** Dwukierunkowa integracja ze smartfonem operatora. System nasłuchuje powiadomień płatniczych i bankowych ze strumienia WebSocket (`wss://stream.pushbullet.com`), deduplikuje je w oknie 60s, kognitywnie wyodrębnia kwotę i przypisuje do koszyka 50/30/20 (Needs vs Wants vs Savings), automatycznie rejestruje wydatek w SQLite i Firestore oraz wysyła potwierdzenie na telefon. Dodatkowo asystent AI może wysyłać wiadomości i zadania na smartfon operatora znacznikiem `[ACTION:SEND_PUSH]`.
 4. **Real-time SSE Telemetry & Dual Mode:** Backend Express dostarcza strumień Server-Sent Events (`/api/system/stream`) emitujący metryki CPU/RAM/Heap/Uptime co 2 sekundy. W chmurze komponent `SystemMonitor` automatycznie przechodzi w tryb telemetrii przeglądarkowej ze wskaźnikami `● SSE LIVE` i `● CLIENT`.
 5. **Instant Theme Toggle:** Szybki przełącznik trybu jasnego/ciemnego (Sun/Moon) umieszczony w widocznym miejscu w nagłówku mobilnym oraz stopce menu bocznego na desktopie, zintegrowany z pamięcią `localStorage` i 7 paletami kolorystycznymi.
@@ -20,6 +20,7 @@ System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-
 8. **Advanced Budgeting & Envelope Allocation:** Autonomiczny i elastyczny system podziału finansów oparty na dedykowanym silniku matematycznym `budgetCalculator.js`. Obsługa podziałów standardowych 50/30/20, alokacji z koszykami 0% (np. 70/0/30) oraz bezpośrednich transferów między kopertami.
 9. **LLM with Precise Warsaw Timezone & Multi-Tool Engine:** Cała logika kognitywna oparta jest na modelu `openai/gpt-oss-120b`. Klient każdorazowo przesyła precyzyjny timestamp oraz zlokalizowaną godzinę, a Vercel Gateway wymusza strefę `Europe/Warsaw`, gwarantując natychmiastową i niezmiennie poprawną wiedzę o aktualnej godzinie w Polsce.
 10. **Clean & Modern Aesthetics**: Interfejs zaprojektowany w oparciu o czyste linie, glassmorphism, elegancką i nowoczesną typografię oraz bogatą paletę motywów.
+11. **High-Accuracy Geolocation & Road Intelligence:** Usługa nawigacyjna i drogowa łącząca dokładne współrzędne GPS (`enableHighAccuracy`), rejestr stacjonarnych fotoradarów, odcinkowych pomiarów prędkości (OPP) i kamer RedLight CANARD/GITD (np. 9 punktów kontrolnych na korytarzu do Gdańska), bieżące alerty wypadkowe GDDKiA w promieniu 10 km oraz wyznaczanie tras (OSRM / Google Maps Directions).
 
 ---
 
@@ -34,7 +35,8 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │ ├── main.yml ← Główny potok CI/CD produkcyjny
 │ └── ci.yml ← Równoległy potok weryfikacyjny pull requestów
 │
-├── /tests/ ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 158/158 PASS, 12 zestawów)
+├── /tests/ ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 182/182 PASS, 13 zestawów)
+│ ├── traffic.test.js ← Testy geolokalizacji GPS, odległości Haversine, skanera wypadków 10km, fotoradarów CANARD/GITD na korytarzu Starogard-Gdańsk i routingu OSRM/Google
 │ ├── librus.test.js ← Testy integracji Librus Synergia (oceny, terminarz, plan lekcji, korelacja absencji i zastępstw)
 │ ├── tts_quota.test.js ← Testy inspekcji limitów ElevenLabs, błędu quota_exceeded i bazy głosów
 │ ├── agent_execution_trace.test.jsx ← Testy inspektora wykonania narzędzi i uziemienia Pamięci
@@ -75,6 +77,8 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │ ├── osint.js ← Narzędzia rozpoznania OSINT i klasyfikator celów.
 │ │
 │ ├── /services/ ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
+│ │ ├── geolocationService.js ← Geolokalizacja GPS (enableHighAccuracy), geokodowanie Nominatim / Google Geocoding, dystans Haversine.
+│ │ ├── trafficService.js ← Wywiad drogowy (fotoradary CANARD/GITD, wypadki GDDKiA w promieniu 10 km, routing OSRM / Google Maps).
 │ │ ├── librusService.js ← Integracja z librus-api v2.18.1, pobieranie ocen, średnie ważone i szczęśliwy numerek.
 │ │ ├── pushbulletService.js ← Serwis bezpośredniej integracji z Pushbullet API.
 │ │ ├── wakeWordService.js ← Serwis detekcji słowa wybudzającego "Hej Omni".
@@ -88,6 +92,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │ │ └── timeUtils.js ← Narzędzia strefy czasowej Europe/Warsaw i formatowania dat.
 │ │
 │ ├── /routes/ ← Trasy API Express.
+│ │ ├── traffic.js ← Endpointy REST /api/traffic (location, alerts, speed-cameras, route).
 │ │ ├── librus.js ← Endpointy REST /api/librus (grades, refresh, status, credentials).
 │ │ └── ...
 │ │
@@ -156,6 +161,10 @@ Backend to lekka aplikacja oparta na Express.js. Działa na porcie `5000`. Pełn
 | `/api/librus/test-auth` | `POST` | `login`, `password` | Jednorazowy test poprawności danych logowania bez ich zapisywania. |
 | `/api/voice/tts` | `POST` | `engine`, `text`, `voiceId`, `apiKey` | Wielosilnikowa synteza mowy (Edge Neural, ElevenLabs, Google Cloud Neural, Browser Web Speech). |
 | `/api/voice/transcribe` | `POST` | `audioData`, `language` | Transkrypcja nagrań audio mikrofonu z użyciem Groq Whisper API. |
+| `/api/traffic/location` | `GET`, `POST` | `lat`, `lon` (body dla POST) | Odczyt aktualnej lokalizacji użytkownika lub jej geokodowanie i zapis w sesji serwera. |
+| `/api/traffic/alerts` | `GET` | `?lat=&lon=&radius=&road=` | Alerty wypadków, kolizji i utrudnień drogowych GDDKiA w zadanym promieniu (domyślnie 10 km). |
+| `/api/traffic/speed-cameras` | `GET` | `?lat=&lon=&radius=&route=` | Fotoradary stacjonarne, OPP i kamery RedLight na trasie (np. do Gdańska — 9 punktów) lub w promieniu. |
+| `/api/traffic/route` | `POST` | `destination`, `originLat`, `originLon`, `googleApiKey` | Wyznaczanie trasy drogowej (OSRM / Google Directions) ze zliczaniem fotoradarów i alertów. |
 
 ---
 
@@ -238,6 +247,10 @@ Agent w trybie `worker` potrafi sam zidentyfikować potrzebę użycia narzędzia
 - `GET_ALL_TASKS`: Skanowanie pełnej listy zadań do celów zarządczych.
 - `GET_LIBRUS_GRADES` [READ-ONLY]: Pobieranie ocen, średnich ważonych i szczęśliwego numerka ze zbuforowanego dziennika Librus Synergia.
 - `GET_LIBRUS_CALENDAR` [READ-ONLY]: Pobieranie terminarza szkolnego (sprawdziany, kartkówki, absencje nauczycieli). Dostęp ściśle odczytowy.
+- `GET_CURRENT_LOCATION`: Odczyt aktualnej geolokalizacji GPS (dokładność, miasto, dzielnica, ulica) z pamięci podręcznej przeglądarki i sensora GPS.
+- `GET_TRAFFIC_ALERTS`: Pobieranie bieżących alertów drogowych, wypadków i kolizji GDDKiA w promieniu (np. 10 km) od pozycji operatora.
+- `GET_SPEED_CAMERAS`: Skaner fotoradarów stacjonarnych, OPP i rejestratorów RedLight CANARD/GITD na trasie (np. 9 punktów do Gdańska) lub w promieniu.
+- `CALCULATE_ROUTE`: Wyznaczanie trasy przejazdu (OSRM / Google Directions API) z analizą czasu, kilometrów i punktów kontrolnych.
 
 ---
 
@@ -289,6 +302,11 @@ Projekt chmurowy w Google Firebase został utworzony w architekturze ścisłej i
   - Reguły `firestore.rules` dopuszczają operacje zapisu i odczytu wyłącznie dla uwierzytelnionego konta właściciela (`<ALLOWED_OWNER_EMAIL>`).
   - Każda próba logowania lub odpytania API przez inną tożsamość kończy się natychmiastowym kodem `403 Forbidden`.
   - Backend udostępnia bezpieczną procedurę synchronizacji dwukierunkowej (`/api/firebase/sync`), migrując dane zadań, transakcji i kalendarza z lokalnego SQLite do Cloud Firestore.
+- **Trwała Persystencja Dziennika Librus Synergia w Cloud Firestore:**
+  - `librus_cache/latest`: Bufor ocen cząstkowych, średnich ważonych, ocen okresowych i szczęśliwego numerka.
+  - `librus_cache/calendar`: Bufor terminarza szkolnego (sprawdziany, kartkówki, wydarzenia, wycieczki, absencje).
+  - `librus_cache/timetable`: Bufor planu lekcji i zastępstw.
+  - Dane są zapisywane automatycznie po każdym udanym pobraniu z Librusa (zarówno z poziomu backendu, jak i frontendu za pośrednictwem `setDoc`) z zachowaniem rygoru READ-ONLY (żadne dane w samym systemie Librus Synergia nie są modyfikowane).
 
 ---
 *Dokument zrealizowany zgodnie ze zleceniem. Podpisano: Agent AI.*

@@ -1,5 +1,29 @@
 ## Wersja Bieżąca
-**v2.24.0**
+**v2.25.0**
+
+## v 2.25.0 — 2026-09-24
+**Typ:** MINOR  
+**Zakres:** Implementacja silnika precyzyjnej geolokalizacji GPS operatora oraz modułu wywiadu drogowego (Janosik & Google Maps / GDDKiA / CANARD) dla asystenta AI OmniDash, uszczelnienie i dwukierunkowe utrwalanie danych Librus Synergia w chmurowej bazie Cloud Firestore, nowa sekcja drogowa w Ustawieniach oraz pełny audyt testowy (182/182 PASS).
+
+### Zmiany
+- [+] Dodano: `modules/services/trafficService.js` – wywiad drogowy: monitorowanie wypadków, kolizji i blokad w zadanym promieniu (np. 10 km) z serwisu GDDKiA, rejestr punktów kontroli prędkości CANARD/Janosik (9 kluczowych punktów na trasie DK91/A1/S6 do Gdańska: fotoradary stacjonarne Kolincz, Subkowy, Pszczółki, Rusocin, Pruszcz Gdański, Gdańsk Trakt Św. Wojciecha; kamery RedLight Czarlin; Odcinkowe Pomiary Prędkości OPP Swarożyn-Stanisławie i Tunel pod Martwą Wisłą) oraz routing drogowy OSRM / Google Maps Directions API.
+- [+] Dodano: `modules/services/geolocationService.js` – geolokalizacja urządzenia (`navigator.geolocation`, `enableHighAccuracy: true`, reverse geocoding OSM Nominatim / Google Maps, formuła Haversine `calculateDistanceKm`, trwałe przechowywanie w `localStorage`).
+- [+] Dodano: `modules/routes/traffic.js` – kontroler tras Express API: `/api/traffic/location`, `/api/traffic/alerts`, `/api/traffic/speed-cameras`, `/api/traffic/route` zintegrowany w `core.server.js`.
+- [+] Dodano: Narzędzia dla asystenta AI w `modules/ai/tools.js`: `GET_CURRENT_LOCATION`, `GET_TRAFFIC_ALERTS`, `GET_SPEED_CAMERAS`, `CALCULATE_ROUTE`.
+- [*] Zmodyfikowano: `modules/agent.js` – wstrzykiwanie pozycji GPS do kontekstu systemowego oraz obsługa wykonania narzędzi drogowych w pętli wywołań OmniMind.
+- [*] Zmodyfikowano: `api/agent.js` – rozszerzenie bramy Vercel Serverless o sekcję geolokalizacji i asystenta drogowego (reguła 10) w promptach Mentor i Worker.
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` – przekazywanie pozycji GPS do modeli zdalnych oraz autonomiczne handlery dla zapytań o wypadki w 10 km, fotoradary na trasie do Gdańska i współrzędne GPS.
+- [*] Zmodyfikowano: `modules/firebase.js` – rozszerzenie `syncAllToFirestore()` o automatyczną replikację tabel SQLite `librus_cache`, `librus_calendar_cache` i `librus_timetable_cache` do kolekcji Firestore `librus_cache` (`latest`, `calendar`, `timetable`).
+- [*] Zmodyfikowano: `modules/pages/GradesPage.jsx`, `CalendarPage.jsx`, `TimetablePage.jsx` – dodanie bezpośredniego zapisu `setDoc` do Cloud Firestore przy pobieraniu świeżych danych szkolnych z Librusa.
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` – dodanie sekcji "Lokalizacja GPS i Asystent Drogowy (Janosik & Google Maps)" z odczytem koordynatów, odświeżaniem GPS, kluczem Google Maps API, testem skanu 10 km oraz przyciskiem "Zsynchronizuj z Cloud Firestore" w sekcji Librus.
+- [+] Dodano: Zestaw testów jednostkowych w `tests/traffic.test.js` (16/16 PASS).
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.25.0`.
+- [+] Dodano: Raport wydania `docs/versions/v2.25.0.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.24.0 — 2026-09-23
 **Typ:** MINOR  

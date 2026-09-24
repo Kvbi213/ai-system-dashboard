@@ -6,7 +6,7 @@ import {
   Filter, RefreshCw, Layers, CheckCircle2, Award, Info
 } from 'lucide-react';
 import { subscribeCollection, saveCloudDocument, deleteCloudDocument, isCloudEnvironment } from '../services/cloudSync.js';
-import { doc, onSnapshot, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, setDoc } from 'firebase/firestore';
 import { firestore } from '../firebaseClient.js';
 
 // Wbudowane zdarzenia demonstracyjne terminarza szkolnego (Librus Synergia)
@@ -183,6 +183,15 @@ const CalendarPage = () => {
       if (res.data?.events && Array.isArray(res.data.events)) {
         setSchoolEvents(res.data.events);
         setSchoolLastSync(res.data.lastSync || null);
+        try {
+          localStorage.setItem('cloud_cache_librus_calendar', JSON.stringify(res.data.events));
+          if (firestore && res.data.events.length > 0) {
+            setDoc(doc(firestore, 'librus_cache', 'calendar'), {
+              events: res.data.events,
+              lastSync: res.data.lastSync || new Date().toISOString()
+            }, { merge: true }).catch((fe) => console.debug('[Firestore] Błąd zapisu terminarza:', fe));
+          }
+        } catch {}
       } else {
         setSchoolEvents(STATIC_DEMO_SCHOOL_EVENTS);
       }

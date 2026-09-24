@@ -119,6 +119,56 @@ export const syncAllToFirestore = async () => {
     console.error("[!] Błąd synchronizacji kalendarza do Firestore:", err.message);
   }
 
+  // Synchronizacja pamięci podręcznej Librus Synergia (oceny, terminarz, plan lekcji)
+  try {
+    const librusGradesRow = await executeQuery("SELECT data, lucky_number, last_sync FROM librus_cache WHERE id = 1");
+    if (librusGradesRow && librusGradesRow[0]?.data) {
+      const gradesData = JSON.parse(librusGradesRow[0].data);
+      await db.collection("librus_cache").doc("latest").set({
+        ...gradesData,
+        luckyNumber: librusGradesRow[0].lucky_number,
+        synced_at: results.timestamp,
+        updated_at: new Date().toISOString()
+      }, { merge: true });
+      results.librusGradesSynced = 1;
+      console.log("[+] SUCCESS :: FIREBASE :: Zsynchronizowano oceny Librus (librus_cache/latest).");
+    }
+  } catch (err) {
+    console.error("[!] Błąd synchronizacji ocen Librus do Firestore:", err.message);
+  }
+
+  try {
+    const librusCalRow = await executeQuery("SELECT data, last_sync FROM librus_calendar_cache WHERE id = 1");
+    if (librusCalRow && librusCalRow[0]?.data) {
+      const calData = JSON.parse(librusCalRow[0].data);
+      await db.collection("librus_cache").doc("calendar").set({
+        ...calData,
+        synced_at: results.timestamp,
+        updated_at: new Date().toISOString()
+      }, { merge: true });
+      results.librusCalendarSynced = 1;
+      console.log("[+] SUCCESS :: FIREBASE :: Zsynchronizowano terminarz Librus (librus_cache/calendar).");
+    }
+  } catch (err) {
+    console.error("[!] Błąd synchronizacji terminarza Librus do Firestore:", err.message);
+  }
+
+  try {
+    const librusTtRow = await executeQuery("SELECT data, last_sync FROM librus_timetable_cache WHERE id = 1");
+    if (librusTtRow && librusTtRow[0]?.data) {
+      const ttData = JSON.parse(librusTtRow[0].data);
+      await db.collection("librus_cache").doc("timetable").set({
+        ...ttData,
+        synced_at: results.timestamp,
+        updated_at: new Date().toISOString()
+      }, { merge: true });
+      results.librusTimetableSynced = 1;
+      console.log("[+] SUCCESS :: FIREBASE :: Zsynchronizowano plan lekcji Librus (librus_cache/timetable).");
+    }
+  } catch (err) {
+    console.error("[!] Błąd synchronizacji planu lekcji Librus do Firestore:", err.message);
+  }
+
   // Zapis metadanych synchronizacji
   await db.collection("system_metadata").doc("last_sync").set(results, { merge: true });
 

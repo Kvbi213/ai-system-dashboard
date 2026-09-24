@@ -28,6 +28,7 @@ import phoneRouter from './modules/routes/phone.js';
 import logsRouter from './modules/routes/logs.js';
 import firebaseRouter from './modules/routes/firebase.js';
 import librusRouter from './modules/routes/librus.js';
+import trafficRouter from './modules/routes/traffic.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -71,6 +72,7 @@ app.use('/api/phone', phoneRouter);
 app.use('/api/logs', logsRouter);
 app.use('/api/firebase', firebaseRouter);
 app.use('/api/librus', librusRouter);
+app.use('/api/traffic', trafficRouter);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
