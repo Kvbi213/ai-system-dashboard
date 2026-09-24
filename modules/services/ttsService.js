@@ -216,6 +216,43 @@ export const GOOGLE_DEFAULT_VOICES = [
   { id: 'en-US-Neural2-F', name: 'Neural2-F (Damski - US Expressive)' }
 ];
 
+export const GOOGLE_TTS_FREE_TIER_LIMIT = 1000000; // 1 000 000 znaków/miesiąc w darmowym pakiecie Google Cloud Free Tier
+
+export function getGoogleTtsMonthlyUsage() {
+  if (typeof localStorage === 'undefined') {
+    return { currentMonth: '', count: 0, limit: GOOGLE_TTS_FREE_TIER_LIMIT, remaining: GOOGLE_TTS_FREE_TIER_LIMIT, isExceeded: false };
+  }
+  const currentMonth = new Date().toISOString().substring(0, 7);
+  const storedMonth = localStorage.getItem('system_google_tts_month');
+  if (storedMonth !== currentMonth) {
+    localStorage.setItem('system_google_tts_month', currentMonth);
+    localStorage.setItem('system_google_tts_chars', '0');
+    return { currentMonth, count: 0, limit: GOOGLE_TTS_FREE_TIER_LIMIT, remaining: GOOGLE_TTS_FREE_TIER_LIMIT, isExceeded: false };
+  }
+  const count = parseInt(localStorage.getItem('system_google_tts_chars') || '0', 10);
+  return {
+    currentMonth,
+    count,
+    limit: GOOGLE_TTS_FREE_TIER_LIMIT,
+    remaining: Math.max(0, GOOGLE_TTS_FREE_TIER_LIMIT - count),
+    isExceeded: count >= GOOGLE_TTS_FREE_TIER_LIMIT
+  };
+}
+
+export function recordGoogleTtsUsage(charCount) {
+  if (typeof localStorage === 'undefined') return;
+  const currentMonth = new Date().toISOString().substring(0, 7);
+  const storedMonth = localStorage.getItem('system_google_tts_month');
+  let count = 0;
+  if (storedMonth === currentMonth) {
+    count = parseInt(localStorage.getItem('system_google_tts_chars') || '0', 10);
+  } else {
+    localStorage.setItem('system_google_tts_month', currentMonth);
+  }
+  count += (Number(charCount) || 0);
+  localStorage.setItem('system_google_tts_chars', count.toString());
+}
+
 class TTSService {
   constructor() {
     this.currentAudio = null;
@@ -776,6 +813,22 @@ class TTSService {
 
     // 1. Bezpośrednie wywołanie REST z przeglądarki (Google Cloud TTS ma natywny CORS dla kluczy API)
     if (key) {
+      // Weryfikacja twardego limitu 1 000 000 znaków (Darmowy pakiet Google Cloud Free Tier)
+      const usage = getGoogleTtsMonthlyUsage();
+      if (usage.count + text.length > GOOGLE_TTS_FREE_TIER_LIMIT) {
+        console.warn(`[!] ALERT :: Google TTS: Osiągnięto limit darmowego pakietu (${usage.count}/${GOOGLE_TTS_FREE_TIER_LIMIT} znaków). Blokada płatnych wywołań API.`);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('systemAlert', {
+            detail: {
+              type: 'warning',
+              title: 'Google Cloud TTS: Osiągnięto limit 1M znaków',
+              message: 'Wykorzystano bezpłatną pulę 1 000 000 znaków w tym miesiącu. Przełączono automatycznie na darmowy syntezator Edge Neural.'
+            }
+          }));
+        }
+        throw new Error(`Przekroczono darmowy limit ${GOOGLE_TTS_FREE_TIER_LIMIT} znaków/mc Google Cloud TTS. Zablokowano wywołanie API.`);
+      }
+
       try {
         const res = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(key)}`, {
           method: 'POST',
@@ -809,6 +862,7 @@ class TTSService {
               bytes[i] = binaryString.charCodeAt(i);
             }
             audioBlob = new Blob([bytes.buffer], { type: 'audio/mpeg' });
+            recordGoogleTtsUsage(text.length);
           }
         } else {
           const errText = await res.text();
