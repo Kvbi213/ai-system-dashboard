@@ -14,6 +14,8 @@ const env = {
   GOOGLE_APPLICATION_CREDENTIALS: serviceAccountPath
 };
 
-console.log('[*] DEPLOY: Wypychanie pakietu do void-potato-7721.web.app...');
-execSync('firebase deploy --only hosting --project void-potato-7721', { cwd: rootDir, env, stdio: 'inherit' });
-console.log('[+] SUCCESS: Pomyślnie wdrożono nową wersję do chmury Firebase Hosting!');
+const targetProject = process.env.FIREBASE_PROJECT_ID || 'omnidash-509607';
+
+console.log(`[*] DEPLOY: Wypychanie pakietu do ${targetProject}.web.app...`);
+execSync(`firebase deploy --only hosting --project ${targetProject}`, { cwd: rootDir, env, stdio: 'inherit' });
+console.log(`[+] SUCCESS: Pomyślnie wdrożono nową wersję do chmury Firebase Hosting (${targetProject})!`);

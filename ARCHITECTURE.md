@@ -21,7 +21,7 @@ System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-
 9. **LLM with Precise Warsaw Timezone & Multi-Tool Engine:** Cała logika kognitywna oparta jest na modelu `openai/gpt-oss-120b`. Klient każdorazowo przesyła precyzyjny timestamp oraz zlokalizowaną godzinę, a Vercel Gateway wymusza strefę `Europe/Warsaw`, gwarantując natychmiastową i niezmiennie poprawną wiedzę o aktualnej godzinie w Polsce.
 10. **Clean & Modern Aesthetics**: Interfejs zaprojektowany w oparciu o czyste linie, glassmorphism, elegancką i nowoczesną typografię oraz bogatą paletę motywów.
 11. **High-Accuracy Geolocation & Road Intelligence:** Usługa nawigacyjna i drogowa łącząca dokładne współrzędne GPS (`enableHighAccuracy`), rejestr stacjonarnych fotoradarów, odcinkowych pomiarów prędkości (OPP) i kamer RedLight CANARD/GITD (np. 9 punktów kontrolnych na korytarzu do Gdańska), bieżące alerty wypadkowe GDDKiA w promieniu 10 km oraz wyznaczanie tras (OSRM / Google Maps Directions).
-12. **Cloud Billing & Pub/Sub Budget Guard:** Bezpośrednia integracja z Google Cloud Billing i tematem Cloud Pub/Sub `omni-budget-alerts` projektu `void-potato-7721`. Asystent oraz dedykowany webhook monitorują wydatki, wysyłają natychmiastowe alerty na telefon przez Pushbullet (progi 80% i 90%) oraz aktywują obronną flagę `isBudgetThrottled` przy osiągnięciu 100% budżetu.
+12. **Cloud Billing & Pub/Sub Budget Guard:** Bezpośrednia integracja z Google Cloud Billing i tematem Cloud Pub/Sub `omni-budget-alerts` projektu `omnidash-509607`. Asystent oraz dedykowany webhook monitorują wydatki, wysyłają natychmiastowe alerty na telefon przez Pushbullet (progi 80% i 90%) oraz aktywują obronną flagę `isBudgetThrottled` przy osiągnięciu 100% budżetu.
 
 ---
 
@@ -72,7 +72,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 ├── README.md ← Główna prezentacja repozytorium z diagramami Mermaid.
 │
 ├── /scripts/ ← Narzędzia automatyzacji i wdrożeń
-│ └── setup_gcp_pubsub.js ← Generator poleceń gcloud i diagnostyka projektu GCP void-potato-7721
+│ └── setup_gcp_pubsub.js ← Generator poleceń gcloud i diagnostyka projektu GCP omnidash-509607
 │
 ├── /modules/ ← Główna logika i komponenty.
 │ ├── agent.js ← System podłączający się do API LLM (lokalnie i chmurowo).
@@ -176,7 +176,7 @@ Backend to lekka aplikacja oparta na Express.js. Działa na porcie `5000`. Pełn
 | `/api/gcp/budget-webhook` | `POST` | Pub/Sub Push Payload | Odbieranie powiadomień budżetowych z Google Cloud Pub/Sub, aktualizacja Firestore i alerty Pushbullet. |
 | `/api/gcp/budget-status` | `GET` | - | Zwraca aktualny stan budżetu, koszty, limit w PLN, procent zużycia i flagę isBudgetThrottled. |
 | `/api/gcp/simulate-alert` | `POST` | `costAmount`, `budgetAmount`, `threshold` | Testowe wywołanie symulacji powiadomienia Pub/Sub dla weryfikacji pipeline'u. |
-| `/api/gcp/config` | `GET` | - | Informacje konfiguracyjne projektu void-potato-7721, tematu i subskrypcji Pub/Sub. |
+| `/api/gcp/config` | `GET` | - | Informacje konfiguracyjne projektu omnidash-509607, tematu i subskrypcji Pub/Sub. |
 
 ---
 
@@ -263,7 +263,7 @@ Agent w trybie `worker` potrafi sam zidentyfikować potrzebę użycia narzędzia
 - `GET_TRAFFIC_ALERTS`: Pobieranie bieżących alertów drogowych, wypadków i kolizji GDDKiA w promieniu (np. 10 km) od pozycji operatora.
 - `GET_SPEED_CAMERAS`: Skaner fotoradarów stacjonarnych, OPP i rejestratorów RedLight CANARD/GITD na trasie (np. 9 punktów do Gdańska) lub w promieniu.
 - `CALCULATE_ROUTE`: Wyznaczanie trasy przejazdu (OSRM / Google Directions API) z analizą czasu, kilometrów i punktów kontrolnych.
-- `GET_GCP_BUDGET_STATUS`: Pobieranie statusu budżetu Google Cloud Console (projekt void-potato-7721), aktualnych kosztów, limitu i flagi obronnej isBudgetThrottled.
+- `GET_GCP_BUDGET_STATUS`: Pobieranie statusu budżetu Google Cloud Console (projekt omnidash-509607), aktualnych kosztów, limitu i flagi obronnej isBudgetThrottled.
 
 ---
 

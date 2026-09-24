@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       status: 'active',
       service: 'Google Cloud Pub/Sub Budget Webhook',
-      targetProject: 'void-potato-7721'
+      targetProject: process.env.FIREBASE_PROJECT_ID || 'omnidash-509607'
     });
   }
 
@@ -69,6 +69,7 @@ export default async function handler(req, res) {
     if (pushKey && percentage >= 80) {
       try {
         const alertType = isCritical ? '[!] KRYTYCZNY LIMIT BUDŻETU' : '[!] OSTRZEŻENIE BUDŻETU';
+        const projId = process.env.FIREBASE_PROJECT_ID || 'omnidash-509607';
         await fetch('https://api.pushbullet.com/v2/pushes', {
           method: 'POST',
           headers: {
@@ -78,7 +79,7 @@ export default async function handler(req, res) {
           body: JSON.stringify({
             type: 'note',
             title: `${alertType}: Google Cloud (${percentage}%)`,
-            body: `Projekt void-potato-7721 osiągnął ${costAmount.toFixed(2)} ${currencyCode} z ${budgetAmount.toFixed(2)} ${currencyCode}.\nStatus: ${budgetStatus.status}.`
+            body: `Projekt ${projId} osiągnął ${costAmount.toFixed(2)} ${currencyCode} z ${budgetAmount.toFixed(2)} ${currencyCode}.\nStatus: ${budgetStatus.status}.`
           })
         });
       } catch (pushErr) {

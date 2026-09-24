@@ -300,7 +300,7 @@ const GradesPage = () => {
     fetchGrades(false, useDemo);
   }, [useDemo]);
 
-  // Subskrypcja Firestore w chmurze (Realtime Sync dla void-potato-7721.web.app)
+  // Subskrypcja Firestore w chmurze (Realtime Sync dla omnidash-509607.web.app)
   useEffect(() => {
     if (!firestore || useDemo) return;
     try {

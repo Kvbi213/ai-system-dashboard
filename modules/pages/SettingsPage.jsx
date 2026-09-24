@@ -2479,7 +2479,7 @@ const SettingsPage = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/30 font-bold">
-                        void-potato-7721
+                        {gcpBudget?.projectId || 'omnidash-509607'}
                       </span>
                       <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border font-bold ${
                         (gcpBudget?.percentage || 0) >= 100 
@@ -2494,7 +2494,7 @@ const SettingsPage = () => {
                   </div>
 
                   <p className="text-xs text-textMuted leading-relaxed mb-3">
-                    Projekt Google Cloud: <strong className="text-textPrimary font-mono">void-potato-7721</strong> (europe-central2). Integracja z Google Cloud Billing i tematem <strong className="text-textPrimary font-mono">omni-budget-alerts</strong>. Asystent AI i webhook monitorują wydatki i wysyłają alert Pushbullet przy przekroczeniu 80% lub 90% zdefiniowanego limitu.
+                    Projekt Google Cloud: <strong className="text-textPrimary font-mono">{gcpBudget?.projectId || 'omnidash-509607'}</strong> (europe-central2). Integracja z Google Cloud Billing i tematem <strong className="text-textPrimary font-mono">omni-budget-alerts</strong>. Asystent AI i webhook monitorują wydatki i wysyłają alert Pushbullet przy przekroczeniu 80% lub 90% zdefiniowanego limitu.
                   </p>
 
                   {/* Pasek postępu budżetu */}
@@ -2534,11 +2534,11 @@ const SettingsPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono mb-3">
                     <div className="p-2.5 rounded-lg bg-black/40 border border-white/5">
                       <span className="text-[10px] text-textMuted block">Temat Cloud Pub/Sub:</span>
-                      <span className="text-sky-400 font-bold break-all">projects/void-potato-7721/topics/omni-budget-alerts</span>
+                      <span className="text-sky-400 font-bold break-all">projects/{gcpBudget?.projectId || 'omnidash-509607'}/topics/omni-budget-alerts</span>
                     </div>
                     <div className="p-2.5 rounded-lg bg-black/40 border border-white/5">
                       <span className="text-[10px] text-textMuted block">Punkt końcowy Push Webhook:</span>
-                      <span className="text-emerald-400 font-bold break-all">https://void-potato-7721.web.app/api/gcp/budget-webhook</span>
+                      <span className="text-emerald-400 font-bold break-all">https://{gcpBudget?.projectId || 'omnidash-509607'}.web.app/api/gcp/budget-webhook</span>
                     </div>
                   </div>
 
@@ -2555,7 +2555,7 @@ const SettingsPage = () => {
                     </button>
 
                     <a
-                      href="https://console.cloud.google.com/billing/budgets?project=void-potato-7721"
+                      href={`https://console.cloud.google.com/billing/budgets?project=${gcpBudget?.projectId || 'omnidash-509607'}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="bg-white/5 hover:bg-white/10 border border-white/10 text-textPrimary py-2 px-3.5 rounded-lg transition-colors text-xs flex items-center gap-1.5 font-mono"
@@ -2592,19 +2592,19 @@ const SettingsPage = () => {
                       <div className="space-y-1.5 text-[11px] leading-relaxed">
                         <p><strong className="text-textPrimary">Krok 1: Włączenie interfejsu Cloud Pub/Sub:</strong></p>
                         <code className="block p-1.5 bg-black/60 rounded border border-white/5 text-accentPrimary select-all">
-                          gcloud services enable pubsub.googleapis.com billingbudgets.googleapis.com --project=void-potato-7721
+                          gcloud services enable pubsub.googleapis.com billingbudgets.googleapis.com --project={gcpBudget?.projectId || 'omnidash-509607'}
                         </code>
                         <p><strong className="text-textPrimary">Krok 2: Utworzenie tematu Pub/Sub dla alertów budżetowych:</strong></p>
                         <code className="block p-1.5 bg-black/60 rounded border border-white/5 text-accentPrimary select-all">
-                          gcloud pubsub topics create omni-budget-alerts --project=void-potato-7721
+                          gcloud pubsub topics create omni-budget-alerts --project={gcpBudget?.projectId || 'omnidash-509607'}
                         </code>
                         <p><strong className="text-textPrimary">Krok 3: Utworzenie subskrypcji Push do webhooka OmniDash:</strong></p>
                         <code className="block p-1.5 bg-black/60 rounded border border-white/5 text-accentPrimary select-all">
-                          gcloud pubsub subscriptions create omni-budget-push --topic=omni-budget-alerts --push-endpoint=https://void-potato-7721.web.app/api/gcp/budget-webhook --project=void-potato-7721
+                          gcloud pubsub subscriptions create omni-budget-push --topic=omni-budget-alerts --push-endpoint=https://{gcpBudget?.projectId || 'omnidash-509607'}.web.app/api/gcp/budget-webhook --project={gcpBudget?.projectId || 'omnidash-509607'}
                         </code>
                         <p><strong className="text-textPrimary">Krok 4: W Cloud Billing Console (Budżety i alerty):</strong></p>
                         <p className="text-textMuted">
-                          Wybierz budżet projektu <span className="text-textPrimary">void-potato-7721</span>, ustaw kwotę docelową (np. 50 PLN), zaznacz powiadomienia Pub/Sub i wskaż temat <span className="text-textPrimary">projects/void-potato-7721/topics/omni-budget-alerts</span>.
+                          Wybierz budżet projektu <span className="text-textPrimary">{gcpBudget?.projectId || 'omnidash-509607'}</span>, ustaw kwotę docelową (np. 50 PLN), zaznacz powiadomienia Pub/Sub i wskaż temat <span className="text-textPrimary">projects/{gcpBudget?.projectId || 'omnidash-509607'}/topics/omni-budget-alerts</span>.
                         </p>
                       </div>
                     </div>

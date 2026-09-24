@@ -89,7 +89,7 @@ export async function reverseGeocode(lat, lon, googleApiKey = null) {
     const osmUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&accept-language=pl`;
     const res = await fetch(osmUrl, {
       headers: {
-        'User-Agent': 'OmniDash-Assistant/2.24 (https://void-potato-7721.web.app)'
+        'User-Agent': 'OmniDash-Assistant/2.24 (https://omnidash-509607.web.app)'
       }
     });
 

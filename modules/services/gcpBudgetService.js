@@ -1,16 +1,18 @@
 /**
  * Google Cloud Billing & Pub/Sub Budget Guard Service
  * Zarządzanie budżetem, limitami wydatków i powiadomieniami Pub/Sub dla Google Cloud / Firebase.
- * Projekt bazowy: void-potato-7721 (OmniDash Production).
+ * Projekt bazowy: omnidash-509607 (OmniDash Production).
  */
 
 import { executeQuery, executeRun } from '../database.js';
-import { getFirestoreDb, isFirebaseConnected } from '../firebase.js';
+import { getFirestoreDb, isFirebaseConnected, FIREBASE_PROJECT_ID } from '../firebase.js';
 import { sendPushNotificationClient, getPushbulletApiKey } from './pushbulletService.js';
+
+const ACTIVE_GCP_PROJECT = FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'omnidash-509607';
 
 // Domyślny stan budżetu
 const DEFAULT_BUDGET_STATE = {
-  projectId: 'void-potato-7721',
+  projectId: ACTIVE_GCP_PROJECT,
   budgetDisplayName: 'OmniDash Monthly Budget Guard',
   costAmount: 0.0,
   budgetAmount: 50.0,
@@ -19,8 +21,8 @@ const DEFAULT_BUDGET_STATE = {
   percentage: 0.0,
   status: 'OK', // OK | WARNING | CRITICAL
   isBudgetThrottled: false,
-  topicName: 'projects/void-potato-7721/topics/omni-budget-alerts',
-  subscriptionName: 'projects/void-potato-7721/subscriptions/omni-budget-push',
+  topicName: `projects/${ACTIVE_GCP_PROJECT}/topics/omni-budget-alerts`,
+  subscriptionName: `projects/${ACTIVE_GCP_PROJECT}/subscriptions/omni-budget-push`,
   lastUpdated: new Date().toISOString()
 };
 
@@ -211,7 +213,8 @@ export async function processBudgetNotification(body) {
     if (pushKey) {
       const alertType = parsed.percentage >= 100 ? '[!] KRYTYCZNY LIMIT BUDŻETU' : '[!] OSTRZEŻENIE BUDŻETU';
       const title = `${alertType}: Google Cloud (${parsed.percentage}%)`;
-      const body = `Koszty projektu void-potato-7721 osiągnęły ${parsed.costAmount.toFixed(2)} ${parsed.currencyCode} z zaplanowanego budżetu ${parsed.budgetAmount.toFixed(2)} ${parsed.currencyCode}.\nStatus: ${parsed.status}.`;
+      const targetProj = currentBudgetState.projectId || ACTIVE_GCP_PROJECT;
+      const body = `Koszty projektu ${targetProj} osiągnęły ${parsed.costAmount.toFixed(2)} ${parsed.currencyCode} z zaplanowanego budżetu ${parsed.budgetAmount.toFixed(2)} ${parsed.currencyCode}.\nStatus: ${parsed.status}.`;
 
       try {
         await sendPushNotificationClient(title, body);

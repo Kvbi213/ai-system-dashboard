@@ -1601,11 +1601,11 @@ export async function executeClientDeepResearch({ text, groqKey, activeModel, us
 Rozmawiasz z ${userName}. Zlecono zadanie badawcze: "${text}".
 Właśnie przeprowadzono autonomiczne badanie internetu za pomocą Brave Search (pozyskano ${allSources.length} unikalnych źródeł na żywo).
 
-[BRAIN] DŁUGOTERMINOWA BAZA PAMIĘCI OPERATORA (https://void-potato-7721.web.app/memory):
+[BRAIN] DŁUGOTERMINOWA BAZA PAMIĘCI OPERATORA (https://omnidash-509607.web.app/memory):
 ${brainSummary}
 
 [ALERT] ŻELAZNE REGUŁY UŻYTKOWNIKA — OTWARTE ODKRYWANIE, ZERO-TRUST DLA STARYCH DANYCH & ZAPIS DO PAMIĘCI:
-1. NIGDY NIE UFAJ DANYM ANI WŁASNYM ZAŁOŻENIOM Z PRZESZŁOŚCI, KTÓRYCH NIE MA W PAMIĘCI (https://void-potato-7721.web.app/memory) ANI W ZEBRANYCH ŹRÓDŁACH SIECIOWYCH BRAVE SEARCH!
+1. NIGDY NIE UFAJ DANYM ANI WŁASNYM ZAŁOŻENIOM Z PRZESZŁOŚCI, KTÓRYCH NIE MA W PAMIĘCI (https://omnidash-509607.web.app/memory) ANI W ZEBRANYCH ŹRÓDŁACH SIECIOWYCH BRAVE SEARCH!
 2. ZAKAZ SZUKANIA TYLKO TEGO CO JUŻ ZNASZ: Przeprowadzaj otwarte odkrywanie najnowszych modeli komercyjnych w czacie w 2026 r. na podstawie zebranych źródeł z sieci, bez faworyzowania starych baz danych.
 3. UŻYTKOWNIK WYRAŹNIE NAKAZAŁ: "chodzi mi o dostępne w chacie a nie modele opensorce":
    - BEZWZGLĘDNY ZAKAZ wymieniania, tabelowania i rekomendowania modeli open-source / open-weights (ZAKAZ Llama, ZAKAZ DeepSeek, ZAKAZ Mistral, ZAKAZ Qwen, ZAKAZ Gemma)!
@@ -1643,11 +1643,11 @@ Na samym końcu odpowiedzi ZAWSZE wyemituj znaczniki:
 Rozmawiasz z ${userName}. Zlecono zadanie badawcze: "${text}".
 Właśnie przeprowadzono autonomiczne, ${collectedSteps.length}-etapowe przeszukanie internetu za pomocą Brave Search (pozyskano ${allSources.length} unikalnych źródeł z sieci).
 
-[BRAIN] DŁUGOTERMINOWA BAZA PAMIĘCI OPERATORA (https://void-potato-7721.web.app/memory):
+[BRAIN] DŁUGOTERMINOWA BAZA PAMIĘCI OPERATORA (https://omnidash-509607.web.app/memory):
 ${brainSummary}
 
 [ALERT] ŻELAZNA ZASADA WIARYGODNOŚCI I PAMIĘCI:
-1. NIGDY NIE UFAJ DANYM ANI WŁASNYM ZAŁOŻENIOM Z PRZESZŁOŚCI, KTÓRYCH NIE MA W PAMIĘCI (https://void-potato-7721.web.app/memory) ANI W WYNIKACH BRAVE SEARCH!
+1. NIGDY NIE UFAJ DANYM ANI WŁASNYM ZAŁOŻENIOM Z PRZESZŁOŚCI, KTÓRYCH NIE MA W PAMIĘCI (https://omnidash-509607.web.app/memory) ANI W WYNIKACH BRAVE SEARCH!
 2. Aktualny rok to 2026. Sporządź wyczerpujące, precyzyjne, techniczne kompendium.
 
 Zebrane źródła Brave Search na żywo:
@@ -2020,12 +2020,12 @@ WSZYSTKIE POZOSTAŁE LEKCJE W TYGODNIU:
       }
 
       const sharedGroundingAndMemoryRules = `
-[BRAIN] DŁUGOTERMINOWA BAZA PAMIĘCI OPERATORA (https://void-potato-7721.web.app/memory):
+[BRAIN] DŁUGOTERMINOWA BAZA PAMIĘCI OPERATORA (https://omnidash-509607.web.app/memory):
 ${brainSummary}
 
 [ALERT] ŻELAZNE REGUŁY WIARYGODNOŚCI I PAMIĘCI (ZERO-HALLUCINATION & MEMORY GROUNDING):
-1. NIGDY NIE UFAJ DANYM ANI WŁASNYM ZAŁOŻENIOM Z PRZESZŁOŚCI, KTÓRYCH NIE MA W PAMIĘCI (https://void-potato-7721.web.app/memory) ANI W WYNIKACH WYSZUKIWANIA LIVE! Wszelkie fakty, specyfikacje i modele muszą wynikać wyłącznie z powyższej Bazy Pamięci lub bieżących zweryfikowanych źródeł sieciowych.
-2. ZAPIS DO PAMIĘCI: Masz pełne uprawnienia i obowiązek zapisywać nowo zweryfikowane fakty, preferencje, modele AI i ustalenia w Pamięci https://void-potato-7721.web.app/memory. Aby to zrobić, wyemituj na końcu odpowiedzi:
+1. NIGDY NIE UFAJ DANYM ANI WŁASNYM ZAŁOŻENIOM Z PRZESZŁOŚCI, KTÓRYCH NIE MA W PAMIĘCI (https://omnidash-509607.web.app/memory) ANI W WYNIKACH WYSZUKIWANIA LIVE! Wszelkie fakty, specyfikacje i modele muszą wynikać wyłącznie z powyższej Bazy Pamięci lub bieżących zweryfikowanych źródeł sieciowych.
+2. ZAPIS DO PAMIĘCI: Masz pełne uprawnienia i obowiązek zapisywać nowo zweryfikowane fakty, preferencje, modele AI i ustalenia w Pamięci https://omnidash-509607.web.app/memory. Aby to zrobić, wyemituj na końcu odpowiedzi:
    [ACTION:REMEMBER fact="Treść faktu do trwałego zapamiętania" category="Modele AI|Wiedza|Preferencje"]
 3. JAWNA TREŚĆ POWIADOMIENIA PUSH W CZACIE: Gdy wysyłasz powiadomienie na telefon za pomocą [ACTION:SEND_PUSH title="..." body="..."], BEZWZGLĘDNIE podaj pełną treść tego powiadomienia również bezpośrednio w tekście wiadomości czatu (użytkownik musi widzieć treść notyfikacji na ekranie)!
 4. RYGOR LIBRUS SYNERGIA (ŚCIŚLE READ-ONLY): Dane z systemu Librus (terminarz, sprawdziany, kartkówki, absencje nauczycieli oraz oceny) są WYŁĄCZNIE DO WGLĄDU. Asystent AI i system NIE MAJĄ uprawnień ani akcji do edycji, dodawania ani modyfikacji oficjalnych rekordów szkolnych. NIGDY nie emituj żadnych akcji modyfikacji danych Librusa.`;
@@ -2993,7 +2993,7 @@ function handleAutonomousFallback(text, mode, userName, context = getClientConte
       window.dispatchEvent(new CustomEvent('cloudDataChanged', { detail: { collection: 'operator_brain' } }));
 
       return {
-        content: `[+] **Zapisano fakt w Pamięci Długoterminowej (Operator Brain):**\n\n- [BRAIN] *" ${fact} "*\n\nTa informacja została utrwalona w Twoim profilu (https://void-potato-7721.web.app/memory) i asystent będzie brał ją pod uwagę podczas wszystkich kolejnych rozmów.`,
+        content: `[+] **Zapisano fakt w Pamięci Długoterminowej (Operator Brain):**\n\n- [BRAIN] *" ${fact} "*\n\nTa informacja została utrwalona w Twoim profilu (https://omnidash-509607.web.app/memory) i asystent będzie brał ją pod uwagę podczas wszystkich kolejnych rozmów.`,
         mentor_thoughts: `Utrwalono fakt w Operator Brain: "${fact}".`,
         widgets: []
       };

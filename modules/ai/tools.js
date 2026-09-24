@@ -519,7 +519,7 @@ export const agentTools = [
       type: "function",
       function: {
           name: "GET_GCP_BUDGET_STATUS",
-          description: "Pobiera aktualny status budżetu, kosztów i limitów Google Cloud Console / Firebase (projekt void-potato-7721) zintegrowanego z tematem Cloud Pub/Sub (omni-budget-alerts). Zwraca aktualne wydatki w PLN, limit budżetu, procent wykorzystania oraz stan zabezpieczenia (OK/WARNING/CRITICAL/isBudgetThrottled).",
+          description: "Pobiera aktualny status budżetu, kosztów i limitów Google Cloud Console / Firebase (projekt omnidash-509607) zintegrowanego z tematem Cloud Pub/Sub (omni-budget-alerts). Zwraca aktualne wydatki w PLN, limit budżetu, procent wykorzystania oraz stan zabezpieczenia (OK/WARNING/CRITICAL/isBudgetThrottled).",
           parameters: {
               type: "object",
               properties: {},

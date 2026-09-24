@@ -1,5 +1,28 @@
 ## Wersja Bieżąca
-**v2.26.0**
+**v2.26.1**
+
+## v 2.26.1 — 2026-09-24
+**Typ:** PATCH  
+**Zakres:** Przełączenie całego ekosystemu OmniDash na docelowy projekt produkcyjny Google Cloud & Firebase `omnidash-509607` (Project Number: `790737563652`). Rejestracja aplikacji webowej OmniDash Web, aktualizacja konfiguracji SDK w `.env` i `.firebaserc`, spięcie Google Cloud Pub/Sub Budget Guard (`projects/omnidash-509607/topics/omni-budget-alerts`), dynamiczne linki w Settings UI, asercje w testach jednostkowych (190/190 PASS) i pomyślny build produkcyjny.
+
+### Zmiany
+- [*] Zmodyfikowano: `.firebaserc` – ustawiono projekt domyślny `default: "omnidash-509607"` oraz zachowano `legacy: "void-potato-7721"`.
+- [*] Zmodyfikowano: `.env` – wprowadzono poświadczenia Firebase Web App projektu `omnidash-509607` (`VITE_FIREBASE_API_KEY`, `FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_STORAGE_BUCKET`).
+- [*] Zmodyfikowano: `modules/services/gcpBudgetService.js` – dynamiczny projekt bazowy z `FIREBASE_PROJECT_ID` (domyślnie `omnidash-509607`), temat Pub/Sub `projects/omnidash-509607/topics/omni-budget-alerts`, subskrypcja `projects/omnidash-509607/subscriptions/omni-budget-push` oraz precyzyjne powiadomienia Pushbullet.
+- [*] Zmodyfikowano: `modules/routes/gcpBudget.js` – trasa `/api/gcp/config` generuje dynamiczne parametry i instrukcje gcloud dla `omnidash-509607`.
+- [*] Zmodyfikowano: `api/gcp/budget-webhook.js` – punkt końcowy serverless raportuje aktywność dla `omnidash-509607`.
+- [*] Zmodyfikowano: `modules/ai/tools.js` – opis narzędzia `GET_GCP_BUDGET_STATUS` wskazuje projekt `omnidash-509607`.
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` – sekcja "Google Cloud Console & Limitowanie Budżetu (Pub/Sub Guard)" dynamicznie prezentuje identyfikator `omnidash-509607`, bezpośrednie linki do konsoli GCP Billing oraz gotowe komendy `gcloud` CLI dla tematu i subskrypcji.
+- [*] Zmodyfikowano: `scripts/setup_gcp_pubsub.js` – generator poleceń gcloud i diagnostyka projektu GCP `omnidash-509607`.
+- [*] Zmodyfikowano: `scripts/deploy_hosting.js` – wdrożenie na Firebase Hosting kierowane do `omnidash-509607`.
+- [*] Zmodyfikowano: `tests/gcp_budget.test.js` – zaktualizowano asercje testowe dla subskrypcji, stanu projektu i narzędzia asystenta AI (8/8 PASS).
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.26.1`.
+- [+] Dodano: Raport wydania `docs/versions/v2.26.1.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.26.0 — 2026-09-24
 **Typ:** MINOR  

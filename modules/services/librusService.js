@@ -331,7 +331,7 @@ export async function fetchLibrusFromSource(login, password) {
     console.warn(`[!] ALERT :: LIBRUS :: Pominięto synchronizację planu lekcji: ${tErr.message}`);
   }
 
-  // Replikacja ocen do Firebase Firestore (dostęp dla void-potato-7721.web.app)
+  // Replikacja ocen do Firebase Firestore (dostęp dla omnidash-509607.web.app)
   try {
     const { getFirestoreDb } = await import('../firebase.js');
     const firestoreDb = getFirestoreDb ? getFirestoreDb() : null;

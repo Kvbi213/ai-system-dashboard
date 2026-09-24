@@ -15,8 +15,11 @@ console.log('================================================================');
 console.log('[*] OMNIDASH :: GOOGLE CLOUD CONSOLE & PUB/SUB BUDGET SETUP');
 console.log('================================================================');
 
+import dotenv from 'dotenv';
+dotenv.config({ path: path.resolve(rootDir, '.env') });
+
 const saPath = path.resolve(rootDir, 'firebase-service-account.json');
-let projectId = 'void-potato-7721';
+let projectId = process.env.FIREBASE_PROJECT_ID || 'omnidash-509607';
 let clientEmail = 'nieznany';
 
 if (fs.existsSync(saPath)) {
@@ -36,7 +39,7 @@ if (fs.existsSync(saPath)) {
 
 const TOPIC_NAME = 'omni-budget-alerts';
 const SUBSCRIPTION_NAME = 'omni-budget-push';
-const PUSH_ENDPOINT = 'https://void-potato-7721.web.app/api/gcp/budget-webhook';
+const PUSH_ENDPOINT = `https://${projectId}.web.app/api/gcp/budget-webhook`;
 
 console.log('\n--- PARAMETRY ARCHITEKTURY PUB/SUB ---');
 console.log(`• ID Projektu GCP:              ${projectId}`);

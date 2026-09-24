@@ -9,7 +9,7 @@ import {
 import { initDB } from '../modules/database.js';
 import { agentTools } from '../modules/ai/tools.js';
 
-describe('Google Cloud Billing & Pub/Sub Budget Guard (void-potato-7721)', () => {
+describe('Google Cloud Billing & Pub/Sub Budget Guard (omnidash-509607)', () => {
   beforeAll(async () => {
     await initDB();
     await initGcpBudgetDb();
@@ -37,7 +37,7 @@ describe('Google Cloud Billing & Pub/Sub Budget Guard (void-potato-7721)', () =>
           messageId: '123456789',
           publishTime: '2026-09-24T07:00:00Z'
         },
-        subscription: 'projects/void-potato-7721/subscriptions/omni-budget-push'
+        subscription: 'projects/omnidash-509607/subscriptions/omni-budget-push'
       };
 
       const result = parsePubSubMessage(pubsubPushBody);
@@ -105,13 +105,13 @@ describe('Google Cloud Billing & Pub/Sub Budget Guard (void-potato-7721)', () =>
       expect(state.budgetAmount).toBe(50.0);
       expect(state.percentage).toBe(90.0);
       expect(state.status).toBe('WARNING');
-      expect(state.projectId).toBe('void-potato-7721');
+      expect(state.projectId).toBe('omnidash-509607');
     });
 
     it('powinien poprawnie zwrócić status budżetu z getGcpBudgetStatus', async () => {
       const status = await getGcpBudgetStatus();
       expect(status).toBeDefined();
-      expect(status.projectId).toBe('void-potato-7721');
+      expect(status.projectId).toBe('omnidash-509607');
       expect(status.topicName).toContain('omni-budget-alerts');
     });
   });
@@ -120,7 +120,7 @@ describe('Google Cloud Billing & Pub/Sub Budget Guard (void-potato-7721)', () =>
     it('powinien zawierać narzędzie GET_GCP_BUDGET_STATUS w rejestrze agentTools', () => {
       const tool = agentTools.find(t => t.function.name === 'GET_GCP_BUDGET_STATUS');
       expect(tool).toBeDefined();
-      expect(tool.function.description).toContain('void-potato-7721');
+      expect(tool.function.description).toContain('omnidash-509607');
       expect(tool.function.description).toContain('omni-budget-alerts');
     });
   });
