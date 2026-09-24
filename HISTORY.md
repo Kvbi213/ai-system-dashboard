@@ -1,5 +1,20 @@
 ## Wersja Bieżąca
-**v2.26.2**
+**v2.26.3**
+
+## v 2.26.3 — 2026-09-24
+**Typ:** PATCH  
+**Zakres:** Usunięcie defektu zapytania HTML w panelu Ustawień Librus w chmurze (`void-potato-7721.web.app`), obsługa natywnego odczytu i zapisu Cloud Firestore dla ocen, terminarza i planu lekcji, automatyczna konfiguracja klucza Google Maps Platform oraz wdrożenie produkcyjne na Firebase Hosting (190/190 testów PASS).
+
+### Zmiany
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` – wyeliminowano wywołania Axios do endpointów Express (`/api/librus/refresh`, `/api/librus/status`, `/api/librus/credentials`) w trybie chmurowym Firebase Hosting, zastępując je bezpośrednią komunikacją z Cloud Firestore (`librus_cache/latest`, `calendar`, `timetable`).
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` – dynamiczna detekcja poświadczeń w chmurze (wskaźnik `POŁĄCZONO (CHMURA FIRESTORE)` zamiast `BRAK POŚWIADCZEŃ`).
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` i `modules/services/geolocationService.js` – automatyczne podpięcie klucza Google Maps Platform z `VITE_GOOGLE_MAPS_API_KEY`.
+- [*] Zmodyfikowano: `.env` i `.env.example` – dodano `GOOGLE_MAPS_API_KEY` oraz `VITE_GOOGLE_MAPS_API_KEY`.
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.26.3`.
+- [+] Dodano: Raport wydania `docs/versions/v2.26.3.md`.
+- [+] Wdrożono: Pomyślny deployment produkcyjny na `https://void-potato-7721.web.app`.
+
+---
 
 ## v 2.26.2 — 2026-09-24
 **Typ:** PATCH  

@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.26.2 (Stan na Wrzesień 2026) 
+**Wersja Systemu:** v2.26.3 (Stan na Wrzesień 2026) 
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE) 
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Google Cloud CLI v586.0.0, Text-to-Speech & Maps APIs Enabled, Limitowanie Budżetu 1.00 PLN & Cloud Pub/Sub Guard, Vitest 190/190 PASS)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Librus Cloud Firestore Sync, Google Maps Platform Key, Cloud Pub/Sub Guard, Vitest 190/190 PASS)
 
 ---
 

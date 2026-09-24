@@ -168,8 +168,9 @@ export async function acquireHighAccuracyLocation(options = {}) {
   const {
     enableHighAccuracy = true,
     timeout = 15000,
-    maximumAge = 30000,
-    googleApiKey = (typeof localStorage !== 'undefined' && localStorage.getItem('system_google_maps_api_key')) || null
+    googleApiKey = (typeof localStorage !== 'undefined' && localStorage.getItem('system_google_maps_api_key')) || 
+      (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GOOGLE_MAPS_API_KEY) || 
+      (typeof process !== 'undefined' && process.env?.GOOGLE_MAPS_API_KEY) || null
   } = options;
 
   if (typeof window === 'undefined' || !('geolocation' in navigator)) {
