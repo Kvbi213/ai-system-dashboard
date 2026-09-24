@@ -1,10 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { authMiddleware, activeSessions } from '../modules/routes/auth.js';
 import { readProjectFile } from '../modules/fs_explorer.js';
+import { isPrivateOrReservedIP, performOSINTScan } from '../modules/osint.js';
+import { parseGradeInfo } from '../modules/services/librusService.js';
 
-describe('Security Audit & Zero-Trust Hardening (v2.28.0)', () => {
+describe('Security Audit & Zero-Trust Hardening (v2.28.1)', () => {
   beforeEach(() => {
     process.env.DASHBOARD_PIN = '7721';
+    process.env.INTERNAL_SERVICE_KEY = 'super_secret_machine_key_987654';
   });
 
   describe('authMiddleware Security Boundaries', () => {
@@ -23,6 +26,19 @@ describe('Security Audit & Zero-Trust Hardening (v2.28.0)', () => {
       const req = {
         path: '/secure/data',
         headers: { 'x-system-pin': '7721' }
+      };
+      const res = { status: () => res, json: () => {} };
+      const next = () => { nextCalled = true; };
+
+      authMiddleware(req, res, next);
+      expect(nextCalled).toBe(true);
+    });
+
+    it('should authorize requests presenting a high-entropy x-internal-key header', () => {
+      let nextCalled = false;
+      const req = {
+        path: '/secure/data',
+        headers: { 'x-internal-key': 'super_secret_machine_key_987654' }
       };
       const res = { status: () => res, json: () => {} };
       const next = () => { nextCalled = true; };
@@ -95,6 +111,42 @@ describe('Security Audit & Zero-Trust Hardening (v2.28.0)', () => {
       const res = await readProjectFile('../../windows/system32/cmd.exe');
       expect(res.success).toBe(false);
       expect(res.error).toMatch(/Próba dostępu poza katalog projektowy/);
+    });
+  });
+
+  describe('OSINT SSRF Prevention (isPrivateOrReservedIP)', () => {
+    it('should detect loopback, private RFC1918, and cloud metadata addresses', () => {
+      expect(isPrivateOrReservedIP('127.0.0.1')).toBe(true);
+      expect(isPrivateOrReservedIP('localhost')).toBe(true);
+      expect(isPrivateOrReservedIP('10.0.0.1')).toBe(true);
+      expect(isPrivateOrReservedIP('172.16.0.5')).toBe(true);
+      expect(isPrivateOrReservedIP('192.168.1.1')).toBe(true);
+      expect(isPrivateOrReservedIP('169.254.169.254')).toBe(true); // AWS / GCP metadata
+      expect(isPrivateOrReservedIP('8.8.8.8')).toBe(false);
+      expect(isPrivateOrReservedIP('1.1.1.1')).toBe(false);
+    });
+
+    it('should block scanning private IPs and metadata endpoints in performOSINTScan', async () => {
+      const scanRes = await performOSINTScan('169.254.169.254');
+      expect(scanRes.blocked).toBe(true);
+      expect(scanRes.error).toMatch(/blokada SSRF/);
+    });
+  });
+
+  describe('Librus Synergia Grade Parsing Integrity', () => {
+    it('should correctly parse inAverage: true when "Licz do średniej: tak" is present', () => {
+      const sample = "Kategoria: sprawdzian\nData: 2026-09-24 (czw.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 2\nDodał: Bahr Zbigniew\n";
+      const info = parseGradeInfo(sample);
+      expect(info.inAverage).toBe(true);
+      expect(info.weight).toBe(2);
+      expect(info.category).toBe('sprawdzian');
+    });
+
+    it('should correctly parse inAverage: false when "Licz do średniej: nie" is present', () => {
+      const sample = "Kategoria: diagnoza\nData: 2026-09-10\nLicz do średniej: nie\nWaga: 0\n";
+      const info = parseGradeInfo(sample);
+      expect(info.inAverage).toBe(false);
+      expect(info.weight).toBe(0);
     });
   });
 });

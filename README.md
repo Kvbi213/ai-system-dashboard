@@ -3,9 +3,9 @@
 # OmniDash AI System Dashboard
 ### Zaawansowany Hybrydowy Hub Dowodzenia i Analityki Osobistej
 
-[![Wersja](https://img.shields.io/badge/Wersja-2.28.0-00F0FF?style=for-the-badge&logo=semver&logoColor=black)](https://github.com/Kvbi213/ai-system-dashboard)
+[![Wersja](https://img.shields.io/badge/Wersja-2.28.1-00F0FF?style=for-the-badge&logo=semver&logoColor=black)](https://github.com/Kvbi213/ai-system-dashboard)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-10B981?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/Kvbi213/ai-system-dashboard/actions)
-[![Testy](https://img.shields.io/badge/Testy-197%2F197%20Passed-10B981?style=for-the-badge&logo=vitest&logoColor=white)](https://github.com/Kvbi213/ai-system-dashboard)
+[![Testy](https://img.shields.io/badge/Testy-202%2F202%20Passed-10B981?style=for-the-badge&logo=vitest&logoColor=white)](https://github.com/Kvbi213/ai-system-dashboard)
 [![Bezpieczeństwo](https://img.shields.io/badge/Architektura-Zero--Trust-6366F1?style=for-the-badge&logo=auth0&logoColor=white)](#)
 [![Hosting](https://img.shields.io/badge/Hosting-Firebase_Cloud-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://void-potato-7721.web.app)
 [![GCP Budget Guard](https://img.shields.io/badge/GCP_Guard-Pub%2FSub_Push-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)](#)
@@ -256,11 +256,11 @@ npm test
 npm run test:watch
 ```
 
-### Zestawienie Pakietów Testowych (15/15 Pakietów | 197/197 Testów):
+### Zestawienie Pakietów Testowych (15/15 Pakietów | 202/202 Testy):
 
 | # | Pakiet Testowy | Plik | Liczba Testów | Zakres Weryfikacji |
 | :-: | :--- | :--- | :-: | :--- |
-| 1 | **Security Audit Hardening** | `tests/security_audit.test.js` | **7 testów** | Weryfikacja `authMiddleware`, nagłówek `x-system-pin`, bezpiecznik `fs_explorer` (.env shield, directory traversal). |
+| 1 | **Security Audit Hardening** | `tests/security_audit.test.js` | **12 testów** | Weryfikacja `authMiddleware`, `x-system-pin`, `x-internal-key`, blokada SSRF w `modules/osint.js`, tarcza sekretów `fs_explorer`, integralność parsowania ocen Librus. |
 | 2 | **GCP Budget Guard** | `tests/gcp_budget.test.js` | **8 testów** | Dekodowanie Base64 z Pub/Sub, progi 50%/90%/100%, circuit breaker `isBudgetThrottled`, alert Pushbullet. |
 | 3 | **Wywiad Drogowy CANARD** | `tests/traffic.test.js` | **16 testów** | Fotoradary na trasie, odcinkowe pomiary prędkości, alerty GDDKiA, wyliczanie odległości GPS haversine. |
 | 4 | **Librus Synergia Edu-Hub** | `tests/librus.test.js` | **30 testów** | Oceny, średnie ważone, terminarz, szczęśliwy numerek, plan lekcji, obsługa zastępstw i absencji. |
@@ -276,7 +276,7 @@ npm run test:watch
 | 14 | **Eksport Danych** | `tests/export.test.js` | **4 testy** | Sanityzacja znaków specjalnych, cudzysłowów, serializacja RFC 4180 dla plików CSV. |
 | 15 | **Synchronizacja Chmurowa** | `tests/cloudSync.test.js` | **2 testy** | Rejestr kolekcji Firestore, detekcja środowiska hybrydowego (Localhost vs Firebase Hosting). |
 
-**Wynik: 197/197 testów zdanych pomyślnie (100% PASS).**
+**Wynik: 202/202 testy zdane pomyślnie (100% PASS).**
 
 ---
 

@@ -34,6 +34,12 @@ const getGradeBadgeStyle = (val) => {
   if (s.startsWith('1')) {
     return 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-[0_0_10px_rgba(244,63,94,0.25)] hover:bg-rose-500/30';
   }
+  if (s === '-' || s.toLowerCase() === 'np' || s.toLowerCase() === 'bz') {
+    return 'bg-surface/90 text-textMuted border-border/80 hover:bg-surface';
+  }
+  if (s === '+') {
+    return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30';
+  }
   return 'bg-surface text-textSecondary border-border hover:bg-surfaceHover';
 };
 
@@ -892,7 +898,7 @@ const GradesPage = () => {
                         >
                           <span className="font-bold">{g.value}</span>
                           <span className="text-[9px] font-mono opacity-70">
-                            w:{g.details?.weight || 1}
+                            w:{g.details?.weight !== undefined && g.details?.weight !== null && g.details?.weight !== '' ? g.details.weight : 1}
                           </span>
                         </button>
                       ))

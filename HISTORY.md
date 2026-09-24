@@ -1,5 +1,22 @@
 ## Wersja Bieżąca
-**v2.28.0**
+**v2.28.1**
+
+## v 2.28.1 — 2026-09-24
+**Typ:** PATCH  
+**Zakres:** Hardening Bezpieczeństwa po Audycie & Poprawka Synchronizacji Ocen Librus: zastąpienie publicznego odczytu `system_budget` w `firestore.rules` wymogiem `isAuthenticated()`, odporność na ataki czasowe z `crypto.timingSafeEqual` oraz obsługa `x-internal-key` w `modules/routes/auth.js`, tarcza anty-SSRF dla wywiadu OSINT w `modules/osint.js`, weryfikacja istnienia i audyt zadań w `DELETE_TO_DO`, usunięcie błędu logicznego w regule `licz do średniej` oraz wagi 0 w `modules/services/librusService.js`, resynchronizacja i zasilenie Firestore najnowszymi ocenami (4. ocena z matematyki, '-' z angielskiego), stylizacja nienumerycznych ocen w `modules/pages/GradesPage.jsx` oraz rozszerzenie testów do 202/202 PASS.
+
+### Zmiany
+- [*] Zmodyfikowano: `firestore.rules` – zamknięcie luki publicznego odczytu budżetu (`allow read: if isAuthenticated();`). Wdrożono na produkcję `void-potato-7721`.
+- [*] Zmodyfikowano: `modules/routes/auth.js` – stałoczasowa weryfikacja nagłówków poświadczeń `x-system-pin` i `x-internal-key` za pomocą `crypto.timingSafeEqual` oraz obsługa sekretów maszynowych `INTERNAL_SERVICE_KEY`.
+- [*] Zmodyfikowano: `modules/osint.js` – tarcza SSRF `isPrivateOrReservedIP`: blokada skanowania adresów RFC1918, pętli zwrotnej i endpointu metadanych chmurowych `169.254.169.254`.
+- [*] Zmodyfikowano: `modules/agent.js` – walidacja istnienia zadania i audyt `TASK_DELETE` w `system_logs` dla pojedynczych ID w narzędziu `DELETE_TO_DO`.
+- [*] Zmodyfikowano: `modules/services/librusService.js` – usunięcie błędu parsowania parametru `licz do średniej` (dopasowanie fragmentu słowa `"średniej"` do `"nie"`), obsługa wag o wartości 0 oraz pełna resynchronizacja ocen z Librus Synergia.
+- [*] Zmodyfikowano: `modules/pages/GradesPage.jsx` – stylizacja pigułek dla ocen nienumerycznych (`-`, `+`, `np`, `bz`) oraz sanityzacja wyświetlania wag.
+- [*] Zmodyfikowano: `tests/security_audit.test.js` – rozszerzenie pakietu do 12 testów (ogólny bilans: 202/202 PASS w 15 pakietach).
+- [*] Zmodyfikowano: `package.json`, `README.md`, `ARCHITECTURE.md` – aktualizacja wersji do `2.28.1`.
+- [+] Dodano: Raport wydania `docs/versions/v2.28.1.md`.
+
+---
 
 ## v 2.28.0 — 2026-09-24
 **Typ:** MINOR  

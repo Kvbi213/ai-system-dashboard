@@ -16,9 +16,30 @@ export const detectTargetType = (target) => {
   return { type: 'string', value: input };
 };
 
+export const isPrivateOrReservedIP = (ip) => {
+  if (!ip || typeof ip !== 'string') return false;
+  const clean = ip.trim().toLowerCase();
+  if (clean === 'localhost' || clean === '127.0.0.1' || /^127\./.test(clean) || clean === '::1') return true;
+  if (/^10\./.test(clean)) return true;
+  if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(clean)) return true;
+  if (/^192\.168\./.test(clean)) return true;
+  if (/^169\.254\./.test(clean)) return true;
+  if (clean === '0.0.0.0' || clean.startsWith('fc00:') || clean.startsWith('fe80:')) return true;
+  return false;
+};
+
 export const performOSINTScan = async (rawTarget) => {
   const { type, value: target } = detectTargetType(rawTarget);
   const results = { target_type: type, target_value: target };
+
+  if (type === 'ip' && isPrivateOrReservedIP(target)) {
+    return {
+      target_type: type,
+      target_value: target,
+      blocked: true,
+      error: 'Odmowa skanowania: adres IP prywatny lub zarezerwowany (blokada SSRF).'
+    };
+  }
 
   try {
     if (type === 'ip' || type === 'domain') {
@@ -31,6 +52,11 @@ export const performOSINTScan = async (rawTarget) => {
           if (addresses && addresses.length > 0) {
             ipToScan = addresses[0];
             results.resolved_ip = ipToScan;
+            if (isPrivateOrReservedIP(ipToScan)) {
+              results.blocked = true;
+              results.error = 'Odmowa skanowania: domena wskazuje na prywatny adres sieciowy (blokada SSRF).';
+              return results;
+            }
           }
         } catch (e) { console.error("DNS Resolve Error", e); }
       }

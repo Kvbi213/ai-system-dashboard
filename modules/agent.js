@@ -236,14 +236,30 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
           if (args.task_id === 'all') {
             if (args.confirmed === true) {
               await executeRun('DELETE FROM tasks');
+              await executeRun("INSERT INTO system_logs (type, content) VALUES ('TASK_DELETE_ALL', 'Wyczyszczono wszystkie zadania po potwierdzeniu')");
               toolResultsText += `\nNarzędzie DELETE_TO_DO zwróciło: Success (usunięto wszystkie zadania po potwierdzeniu).`;
             } else {
               toolResultsText += `\nNarzędzie DELETE_TO_DO [BLOKADA BEZPIECZEŃSTWA]: Usunięcie wszystkich zadań naraz (task_id="all") zostało wstrzymane. Wymaga to jednoznacznego potwierdzenia operatora (confirmed: true). Zapytaj użytkownika czy na pewno usunąć całą listę zadań.`;
             }
           } else if (args.task_id) {
             let ids = Array.isArray(args.task_id) ? args.task_id : (typeof args.task_id === 'string' && args.task_id.includes(',') ? args.task_id.split(',') : [args.task_id]);
-            for (const id of ids) await executeRun('DELETE FROM tasks WHERE id = ?', [parseInt(id, 10)]);
-            toolResultsText += `\nNarzędzie DELETE_TO_DO zwróciło: Success`;
+            const deletedDetails = [];
+            for (const rawId of ids) {
+              const id = parseInt(rawId, 10);
+              if (!isNaN(id) && id > 0) {
+                const existing = await executeQuery('SELECT id, title FROM tasks WHERE id = ?', [id]);
+                if (existing && existing.length > 0) {
+                  await executeRun('DELETE FROM tasks WHERE id = ?', [id]);
+                  await executeRun("INSERT INTO system_logs (type, content) VALUES ('TASK_DELETE', ?)", [`Usunięto zadanie #${id} ("${existing[0].title}")`]);
+                  deletedDetails.push(`#${id} ("${existing[0].title}")`);
+                }
+              }
+            }
+            if (deletedDetails.length > 0) {
+              toolResultsText += `\nNarzędzie DELETE_TO_DO zwróciło: Success, usunięto zadania: ${deletedDetails.join(', ')}`;
+            } else {
+              toolResultsText += `\nNarzędzie DELETE_TO_DO: Błąd - podane ID zadań (${args.task_id}) nie zostały odnalezione w bazie.`;
+            }
           }
           
         } else if (toolCall.function.name === 'ADD_WORKOUT') {

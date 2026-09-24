@@ -59,9 +59,21 @@ export const authMiddleware = (req, res, next) => {
   if (req.path.startsWith('/gcp/budget-webhook')) return next();
 
   // Weryfikacja poświadczeń systemowych dla skryptów wewnętrznych i mikroserwisów
-  const systemPin = req.headers['x-system-pin'];
-  if (systemPin && process.env.DASHBOARD_PIN && systemPin === process.env.DASHBOARD_PIN) {
-    return next();
+  const candidate = req.headers['x-system-pin'] || req.headers['x-internal-key'];
+  if (candidate) {
+    const candidateBuf = Buffer.from(String(candidate));
+    const validKeys = [
+      process.env.INTERNAL_SERVICE_KEY,
+      process.env.SESSION_SECRET,
+      process.env.DASHBOARD_PIN
+    ].filter(Boolean);
+
+    for (const key of validKeys) {
+      const keyBuf = Buffer.from(String(key));
+      if (candidateBuf.length === keyBuf.length && crypto.timingSafeEqual(candidateBuf, keyBuf)) {
+        return next();
+      }
+    }
   }
 
   const token = req.headers.authorization?.split(' ')[1];

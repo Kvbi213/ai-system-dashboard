@@ -39,9 +39,9 @@ service cloud.firestore {
       allow read, write: if isAllowedCollection(collection) && isAuthenticated();
     }
 
-    // Ochrona reguł budżetowych i zabezpieczeń GCP
+    // Ochrona reguł budżetowych i zabezpieczeń GCP (wymóg uwierzytelnienia)
     match /system_budget/{docId} {
-      allow read: if true;
+      allow read: if isAuthenticated();
       allow write: if isOwner();
     }
 

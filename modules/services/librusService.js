@@ -113,7 +113,10 @@ export function parseGradeInfo(infoStr) {
       details.category = trimmed.replace(/^.*?kategoria:\s*/i, '').trim();
     } else if (/waga:/i.test(trimmed)) {
       const match = trimmed.match(/waga:\s*([0-9.,]+)/i);
-      if (match) details.weight = parseFloat(match[1].replace(',', '.')) || 1;
+      if (match) {
+        const parsedW = parseFloat(match[1].replace(',', '.'));
+        details.weight = !isNaN(parsedW) ? parsedW : 1;
+      }
     } else if (/data:/i.test(trimmed)) {
       details.date = trimmed.replace(/^.*?data:\s*/i, '').trim();
     } else if (/nauczyciel:/i.test(trimmed) || /dodał:/i.test(trimmed)) {
@@ -121,7 +124,8 @@ export function parseGradeInfo(infoStr) {
         details.teacher = trimmed.replace(/^.*?(nauczyciel|dodał):\s*/i, '').trim();
       }
     } else if (/licz do średniej:/i.test(trimmed)) {
-      details.inAverage = !/nie/i.test(trimmed);
+      const val = trimmed.replace(/^.*?licz do średniej:\s*/i, '').trim().toLowerCase();
+      details.inAverage = !val.startsWith('nie');
     } else if (/komentarz:/i.test(trimmed) || /opis:/i.test(trimmed)) {
       details.comment = trimmed.replace(/^.*?(komentarz|opis):\s*/i, '').trim();
     }
