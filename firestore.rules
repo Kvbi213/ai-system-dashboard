@@ -3,12 +3,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Weryfikacja aktywnej sesji (Google OAuth lub Firebase Auth)
+    // Weryfikacja aktywnej sesji uwierzytelnionej (Google OAuth lub Firebase Auth)
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Weryfikacja uprawnień operatora
+    // Weryfikacja uprawnień właściciela systemu
     function isOwner() {
       return isAuthenticated() && (
         request.auth.token.email == 'marektowarek21372137@gmail.com' ||
@@ -34,24 +34,20 @@ service cloud.firestore {
       ];
     }
 
-    // Kolekcje główne OmniDash z walidacją struktury i wymogiem bezpiecznego payloadu
+    // Kolekcje główne: bezwzględny wymóg uwierzytelnienia sesji (Zero-Trust)
     match /{collection}/{docId} {
-      allow read: if isAllowedCollection(collection);
-      allow write: if isAllowedCollection(collection) && (
-        // Uwierzytelniona sesja lub integralny payload zawierający dane
-        isAuthenticated() || request.resource.data.keys().size() > 0
-      );
+      allow read, write: if isAllowedCollection(collection) && isAuthenticated();
     }
 
     // Ochrona reguł budżetowych i zabezpieczeń GCP
     match /system_budget/{docId} {
       allow read: if true;
-      allow write: if isAuthenticated() || isOwner();
+      allow write: if isOwner();
     }
 
     // Ochrona wrażliwych poświadczeń systemowych
     match /settings/librus_credentials {
-      allow read, write: if isAuthenticated() || isOwner();
+      allow read, write: if isOwner();
     }
 
     // Bezwzględna blokada dla wszelkich pozostałych ścieżek

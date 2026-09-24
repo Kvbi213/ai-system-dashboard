@@ -56,6 +56,14 @@ export const authMiddleware = (req, res, next) => {
   if (req.path.startsWith('/system/keys')) return next();
   if (req.path.startsWith('/phone/')) return next();
   if (req.path.startsWith('/voice/tts')) return next();
+  if (req.path.startsWith('/gcp/budget-webhook')) return next();
+
+  // Weryfikacja poświadczeń systemowych dla skryptów wewnętrznych i mikroserwisów
+  const systemPin = req.headers['x-system-pin'];
+  if (systemPin && process.env.DASHBOARD_PIN && systemPin === process.env.DASHBOARD_PIN) {
+    return next();
+  }
+
   const token = req.headers.authorization?.split(' ')[1];
   if (activeSessions.has(token)) return next();
   res.status(401).json({ error: 'Brak autoryzacji' });

@@ -1,5 +1,24 @@
 ## Wersja Bieżąca
-**v2.27.0**
+**v2.28.0**
+
+## v 2.28.0 — 2026-09-24
+**Typ:** MINOR  
+**Zakres:** Zero-Trust Security Hardening & Pre-Production Shield: całkowita eliminacja furtek w regułach Cloud Firestore (`firestore.rules` - Zero-Trust `isAuthenticated()`, restrykcja `isOwner()`), aktywacja i integracja Firebase Anonymous Auth (`signInAnonymously`), ścisłe ograniczenie domen CORS w `core.server.js`, autoryzacja nagłówkiem `x-system-pin` oraz wyłączenie webhooka GCP w `modules/routes/auth.js`, tarcza sekretów w `modules/fs_explorer.js` (blokada `.env` i poświadczeń), walidacja narzędzi finansowych w `modules/agent.js`, nowy pakiet testów bezpieczeństwa `tests/security_audit.test.js` (197/197 PASS) oraz gruntowna przebudowa `README.md`.
+
+### Zmiany
+- [*] Zmodyfikowano: `firestore.rules` – bezwzględny wymóg `isAuthenticated()` dla wszystkich kolekcji roboczych, usunięcie luki `keys().size() > 0`, ochrona `system_budget` i `settings/librus_credentials` przez `isOwner()`. Wdrożono na produkcję `void-potato-7721`.
+- [*] Zmodyfikowano: `modules/firebaseClient.js` – integracja automatycznej sesji Firebase Anonymous Auth w przeglądarce (`onAuthStateChanged` -> `signInAnonymously`), aktywowana w Google Cloud Identity Toolkit.
+- [*] Zmodyfikowano: `core.server.js` – usunięcie otwartych wildcardów subdomen `*.web.app` i `*.firebaseapp.com`, ścisłe ograniczenie do precyzyjnych domen produkcyjnych i portów lokalnych.
+- [*] Zmodyfikowano: `modules/routes/auth.js` – obsługa nagłówka `x-system-pin` w `authMiddleware` dla skryptów wewnętrznych oraz wyłączenie ścieżki `/api/gcp/budget-webhook` dla powiadomień Push Pub/Sub.
+- [*] Zmodyfikowano: `modules/fs_explorer.js` – twarda tarcza sekretów: blokada odczytu `.env`, `firebase-service-account.json` i powiązanych plików wrażliwych przez asystenta AI.
+- [*] Zmodyfikowano: `modules/agent.js` – usunięcie nieużywanego importu `exec`, walidacja parametrów i kubełków w `TRANSFER_FUNDS` oraz weryfikacja istnienia i audyt w `DELETE_FINANCE_RECORD`.
+- [+] Dodano: `tests/security_audit.test.js` – zestaw 7 testów automatycznych weryfikujących reguły Zero-Trust (łączny bilans wzrósł do 197/197 testów w 15 pakietach testowych).
+- [*] Zmodyfikowano: `README.md` – kompleksowy wizualny facelifting dla społeczności GitHub: odznaki Shields.io, interaktywny spis treści, makieta terminala ASCII, zestawienie modułów i architektura.
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.28.0`.
+- [*] Zmodyfikowano: `ARCHITECTURE.md` – rejestracja nowej wersji i pakietu testowego.
+- [+] Dodano: Raport wydania `docs/versions/v2.28.0.md`.
+
+---
 
 ## v 2.27.0 — 2026-09-24
 **Typ:** MINOR  

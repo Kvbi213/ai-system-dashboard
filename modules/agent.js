@@ -1,5 +1,4 @@
 import Groq from 'groq-sdk';
-import { exec } from 'child_process';
 import { executeQuery, executeRun } from './database.js';
 import { fetchWeather, registerRecurringJob } from './scheduler.js';
 import { broadcastEvent } from './emitter.js';
@@ -262,20 +261,51 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
           toolResultsText += `\nNarzędzie ADD_FINANCE_RECORD zwróciło: Success, Finance ID: ${rec.id}`;
           
         } else if (toolCall.function.name === 'TRANSFER_FUNDS') {
-          const date = new Date().toISOString().split('T')[0];
-          await executeRun(
-            'INSERT INTO finances (type, amount, currency, category, bucket, description, transaction_date) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            ['expense', args.amount, 'PLN', 'Transfer', args.from_bucket, `Transfer to ${args.to_bucket}`, date]
-          );
-          await executeRun(
-            'INSERT INTO finances (type, amount, currency, category, bucket, description, transaction_date) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            ['income', args.amount, 'PLN', 'Transfer', args.to_bucket, `Transfer from ${args.from_bucket}`, date]
-          );
-          toolResultsText += `\nNarzędzie TRANSFER_FUNDS zwróciło: Success, Przelano ${args.amount} z ${args.from_bucket} do ${args.to_bucket}.`;
+          const amount = Number(args.amount);
+          const fromBucket = (args.from_bucket || '').trim().toLowerCase();
+          const toBucket = (args.to_bucket || '').trim().toLowerCase();
+          const allowedBuckets = ['needs', 'wants', 'savings', 'unassigned'];
+
+          if (isNaN(amount) || amount <= 0) {
+            toolResultsText += `\nNarzędzie TRANSFER_FUNDS: Błąd walidacji - kwota musi być liczbą dodatnią (otrzymano: ${args.amount}).`;
+          } else if (!allowedBuckets.includes(fromBucket) || !allowedBuckets.includes(toBucket)) {
+            toolResultsText += `\nNarzędzie TRANSFER_FUNDS: Błąd walidacji - nieprawidłowy kubełek (dozwolone: ${allowedBuckets.join(', ')}).`;
+          } else if (fromBucket === toBucket) {
+            toolResultsText += `\nNarzędzie TRANSFER_FUNDS: Błąd walidacji - kubełek źródłowy i docelowy są identyczne (${fromBucket}).`;
+          } else {
+            const date = new Date().toISOString().split('T')[0];
+            await executeRun(
+              'INSERT INTO finances (type, amount, currency, category, bucket, description, transaction_date) VALUES (?, ?, ?, ?, ?, ?, ?)',
+              ['expense', amount, 'PLN', 'Transfer', fromBucket, `Transfer to ${toBucket}`, date]
+            );
+            await executeRun(
+              'INSERT INTO finances (type, amount, currency, category, bucket, description, transaction_date) VALUES (?, ?, ?, ?, ?, ?, ?)',
+              ['income', amount, 'PLN', 'Transfer', toBucket, `Transfer from ${fromBucket}`, date]
+            );
+            await executeRun(
+              "INSERT INTO system_logs (type, content) VALUES ('FINANCE_TRANSFER', ?)",
+              [`Przelano ${amount} PLN z ${fromBucket} do ${toBucket}`]
+            );
+            toolResultsText += `\nNarzędzie TRANSFER_FUNDS zwróciło: Success, Przelano ${amount} z ${fromBucket} do ${toBucket}.`;
+          }
           
         } else if (toolCall.function.name === 'DELETE_FINANCE_RECORD') {
-          await executeRun('DELETE FROM finances WHERE id = ?', [parseInt(args.id, 10)]);
-          toolResultsText += `\nNarzędzie DELETE_FINANCE_RECORD zwróciło: Success`;
+          const recordId = parseInt(args.id, 10);
+          if (isNaN(recordId) || recordId <= 0) {
+            toolResultsText += `\nNarzędzie DELETE_FINANCE_RECORD: Błąd walidacji - nieprawidłowy identyfikator rekordu (${args.id}).`;
+          } else {
+            const existing = await executeQuery('SELECT id, description, amount FROM finances WHERE id = ?', [recordId]);
+            if (!existing || existing.length === 0) {
+              toolResultsText += `\nNarzędzie DELETE_FINANCE_RECORD: Błąd - rekord finansowy o ID ${recordId} nie istnieje w bazie.`;
+            } else {
+              await executeRun('DELETE FROM finances WHERE id = ?', [recordId]);
+              await executeRun(
+                "INSERT INTO system_logs (type, content) VALUES ('FINANCE_DELETE', ?)",
+                [`Usunięto rekord finansowy #${recordId} (${existing[0]?.description || 'Brak opisu'}, ${existing[0]?.amount || 0} PLN)`]
+              );
+              toolResultsText += `\nNarzędzie DELETE_FINANCE_RECORD zwróciło: Success, usunięto rekord finansowy o ID ${recordId}.`;
+            }
+          }
           
         } else if (toolCall.function.name === 'UPDATE_TO_DO') {
           const itemsToProcess = args.items && args.items.length > 0 ? args.items : [args];

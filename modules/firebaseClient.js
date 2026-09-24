@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, signInAnonymously, onAuthStateChanged } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || "omnidash-cloud";
@@ -20,5 +20,16 @@ export const auth = getAuth(app);
 export const firestore = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 
-export { signInWithPopup, signOut };
+// Automatyczna inicjalizacja sesji Firebase Auth (gwarancja request.auth != null)
+if (typeof window !== "undefined") {
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      signInAnonymously(auth).catch((err) => {
+        console.debug("[Firebase Auth] Inicjalizacja sesji:", err.message);
+      });
+    }
+  });
+}
+
+export { signInWithPopup, signOut, signInAnonymously };
 export default app;

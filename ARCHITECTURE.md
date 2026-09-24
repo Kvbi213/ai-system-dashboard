@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.27.0 (Stan na Wrzesień 2026) 
+**Wersja Systemu:** v2.28.0 (Stan na Wrzesień 2026) 
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE) 
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Security Hardening, Firestore Rules, Strict CORS Whitelist, AI Safe Tool Governance, Vitest 190/190 PASS)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Zero-Trust Security Hardening, Strict Firestore Rules, Exact CORS Whitelist, AI Secret Shield, Vitest 197/197 PASS)
 
 ---
 
@@ -10,8 +10,8 @@
 System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-oss-120b` (Groq SDK). Projekt łączy w sobie cechy inteligentnego terminala poleceń, zarządzania zadaniami (To-Do), planu lekcji i harmonogramu zajęć (Timetable), kalendarza z możliwością ręcznego planowania, elastycznego budżetu z dynamicznym dysponowaniem środkami (autopodział dochodów 50/30/20, jedna pula, podział własny oraz transfery między koszykami), planera treningów, długoterminowej pamięci (Operator Brain), monitoringu parametrów systemu w czasie rzeczywistym przez Server-Sent Events (SSE) oraz wyszukiwania w sieci na żywo (Brave Search API).
 
 **Główne Paradygmaty:**
-1. **Multi-Cloud & Cloud-First Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (Prywatna Instancja Produkcyjna), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`/api/agent`, `api/news`, `api/models`, `api/status`, `api/osint`, `api/pushbullet-webhook`, `api/cron/agent`). Wszystkie operacje na telefonach, tabletach i desktopie natychmiast synchronizują się z chmurą bez wymogu logowania Google OAuth.
-2. **Quality Gate & Automated Testing (190/190 PASS):** Zintegrowany silnik testowy Vitest (`npm test`) z 14 dedykowanymi zestawami testowymi weryfikującymi limitowanie budżetu Google Cloud i Pub/Sub, geolokalizację GPS, wywiad drogowy CANARD/GITD i alerty GDDKiA, integrację Librus Synergia, algorytm budżetowy, klasyfikację celów OSINT, strefę czasową `Europe/Warsaw`, eksport CSV, rejestr synchronizacji chmurowej, klasyfikator i parser powiadomień Pushbullet, autonomicznego agenta ciągłego oraz renderowanie komponentów Reacta z `@testing-library/react` i `jsdom`.
+1. **Multi-Cloud & Cloud-First Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (Prywatna Instancja Produkcyjna `void-potato-7721`), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`/api/agent`, `api/news`, `api/models`, `api/status`, `api/osint`, `api/pushbullet-webhook`, `api/gcp/budget-webhook`). Wszystkie operacje na telefonach, tabletach i desktopie natychmiast synchronizują się z chmurą przy wykorzystaniu transparentnej autoryzacji Firebase Anonymous Auth oraz Google OAuth.
+2. **Quality Gate & Automated Testing (197/197 PASS):** Zintegrowany silnik testowy Vitest (`npm test`) z 15 dedykowanymi zestawami testowymi weryfikującymi bezpieczeństwo Zero-Trust, limitowanie budżetu Google Cloud i Pub/Sub, geolokalizację GPS, wywiad drogowy CANARD/GITD i alerty GDDKiA, integrację Librus Synergia, algorytm budżetowy, klasyfikację celów OSINT, strefę czasową `Europe/Warsaw`, eksport CSV, rejestr synchronizacji chmurowej, klasyfikator i parser powiadomień Pushbullet, autonomicznego agenta ciągłego oraz renderowanie komponentów Reacta z `@testing-library/react` i `jsdom`.
 3. **Bidirectional Pushbullet Integration & Autonomous Expense Tracking:** Dwukierunkowa integracja ze smartfonem operatora. System nasłuchuje powiadomień płatniczych i bankowych ze strumienia WebSocket (`wss://stream.pushbullet.com`), deduplikuje je w oknie 60s, kognitywnie wyodrębnia kwotę i przypisuje do koszyka 50/30/20 (Needs vs Wants vs Savings), automatycznie rejestruje wydatek w SQLite i Firestore oraz wysyła potwierdzenie na telefon. Dodatkowo asystent AI może wysyłać wiadomości i zadania na smartfon operatora znacznikiem `[ACTION:SEND_PUSH]`.
 4. **Real-time SSE Telemetry & Dual Mode:** Backend Express dostarcza strumień Server-Sent Events (`/api/system/stream`) emitujący metryki CPU/RAM/Heap/Uptime co 2 sekundy. W chmurze komponent `SystemMonitor` automatycznie przechodzi w tryb telemetrii przeglądarkowej ze wskaźnikami `● SSE LIVE` i `● CLIENT`.
 5. **Instant Theme Toggle:** Szybki przełącznik trybu jasnego/ciemnego (Sun/Moon) umieszczony w widocznym miejscu w nagłówku mobilnym oraz stopce menu bocznego na desktopie, zintegrowany z pamięcią `localStorage` i 7 paletami kolorystycznymi.
@@ -38,7 +38,8 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │ ├── main.yml ← Główny potok CI/CD produkcyjny
 │ └── ci.yml ← Równoległy potok weryfikacyjny pull requestów
 │
-├── /tests/ ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 190/190 PASS, 14 zestawów)
+├── /tests/ ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 197/197 PASS, 15 zestawów)
+│ ├── security_audit.test.js ← Testy reguł Zero-Trust: authMiddleware, x-system-pin, tarcza plików fs_explorer
 │ ├── gcp_budget.test.js ← Testy parsowania Pub/Sub Base64, kalkulacji progów budżetu GCP, alertów Pushbullet i narzędzi AI
 │ ├── traffic.test.js ← Testy geolokalizacji GPS, odległości Haversine, skanera wypadków 10km, fotoradarów CANARD/GITD na korytarzu Starogard-Gdańsk i routingu OSRM/Google
 │ ├── librus.test.js ← Testy integracji Librus Synergia (oceny, terminarz, plan lekcji, korelacja absencji i zastępstw)

@@ -17,6 +17,13 @@ export async function readProjectFile(relativePath) {
             throw new Error('Próba dostępu poza katalog projektowy. Odmowa.');
         }
 
+        // Zabezpieczenie przed wyciekiem sekretów i poświadczeń środowiskowych
+        const fileName = path.basename(fullPath).toLowerCase();
+        const sensitiveFiles = ['.env', 'firebase-service-account.json', 'temp_users.json'];
+        if (sensitiveFiles.includes(fileName) || fileName.startsWith('.env')) {
+            throw new Error('Odmowa dostępu: plik chroniony (sekrety/klucze API). Odczyt przez asystenta AI jest zablokowany.');
+        }
+
         const content = await fs.readFile(fullPath, 'utf-8');
         return { success: true, path: relativePath, content };
     } catch (error) {

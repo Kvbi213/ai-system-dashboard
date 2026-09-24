@@ -53,20 +53,18 @@ const envOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim()).filter(Boolean)
   : [];
 
-const allowedOrigins = [...new Set([...defaultAllowedOrigins, ...envOrigins])];
+const allowedOrigins = new Set([...defaultAllowedOrigins, ...envOrigins]);
 
 const corsOptions = {
   origin: (origin, callback) => {
+    // Żądania z aplikacji mobilnych, curl, Electron i zadań lokalnych nie przesyłają nagłówka Origin
     if (!origin) return callback(null, true);
-    const isWhitelisted = allowedOrigins.includes(origin) ||
-      origin.endsWith('.web.app') ||
-      origin.endsWith('.firebaseapp.com') ||
-      origin.startsWith('http://localhost:') ||
-      origin.startsWith('http://127.0.0.1:');
-
-    if (isWhitelisted) {
+    
+    // Ścisła weryfikacja domen produkcyjnych oraz lokalnych portów deweloperskich
+    if (allowedOrigins.has(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
       return callback(null, true);
     }
+
     console.warn(`[!] SECURITY :: CORS :: Zablokowano nieautoryzowane źródło: ${origin}`);
     return callback(new Error(`CORS blocked for origin: ${origin}`));
   },
