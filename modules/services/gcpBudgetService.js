@@ -9,6 +9,7 @@ import { getFirestoreDb, isFirebaseConnected } from '../firebase.js';
 import { sendPushNotificationClient, getPushbulletApiKey } from './pushbulletService.js';
 
 const ACTIVE_GCP_PROJECT = process.env.GCP_PROJECT_ID || 'omnidash-509607';
+const ACTIVE_PUBSUB_TOPIC = process.env.GCP_PUBSUB_TOPIC || 'budget-auto-stop';
 
 // Domyślny stan budżetu
 const DEFAULT_BUDGET_STATE = {
@@ -21,7 +22,7 @@ const DEFAULT_BUDGET_STATE = {
   percentage: 0.0,
   status: 'OK', // OK | WARNING | CRITICAL
   isBudgetThrottled: false,
-  topicName: `projects/${ACTIVE_GCP_PROJECT}/topics/omni-budget-alerts`,
+  topicName: `projects/${ACTIVE_GCP_PROJECT}/topics/${ACTIVE_PUBSUB_TOPIC}`,
   subscriptionName: `projects/${ACTIVE_GCP_PROJECT}/subscriptions/omni-budget-push`,
   lastUpdated: new Date().toISOString()
 };

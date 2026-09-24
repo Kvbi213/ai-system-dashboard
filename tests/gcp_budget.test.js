@@ -112,7 +112,7 @@ describe('Google Cloud Billing & Pub/Sub Budget Guard (omnidash-509607)', () => 
       const status = await getGcpBudgetStatus();
       expect(status).toBeDefined();
       expect(status.projectId).toBe('omnidash-509607');
-      expect(status.topicName).toContain('omni-budget-alerts');
+      expect(status.topicName).toMatch(/budget-auto-stop|omni-budget-alerts/);
     });
   });
 

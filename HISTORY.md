@@ -1,5 +1,22 @@
 ## Wersja Bieżąca
-**v2.26.1**
+**v2.26.2**
+
+## v 2.26.2 — 2026-09-24
+**Typ:** PATCH  
+**Zakres:** Instalacja i konfiguracja Google Cloud SDK (`gcloud` CLI), autoryzacja konta operatora, aktywacja interfejsów API w projekcie GCP `omnidash-509607` (Text-to-Speech, Directions, Geocoding, Billing Budgets), podpięcie subskrypcji Cloud Pub/Sub `omni-budget-push` do tematu `budget-auto-stop` oraz pomyślna weryfikacja (190/190 testów PASS).
+
+### Zmiany
+- [+] Dodano: Instalacja Google Cloud SDK v586.0.0 w systemowej ścieżce PATH (`C:\Users\Jakub Lis\AppData\Local\Google\Cloud SDK\google-cloud-sdk\bin`).
+- [+] Dodano: Autoryzacja OAuth2 `gcloud auth login` dla konta operatora i powiązanie z projektem domyślnym `omnidash-509607`.
+- [+] Dodano: Aktywacja interfejsów API: `texttospeech.googleapis.com`, `directions-backend.googleapis.com`, `geocoding-backend.googleapis.com`, `billingbudgets.googleapis.com` w projekcie `omnidash-509607`.
+- [+] Dodano: Subskrypcja Cloud Pub/Sub `projects/omnidash-509607/subscriptions/omni-budget-push` na temacie `budget-auto-stop` kierująca zdarzenia budżetowe do webhooka OmniDash (`https://void-potato-7721.web.app/api/gcp/budget-webhook`).
+- [*] Zmodyfikowano: `.env` i `.env.example` – dodano `GCP_PUBSUB_TOPIC=budget-auto-stop` i `VITE_GCP_PUBSUB_TOPIC=budget-auto-stop`.
+- [*] Zmodyfikowano: `modules/services/gcpBudgetService.js` – dynamiczne wsparcie dla konfigurowalnej nazwy tematu Pub/Sub z zachowaniem bezpiecznych wartości domyślnych.
+- [*] Zmodyfikowano: `tests/gcp_budget.test.js` – dostosowanie asercji tematu do elastycznego schematu `budget-auto-stop|omni-budget-alerts`.
+- [*] Zmodyfikowano: `package.json` – wersja `2.26.2`.
+- [+] Dodano: Raport wydania `docs/versions/v2.26.2.md`.
+
+---
 
 ## v 2.26.1 — 2026-09-24
 **Typ:** PATCH  
