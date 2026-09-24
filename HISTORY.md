@@ -15,6 +15,7 @@
 - [*] Zmodyfikowano: `modules/agent.js` – szczegółowe raportowanie stanów częściowych w narzędziu `DELETE_TO_DO` (lista usuniętych i brakujących ID).
 - [*] Zmodyfikowano: `tests/security_audit.test.js` – rozszerzenie testów bezpieczeństwa do 16 testów (sprawdzanie odrzucenia `SESSION_SECRET`, pełna macierz adresów SSRF).
 - [*] Zmodyfikowano: `package.json`, `ARCHITECTURE.md`, `README.md` – podniesienie wersji do `v2.29.0` (212/212 PASS w 16 pakietach).
+- [+] Dodano: `docs/architecture/AI_PERMISSIONS_AND_SECURITY.md` – pełna specyfikacja modelu uprawnień, deterministyczny Policy Engine, 4 poziomy ryzyka (CRITICAL / HIGH / MEDIUM / LOW), jawne odcięcie od `.env`, kluczy Firebase i powłoki OS.
 - [+] Dodano: Raport wydania `docs/versions/v2.29.0.md`.
 
 ---

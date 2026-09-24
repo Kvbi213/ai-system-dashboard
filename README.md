@@ -47,17 +47,17 @@
 ## Spis Treści
 1. [Wprowadzenie i Filozofia Architektury](#-wprowadzenie-i-filozofia-architektury)
 2. [Topologia Hybrydowa i Diagramy Przepływu](#-topologia-hybrydowa-i-diagramy-przepływu)
-3. [Główne Podsystemy i Funkcjonalności](#-główne-podsystemy-i-funkcjonalności)
-4. [Tarcza Bezpieczeństwa Zero-Trust (Hardening v2.28.0)](#-tarcza-bezpieczeństwa-zero-trust)
-5. [Bezpiecznik Budżetowy Google Cloud (Budget Guard)](#-bezpiecznik-budżetowy-google-cloud-budget-guard)
-6. [Wywiad Drogowy i Geolokalizacja (CANARD / Janosik)](#-wywiad-drogowy-i-geolokalizacja-canard--janosik)
-7. [Silnik Kognitywny Agenta AI i Zarządzanie Pamięcią](#-silnik-kognitywny-agenta-ai-i-zarządzanie-pamięcią)
-8. [System Finansowy 50/30/20 & Eksport Raportów](#-system-finansowy-503020--eksport-raportów)
-9. [Automatyczne Testy Jednostkowe i Integracyjne (197/197)](#-automatyczne-testy-jednostkowe-i-integracyjne)
-10. [Konfiguracja Środowiska i Zmienne (.env.example)](#-konfiguracja-środowiska-i-zmienne)
-11. [Instalacja i Uruchomienie](#-instalacja-i-uruchomienie)
-12. [Potok CI/CD i Jakość Kodu](#-potok-cicd-i-jakość-kodu)
-13. [Licencja](#-licencja)
+3. [Główne Podsystemy i Funkcjonalności](#główne-podsystemy-i-funkcjonalności)
+4. [Tarcza Bezpieczeństwa Zero-Trust & Sandboxing Agenta AI](#tarcza-bezpieczeństwa-zero-trust--sandboxing-agenta-ai)
+5. [Bezpiecznik Budżetowy Google Cloud (Budget Guard)](#bezpiecznik-budżetowy-google-cloud-budget-guard)
+6. [Wywiad Drogowy i Geolokalizacja (CANARD / Janosik)](#wywiad-drogowy-i-geolokalizacja-canard--janosik)
+7. [Silnik Kognitywny Agenta AI i Zarządzanie Pamięcią](#silnik-kognitywny-agenta-ai-i-zarządzanie-pamięcią)
+8. [System Finansowy 50/30/20 & Eksport Raportów](#system-finansowy-503020--eksport-raportów)
+9. [Automatyczne Testy Jednostkowe i Integracyjne (212/212)](#automatyczne-testy-jednostkowe-i-integracyjne)
+10. [Konfiguracja Środowiska i Zmienne (.env.example)](#konfiguracja-środowiska-i-zmienne)
+11. [Instalacja i Uruchomienie](#instalacja-i-uruchomienie)
+12. [Potok CI/CD i Jakość Kodu](#potok-cicd-i-jakość-kodu)
+13. [Licencja](#licencja)
 
 ---
 
@@ -152,9 +152,9 @@ graph TB
 
 ---
 
-## Tarcza Bezpieczeństwa Zero-Trust
+## Tarcza Bezpieczeństwa Zero-Trust & Sandboxing Agenta AI
 
-W wersji **v2.28.0** wdrożono rygorystyczny audyt bezpieczeństwa eliminujący wektory ataków przed ekspozycją na serwerze produkcyjnym:
+Ekosystem OmniDash wdraża rygorystyczny model bezpieczeństwa oparty na architekturze Zero-Trust oraz deterministycznym silniku reguł (**Policy Engine**) dla agenta AI:
 
 1. **Zero-Trust Firestore Security Rules**:
    - Usunięto podatność obejścia autoryzacji opartą o `keys().size() > 0`.
@@ -164,12 +164,17 @@ W wersji **v2.28.0** wdrożono rygorystyczny audyt bezpieczeństwa eliminujący 
 2. **CORS Hardening**:
    - Wyeliminowano maski wieloznaczne `*.web.app` i `*.firebaseapp.com`.
    - Dozwolone są wyłącznie precyzyjne domeny produkcyjne (`void-potato-7721.web.app`, `void-potato-7721.firebaseapp.com`), lokalne porty deweloperskie oraz jawna lista zdefiniowana w zmiennej środowiskowej `ALLOWED_ORIGINS`.
-3. **Weryfikacja Poświadczeń Wewnętrznych (`x-system-pin`)**:
-   - Bezpieczny nagłówek `x-system-pin` umożliwia komunikację mikroserwisów i skryptów automatyzacji bez wymogu generowania sesji interfejsu graficznego.
-   - Endpoint `/api/gcp/budget-webhook` posiada bezpieczne wyłączenie spod weryfikacji tokenowej, umożliwiając bezpośredni odbiór komunikatów Pub/Sub Push z infrastruktury Google Cloud.
-4. **Tarcza Plików i Sekretów Agenta AI (`readProjectFile`)**:
-   - Asystent AI posiada bezwzględną blokadę odczytu plików środowiskowych (`.env`, `.env.*`), certyfikatów i kluczy serwisowych (`firebase-service-account.json`).
-   - Wbudowane zabezpieczenie uniemożliwia ataki typu Directory Traversal (`../`).
+3. **Weryfikacja Poświadczeń Wewnętrznych i Ochrona Przed Atakami Czasowymi**:
+   - Bezpieczne nagłówki `x-system-pin` oraz `x-internal-key` są weryfikowane w stałym czasie za pomocą `crypto.timingSafeEqual`.
+   - Klucze sesyjne (`SESSION_SECRET`) są ściśle odseparowane od poświadczeń API.
+   - Endpoint `/api/gcp/budget-webhook` posiada bezpieczne wyłączenie spod weryfikacji tokenowej na potrzeby odbioru komunikatów Pub/Sub Push z Google Cloud.
+4. **Sandboxing Agenta AI & Jawne Granice Uprawnień**:
+   - **Brak Dostępu do Sekretów (.env):** Asystent AI posiada bezwzględną, nieobejrzalną blokadę odczytu plików środowiskowych (`.env`, `.env.*`), certyfikatów i kluczy serwisowych (`firebase-service-account.json`, `temp_users.json`).
+   - **Brak Dostępu do Powłoki Systemowej:** Z kodu agenta całkowicie usunięto moduł `exec` – AI nie posiada żadnego interfejsu powłoki i nie może wykonać żadnego polecenia w systemie operacyjnym (ochrona przed RCE).
+   - **Path Traversal Shield:** Próby odwołania się do plików poza katalogiem projektu (`../../`) są natychmiast odrzucane.
+   - **Tarcza Anty-SSRF:** Moduł wywiadu OSINT weryfikuje wszystkie zwrócone rekordy DNS (IPv4/IPv6) i blokuje zapytania do pętli zwrotnej, sieci RFC 1918, IPv6 ULA oraz endpointu metadanych chmurowych `169.254.169.254`.
+   - **Deterministyczna Matryca Ryzyka (CRITICAL / HIGH / MEDIUM / LOW):** Operacje destrukcyjne (np. `DELETE_TO_DO all`) bezwzględnie wymagają parametru `confirmed: true` zatwierdzonego przez operatora.
+   - *Pełna specyfikacja architektoniczna:* [docs/architecture/AI_PERMISSIONS_AND_SECURITY.md](docs/architecture/AI_PERMISSIONS_AND_SECURITY.md).
 
 ---
 
@@ -256,27 +261,28 @@ npm test
 npm run test:watch
 ```
 
-### Zestawienie Pakietów Testowych (15/15 Pakietów | 202/202 Testy):
+### Zestawienie Pakietów Testowych (16/16 Pakietów | 212/212 Testy):
 
 | # | Pakiet Testowy | Plik | Liczba Testów | Zakres Weryfikacji |
 | :-: | :--- | :--- | :-: | :--- |
-| 1 | **Security Audit Hardening** | `tests/security_audit.test.js` | **12 testów** | Weryfikacja `authMiddleware`, `x-system-pin`, `x-internal-key`, blokada SSRF w `modules/osint.js`, tarcza sekretów `fs_explorer`, integralność parsowania ocen Librus. |
-| 2 | **GCP Budget Guard** | `tests/gcp_budget.test.js` | **8 testów** | Dekodowanie Base64 z Pub/Sub, progi 50%/90%/100%, circuit breaker `isBudgetThrottled`, alert Pushbullet. |
-| 3 | **Wywiad Drogowy CANARD** | `tests/traffic.test.js` | **16 testów** | Fotoradary na trasie, odcinkowe pomiary prędkości, alerty GDDKiA, wyliczanie odległości GPS haversine. |
-| 4 | **Librus Synergia Edu-Hub** | `tests/librus.test.js` | **30 testów** | Oceny, średnie ważone, terminarz, szczęśliwy numerek, plan lekcji, obsługa zastępstw i absencji. |
-| 5 | **Pushbullet & Finanse** | `tests/pushbullet_finance.test.js` | **44 testy** | Klasyfikator SMS bankowych, alokacja 50/30/20, deduplikacja 60s, generowanie powiadomień na smartfon. |
-| 6 | **Autonomiczny Agent 24/7** | `tests/autonomous_agent.test.js` | **18 testów** | Pętla OmniDaemon, klasyfikacja intencji użytkownika, rejestr wywołań narzędzi, uziemienie w pamięci. |
-| 7 | **Wakeword & OmniVoice** | `tests/wakeword.test.js` | **17 testów** | Silnik detekcji mowy, nasłuchiwanie słowa kluczowego, wskaźniki stanu mikrofonu w UI. |
-| 8 | **Budżet i Alokacja** | `tests/budget.test.js` | **15 testów** | Matematyka reguły 50/30/20, koszyki 0%, transfery środków, dynamiczne sumowanie bilansu. |
-| 9 | **Zarządzanie Limitami TTS** | `tests/tts_quota.test.js` | **10 testów** | Inspekcja limitów ElevenLabs, licznik 1M znaków Google TTS, transparentny fallback do Edge Neural TTS. |
-| 10 | **Ślad Wykonania Narzędzi** | `tests/agent_execution_trace.test.jsx` | **8 testów** | Wizualny inspektor narzędzi AI (Tool Execution Inspector), renderowanie kart i faktów w czacie. |
-| 11 | **Komponenty Interfejsu** | `tests/components.test.jsx` | **7 testów** | Renderowanie React, szkielety Skeleton, telemetria SSE w SystemMonitor, WeatherWidget, ToastContainer. |
-| 12 | **Kotwiczenie Czasowe** | `tests/time.test.js` | **6 testów** | Precyzja czasowa Europe/Warsaw, przesunięcia letnie/zimowe (CEST/CET), obliczanie dni tygodnia. |
-| 13 | **Rozpoznanie OSINT** | `tests/osint.test.js` | **5 testów** | Klasyfikator celów sieciowych (IPv4, domeny wielopoziomowe, e-mail, adresy MAC kart sieciowych). |
-| 14 | **Eksport Danych** | `tests/export.test.js` | **4 testy** | Sanityzacja znaków specjalnych, cudzysłowów, serializacja RFC 4180 dla plików CSV. |
-| 15 | **Synchronizacja Chmurowa** | `tests/cloudSync.test.js` | **2 testy** | Rejestr kolekcji Firestore, detekcja środowiska hybrydowego (Localhost vs Firebase Hosting). |
+| 1 | **Security Audit Hardening** | `tests/security_audit.test.js` | **16 testów** | Weryfikacja `authMiddleware`, odrzucenie `SESSION_SECRET` jako klucza API, pełna tarcza SSRF (IPv6 ULA, link-local, RFC1918 172.16/12), tarcza sekretów `fs_explorer`, integralność parsowania ocen Librus. |
+| 2 | **Librus Golden Dataset** | `tests/librus_golden.test.js` | **6 testów** | Złoty zestaw wzorcowy ocen: waga 0 ignorowana w średniej ważonej (eliminacja defektu `|| 1`), modyfikatory +/-, oceny nienumeryczne (`-`, `+`, `np`, `bz`), kompletność obiektów. |
+| 3 | **GCP Budget Guard** | `tests/gcp_budget.test.js` | **8 testów** | Dekodowanie Base64 z Pub/Sub, progi 50%/90%/100%, circuit breaker `isBudgetThrottled`, alert Pushbullet. |
+| 4 | **Wywiad Drogowy CANARD** | `tests/traffic.test.js` | **16 testów** | Fotoradary na trasie, odcinkowe pomiary prędkości, alerty GDDKiA, wyliczanie odległości GPS haversine. |
+| 5 | **Librus Synergia Edu-Hub** | `tests/librus.test.js` | **30 testów** | Oceny, średnie ważone, terminarz, szczęśliwy numerek, plan lekcji, obsługa zastępstw i absencji. |
+| 6 | **Pushbullet & Finanse** | `tests/pushbullet_finance.test.js` | **44 testy** | Klasyfikator SMS bankowych, alokacja 50/30/20, deduplikacja 60s, generowanie powiadomień na smartfon. |
+| 7 | **Autonomiczny Agent 24/7** | `tests/autonomous_agent.test.js` | **18 testów** | Pętla OmniDaemon, klasyfikacja intencji użytkownika, rejestr wywołań narzędzi, uziemienie w pamięci. |
+| 8 | **Wakeword & OmniVoice** | `tests/wakeword.test.js` | **17 testów** | Silnik detekcji mowy, nasłuchiwanie słowa kluczowego, wskaźniki stanu mikrofonu w UI. |
+| 9 | **Budżet i Alokacja** | `tests/budget.test.js` | **15 testów** | Matematyka reguły 50/30/20, koszyki 0%, transfery środków, dynamiczne sumowanie bilansu. |
+| 10 | **Zarządzanie Limitami TTS** | `tests/tts_quota.test.js` | **10 testów** | Inspekcja limitów ElevenLabs, licznik 1M znaków Google TTS, transparentny fallback do Edge Neural TTS. |
+| 11 | **Ślad Wykonania Narzędzi** | `tests/agent_execution_trace.test.jsx` | **8 testów** | Wizualny inspektor narzędzi AI (Tool Execution Inspector), renderowanie kart i faktów w czacie. |
+| 12 | **Komponenty Interfejsu** | `tests/components.test.jsx` | **7 testów** | Renderowanie React, szkielety Skeleton, telemetria SSE w SystemMonitor, WeatherWidget, ToastContainer. |
+| 13 | **Kotwiczenie Czasowe** | `tests/time.test.js` | **6 testów** | Precyzja czasowa Europe/Warsaw, przesunięcia letnie/zimowe (CEST/CET), obliczanie dni tygodnia. |
+| 14 | **Rozpoznanie OSINT** | `tests/osint.test.js` | **5 testów** | Klasyfikator celów sieciowych (IPv4, domeny wielopoziomowe, e-mail, adresy MAC kart sieciowych). |
+| 15 | **Eksport Danych** | `tests/export.test.js` | **4 testy** | Sanityzacja znaków specjalnych, cudzysłowów, serializacja RFC 4180 dla plików CSV. |
+| 16 | **Synchronizacja Chmurowa** | `tests/cloudSync.test.js` | **2 testy** | Rejestr kolekcji Firestore, detekcja środowiska hybrydowego (Localhost vs Firebase Hosting). |
 
-**Wynik: 202/202 testy zdane pomyślnie (100% PASS).**
+**Wynik: 212/212 testy zdane pomyślnie (100% PASS).**
 
 ---
 

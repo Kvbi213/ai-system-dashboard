@@ -24,6 +24,7 @@ System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-
 12. **Cloud Billing & Pub/Sub Budget Guard:** Bezpośrednia integracja z Google Cloud Billing i tematem Cloud Pub/Sub `budget-auto-stop` projektu `omnidash-509607`. Asystent oraz dedykowany webhook monitorują wydatki, wysyłają natychmiastowe alerty na telefon przez Pushbullet (progi 50%, 90% i 100%) oraz aktywują obronną flagę `isBudgetThrottled`.
 13. **Dual-Store Architecture & Data Layer Decoupling:** Architektura hybrydowa łącząca SQLite (zerowe opóźnienia, pełna suwerenność i praca 100% offline na stacji roboczej) oraz Cloud Firestore (wielourządzeniowa szyna replikacji czasu rzeczywistego na telefonach i tabletach). Warstwa dostępu do danych w `modules/database.js` operuje na izolowanych interfejsach SQL, zapewniając przygotowanie do bezkolizyjnej migracji na PostgreSQL / Redis w środowiskach VPS 24/7.
 14. **Security Hardening & Tool Governance (AI Safe-by-Design):** Rygorystyczna ochrona Cloud Firestore (`firestore.rules` z autoryzacją i walidacją struktur), ograniczenie CORS w backendzie Express do zdefiniowanej białej listy zaufanych domen oraz dwustopniowa kontrola wykonawcza AI (krytyczne i masowe operacje destrukcyjne, np. `DELETE_TO_DO all`, wymagają jawnego parametru `confirmed: true`, zapobiegając przypadkowym mutacjom).
+15. **AI Sandboxing, Policy Engine & Zero-Access to Secrets:** Bezwzględne odcięcie modelu AI od wrażliwych zasobów systemowych: brak uprawnień do odczytu sekretów (`.env`, `firebase-service-account.json`, certyfikatów), brak interfejsu powłoki systemowej (brak możliwości wykonania dowolnego polecenia w powłoce OS), ochrona przed wyjściem poza katalog projektu (Path Traversal Shield), tarcza anty-SSRF dla wywiadu OSINT oraz deterministyczna 4-stopniowa matryca ryzyka (CRITICAL / HIGH / MEDIUM / LOW). Szczegółowa specyfikacja w `docs/architecture/AI_PERMISSIONS_AND_SECURITY.md`.
 
 ---
 
@@ -33,6 +34,13 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 
 ```
 [Katalog Główny]
+│
+├── /docs/ ← Dokumentacja techniczna, architektoniczna i raporty wydań
+│   ├── architecture/
+│   │   ├── AI_PERMISSIONS_AND_SECURITY.md ← Pełna specyfikacja uprawnień AI, Policy Engine i tarczy sandboxingu
+│   │   └── BUGS.md
+│   ├── versions/ ← Raporty wydań SemVer (v1.0.0 do v2.29.0)
+│   └── errors/ ← Baza rejestru ERROR_DIFF
 │
 ├── /.github/workflows/ ← Potoki CI/CD (GitHub Actions)
 │ ├── main.yml ← Główny potok CI/CD produkcyjny
