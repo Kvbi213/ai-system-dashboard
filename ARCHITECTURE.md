@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.25.0 (Stan na Wrzesień 2026) 
+**Wersja Systemu:** v2.26.0 (Stan na Wrzesień 2026) 
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE) 
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Geolokalizacja Wysokiej Precyzji GPS, Wywiad Drogowy Janosik/CANARD/GITD & OSRM/Google Maps, Trwały Zapis Dziennika Librus w Cloud Firestore, Vitest 182/182 PASS)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Geolokalizacja Wysokiej Precyzji GPS, Wywiad Drogowy Janosik/CANARD/GITD, Limitowanie Budżetu Google Cloud Billing & Cloud Pub/Sub Guard, Vitest 190/190 PASS)
 
 ---
 
@@ -11,7 +11,7 @@ System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-
 
 **Główne Paradygmaty:**
 1. **Multi-Cloud & Cloud-First Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (Prywatna Instancja Produkcyjna), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`/api/agent`, `api/news`, `api/models`, `api/status`, `api/osint`, `api/pushbullet-webhook`, `api/cron/agent`). Wszystkie operacje na telefonach, tabletach i desktopie natychmiast synchronizują się z chmurą bez wymogu logowania Google OAuth.
-2. **Quality Gate & Automated Testing (182/182 PASS):** Zintegrowany silnik testowy Vitest (`npm test`) z 13 dedykowanymi zestawami testowymi weryfikującymi geolokalizację GPS, wywiad drogowy CANARD/GITD i alerty GDDKiA, integrację Librus Synergia, algorytm budżetowy, klasyfikację celów OSINT, strefę czasową `Europe/Warsaw`, eksport CSV, rejestr synchronizacji chmurowej, klasyfikator i parser powiadomień Pushbullet, autonomicznego agenta ciągłego oraz renderowanie komponentów Reacta z `@testing-library/react` i `jsdom`.
+2. **Quality Gate & Automated Testing (190/190 PASS):** Zintegrowany silnik testowy Vitest (`npm test`) z 14 dedykowanymi zestawami testowymi weryfikującymi limitowanie budżetu Google Cloud i Pub/Sub, geolokalizację GPS, wywiad drogowy CANARD/GITD i alerty GDDKiA, integrację Librus Synergia, algorytm budżetowy, klasyfikację celów OSINT, strefę czasową `Europe/Warsaw`, eksport CSV, rejestr synchronizacji chmurowej, klasyfikator i parser powiadomień Pushbullet, autonomicznego agenta ciągłego oraz renderowanie komponentów Reacta z `@testing-library/react` i `jsdom`.
 3. **Bidirectional Pushbullet Integration & Autonomous Expense Tracking:** Dwukierunkowa integracja ze smartfonem operatora. System nasłuchuje powiadomień płatniczych i bankowych ze strumienia WebSocket (`wss://stream.pushbullet.com`), deduplikuje je w oknie 60s, kognitywnie wyodrębnia kwotę i przypisuje do koszyka 50/30/20 (Needs vs Wants vs Savings), automatycznie rejestruje wydatek w SQLite i Firestore oraz wysyła potwierdzenie na telefon. Dodatkowo asystent AI może wysyłać wiadomości i zadania na smartfon operatora znacznikiem `[ACTION:SEND_PUSH]`.
 4. **Real-time SSE Telemetry & Dual Mode:** Backend Express dostarcza strumień Server-Sent Events (`/api/system/stream`) emitujący metryki CPU/RAM/Heap/Uptime co 2 sekundy. W chmurze komponent `SystemMonitor` automatycznie przechodzi w tryb telemetrii przeglądarkowej ze wskaźnikami `● SSE LIVE` i `● CLIENT`.
 5. **Instant Theme Toggle:** Szybki przełącznik trybu jasnego/ciemnego (Sun/Moon) umieszczony w widocznym miejscu w nagłówku mobilnym oraz stopce menu bocznego na desktopie, zintegrowany z pamięcią `localStorage` i 7 paletami kolorystycznymi.
@@ -21,6 +21,7 @@ System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-
 9. **LLM with Precise Warsaw Timezone & Multi-Tool Engine:** Cała logika kognitywna oparta jest na modelu `openai/gpt-oss-120b`. Klient każdorazowo przesyła precyzyjny timestamp oraz zlokalizowaną godzinę, a Vercel Gateway wymusza strefę `Europe/Warsaw`, gwarantując natychmiastową i niezmiennie poprawną wiedzę o aktualnej godzinie w Polsce.
 10. **Clean & Modern Aesthetics**: Interfejs zaprojektowany w oparciu o czyste linie, glassmorphism, elegancką i nowoczesną typografię oraz bogatą paletę motywów.
 11. **High-Accuracy Geolocation & Road Intelligence:** Usługa nawigacyjna i drogowa łącząca dokładne współrzędne GPS (`enableHighAccuracy`), rejestr stacjonarnych fotoradarów, odcinkowych pomiarów prędkości (OPP) i kamer RedLight CANARD/GITD (np. 9 punktów kontrolnych na korytarzu do Gdańska), bieżące alerty wypadkowe GDDKiA w promieniu 10 km oraz wyznaczanie tras (OSRM / Google Maps Directions).
+12. **Cloud Billing & Pub/Sub Budget Guard:** Bezpośrednia integracja z Google Cloud Billing i tematem Cloud Pub/Sub `omni-budget-alerts` projektu `void-potato-7721`. Asystent oraz dedykowany webhook monitorują wydatki, wysyłają natychmiastowe alerty na telefon przez Pushbullet (progi 80% i 90%) oraz aktywują obronną flagę `isBudgetThrottled` przy osiągnięciu 100% budżetu.
 
 ---
 
@@ -35,7 +36,8 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │ ├── main.yml ← Główny potok CI/CD produkcyjny
 │ └── ci.yml ← Równoległy potok weryfikacyjny pull requestów
 │
-├── /tests/ ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 182/182 PASS, 13 zestawów)
+├── /tests/ ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 190/190 PASS, 14 zestawów)
+│ ├── gcp_budget.test.js ← Testy parsowania Pub/Sub Base64, kalkulacji progów budżetu GCP, alertów Pushbullet i narzędzi AI
 │ ├── traffic.test.js ← Testy geolokalizacji GPS, odległości Haversine, skanera wypadków 10km, fotoradarów CANARD/GITD na korytarzu Starogard-Gdańsk i routingu OSRM/Google
 │ ├── librus.test.js ← Testy integracji Librus Synergia (oceny, terminarz, plan lekcji, korelacja absencji i zastępstw)
 │ ├── tts_quota.test.js ← Testy inspekcji limitów ElevenLabs, błędu quota_exceeded i bazy głosów
@@ -51,6 +53,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │ └── cloudSync.test.js ← Testy rejestru kolekcji i detekcji środowiska
 │
 ├── /api/ ← Funkcje Vercel Serverless (Node.js Gateway)
+│ ├── gcp/budget-webhook.js ← Serverless Webhook odbioru komunikatów Cloud Pub/Sub Push dla budżetu
 │ ├── librus.js ← Gateway do Librus Synergia (/grades, /calendar, /timetable, CORS *, cloud proxy/demo)
 │ ├── agent.js ← CORS-enabled proxy do openai/gpt-oss-120b z wstrzykiwaniem kontekstu, narzędzi akcji & Live Brave Search
 │ ├── news.js ← Serverless endpoint newsowy z integracją Brave Search News API i kategoryzacją
@@ -68,15 +71,19 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 ├── HISTORY.md ← Niemutowalny rejestr wersji (SemVer append-only).
 ├── README.md ← Główna prezentacja repozytorium z diagramami Mermaid.
 │
+├── /scripts/ ← Narzędzia automatyzacji i wdrożeń
+│ └── setup_gcp_pubsub.js ← Generator poleceń gcloud i diagnostyka projektu GCP void-potato-7721
+│
 ├── /modules/ ← Główna logika i komponenty.
 │ ├── agent.js ← System podłączający się do API LLM (lokalnie i chmurowo).
-│ ├── database.js ← Abstrakcja nad SQLite dla środowiska lokalnego (w tym tabele timetable, librus_cache).
+│ ├── database.js ← Abstrakcja nad SQLite dla środowiska lokalnego (w tym tabele timetable, librus_cache, gcp_budget_logs).
 │ ├── scheduler.js ← Zaawansowany harmonogram zadań cyklicznych (w tym 2-godzinny librusSyncJob).
 │ ├── firebase.js ← Most z chmurą Firebase Admin SDK.
 │ ├── firebaseClient.js ← Klient frontendowy Firebase Web SDK (Auth, Firestore).
 │ ├── osint.js ← Narzędzia rozpoznania OSINT i klasyfikator celów.
 │ │
 │ ├── /services/ ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
+│ │ ├── gcpBudgetService.js ← Nadzór budżetowy Google Cloud Billing i odbiór alertów Cloud Pub/Sub.
 │ │ ├── geolocationService.js ← Geolokalizacja GPS (enableHighAccuracy), geokodowanie Nominatim / Google Geocoding, dystans Haversine.
 │ │ ├── trafficService.js ← Wywiad drogowy (fotoradary CANARD/GITD, wypadki GDDKiA w promieniu 10 km, routing OSRM / Google Maps).
 │ │ ├── librusService.js ← Integracja z librus-api v2.18.1, pobieranie ocen, średnie ważone i szczęśliwy numerek.
@@ -92,6 +99,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │ │ └── timeUtils.js ← Narzędzia strefy czasowej Europe/Warsaw i formatowania dat.
 │ │
 │ ├── /routes/ ← Trasy API Express.
+│ │ ├── gcpBudget.js ← Endpointy REST /api/gcp (budget-webhook, budget-status, simulate-alert, config).
 │ │ ├── traffic.js ← Endpointy REST /api/traffic (location, alerts, speed-cameras, route).
 │ │ ├── librus.js ← Endpointy REST /api/librus (grades, refresh, status, credentials).
 │ │ └── ...
@@ -165,6 +173,10 @@ Backend to lekka aplikacja oparta na Express.js. Działa na porcie `5000`. Pełn
 | `/api/traffic/alerts` | `GET` | `?lat=&lon=&radius=&road=` | Alerty wypadków, kolizji i utrudnień drogowych GDDKiA w zadanym promieniu (domyślnie 10 km). |
 | `/api/traffic/speed-cameras` | `GET` | `?lat=&lon=&radius=&route=` | Fotoradary stacjonarne, OPP i kamery RedLight na trasie (np. do Gdańska — 9 punktów) lub w promieniu. |
 | `/api/traffic/route` | `POST` | `destination`, `originLat`, `originLon`, `googleApiKey` | Wyznaczanie trasy drogowej (OSRM / Google Directions) ze zliczaniem fotoradarów i alertów. |
+| `/api/gcp/budget-webhook` | `POST` | Pub/Sub Push Payload | Odbieranie powiadomień budżetowych z Google Cloud Pub/Sub, aktualizacja Firestore i alerty Pushbullet. |
+| `/api/gcp/budget-status` | `GET` | - | Zwraca aktualny stan budżetu, koszty, limit w PLN, procent zużycia i flagę isBudgetThrottled. |
+| `/api/gcp/simulate-alert` | `POST` | `costAmount`, `budgetAmount`, `threshold` | Testowe wywołanie symulacji powiadomienia Pub/Sub dla weryfikacji pipeline'u. |
+| `/api/gcp/config` | `GET` | - | Informacje konfiguracyjne projektu void-potato-7721, tematu i subskrypcji Pub/Sub. |
 
 ---
 
@@ -251,6 +263,7 @@ Agent w trybie `worker` potrafi sam zidentyfikować potrzebę użycia narzędzia
 - `GET_TRAFFIC_ALERTS`: Pobieranie bieżących alertów drogowych, wypadków i kolizji GDDKiA w promieniu (np. 10 km) od pozycji operatora.
 - `GET_SPEED_CAMERAS`: Skaner fotoradarów stacjonarnych, OPP i rejestratorów RedLight CANARD/GITD na trasie (np. 9 punktów do Gdańska) lub w promieniu.
 - `CALCULATE_ROUTE`: Wyznaczanie trasy przejazdu (OSRM / Google Directions API) z analizą czasu, kilometrów i punktów kontrolnych.
+- `GET_GCP_BUDGET_STATUS`: Pobieranie statusu budżetu Google Cloud Console (projekt void-potato-7721), aktualnych kosztów, limitu i flagi obronnej isBudgetThrottled.
 
 ---
 

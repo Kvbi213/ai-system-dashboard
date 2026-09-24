@@ -188,6 +188,19 @@ export const initDB = () => {
           )
         `);
 
+        db.run(`
+          CREATE TABLE IF NOT EXISTS gcp_budget_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            budget_display_name TEXT,
+            cost_amount REAL,
+            budget_amount REAL,
+            currency TEXT DEFAULT 'PLN',
+            alert_threshold REAL,
+            raw_payload TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+
         console.log('[+] Zapewniono istnienie struktur bazy danych.');
         resolve();
       } catch (err) {

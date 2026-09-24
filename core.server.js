@@ -29,6 +29,8 @@ import logsRouter from './modules/routes/logs.js';
 import firebaseRouter from './modules/routes/firebase.js';
 import librusRouter from './modules/routes/librus.js';
 import trafficRouter from './modules/routes/traffic.js';
+import gcpBudgetRouter from './modules/routes/gcpBudget.js';
+import { initGcpBudgetDb } from './modules/services/gcpBudgetService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,6 +44,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Initialize Subsystems
 initDB().then(() => {
+  initGcpBudgetDb();
   runScheduler();
   if (process.env.PUSHBULLET_API_KEY && process.env.PUSHBULLET_API_KEY !== 'twój-klucz-pushbullet') {
     startPushbulletListener();
@@ -73,6 +76,7 @@ app.use('/api/logs', logsRouter);
 app.use('/api/firebase', firebaseRouter);
 app.use('/api/librus', librusRouter);
 app.use('/api/traffic', trafficRouter);
+app.use('/api/gcp', gcpBudgetRouter);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

@@ -6,7 +6,7 @@ import {
   LayoutGrid, Mic, Volume2, Globe, Sparkles, Cloud, Database, BrainCircuit, Activity,
   Compass, LayoutDashboard, MessageSquare, GraduationCap, Award, Crosshair, CalendarDays,
   Wallet, Dumbbell, Server, Sliders, Download, Upload, RotateCcw, Bot, CheckCircle2, Eye, EyeOff,
-  Smartphone, Send, AlertTriangle, RefreshCw, ChevronRight, MapPin, Navigation
+  Smartphone, Send, AlertTriangle, RefreshCw, ChevronRight, MapPin, Navigation, Terminal
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
@@ -361,6 +361,45 @@ const SettingsPage = () => {
       });
     } finally {
       setIsTestingTraffic(false);
+    }
+  };
+
+  // Stany i handlery Google Cloud Pub/Sub & Budget Guard
+  const [gcpBudget, setGcpBudget] = useState(null);
+  const [isSimulatingGcp, setIsSimulatingGcp] = useState(false);
+  const [gcpSimulationResult, setGcpSimulationResult] = useState(null);
+  const [showGcpGuide, setShowGcpGuide] = useState(false);
+
+  const fetchGcpBudget = async () => {
+    try {
+      const res = await axios.get('/api/gcp/budget-status');
+      if (res.data?.budget) setGcpBudget(res.data.budget);
+    } catch (err) {
+      console.warn('[!] Błąd pobierania budżetu GCP:', err.message);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'security') {
+      fetchGcpBudget();
+    }
+  }, [activeTab]);
+
+  const handleSimulateGcp = async () => {
+    setIsSimulatingGcp(true);
+    setGcpSimulationResult(null);
+    try {
+      const res = await axios.post('/api/gcp/simulate-alert', {
+        costAmount: 45.5,
+        budgetAmount: 50.0,
+        threshold: 0.9
+      });
+      setGcpSimulationResult({ success: true, budget: res.data.budget });
+      setGcpBudget(res.data.budget);
+    } catch (err) {
+      setGcpSimulationResult({ success: false, error: err.message });
+    } finally {
+      setIsSimulatingGcp(false);
     }
   };
 
@@ -2429,6 +2468,147 @@ const SettingsPage = () => {
                       )}
                     </div>
                   </div>
+                </div>
+
+                {/* --- GOOGLE CLOUD CONSOLE & BUDGET GUARD (PUB/SUB) --- */}
+                <div className="p-4 rounded-xl border border-sky-500/30 bg-black/30 mt-4 shadow-[0_0_20px_rgba(14,165,233,0.06)]">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <Cloud className="w-5 h-5 text-sky-400" />
+                      <p className="font-semibold text-textPrimary font-sans text-sm">Google Cloud Console & Limitowanie Budżetu (Pub/Sub Guard)</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/30 font-bold">
+                        void-potato-7721
+                      </span>
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border font-bold ${
+                        (gcpBudget?.percentage || 0) >= 100 
+                          ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' 
+                          : (gcpBudget?.percentage || 0) >= 90
+                          ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                          : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                      }`}>
+                        {(gcpBudget?.percentage || 0) >= 100 ? '[!] LIMIT PRZEKROCZONY' : (gcpBudget?.percentage || 0) >= 90 ? '[!] OSTRZEŻENIE 90%' : '[OK] BUDŻET NOMINALNY'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-textMuted leading-relaxed mb-3">
+                    Projekt Google Cloud: <strong className="text-textPrimary font-mono">void-potato-7721</strong> (europe-central2). Integracja z Google Cloud Billing i tematem <strong className="text-textPrimary font-mono">omni-budget-alerts</strong>. Asystent AI i webhook monitorują wydatki i wysyłają alert Pushbullet przy przekroczeniu 80% lub 90% zdefiniowanego limitu.
+                  </p>
+
+                  {/* Pasek postępu budżetu */}
+                  <div className="p-3 rounded-lg bg-white/5 border border-white/10 mb-3 space-y-2">
+                    <div className="flex items-center justify-between text-xs font-mono">
+                      <span className="text-textMuted">Bieżące zużycie budżetu:</span>
+                      <span className="text-textPrimary font-bold">
+                        {(gcpBudget?.costAmount ?? 0).toFixed(2)} {gcpBudget?.currencyCode || 'PLN'} / {(gcpBudget?.budgetAmount ?? 50).toFixed(2)} {gcpBudget?.currencyCode || 'PLN'}
+                        <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] ${
+                          (gcpBudget?.percentage || 0) >= 90 ? 'bg-rose-500/20 text-rose-400' : 'bg-accentPrimary/20 text-accentPrimary'
+                        }`}>
+                          {gcpBudget?.percentage ?? 0}%
+                        </span>
+                      </span>
+                    </div>
+
+                    <div className="w-full bg-black/40 h-2.5 rounded-full overflow-hidden border border-white/10">
+                      <div 
+                        className={`h-full transition-all duration-500 ${
+                          (gcpBudget?.percentage || 0) >= 100 
+                            ? 'bg-rose-500' 
+                            : (gcpBudget?.percentage || 0) >= 90 
+                            ? 'bg-amber-400' 
+                            : 'bg-emerald-400'
+                        }`}
+                        style={{ width: `${Math.min(gcpBudget?.percentage || 0, 100)}%` }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] font-mono text-textMuted pt-1">
+                      <span>Progi alertów: 50% [INFO], 80% [WARN], 90% [PUSH], 100% [CAP]</span>
+                      <span>Status: {gcpBudget?.status || 'OK'}</span>
+                    </div>
+                  </div>
+
+                  {/* Szczegóły Pub/Sub */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono mb-3">
+                    <div className="p-2.5 rounded-lg bg-black/40 border border-white/5">
+                      <span className="text-[10px] text-textMuted block">Temat Cloud Pub/Sub:</span>
+                      <span className="text-sky-400 font-bold break-all">projects/void-potato-7721/topics/omni-budget-alerts</span>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-black/40 border border-white/5">
+                      <span className="text-[10px] text-textMuted block">Punkt końcowy Push Webhook:</span>
+                      <span className="text-emerald-400 font-bold break-all">https://void-potato-7721.web.app/api/gcp/budget-webhook</span>
+                    </div>
+                  </div>
+
+                  {/* Przyciski operacyjne */}
+                  <div className="flex flex-wrap gap-2.5 items-center pt-1">
+                    <button
+                      type="button"
+                      onClick={handleSimulateGcp}
+                      disabled={isSimulatingGcp}
+                      className="bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-sky-300 font-bold py-2 px-3.5 rounded-lg transition-colors text-xs flex items-center gap-1.5 disabled:opacity-40 font-mono"
+                    >
+                      <Zap className="w-3.5 h-3.5" />
+                      {isSimulatingGcp ? "Symulowanie zdarzenia..." : "Symuluj Alert Pub/Sub (Test 90%)"}
+                    </button>
+
+                    <a
+                      href="https://console.cloud.google.com/billing/budgets?project=void-potato-7721"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-white/5 hover:bg-white/10 border border-white/10 text-textPrimary py-2 px-3.5 rounded-lg transition-colors text-xs flex items-center gap-1.5 font-mono"
+                    >
+                      <span>Otwórz Google Cloud Billing Budgets</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-textMuted" />
+                    </a>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowGcpGuide(!showGcpGuide)}
+                      className="bg-white/5 hover:bg-white/10 border border-white/10 text-textMuted hover:text-textPrimary py-2 px-3 rounded-lg transition-colors text-xs flex items-center gap-1 font-mono ml-auto"
+                    >
+                      <span>{showGcpGuide ? 'Ukryj Instrukcję CLI' : 'Pokaż Instrukcję Konfiguracji'}</span>
+                    </button>
+                  </div>
+
+                  {/* Informacja o symulacji */}
+                  {gcpSimulationResult && (
+                    <div className="mt-3 p-2.5 rounded-lg bg-sky-500/10 border border-sky-500/30 text-xs font-mono text-sky-300 animate-soft-enter">
+                      {gcpSimulationResult.success 
+                        ? `[+] SUKCES SYMULACJI: Zarejestrowano zdarzenie Pub/Sub (Koszt: ${gcpSimulationResult.budget.costAmount} PLN / ${gcpSimulationResult.budget.budgetAmount} PLN — ${gcpSimulationResult.budget.percentage}%). Alert Push został przetworzony.`
+                        : `[!] BŁĄD SYMULACJI: ${gcpSimulationResult.error}`}
+                    </div>
+                  )}
+
+                  {/* Rozwijana instrukcja krok po kroku */}
+                  {showGcpGuide && (
+                    <div className="mt-3 p-3.5 rounded-lg bg-black/50 border border-border/80 font-mono text-xs text-textMuted space-y-2 animate-soft-enter">
+                      <p className="text-textPrimary font-bold text-xs flex items-center gap-1.5">
+                        <Terminal className="w-3.5 h-3.5 text-accentPrimary" />
+                        Instrukcja Konfiguracji w Google Cloud Console & gcloud CLI:
+                      </p>
+                      <div className="space-y-1.5 text-[11px] leading-relaxed">
+                        <p><strong className="text-textPrimary">Krok 1: Włączenie interfejsu Cloud Pub/Sub:</strong></p>
+                        <code className="block p-1.5 bg-black/60 rounded border border-white/5 text-accentPrimary select-all">
+                          gcloud services enable pubsub.googleapis.com billingbudgets.googleapis.com --project=void-potato-7721
+                        </code>
+                        <p><strong className="text-textPrimary">Krok 2: Utworzenie tematu Pub/Sub dla alertów budżetowych:</strong></p>
+                        <code className="block p-1.5 bg-black/60 rounded border border-white/5 text-accentPrimary select-all">
+                          gcloud pubsub topics create omni-budget-alerts --project=void-potato-7721
+                        </code>
+                        <p><strong className="text-textPrimary">Krok 3: Utworzenie subskrypcji Push do webhooka OmniDash:</strong></p>
+                        <code className="block p-1.5 bg-black/60 rounded border border-white/5 text-accentPrimary select-all">
+                          gcloud pubsub subscriptions create omni-budget-push --topic=omni-budget-alerts --push-endpoint=https://void-potato-7721.web.app/api/gcp/budget-webhook --project=void-potato-7721
+                        </code>
+                        <p><strong className="text-textPrimary">Krok 4: W Cloud Billing Console (Budżety i alerty):</strong></p>
+                        <p className="text-textMuted">
+                          Wybierz budżet projektu <span className="text-textPrimary">void-potato-7721</span>, ustaw kwotę docelową (np. 50 PLN), zaznacz powiadomienia Pub/Sub i wskaż temat <span className="text-textPrimary">projects/void-potato-7721/topics/omni-budget-alerts</span>.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-4 rounded-xl border border-red-500/20 bg-black/20 mt-4">

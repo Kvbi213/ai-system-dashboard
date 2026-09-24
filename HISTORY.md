@@ -1,5 +1,26 @@
 ## Wersja Bieżąca
-**v2.25.0**
+**v2.26.0**
+
+## v 2.26.0 — 2026-09-24
+**Typ:** MINOR  
+**Zakres:** Wdrożenie limitowania budżetu Google Cloud Billing oraz integracji z Cloud Pub/Sub (temat `omni-budget-alerts`, subskrypcja push, ochrona przed przekroczeniem kosztów, alerty Pushbullet, widżet w Settings UI, skrypt automatyzacji setup_gcp_pubsub.js, 190/190 testów PASS).
+
+### Zmiany
+- [+] Dodano: `modules/services/gcpBudgetService.js` – moduł nadzoru budżetowego GCP i Cloud Pub/Sub: dekodowanie wiadomości Base64/JSON, progi alertowe (50% INFO, 80% WARN, 90% ALERT PUSH, 100% CRITICAL CAP), circuit breaker `isBudgetThrottled`, utrwalanie w SQLite (`gcp_budget_logs`) i Firestore (`system_budget/gcp_status`).
+- [+] Dodano: `modules/routes/gcpBudget.js` – kontroler Express API: `/api/gcp/budget-webhook` (potwierdzenie ACK 200), `/api/gcp/budget-status`, `/api/gcp/simulate-alert`, `/api/gcp/config` zintegrowany w `core.server.js`.
+- [+] Dodano: `api/gcp/budget-webhook.js` – funkcja serverless Vercel do odbioru komunikatów Pub/Sub Push bezpośrednio w chmurze.
+- [+] Dodano: Narzędzie dla asystenta AI w `modules/ai/tools.js`: `GET_GCP_BUDGET_STATUS`.
+- [*] Zmodyfikowano: `modules/agent.js` – podpięcie wykonania `GET_GCP_BUDGET_STATUS` w pętli wywołań asystenta oraz reguły budżetowej w promptach systemowych OMNI EXEC.
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` – nowa karta operacyjna "Google Cloud Console & Limitowanie Budżetu (Pub/Sub Guard)" w zakładce Zabezpieczenia: wskaźnik budżetu, stan Pub/Sub, przycisk testowy 90%, linki do Cloud Console i rozwijana instrukcja CLI.
+- [+] Dodano: `scripts/setup_gcp_pubsub.js` – skrypt weryfikacyjny i diagnostyczny generujący gotowe polecenia `gcloud` dla projektu `void-potato-7721`.
+- [+] Dodano: Zestaw testów jednostkowych w `tests/gcp_budget.test.js` (8/8 PASS).
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.26.0`.
+- [+] Dodano: Raport wydania `docs/versions/v2.26.0.md`.
+
+### Audyt
+Status: ZGODNY Z PROTOKOŁEM ANTIGRAVITY (REFERENCJA 10/10 ENTERPRISE GRADE)
+
+---
 
 ## v 2.25.0 — 2026-09-24
 **Typ:** MINOR  

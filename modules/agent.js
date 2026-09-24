@@ -16,6 +16,7 @@ import {
   calculateRoute 
 } from './services/trafficService.js';
 import { getSavedLocation } from './services/geolocationService.js';
+import { getGcpBudgetStatus } from './services/gcpBudgetService.js';
 import fs from 'fs';
 import dotenv from 'dotenv';
 
@@ -463,6 +464,9 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
           const currentLoc = options.userLocation || getSavedLocation();
           const route = await calculateRoute(args.destination, currentLoc.latitude, currentLoc.longitude);
           toolResultsText += `\nNarzędzie CALCULATE_ROUTE zwróciło: ${JSON.stringify(route)}`;
+        } else if (toolCall.function.name === 'GET_GCP_BUDGET_STATUS') {
+          const budget = await getGcpBudgetStatus();
+          toolResultsText += `\nNarzędzie GET_GCP_BUDGET_STATUS zwróciło: ${JSON.stringify(budget)}`;
         }
       }
 
