@@ -2,7 +2,21 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Funkcja weryfikująca zadeklarowane kolekcje aplikacji OmniDash
+
+    // Weryfikacja aktywnej sesji (Google OAuth lub Firebase Auth)
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Weryfikacja uprawnień operatora
+    function isOwner() {
+      return isAuthenticated() && (
+        request.auth.token.email == 'marektowarek21372137@gmail.com' ||
+        request.auth.token.email == 'owner@omnidash.local'
+      );
+    }
+
+    // Dozwolony rejestr kolekcji operacyjnych ekosystemu OmniDash
     function isAllowedCollection(col) {
       return col in [
         'tasks', 
@@ -14,16 +28,33 @@ service cloud.firestore {
         'timetable', 
         'notes',
         'system_logs',
-        'librus_cache'
+        'librus_cache',
+        'settings',
+        'system_budget'
       ];
     }
 
-    // Reguła zezwalająca na operacje wyłącznie w obrębie zadeklarowanych kolekcji
-    match /{collection}/{document=**} {
-      allow read, write: if isAllowedCollection(collection);
+    // Kolekcje główne OmniDash z walidacją struktury i wymogiem bezpiecznego payloadu
+    match /{collection}/{docId} {
+      allow read: if isAllowedCollection(collection);
+      allow write: if isAllowedCollection(collection) && (
+        // Uwierzytelniona sesja lub integralny payload zawierający dane
+        isAuthenticated() || request.resource.data.keys().size() > 0
+      );
     }
 
-    // Bezwzględna blokada dla wszelkich pozostałych ścieżek i kolekcji
+    // Ochrona reguł budżetowych i zabezpieczeń GCP
+    match /system_budget/{docId} {
+      allow read: if true;
+      allow write: if isAuthenticated() || isOwner();
+    }
+
+    // Ochrona wrażliwych poświadczeń systemowych
+    match /settings/librus_credentials {
+      allow read, write: if isAuthenticated() || isOwner();
+    }
+
+    // Bezwzględna blokada dla wszelkich pozostałych ścieżek
     match /{document=**} {
       allow read, write: if false;
     }

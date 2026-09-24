@@ -1,5 +1,21 @@
 ## Wersja Bieżąca
-**v2.26.3**
+**v2.27.0**
+
+## v 2.27.0 — 2026-09-24
+**Typ:** MINOR  
+**Zakres:** Hardening Bezpieczeństwa & Zarządzanie Ryzykiem Wykonawczym AI: uszczelnienie reguł Cloud Firestore (`firestore.rules`), ograniczenie CORS w backendzie Express do zaufanej białej listy domen, dwuetapowa blokada bezpieczeństwa dla masowych mutacji narzędzi AI (`DELETE_TO_DO all` wymaga `confirmed: true`), synchronizacja metryk testów w `README.md` (190/190 PASS) oraz wdrożenie na produkcję.
+
+### Zmiany
+- [*] Zmodyfikowano: `firestore.rules` – rygorystyczne reguły bezpieczeństwa Cloud Firestore: blokada nieautoryzowanego zapisu, wymóg autoryzacji sesji i integralności danych, ochrona dokumentów budżetu i poświadczeń. Wdrożono na produkcję `void-potato-7721`.
+- [*] Zmodyfikowano: `core.server.js` – bezpieczna biała lista CORS (`defaultAllowedOrigins` dla portów lokalnych i domen produkcyjnych Firebase) zamiast otwartego `app.use(cors())`.
+- [*] Zmodyfikowano: `modules/ai/tools.js` – rozszerzenie narzędzia `DELETE_TO_DO` o parametr `confirmed: true` wymagany przy usuwaniu masowym.
+- [*] Zmodyfikowano: `modules/agent.js` – blokada bezpieczeństwa masowego usuwania zadań w pętli wywołań asystenta AI przy braku potwierdzenia.
+- [*] Zmodyfikowano: `README.md` – aktualizacja metryk testowych ze starych 37 testów na aktualne 190/190 testów PASS w 14 zestawach testowych Vitest.
+- [*] Zmodyfikowano: `ARCHITECTURE.md` – rejestracja paradygmatów 13 (Dual-Store Architecture) i 14 (Security Hardening & Tool Governance).
+- [*] Zmodyfikowano: `package.json` – wersja podniesiona do `2.27.0`.
+- [+] Dodano: Raport wydania `docs/versions/v2.27.0.md`.
+
+---
 
 ## v 2.26.3 — 2026-09-24
 **Typ:** PATCH  

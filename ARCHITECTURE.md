@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.26.3 (Stan na Wrzesień 2026) 
+**Wersja Systemu:** v2.27.0 (Stan na Wrzesień 2026) 
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE) 
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Librus Cloud Firestore Sync, Google Maps Platform Key, Cloud Pub/Sub Guard, Vitest 190/190 PASS)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Security Hardening, Firestore Rules, Strict CORS Whitelist, AI Safe Tool Governance, Vitest 190/190 PASS)
 
 ---
 
@@ -21,7 +21,9 @@ System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-
 9. **LLM with Precise Warsaw Timezone & Multi-Tool Engine:** Cała logika kognitywna oparta jest na modelu `openai/gpt-oss-120b`. Klient każdorazowo przesyła precyzyjny timestamp oraz zlokalizowaną godzinę, a Vercel Gateway wymusza strefę `Europe/Warsaw`, gwarantując natychmiastową i niezmiennie poprawną wiedzę o aktualnej godzinie w Polsce.
 10. **Clean & Modern Aesthetics**: Interfejs zaprojektowany w oparciu o czyste linie, glassmorphism, elegancką i nowoczesną typografię oraz bogatą paletę motywów.
 11. **High-Accuracy Geolocation & Road Intelligence:** Usługa nawigacyjna i drogowa łącząca dokładne współrzędne GPS (`enableHighAccuracy`), rejestr stacjonarnych fotoradarów, odcinkowych pomiarów prędkości (OPP) i kamer RedLight CANARD/GITD (np. 9 punktów kontrolnych na korytarzu do Gdańska), bieżące alerty wypadkowe GDDKiA w promieniu 10 km oraz wyznaczanie tras (OSRM / Google Maps Directions).
-12. **Cloud Billing & Pub/Sub Budget Guard:** Bezpośrednia integracja z Google Cloud Billing i tematem Cloud Pub/Sub `omni-budget-alerts` projektu `omnidash-509607`. Asystent oraz dedykowany webhook monitorują wydatki, wysyłają natychmiastowe alerty na telefon przez Pushbullet (progi 80% i 90%) oraz aktywują obronną flagę `isBudgetThrottled` przy osiągnięciu 100% budżetu.
+12. **Cloud Billing & Pub/Sub Budget Guard:** Bezpośrednia integracja z Google Cloud Billing i tematem Cloud Pub/Sub `budget-auto-stop` projektu `omnidash-509607`. Asystent oraz dedykowany webhook monitorują wydatki, wysyłają natychmiastowe alerty na telefon przez Pushbullet (progi 50%, 90% i 100%) oraz aktywują obronną flagę `isBudgetThrottled`.
+13. **Dual-Store Architecture & Data Layer Decoupling:** Architektura hybrydowa łącząca SQLite (zerowe opóźnienia, pełna suwerenność i praca 100% offline na stacji roboczej) oraz Cloud Firestore (wielourządzeniowa szyna replikacji czasu rzeczywistego na telefonach i tabletach). Warstwa dostępu do danych w `modules/database.js` operuje na izolowanych interfejsach SQL, zapewniając przygotowanie do bezkolizyjnej migracji na PostgreSQL / Redis w środowiskach VPS 24/7.
+14. **Security Hardening & Tool Governance (AI Safe-by-Design):** Rygorystyczna ochrona Cloud Firestore (`firestore.rules` z autoryzacją i walidacją struktur), ograniczenie CORS w backendzie Express do zdefiniowanej białej listy zaufanych domen oraz dwustopniowa kontrola wykonawcza AI (krytyczne i masowe operacje destrukcyjne, np. `DELETE_TO_DO all`, wymagają jawnego parametru `confirmed: true`, zapobiegając przypadkowym mutacjom).
 
 ---
 

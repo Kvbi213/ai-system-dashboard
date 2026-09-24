@@ -215,7 +215,7 @@ Moduł finansowy został zaprojektowany w oparciu o czysty, testowalny silnik ma
 Projekt wyposażony jest w zautomatyzowany runner testów **Vitest** (`npm test`) zintegrowany ze środowiskiem **JSDOM** i biblioteką **@testing-library/react**:
 
 ```bash
-# Uruchomienie pełnego zestawu testów (37 testów w 6 pakietach)
+# Uruchomienie pełnego zestawu testów (190 testów w 14 pakietach)
 npm test
 
 # Uruchomienie testów w trybie nasłuchiwania ciągłego (Watch)
@@ -223,14 +223,22 @@ npm run test:watch
 ```
 
 ### Zrealizowane Pakiety Testowe:
-1. `tests/components.test.jsx` (**7 testów**) — weryfikacja renderowania komponentów Reacta, stanu szkieletowego, telemetrii czasu rzeczywistego w `SystemMonitor`, odporności `WeatherWidget` na awarie sieci, dynamicznego przełącznika motywów w `Sidebar` oraz aktywnego stosu powiadomień `ToastContainer` i modala `ExportModal`.
-2. `tests/budget.test.js` (**13 testów**) — weryfikacja poprawności reguły 50/30/20, alokacji z wagami 0%, transferów, bilansu netto i cykli kopert.
-3. `tests/time.test.js` (**6 testów**) — weryfikacja formatowania czasu w strefie `Europe/Warsaw`, przesunięć letnich (CEST) oraz nazw dni tygodnia.
-4. `tests/osint.test.js` (**5 testów**) — weryfikacja precyzyjnej detekcji IPv4, adresów e-mail, domen wielopoziomowych i adresów MAC.
-5. `tests/export.test.js` (**4 testy**) — sanityzacja znaków specjalnych, cudzysłowów i formatowanie RFC 4180 dla plików CSV.
-6. `tests/cloudSync.test.js` (**2 testy**) — weryfikacja rejestru kolekcji Firestore i wykrywania środowiska.
+1. `tests/gcp_budget.test.js` (**8 testów**) — weryfikacja Google Cloud Billing & Pub/Sub Budget Guard (dekodowanie Base64, progi 50%/90%/100%, circuit breaker `isBudgetThrottled`, alert Pushbullet na telefon, rejestr agentTools).
+2. `tests/traffic.test.js` (**16 testów**) — geolokalizacja GPS (`enableHighAccuracy`), wywiad drogowy CANARD/GITD (9 fotoradarów i OPP na trasie do Gdańska), alerty wypadkowe GDDKiA w promieniu 10 km, routing OSRM i Google Maps.
+3. `tests/librus.test.js` (**30 testów**) — integracja Librus Synergia: oceny, terminarz, plan lekcji, średnie ważone, szczęśliwy numerek, korelacja zastępstw i absencji.
+4. `tests/tts_quota.test.js` (**10 testów**) — inspekcja limitów ElevenLabs, Google TTS Free Tier Hard Quota Guard (1,000,000 znaków), obsługa quota_exceeded, fallback do bezpłatnego Edge Neural / Web Speech.
+5. `tests/agent_execution_trace.test.jsx` (**8 testów**) — inspektor śladu wykonania narzędzi AI (Tool Execution Inspector), uziemienie faktów pamięci i renderowanie kart.
+6. `tests/autonomous_agent.test.js` (**18 testów**) — autonomiczny agent ciągły (OmniDaemon 24/7), klasyfikacja intencji, pętla badawcza, obsługa zapytań Pushbullet ze smartfona.
+7. `tests/pushbullet_finance.test.js` (**44 testy**) — dwukierunkowy klasyfikator powiadomień płatniczych Pushbullet (50/30/20), deduplikacja 60s, akcje `[ACTION:SEND_PUSH]`.
+8. `tests/components.test.jsx` (**7 testów**) — renderowanie komponentów Reacta, szkielety ładowania, telemetria SSE w `SystemMonitor`, `WeatherWidget`, `ToastContainer`, `ExportModal`.
+9. `tests/budget.test.js` (**15 testów**) — reguła 50/30/20, alokacje z koszykami 0%, transfery między kopertami, cykle budżetowe.
+10. `tests/export.test.js` (**4 testy**) — sanityzacja znaków specjalnych, cudzysłowów i serializacja RFC 4180 dla plików CSV.
+11. `tests/time.test.js` (**6 testów**) — obliczenia czasowe w strefie `Europe/Warsaw`, przesunięcia CEST i lokalizacja.
+12. `tests/osint.test.js` (**5 testów**) — klasyfikator celów OSINT (IPv4, e-mail, domeny wielopoziomowe, MAC).
+13. `tests/wakeword.test.js` (**17 testów**) — silnik detekcji słowa wybudzającego „Hej Omni” i wskaźnik DevTools mikrofonu.
+14. `tests/cloudSync.test.js` (**2 testy**) — rejestr kolekcji Firestore i wykrywanie środowiska hybrydowego.
 
-**Wynik: 37/37 testów zdanych pomyślnie (100% PASS w ~3.5s).**
+**Wynik: 190/190 testów zdanych pomyślnie (100% PASS).**
 
 ---
 
@@ -244,7 +252,7 @@ Kroki potoku przy każdym `push` i `pull_request` do gałęzi `main`:
 1. Pobranie repozytorium (`actions/checkout@v4`).
 2. Przygotowanie środowiska Node.js 20.x (`actions/setup-node@v4` z cache npm).
 3. Bezwzględna instalacja zależności ze spójnym lockfile (`npm ci`).
-4. Uruchomienie zautomatyzowanego zestawu 37 testów jednostkowych i komponentowych (`npm test`).
+4. Uruchomienie zautomatyzowanego zestawu 190 testów jednostkowych i komponentowych (`npm test`).
 5. Kompilacja produkcyjna pakietu Vite (`npm run build`).
 6. Weryfikacja integralności artefaktów produkcyjnych (`test -f dist/index.html`).
 

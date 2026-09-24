@@ -234,12 +234,18 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
           }
 
         } else if (toolCall.function.name === 'DELETE_TO_DO') {
-          if (args.task_id === 'all') await executeRun('DELETE FROM tasks');
-          else if (args.task_id) {
+          if (args.task_id === 'all') {
+            if (args.confirmed === true) {
+              await executeRun('DELETE FROM tasks');
+              toolResultsText += `\nNarzędzie DELETE_TO_DO zwróciło: Success (usunięto wszystkie zadania po potwierdzeniu).`;
+            } else {
+              toolResultsText += `\nNarzędzie DELETE_TO_DO [BLOKADA BEZPIECZEŃSTWA]: Usunięcie wszystkich zadań naraz (task_id="all") zostało wstrzymane. Wymaga to jednoznacznego potwierdzenia operatora (confirmed: true). Zapytaj użytkownika czy na pewno usunąć całą listę zadań.`;
+            }
+          } else if (args.task_id) {
             let ids = Array.isArray(args.task_id) ? args.task_id : (typeof args.task_id === 'string' && args.task_id.includes(',') ? args.task_id.split(',') : [args.task_id]);
             for (const id of ids) await executeRun('DELETE FROM tasks WHERE id = ?', [parseInt(id, 10)]);
+            toolResultsText += `\nNarzędzie DELETE_TO_DO zwróciło: Success`;
           }
-          toolResultsText += `\nNarzędzie DELETE_TO_DO zwróciło: Success`;
           
         } else if (toolCall.function.name === 'ADD_WORKOUT') {
           const rec = await executeRun(

@@ -47,10 +47,13 @@ export const agentTools = [
     type: 'function',
     function: {
       name: 'DELETE_TO_DO',
-      description: 'Usuwa zadanie z bazy na podstawie ID.',
+      description: 'Usuwa zadanie z bazy na podstawie ID. UWAGA: Masowe usunięcie wszystkich zadań (task_id="all") wymaga confirmed: true.',
       parameters: {
         type: 'object',
-        properties: { task_id: { type: 'string', description: 'ID zadania (np. 5), "all", albo lista ID oddzielona przecinkiem (np. "1, 2, 3")' } },
+        properties: { 
+          task_id: { type: 'string', description: 'ID zadania (np. 5), "all", albo lista ID oddzielona przecinkiem (np. "1, 2, 3")' },
+          confirmed: { type: 'boolean', description: 'Wymagane na true przy masowym usuwaniu (task_id="all") jako potwierdzenie intencji operatora.' }
+        },
         required: ['task_id'],
       },
     },
