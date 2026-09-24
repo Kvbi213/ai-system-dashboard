@@ -2502,7 +2502,7 @@ const SettingsPage = () => {
                     <div className="flex items-center justify-between text-xs font-mono">
                       <span className="text-textMuted">Bieżące zużycie budżetu:</span>
                       <span className="text-textPrimary font-bold">
-                        {(gcpBudget?.costAmount ?? 0).toFixed(2)} {gcpBudget?.currencyCode || 'PLN'} / {(gcpBudget?.budgetAmount ?? 50).toFixed(2)} {gcpBudget?.currencyCode || 'PLN'}
+                        {(gcpBudget?.costAmount ?? 0).toFixed(2)} {gcpBudget?.currencyCode || 'PLN'} / {(gcpBudget?.budgetAmount ?? Number(import.meta.env.VITE_GCP_BUDGET_LIMIT || 1.0)).toFixed(2)} {gcpBudget?.currencyCode || 'PLN'}
                         <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] ${
                           (gcpBudget?.percentage || 0) >= 90 ? 'bg-rose-500/20 text-rose-400' : 'bg-accentPrimary/20 text-accentPrimary'
                         }`}>

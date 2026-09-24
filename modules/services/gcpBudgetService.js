@@ -15,7 +15,7 @@ const DEFAULT_BUDGET_STATE = {
   projectId: ACTIVE_GCP_PROJECT,
   budgetDisplayName: 'OmniDash Monthly Budget Guard',
   costAmount: 0.0,
-  budgetAmount: 50.0,
+  budgetAmount: Number(process.env.GCP_BUDGET_LIMIT || 1.0),
   currencyCode: 'PLN',
   alertThresholdExceeded: 0.0,
   percentage: 0.0,
@@ -79,7 +79,7 @@ export async function getGcpBudgetStatus() {
     if (rows && rows.length > 0) {
       const last = rows[0];
       const cost = Number(last.cost_amount) || 0;
-      const budget = Number(last.budget_amount) || 50;
+      const budget = Number(last.budget_amount) || Number(process.env.GCP_BUDGET_LIMIT || 1.0);
       const pct = budget > 0 ? (cost / budget) * 100 : 0;
       currentBudgetState = {
         ...currentBudgetState,
@@ -135,7 +135,7 @@ export function parsePubSubMessage(body) {
   }
 
   const costAmount = Number(payload.costAmount ?? payload.cost_amount ?? 0);
-  const budgetAmount = Number(payload.budgetAmount ?? payload.budget_amount ?? 50);
+  const budgetAmount = Number(payload.budgetAmount ?? payload.budget_amount ?? process.env.GCP_BUDGET_LIMIT ?? 1.0);
   const currencyCode = payload.currencyCode || payload.currency || 'PLN';
   const alertThreshold = Number(payload.alertThresholdExceeded ?? payload.alert_threshold ?? 0);
   const budgetDisplayName = payload.budgetDisplayName || payload.name || 'OmniDash Budget Guard';
