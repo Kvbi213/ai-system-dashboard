@@ -26,6 +26,9 @@ const FALLBACK_CATEGORY_NEWS = {
   ]
 };
 
+const memoryCache = new Map();
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 godzina ważności
+
 export default async function handler(req, res) {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -42,7 +45,24 @@ export default async function handler(req, res) {
 
   const query = req.query.q || 'technologia sztuczna inteligencja cyberbezpieczenstwo 2026';
   const category = req.query.category || 'ai';
+  const force = req.query.force === 'true';
+  const cacheKey = `${category}:${query}`;
   const apiKey = process.env.BRAVE_SEARCH_API_KEY;
+
+  // Odczyt z pamięci podręcznej serwera
+  if (!force && memoryCache.has(cacheKey)) {
+    const entry = memoryCache.get(cacheKey);
+    if (Date.now() - entry.timestamp < CACHE_TTL_MS) {
+      res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=7200');
+      return res.status(200).json({
+        results: entry.results,
+        source: entry.source || 'brave_news_api_cache',
+        count: entry.results.length,
+        timestamp: new Date(entry.timestamp).toISOString(),
+        cached: true
+      });
+    }
+  }
 
   try {
     if (apiKey) {
@@ -66,6 +86,9 @@ export default async function handler(req, res) {
             time: r.age || 'dzisiaj',
             category: category
           }));
+
+          memoryCache.set(cacheKey, { results, source: 'brave_news_api', timestamp: Date.now() });
+          res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=7200');
 
           return res.status(200).json({
             results,

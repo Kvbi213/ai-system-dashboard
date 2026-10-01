@@ -1,5 +1,20 @@
 ## Wersja Bieżąca
-**v2.29.0**
+**v2.30.0**
+
+## v 2.30.0 — 2026-10-01
+**Typ:** MINOR  
+**Zakres:** Harmonogram Oszczędzania Limitów Brave Search (Sloty 10:00 / 15:00 / 20:00), Pobieranie Kategorii On-Demand, Pamięć Podręczna w LocalStorage i Serwerowa (Vercel & Express), Replikacja Ocen Librus Synergia do Firestore oraz Wdrożenie Nowego Pakietu Testów (221/221 PASS w 17 pakietach testowych).
+
+### Zmiany
+- [*] Zmodyfikowano: `modules/components/ITNewsTicker.jsx` – usunięto interwał odpytywania co 2 minuty; zaimplementowano funkcję `getNewsSlotInfo` dzielącą dobę na 3 ściśle kontrolowane sloty (10:00, 15:00, 20:00) z przypisaniem godzin nocnych do slotu wieczornego; wdrożono automatyczne odświeżanie wyłącznie dla kategorii głównej (`categories[0]`), a dla pozostałych kategorii ładowanie na żądanie dopiero po wejściu użytkownika; dodano buforowanie w `localStorage` oraz obsługę ręcznego wymuszenia odświeżenia (`isManual = true`).
+- [*] Zmodyfikowano: `api/news.js` – dodano serwerowy bufor pamięciowy `memoryCache` (TTL 1h), nagłówki HTTP `Cache-Control` oraz obsługę parametru `force=true`.
+- [*] Zmodyfikowano: `modules/routes/news.js` – wprowadzono bufor `newsMemoryCache` z TTL 1h chroniący proces lokalny przed wyczerpywaniem zapytań do Brave Search API.
+- [+] Dodano: `tests/news_ticker_quota.test.jsx` – 9 testów jednostkowych weryfikujących wyznaczanie slotów, odczyt/zapis pamięci podręcznej, brak zapytań sieciowych przy trafieniu w cache oraz wymuszenie zapytania manualnego.
+- [*] Zmodyfikowano: `package.json`, `ARCHITECTURE.md` – podniesienie wersji do `v2.30.0` (221/221 PASS w 17 zestawach testowych).
+- [+] Dodano: Raport wydania `docs/versions/v2.30.0.md`.
+- [+] Wdrożono: Zaktualizowany build produkcyjny na platformie Firebase Hosting (`void-potato-7721.web.app`) wraz z aktualnym stanem ocen Librus w Cloud Firestore.
+
+---
 
 ## v 2.29.0 — 2026-09-24
 **Typ:** MINOR  

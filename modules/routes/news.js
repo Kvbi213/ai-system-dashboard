@@ -5,13 +5,32 @@ import { logError } from '../scheduler.js';
 
 const router = express.Router();
 
+// Pamięć podręczna w procesie Node.js chroniąca limit zapytań Brave Search
+const newsMemoryCache = new Map();
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 godzina ważności
+
 router.get('/', async (req, res) => {
   const query = req.query.q || 'AI technology news 2026';
+  const category = req.query.category || 'ai';
+  const force = req.query.force === 'true';
+  const cacheKey = `${category}:${query}`;
+
+  if (!force && newsMemoryCache.has(cacheKey)) {
+    const entry = newsMemoryCache.get(cacheKey);
+    if (Date.now() - entry.timestamp < CACHE_TTL_MS) {
+      return res.json({ results: entry.results, cached: true, timestamp: entry.timestamp });
+    }
+  }
+
   try {
-    const results = await executeWebSearch(query);
-    res.json({ results });
+    const results = await executeWebSearch(query, { mode: 'news', count: 10 });
+    newsMemoryCache.set(cacheKey, { results, timestamp: Date.now() });
+    res.json({ results, cached: false, timestamp: Date.now() });
   } catch (err) {
     logError('GET /api/news', err);
+    if (newsMemoryCache.has(cacheKey)) {
+      return res.json({ results: newsMemoryCache.get(cacheKey).results, cached: true, fallback: true });
+    }
     res.status(500).json({ error: 'Błąd pobierania newsów.', results: [] });
   }
 });
