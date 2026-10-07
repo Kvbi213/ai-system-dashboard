@@ -1,13 +1,13 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.30.0 (Stan na Październik 2026) 
+**Wersja Systemu:** v2.31.0 (Stan na Październik 2026) 
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE) 
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Zero-Trust Security Hardening, Strict Firestore Rules, Exact CORS Whitelist, Timing-Safe Auth, SSRF Shield, Golden Dataset, Brave Search Quota Guard, Vitest 221/221 PASS)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Entities & Intelligence OSINT Hub, Hierarchical Origin Tree, Network Graph, Zero-Trust Security, Vitest 235/235 PASS w 19 pakietach)
 
 ---
 
 ## 1. WSTĘP I PARADYGMATY
-System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-oss-120b` (Groq SDK). Projekt łączy w sobie cechy inteligentnego terminala poleceń, zarządzania zadaniami (To-Do), planu lekcji i harmonogramu zajęć (Timetable), kalendarza z możliwością ręcznego planowania, elastycznego budżetu z dynamicznym dysponowaniem środkami (autopodział dochodów 50/30/20, jedna pula, podział własny oraz transfery między koszykami), planera treningów, długoterminowej pamięci (Operator Brain), monitoringu parametrów systemu w czasie rzeczywistym przez Server-Sent Events (SSE) oraz wyszukiwania w sieci na żywo (Brave Search API z harmonogramem oszczędzania limitów: 10:00, 15:00, 20:00).
+System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-oss-120b` (Groq SDK). Projekt łączy w sobie cechy inteligentnego terminala poleceń, zarządzania zadaniami (To-Do), planu lekcji i harmonogramu zajęć (Timetable), kalendarza z możliwością ręcznego planowania, elastycznego budżetu z dynamicznym dysponowaniem środkami (autopodział dochodów 50/30/20, jedna pula, podział własny oraz transfery między koszykami), planera treningów, długoterminowej pamięci (Operator Brain), monitoringu parametrów systemu w czasie rzeczywistym przez Server-Sent Events (SSE), modułu drzewa podmiotów i relacji sieciowych (Entities & Intelligence OSINT Hub) oraz wyszukiwania w sieci na żywo (Brave Search API z harmonogramem oszczędzania limitów: 10:00, 15:00, 20:00).
 
 **Główne Paradygmaty:**
 1. **Multi-Cloud & Cloud-First Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (Prywatna Instancja Produkcyjna `void-potato-7721`), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`/api/agent`, `api/news`, `api/models`, `api/status`, `api/osint`, `api/pushbullet-webhook`, `api/gcp/budget-webhook`). Wszystkie operacje na telefonach, tabletach i desktopie natychmiast synchronizują się z chmurą przy wykorzystaniu transparentnej autoryzacji Firebase Anonymous Auth oraz Google OAuth.
@@ -46,9 +46,12 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │ ├── main.yml ← Główny potok CI/CD produkcyjny
 │ └── ci.yml ← Równoległy potok weryfikacyjny pull requestów
 │
-├── /tests/ ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 221/221 PASS, 17 zestawów)
+├── /tests/ ← Automatyczne zestawy testów jednostkowych i integracyjnych (Vitest 235/235 PASS, 19 zestawów)
 │ ├── fixtures/ ← Wzorcowe zbiory danych (Golden Datasets)
 │ │ └── librus/grades_golden.json ← Wzorcowy zestaw ocen Librus z wagami 0-3 i ocenami nienumerycznymi
+│ ├── entities_tree.test.js ← Testy SQLite WAL, ścieżek tree_path, relacji grafowych i formatowania ASCII
+│ ├── entities_hub.test.jsx ← Testy geokodowania, łańcuchowania miast, agregacji statystyk i komponentów UI
+│ ├── news_ticker_quota.test.jsx ← Testy slotów Brave Search (10:00/15:00/20:00) i buforowania on-demand
 │ ├── librus_golden.test.js ← Testy warstwowe kalkulacji ocen na zestawie wzorcowym (ochrona wagi 0, modyfikatory +/-)
 │ ├── security_audit.test.js ← Testy reguł Zero-Trust: authMiddleware, segregacja poświadczeń, tarcza SSRF, fs_explorer
 │ ├── gcp_budget.test.js ← Testy parsowania Pub/Sub Base64, kalkulacji progów budżetu GCP, alertów Pushbullet i narzędzi AI
@@ -97,6 +100,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │ ├── osint.js ← Narzędzia rozpoznania OSINT i klasyfikator celów.
 │ │
 │ ├── /services/ ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
+│ │ ├── entitiesService.js ← Silnik drzewa hierarchicznego (kraj/region/miasto/org/osoba), relacje grafowe, tree_path, formatowanie ASCII, geokodowanie.
 │ │ ├── gcpBudgetService.js ← Nadzór budżetowy Google Cloud Billing i odbiór alertów Cloud Pub/Sub.
 │ │ ├── geolocationService.js ← Geolokalizacja GPS (enableHighAccuracy), geokodowanie Nominatim / Google Geocoding, dystans Haversine.
 │ │ ├── trafficService.js ← Wywiad drogowy (fotoradary CANARD/GITD, wypadki GDDKiA w promieniu 10 km, routing OSRM / Google Maps).
@@ -113,6 +117,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │ │ └── timeUtils.js ← Narzędzia strefy czasowej Europe/Warsaw i formatowania dat.
 │ │
 │ ├── /routes/ ← Trasy API Express.
+│ │ ├── entities.js ← REST API /api/entities (tree, ascii, stats, CRUD węzłów i relacji).
 │ │ ├── gcpBudget.js ← Endpointy REST /api/gcp (budget-webhook, budget-status, simulate-alert, config).
 │ │ ├── traffic.js ← Endpointy REST /api/traffic (location, alerts, speed-cameras, route).
 │ │ ├── librus.js ← Endpointy REST /api/librus (grades, refresh, status, credentials).
@@ -123,6 +128,8 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │ │ └── ToastContext.jsx ← Pływające powiadomienia, błędy i detekcja łączności.
 │ │
 │ ├── /components/ ← Reużywalne klocki UI w React.
+│ │ ├── EntityTreeView.jsx ← Widok drzewa hierarchicznego Glassmorphism, konsola ASCII, inspektor JSON.
+│ │ ├── EntityDetailsModal.jsx ← Modal metadanych podmiotu, atrybuty i krawędzie sieciowe grafu.
 │ │ ├── Sidebar.jsx ← Lewy pasek nawigacyjny z zakładkami Plan Lekcji i Oceny (Award).
 │ │ └── ...
 │ │

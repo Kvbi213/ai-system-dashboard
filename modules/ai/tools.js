@@ -529,5 +529,70 @@ export const agentTools = [
               required: []
           }
       }
+  },
+  {
+      type: "function",
+      function: {
+          name: "ADD_TREE_ENTITY",
+          description: "Dodaje nowy podmiot (Kraj, Region, Miasto, Organizacja, Osoba, Zasób) do drzewa pochodzenia OSINT. Jeśli nie podano parent_id, ale podano location_context, system automatycznie podepnie węzeł pod odpowiednie miasto i województwo w drzewie.",
+          parameters: {
+              type: "object",
+              properties: {
+                  name: { type: "string", description: "Nazwa podmiotu lub imię i nazwisko" },
+                  type: { type: "string", enum: ["COUNTRY", "REGION", "CITY", "ORGANIZATION", "PERSON", "ASSET"], description: "Typ węzła w drzewie pochodzenia" },
+                  parent_id: { type: "string", description: "ID węzła nadrzędnego (opcjonalne)" },
+                  location_context: { type: "string", description: "Kontekst lokalizacji (np. 'Starogard Gdański', 'Gdańsk', 'Warszawa'), jeśli brak parent_id" },
+                  attributes: { type: "object", description: "Dodatkowe atrybuty (rola, stanowisko, email, telefon, nip, notatki)" }
+              },
+              required: ["name", "type"]
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
+          name: "GET_ENTITY_TREE",
+          description: "Pobiera hierarchiczne drzewo podmiotów pochodzenia (w postaci sformatowanego widoku ASCII dla konsoli lub struktury JSON).",
+          parameters: {
+              type: "object",
+              properties: {
+                  root_id_or_path: { type: "string", description: "ID węzła lub ścieżka tree_path (np. '/polska/'), od którego pobrać gałąź. Puste dla całego drzewa." },
+                  format: { type: "string", enum: ["ascii", "json"], description: "Format wyjściowy: 'ascii' (domyślny) dla czytelnego widoku terminala, 'json' dla struktury danych" }
+              },
+              required: []
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
+          name: "SEARCH_PUBLIC_ENTITY",
+          description: "Wyszukuje informacje o osobie lub organizacji w bazach publicznych i rejestrach (OSINT) z uwzględnieniem kontekstu lokalizacji.",
+          parameters: {
+              type: "object",
+              properties: {
+                  query: { type: "string", description: "Nazwa organizacji, imię i nazwisko lub cel wywiadu" },
+                  location_context: { type: "string", description: "Lokalizacja (np. 'Starogard Gdański')" }
+              },
+              required: ["query"]
+          }
+      }
+  },
+  {
+      type: "function",
+      function: {
+          name: "LINK_ENTITIES",
+          description: "Tworzy relację sieciową między dwoma podmiotami w grafie (np. EMPLOYED_AT, FRIEND_OF, OWNER_OF, STUDENT_OF, ASSOCIATED_WITH).",
+          parameters: {
+              type: "object",
+              properties: {
+                  source_id: { type: "string", description: "ID podmiotu źródłowego (np. osoby)" },
+                  target_id: { type: "string", description: "ID podmiotu docelowego (np. organizacji lub innej osoby)" },
+                  relation_type: { type: "string", enum: ["EMPLOYED_AT", "FRIEND_OF", "OWNER_OF", "ASSOCIATED_WITH", "STUDENT_OF", "LOCATED_IN", "SUBSIDIARY_OF"], description: "Typ relacji" },
+                  metadata: { type: "object", description: "Dodatkowe metadane relacji (stanowisko, rola, okres)" }
+              },
+              required: ["source_id", "target_id", "relation_type"]
+          }
+      }
   }
 ];

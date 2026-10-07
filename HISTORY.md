@@ -1,5 +1,20 @@
 ## Wersja Bieżąca
-**v2.30.0**
+**v2.31.0**
+
+## v 2.31.0 — 2026-10-07
+**Typ:** MINOR  
+**Zakres:** Wdrożenie Modułu Entities & Intelligence OSINT Hub (Drzewo Pochodzenia Podmiotów, Relacje Sieciowe, REST API, UI Glassmorphism oraz Narzędzia Agenta AI):
+- [+] Dodano: `modules/services/entitiesService.js` – kompletny silnik drzewa hierarchicznego (kraj -> województwo -> miasto -> organizacja -> osoba), rekurencyjne wyliczanie `tree_path`, kaskadowa aktualizacja gałęzi, formatowanie ASCII dla konsoli systemowej (`formatTreeAscii`), automatyczne geokodowanie i łańcuchowanie (`resolveLocationHierarchy`, `ensureLocationHierarchy`).
+- [+] Dodano: `modules/routes/entities.js` – Express REST API (`GET /tree`, `GET /ascii`, `GET /stats`, `GET /:id`, `POST /`, `PUT /:id`, `DELETE /:id`, `POST /relations`, `DELETE /relations/:id`) zamontowane w `core.server.js` pod `/api/entities`.
+- [+] Dodano: Narzędzia Agenta AI w `modules/ai/tools.js` oraz wykonawców w `modules/agent.js` (`ADD_TREE_ENTITY`, `GET_ENTITY_TREE`, `SEARCH_PUBLIC_ENTITY`, `LINK_ENTITIES`).
+- [+] Dodano: `modules/components/EntityTreeView.jsx` – wielomodułowy widok drzewa Glassmorphism z podglądem graficznym, konsolą ASCII, inspektorem JSON, filtrowaniem na żywo i formularzem rejestracji.
+- [+] Dodano: `modules/components/EntityDetailsModal.jsx` – modal szczegółów węzła, prezentacja atrybutów, krawędzi relacyjnych grafu oraz zarządzanie powiązaniami sieciowymi.
+- [*] Zmodyfikowano: `modules/pages/OSINTPage.jsx` – integracja z Entities Hub i przełącznik trybów (Drzewo Podmiotów vs Skaner Celu).
+- [*] Zmodyfikowano: `modules/database.js` – schemat SQLite WAL (`entities`, `entity_relations`), indeksy drzewa i relacji, eksport `getDB()`.
+- [+] Dodano: `tests/entities_tree.test.js` (8 testów) oraz `tests/entities_hub.test.jsx` (6 testów).
+- [*] Weryfikacja: 235/235 PASS w 19 pakietach testowych (100% PASS), czysta kompilacja produkcyjna Vite.
+
+---
 
 ## v 2.30.0 — 2026-10-01
 **Typ:** MINOR  

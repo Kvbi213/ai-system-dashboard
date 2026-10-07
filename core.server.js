@@ -30,6 +30,7 @@ import firebaseRouter from './modules/routes/firebase.js';
 import librusRouter from './modules/routes/librus.js';
 import trafficRouter from './modules/routes/traffic.js';
 import gcpBudgetRouter from './modules/routes/gcpBudget.js';
+import entitiesRouter from './modules/routes/entities.js';
 import { initGcpBudgetDb } from './modules/services/gcpBudgetService.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -112,6 +113,7 @@ app.use('/api/firebase', firebaseRouter);
 app.use('/api/librus', librusRouter);
 app.use('/api/traffic', trafficRouter);
 app.use('/api/gcp', gcpBudgetRouter);
+app.use('/api/entities', entitiesRouter);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

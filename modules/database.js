@@ -201,8 +201,47 @@ export const initDB = () => {
           )
         `);
 
-        console.log('[+] Zapewniono istnienie struktur bazy danych.');
-        resolve();
+        // Tabela węzłów drzewa podmiotów (Entities & Intelligence OSINT Hub)
+        db.run(`
+          CREATE TABLE IF NOT EXISTS entities (
+            id TEXT PRIMARY KEY,
+            parent_id TEXT NULL,
+            type TEXT NOT NULL,
+            name TEXT NOT NULL,
+            tree_path TEXT NOT NULL,
+            attributes_json TEXT DEFAULT '{}',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+
+        db.run(`CREATE INDEX IF NOT EXISTS idx_entities_parent ON entities(parent_id)`);
+        db.run(`CREATE INDEX IF NOT EXISTS idx_entities_tree_path ON entities(tree_path)`);
+        db.run(`CREATE INDEX IF NOT EXISTS idx_entities_type ON entities(type)`);
+        db.run(`CREATE INDEX IF NOT EXISTS idx_entities_name ON entities(name)`);
+
+        // Tabela krawędzi relacji sieciowych między podmiotami
+        db.run(`
+          CREATE TABLE IF NOT EXISTS entity_relations (
+            id TEXT PRIMARY KEY,
+            source_id TEXT NOT NULL,
+            target_id TEXT NOT NULL,
+            relation_type TEXT NOT NULL,
+            metadata_json TEXT DEFAULT '{}',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+
+        db.run(`CREATE INDEX IF NOT EXISTS idx_entity_relations_source ON entity_relations(source_id)`);
+        db.run(`CREATE INDEX IF NOT EXISTS idx_entity_relations_target ON entity_relations(target_id)`);
+        db.run(`CREATE INDEX IF NOT EXISTS idx_entity_relations_type ON entity_relations(relation_type)`, (err) => {
+          if (err) {
+            console.error('[!] Błąd inicjalizacji struktur DB:', err);
+            return reject(err);
+          }
+          console.log('[+] Zapewniono istnienie struktur bazy danych.');
+          resolve();
+        });
       } catch (err) {
         console.error('[!] Błąd inicjalizacji DB:', err);
         reject(err);
@@ -229,5 +268,7 @@ export const executeRun = (query, params = []) => {
     });
   });
 };
+
+export const getDB = () => db;
 
 export default db;

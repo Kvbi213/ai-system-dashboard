@@ -16,6 +16,13 @@ import {
 } from './services/trafficService.js';
 import { getSavedLocation } from './services/geolocationService.js';
 import { getGcpBudgetStatus } from './services/gcpBudgetService.js';
+import {
+  createEntity,
+  getEntityTree,
+  formatTreeAscii,
+  createRelation,
+  ensureLocationHierarchy
+} from './services/entitiesService.js';
 import fs from 'fs';
 import dotenv from 'dotenv';
 
@@ -524,6 +531,55 @@ Pamiętaj: Bądź pomocny i profesjonalny. Jeśli wykonujesz akcję, poinformuj 
         } else if (toolCall.function.name === 'GET_GCP_BUDGET_STATUS') {
           const budget = await getGcpBudgetStatus();
           toolResultsText += `\nNarzędzie GET_GCP_BUDGET_STATUS zwróciło: ${JSON.stringify(budget)}`;
+        } else if (toolCall.function.name === 'ADD_TREE_ENTITY') {
+          try {
+            let parentId = args.parent_id || null;
+            if (!parentId && args.location_context) {
+              const cityNode = await ensureLocationHierarchy(args.location_context);
+              if (cityNode) parentId = cityNode.id;
+            }
+            const entity = await createEntity({
+              name: args.name,
+              type: args.type,
+              parent_id: parentId,
+              attributes: args.attributes || {}
+            });
+            toolResultsText += `\nNarzędzie ADD_TREE_ENTITY zwróciło: Success, utworzono węzeł "${entity.name}" (ID: ${entity.id}, Typ: ${entity.type}, Ścieżka: ${entity.tree_path})`;
+          } catch (eErr) {
+            toolResultsText += `\nNarzędzie ADD_TREE_ENTITY: Błąd - ${eErr.message}`;
+          }
+        } else if (toolCall.function.name === 'GET_ENTITY_TREE') {
+          try {
+            if (args.format === 'json') {
+              const treeJson = await getEntityTree(args.root_id_or_path || null);
+              toolResultsText += `\nNarzędzie GET_ENTITY_TREE zwróciło (JSON): ${JSON.stringify(treeJson)}`;
+            } else {
+              const ascii = await formatTreeAscii(args.root_id_or_path || null);
+              toolResultsText += `\nNarzędzie GET_ENTITY_TREE zwróciło (ASCII Tree):\n${ascii}`;
+            }
+          } catch (tErr) {
+            toolResultsText += `\nNarzędzie GET_ENTITY_TREE: Błąd - ${tErr.message}`;
+          }
+        } else if (toolCall.function.name === 'SEARCH_PUBLIC_ENTITY') {
+          try {
+            const searchQuery = args.location_context ? `${args.query} ${args.location_context}` : args.query;
+            const searchResults = await executeWebSearch(searchQuery, { mode: 'web', count: 5 });
+            toolResultsText += `\nNarzędzie SEARCH_PUBLIC_ENTITY zwróciło wyniki wywiadu OSINT dla "${searchQuery}": ${JSON.stringify(searchResults)}`;
+          } catch (sErr) {
+            toolResultsText += `\nNarzędzie SEARCH_PUBLIC_ENTITY: Błąd - ${sErr.message}`;
+          }
+        } else if (toolCall.function.name === 'LINK_ENTITIES') {
+          try {
+            const rel = await createRelation({
+              source_id: args.source_id,
+              target_id: args.target_id,
+              relation_type: args.relation_type,
+              metadata: args.metadata || {}
+            });
+            toolResultsText += `\nNarzędzie LINK_ENTITIES zwróciło: Success, utworzono relację ${rel.relation_type} między ${rel.source_id} a ${rel.target_id}`;
+          } catch (lErr) {
+            toolResultsText += `\nNarzędzie LINK_ENTITIES: Błąd - ${lErr.message}`;
+          }
         }
       }
 
