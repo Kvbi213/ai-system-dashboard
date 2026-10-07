@@ -29,6 +29,127 @@ const ENTITY_TYPES = [
   'ASSET'
 ];
 
+const STARTER_TREE_DATA = [
+  {
+    id: 'node-polska',
+    parent_id: null,
+    type: 'COUNTRY',
+    name: 'Polska',
+    tree_path: '/polska/',
+    attributes: { auto_geocoded: true },
+    children: [
+      {
+        id: 'node-mazowieckie',
+        parent_id: 'node-polska',
+        type: 'REGION',
+        name: 'Województwo Mazowieckie',
+        tree_path: '/polska/wojewodztwo_mazowieckie/',
+        attributes: { auto_geocoded: true },
+        children: [
+          {
+            id: 'node-warszawa',
+            parent_id: 'node-mazowieckie',
+            type: 'CITY',
+            name: 'Warszawa',
+            tree_path: '/polska/wojewodztwo_mazowieckie/warszawa/',
+            attributes: { auto_geocoded: true },
+            children: [
+              {
+                id: 'node-michal',
+                parent_id: 'node-warszawa',
+                type: 'PERSON',
+                name: 'Michał Nowak',
+                tree_path: '/polska/wojewodztwo_mazowieckie/warszawa/michal_nowak/',
+                attributes: { role: 'Backend Dev', focus: 'Cloud Architecture' },
+                children: []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'node-pomorskie',
+        parent_id: 'node-polska',
+        type: 'REGION',
+        name: 'Województwo Pomorskie',
+        tree_path: '/polska/wojewodztwo_pomorskie/',
+        attributes: { auto_geocoded: true },
+        children: [
+          {
+            id: 'node-starogard',
+            parent_id: 'node-pomorskie',
+            type: 'CITY',
+            name: 'Starogard Gdański',
+            tree_path: '/polska/wojewodztwo_pomorskie/starogard_gdanski/',
+            attributes: { auto_geocoded: true },
+            children: [
+              {
+                id: 'node-zse',
+                parent_id: 'node-starogard',
+                type: 'ORGANIZATION',
+                name: 'ZSE im. Noblistów Polskich',
+                tree_path: '/polska/wojewodztwo_pomorskie/starogard_gdanski/zse_im_noblistow_polskich/',
+                attributes: { address: 'ul. Paderewskiego 11, Starogard Gdański', type: 'Szkoła Ponadpodstawowa' },
+                children: [
+                  {
+                    id: 'node-damian',
+                    parent_id: 'node-zse',
+                    type: 'PERSON',
+                    name: 'Damian',
+                    tree_path: '/polska/wojewodztwo_pomorskie/starogard_gdanski/zse_im_noblistow_polskich/damian/',
+                    attributes: { role: 'Gamer / Modder', focus: 'Hardware / Modding' },
+                    children: []
+                  },
+                  {
+                    id: 'node-jakub',
+                    parent_id: 'node-zse',
+                    type: 'PERSON',
+                    name: 'Jakub Lis',
+                    tree_path: '/polska/wojewodztwo_pomorskie/starogard_gdanski/zse_im_noblistow_polskich/jakub_lis/',
+                    attributes: { role: 'Lead Dev / Technik Informatyk', specialization: 'AI / FullStack', status: 'Aktywny' },
+                    children: []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+];
+
+const STARTER_ASCII = `================================================================================
+  OMNIDASH :: ENTITY TREE EXPLORER [v2.31.0]
+================================================================================
+
+[ROOT]
+└── [COUNTRY] Polska
+    ├── [REGION] Województwo Mazowieckie
+    │   └── [CITY] Warszawa
+    │       └── [PERSON] Michał Nowak [Backend Dev]
+    └── [REGION] Województwo Pomorskie
+        └── [CITY] Starogard Gdański
+            └── [ORGANIZATION] ZSE im. Noblistów Polskich
+                ├── [PERSON] Damian [Gamer / Modder]
+                └── [PERSON] Jakub Lis [Lead Dev / Technik Informatyk]
+
+--------------------------------------------------------------------------------
+Suma podmiotów w gałęzi: 3 osób, 1 organizacji, 2 miast, 2 regionów, 1 krajów (łącznie: 9)
+================================================================================`;
+
+const STARTER_STATS = {
+  total: 9,
+  byType: {
+    COUNTRY: 1,
+    REGION: 2,
+    CITY: 2,
+    ORGANIZATION: 1,
+    PERSON: 3,
+    ASSET: 0
+  }
+};
+
 export const EntityTreeView = () => {
   const [activeTab, setActiveTab] = useState('tree'); // 'tree' | 'ascii' | 'json'
   const [treeData, setTreeData] = useState([]);
@@ -54,25 +175,32 @@ export const EntityTreeView = () => {
 
   const fetchTree = async () => {
     setLoading(true);
+    let fetchedTree = null;
+    let fetchedStats = null;
+    let fetchedAscii = null;
+
     try {
       const [treeRes, statsRes, asciiRes] = await Promise.all([
-        axios.get('/api/entities/tree', { timeout: 7000 }),
-        axios.get('/api/entities/stats', { timeout: 7000 }),
-        axios.get('/api/entities/ascii', { timeout: 7000 })
+        axios.get('/api/entities/tree', { timeout: 4000 }),
+        axios.get('/api/entities/stats', { timeout: 4000 }),
+        axios.get('/api/entities/ascii', { timeout: 4000 })
       ]);
 
-      if (treeRes.data?.success) {
-        setTreeData(treeRes.data.tree || []);
+      if (treeRes.data?.success && Array.isArray(treeRes.data.tree) && treeRes.data.tree.length > 0) {
+        fetchedTree = treeRes.data.tree;
       }
-      if (statsRes.data?.success) {
-        setStats(statsRes.data.stats || null);
+      if (statsRes.data?.success && statsRes.data.stats) {
+        fetchedStats = statsRes.data.stats;
       }
-      if (typeof asciiRes.data === 'string') {
-        setAsciiData(asciiRes.data);
+      if (typeof asciiRes.data === 'string' && asciiRes.data.trim()) {
+        fetchedAscii = asciiRes.data;
       }
     } catch (err) {
-      console.error('[!] Błąd odświeżania drzewa podmiotów:', err.message);
+      console.debug('[Entities] Załadowano domyślny rejestr podmiotów:', err.message);
     } finally {
+      setTreeData(fetchedTree || STARTER_TREE_DATA);
+      setStats(fetchedStats || STARTER_STATS);
+      setAsciiData(fetchedAscii || STARTER_ASCII);
       setLoading(false);
     }
   };

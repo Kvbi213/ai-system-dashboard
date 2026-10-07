@@ -57,6 +57,7 @@ const TimetablePage = lazyWithRetry(() => import('./modules/pages/TimetablePage'
 const GradesPage = lazyWithRetry(() => import('./modules/pages/GradesPage'));
 const MemoryPage = lazyWithRetry(() => import('./modules/pages/MemoryPage'));
 const OSINTPage = lazyWithRetry(() => import('./modules/pages/OSINTPage'));
+const EntitiesPage = lazyWithRetry(() => import('./modules/pages/EntitiesPage'));
 const ServerPage = lazyWithRetry(() => import('./modules/pages/ServerPage'));
 const BrowserPage = lazyWithRetry(() => import('./modules/pages/BrowserPage'));
 
@@ -310,6 +311,8 @@ const App = () => {
                   <Route path="/chat" element={<ChatPage />} />
                   <Route path="/search" element={<SearchPage />} />
                   <Route path="/osint" element={<OSINTPage />} />
+                  <Route path="/entities" element={<EntitiesPage />} />
+                  <Route path="/podmioty" element={<EntitiesPage />} />
                   <Route path="/calendar" element={<CalendarPage />} />
                   <Route path="/timetable" element={<TimetablePage />} />
                   <Route path="/grades" element={<GradesPage />} />

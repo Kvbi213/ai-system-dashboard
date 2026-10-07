@@ -277,6 +277,8 @@ export async function fetchLibrusFromSource(login, password) {
   const stats = computeGradeStats(rawGrades || []);
 
   const payload = {
+    isConfigured: true,
+    isDemo: false,
     subjects: stats.subjects,
     overallAverage: stats.overallAverage,
     totalSubjects: stats.totalSubjects,

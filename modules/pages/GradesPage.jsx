@@ -301,7 +301,29 @@ const GradesPage = () => {
         setError(err.response?.data?.error || err.message || 'Nie udało się pobrać ocen');
       }
 
-      // Fallback demonstracyjny w razie błędu sieci lokalnej
+      // Jeśli endpoint lokalny nie odpowiada, odczytaj stan zsynchronizowany w chmurze Firestore
+      if (firestore) {
+        try {
+          const snap = await getDoc(doc(firestore, 'librus_cache', 'latest'));
+          if (snap.exists()) {
+            const cloudData = snap.data();
+            if (cloudData && Array.isArray(cloudData.subjects) && cloudData.subjects.length > 0) {
+              setData(prev => ({
+                ...(prev || {}),
+                ...cloudData,
+                isConfigured: true,
+                isDemo: false
+              }));
+              setError(null);
+              return;
+            }
+          }
+        } catch (fErr) {
+          console.debug('[Firestore Fallback] Błąd odczytu z chmury:', fErr);
+        }
+      }
+
+      // Fallback demonstracyjny w razie braku sieci i braku chmury
       if (!data) {
         setData(STATIC_DEMO_DATA);
       }

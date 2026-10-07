@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, MessageSquare, Search, Settings, ChevronLeft, ChevronRight, 
   LayoutGrid, CalendarDays, BrainCircuit, Crosshair, Wallet, Dumbbell, Globe, 
-  Server, GraduationCap, Award, Menu, X, Palette, Sparkles, Check, Sun, Moon, Mic
+  Server, GraduationCap, Award, Menu, X, Palette, Sparkles, Check, Sun, Moon, Mic, FolderTree
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -86,6 +86,7 @@ const Sidebar = () => {
     '/grades': true,
     '/memory': true,
     '/osint': true,
+    '/entities': true,
     '/calendar': true,
     '/finances': true,
     '/workouts': true,
@@ -130,7 +131,8 @@ const Sidebar = () => {
     { name: 'Kalendarz', path: '/calendar', icon: <CalendarDays className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Terminarz' },
     { name: 'Widżety', path: '/widgets', icon: <LayoutGrid className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Siatka monitoringu' },
     { name: 'Pamięć / Notatki', path: '/memory', icon: <BrainCircuit className="w-5 h-5 md:w-6 md:h-6" />, badge: '3', desc: 'Baza wiedzy AI' },
-    { name: 'Baza Wiedzy', path: '/osint', icon: <Crosshair className="w-5 h-5 md:w-6 md:h-6" />, badge: 'Nowe', desc: 'OSINT Intel Hub' },
+    { name: 'Baza Wiedzy', path: '/osint', icon: <Crosshair className="w-5 h-5 md:w-6 md:h-6" />, desc: 'OSINT Intel Hub' },
+    { name: 'Podmioty & Relacje', path: '/entities', icon: <FolderTree className="w-5 h-5 md:w-6 md:h-6" />, badge: 'v2.31', desc: 'Drzewo pochodzenia & graf' },
     { name: 'Serwer', path: '/server', icon: <Server className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Status procesów' },
   ];
 
@@ -142,6 +144,7 @@ const Sidebar = () => {
     if (current) return current.name;
     if (location.pathname === '/settings') return 'Ustawienia';
     if (location.pathname === '/search') return 'Wyszukiwarka';
+    if (location.pathname === '/entities' || location.pathname === '/podmioty') return 'Podmioty & Relacje';
     return 'OmniDash';
   };
 
