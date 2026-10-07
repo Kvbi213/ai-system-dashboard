@@ -145,4 +145,16 @@ router.delete('/relations/:id', async (req, res) => {
   }
 });
 
+// POST /api/entities/sync-obsidian - uruchamia pełną synchronizację bazy z Obsidian Vault
+router.post('/sync-obsidian', async (req, res) => {
+  try {
+    const { importObsidianVault } = await import('../../scripts/import_obsidian_entities.js');
+    const result = await importObsidianVault();
+    res.json({ success: true, message: '[+] Baza zsynchronizowana z Obsidian Vault.', ...result });
+  } catch (err) {
+    console.error('[!] ERROR POST /api/entities/sync-obsidian:', err.message);
+    res.status(500).json({ error: 'Błąd synchronizacji z Obsidian Vault.', details: err.message });
+  }
+});
+
 export default router;

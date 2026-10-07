@@ -29,8 +29,11 @@ const EntitiesPage = () => {
         </div>
 
         <div className="hidden sm:flex items-center gap-2">
+          <span className="px-2.5 py-1 rounded-full text-[11px] font-mono bg-accentSecondary/10 text-accentSecondary border border-accentSecondary/30">
+            [+] OBSIDIAN SYNC: INFORMACJE/OSOBY
+          </span>
           <span className="px-2.5 py-1 rounded-full text-[11px] font-mono bg-accentPrimary/10 text-accentPrimary border border-accentPrimary/30">
-            [+] ENTITIES HUB v2.31.0
+            [+] ENTITIES HUB v2.32.0
           </span>
         </div>
       </header>

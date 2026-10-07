@@ -1,5 +1,20 @@
 ## Wersja Bieżąca
-**v2.31.0**
+**v2.32.0**
+
+## v 2.32.0 — 2026-10-07
+**Typ:** MINOR  
+**Zakres:** Głęboka Integracja ze Skarbcem Obsidian (informacje/osoby/ & mixology/), System 10 Kart Dziedzinowych, Model Mieszkaniowy 120m², Cyfrowa Karta Drinków Lis Craft Mixology, Sieć 15 Relacji Grafowych, Synchronizacja On-Demand oraz Nowy Pakiet Testów (240/240 PASS w 20 zestawach testowych):
+- [+] Dodano: `scripts/import_obsidian_entities.js` – zautomatyzowany parser i importer Markdown z katalogu `C:\Users\Jakub Lis\Documents\OBSIDIAN\informacje`. Ekstrakcja YAML frontmatter, sekcji dziedzinowych, parametrów biometrycznych, kontaktowych i analizy ryzyk do bazy SQLite WAL oraz chmury Cloud Firestore (`entities_cache/latest`).
+- [+] Dodano: `modules/data/obsidianEntitiesData.js` – zintegrowany pakiet startowy drzewa hierarchii, 6 profili osobowych ze wszystkimi 10 modułami, 15 relacji grafowych oraz konfiguracja etykiet i badge'y statusu housing.
+- [+] Dodano: `data/obsidian_starter_bundle.json` – zrzut wzorcowy 11 węzłów i relacji zapewniający natychmiastowe działanie aplikacji offline oraz w chmurze Firebase Hosting.
+- [*] Zmodyfikowano: `modules/components/EntityDetailsModal.jsx` – rozbudowano modal do pełnego eksploratora 10 kart dziedzinowych (`[ID] Metryka`, `[PSYCH] Charakter`, `[SOC] Cyber-Ślad`, `[BIO] Zdrowie`, `[FIN] Finanse`, `[TECH] Pasje`, `[TIME] Rutyna`, `[REL] Więź`, `[NET] Środowisko`, `[RISK] Zaufanie & Ryzyka`), dedykowanej karty `[BAR] Lis Craft Mixology`, podglądu powiązań grafowych z interaktywną nawigacją między węzłami oraz eksportu Markdown.
+- [*] Zmodyfikowano: `modules/components/EntityTreeView.jsx` – zintegrowano presety filtrów (`Wszystkie`, `Core`, `Housing 120m²`, `Osoby`, `Miejsca`), etykiety housing status oraz przycisk `[>] SYNC OBSIDIAN`.
+- [*] Zmodyfikowano: `modules/routes/entities.js` – dodano endpoint `POST /api/entities/sync-obsidian` umożliwiający natychmiastowe odświeżenie danych ze skarbca Obsidian.
+- [*] Zmodyfikowano: `modules/pages/EntitiesPage.jsx` – zaktualizowano nagłówek z indykatorem powiązania skarbca Obsidian oraz wersją `v2.32.0`.
+- [+] Dodano: `tests/obsidian_entities_integration.test.js` – 5 testów integracyjnych weryfikujących 10 modułów, profile 6 osób, receptury mixology, import do bazy SQLite i relacje grafowe.
+- [*] Weryfikacja: 240/240 PASS we wszystkich 20 pakietach testowych Vitest (100% PASS), czysty build i pomyślne wdrożenie na Firebase Hosting (`void-potato-7721.web.app`).
+
+---
 
 ## v 2.31.0 — 2026-10-07
 **Typ:** MINOR  

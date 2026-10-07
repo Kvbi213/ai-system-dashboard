@@ -19,6 +19,12 @@ import {
   Check
 } from 'lucide-react';
 import EntityDetailsModal from './EntityDetailsModal';
+import {
+  STARTER_TREE_DATA,
+  STARTER_ASCII,
+  STARTER_STATS,
+  HOUSING_STATUS_BADGE
+} from '../data/obsidianEntitiesData.js';
 
 const ENTITY_TYPES = [
   'COUNTRY',
@@ -29,127 +35,6 @@ const ENTITY_TYPES = [
   'ASSET'
 ];
 
-const STARTER_TREE_DATA = [
-  {
-    id: 'node-polska',
-    parent_id: null,
-    type: 'COUNTRY',
-    name: 'Polska',
-    tree_path: '/polska/',
-    attributes: { auto_geocoded: true },
-    children: [
-      {
-        id: 'node-mazowieckie',
-        parent_id: 'node-polska',
-        type: 'REGION',
-        name: 'Województwo Mazowieckie',
-        tree_path: '/polska/wojewodztwo_mazowieckie/',
-        attributes: { auto_geocoded: true },
-        children: [
-          {
-            id: 'node-warszawa',
-            parent_id: 'node-mazowieckie',
-            type: 'CITY',
-            name: 'Warszawa',
-            tree_path: '/polska/wojewodztwo_mazowieckie/warszawa/',
-            attributes: { auto_geocoded: true },
-            children: [
-              {
-                id: 'node-michal',
-                parent_id: 'node-warszawa',
-                type: 'PERSON',
-                name: 'Michał Nowak',
-                tree_path: '/polska/wojewodztwo_mazowieckie/warszawa/michal_nowak/',
-                attributes: { role: 'Backend Dev', focus: 'Cloud Architecture' },
-                children: []
-              }
-            ]
-          }
-        ]
-      },
-      {
-        id: 'node-pomorskie',
-        parent_id: 'node-polska',
-        type: 'REGION',
-        name: 'Województwo Pomorskie',
-        tree_path: '/polska/wojewodztwo_pomorskie/',
-        attributes: { auto_geocoded: true },
-        children: [
-          {
-            id: 'node-starogard',
-            parent_id: 'node-pomorskie',
-            type: 'CITY',
-            name: 'Starogard Gdański',
-            tree_path: '/polska/wojewodztwo_pomorskie/starogard_gdanski/',
-            attributes: { auto_geocoded: true },
-            children: [
-              {
-                id: 'node-zse',
-                parent_id: 'node-starogard',
-                type: 'ORGANIZATION',
-                name: 'ZSE im. Noblistów Polskich',
-                tree_path: '/polska/wojewodztwo_pomorskie/starogard_gdanski/zse_im_noblistow_polskich/',
-                attributes: { address: 'ul. Paderewskiego 11, Starogard Gdański', type: 'Szkoła Ponadpodstawowa' },
-                children: [
-                  {
-                    id: 'node-damian',
-                    parent_id: 'node-zse',
-                    type: 'PERSON',
-                    name: 'Damian',
-                    tree_path: '/polska/wojewodztwo_pomorskie/starogard_gdanski/zse_im_noblistow_polskich/damian/',
-                    attributes: { role: 'Gamer / Modder', focus: 'Hardware / Modding' },
-                    children: []
-                  },
-                  {
-                    id: 'node-jakub',
-                    parent_id: 'node-zse',
-                    type: 'PERSON',
-                    name: 'Jakub Lis',
-                    tree_path: '/polska/wojewodztwo_pomorskie/starogard_gdanski/zse_im_noblistow_polskich/jakub_lis/',
-                    attributes: { role: 'Lead Dev / Technik Informatyk', specialization: 'AI / FullStack', status: 'Aktywny' },
-                    children: []
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
-];
-
-const STARTER_ASCII = `================================================================================
-  OMNIDASH :: ENTITY TREE EXPLORER [v2.31.0]
-================================================================================
-
-[ROOT]
-└── [COUNTRY] Polska
-    ├── [REGION] Województwo Mazowieckie
-    │   └── [CITY] Warszawa
-    │       └── [PERSON] Michał Nowak [Backend Dev]
-    └── [REGION] Województwo Pomorskie
-        └── [CITY] Starogard Gdański
-            └── [ORGANIZATION] ZSE im. Noblistów Polskich
-                ├── [PERSON] Damian [Gamer / Modder]
-                └── [PERSON] Jakub Lis [Lead Dev / Technik Informatyk]
-
---------------------------------------------------------------------------------
-Suma podmiotów w gałęzi: 3 osób, 1 organizacji, 2 miast, 2 regionów, 1 krajów (łącznie: 9)
-================================================================================`;
-
-const STARTER_STATS = {
-  total: 9,
-  byType: {
-    COUNTRY: 1,
-    REGION: 2,
-    CITY: 2,
-    ORGANIZATION: 1,
-    PERSON: 3,
-    ASSET: 0
-  }
-};
-
 export const EntityTreeView = () => {
   const [activeTab, setActiveTab] = useState('tree'); // 'tree' | 'ascii' | 'json'
   const [treeData, setTreeData] = useState([]);
@@ -159,6 +44,9 @@ export const EntityTreeView = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEntityId, setSelectedEntityId] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [syncingObsidian, setSyncingObsidian] = useState(false);
+  const [syncMsg, setSyncMsg] = useState('');
+  const [presetFilter, setPresetFilter] = useState('ALL');
 
   // New Entity Form State
   const [showAddModal, setShowAddModal] = useState(false);
@@ -172,6 +60,25 @@ export const EntityTreeView = () => {
   });
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+
+  const handleSyncObsidian = async () => {
+    setSyncingObsidian(true);
+    setSyncMsg('');
+    try {
+      const res = await axios.post('/api/entities/sync-obsidian');
+      if (res.data?.success) {
+        setSyncMsg('[+] Pomyślnie zsynchronizowano bazę z Obsidian Vault.');
+        fetchTree();
+      } else {
+        setSyncMsg('[!] Błąd: ' + (res.data?.error || 'Nieznany błąd'));
+      }
+    } catch (err) {
+      setSyncMsg('[!] Błąd sieci: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setSyncingObsidian(false);
+      setTimeout(() => setSyncMsg(''), 5000);
+    }
+  };
 
   const fetchTree = async () => {
     setLoading(true);
@@ -278,18 +185,32 @@ export const EntityTreeView = () => {
   };
 
   // Filter tree nodes recursively
-  const filterNodes = (nodes, query) => {
-    if (!query) return nodes;
-    const q = query.toLowerCase();
+  const filterNodes = (nodes, query, preset) => {
+    const q = (query || '').toLowerCase().trim();
     const result = [];
 
     for (const node of nodes) {
-      const matchSelf =
+      let matchesPreset = true;
+      if (preset === 'CORE') {
+        matchesPreset = node.attributes?.housing_status === 'Core';
+      } else if (preset === 'HOUSING') {
+        matchesPreset = ['Core', 'Współlokator', 'Gość', 'Rezerwa'].includes(node.attributes?.housing_status);
+      } else if (preset === 'PEOPLE') {
+        matchesPreset = node.type === 'PERSON';
+      } else if (preset === 'ORGS') {
+        matchesPreset = ['ORGANIZATION', 'ASSET'].includes(node.type);
+      }
+
+      const matchSelf = (!q || (
         node.name?.toLowerCase().includes(q) ||
         node.type?.toLowerCase().includes(q) ||
-        node.tree_path?.toLowerCase().includes(q);
+        node.tree_path?.toLowerCase().includes(q) ||
+        node.attributes?.role?.toLowerCase().includes(q) ||
+        node.attributes?.housing_status?.toLowerCase().includes(q) ||
+        node.attributes?.alias?.toLowerCase().includes(q)
+      )) && (preset === 'ALL' || matchesPreset);
 
-      const filteredChildren = node.children ? filterNodes(node.children, q) : [];
+      const filteredChildren = node.children ? filterNodes(node.children, query, preset) : [];
 
       if (matchSelf || filteredChildren.length > 0) {
         result.push({
@@ -301,7 +222,7 @@ export const EntityTreeView = () => {
     return result;
   };
 
-  const filteredTree = filterNodes(treeData, searchQuery);
+  const filteredTree = filterNodes(treeData, searchQuery, presetFilter);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden space-y-4">
@@ -346,7 +267,16 @@ export const EntityTreeView = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleSyncObsidian}
+            disabled={syncingObsidian}
+            className="bg-accentSecondary/20 text-accentSecondary border border-accentSecondary/40 hover:bg-accentSecondary hover:text-black font-mono font-bold text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm active:scale-95 disabled:opacity-50"
+            title="Pobierz i zsynchronizuj bazę wiedzy z Obsidian Vault (informacje/osoby/)"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${syncingObsidian ? 'animate-spin' : ''}`} />
+            <span>{syncingObsidian ? '[~] SYNC...' : '[>] SYNC OBSIDIAN'}</span>
+          </button>
           <button
             onClick={fetchTree}
             disabled={loading}
@@ -395,17 +325,47 @@ export const EntityTreeView = () => {
         </div>
       )}
 
-      {/* Search / Filter Input */}
+      {/* Search & Preset Filter Chips */}
       {activeTab === 'tree' && (
-        <div className="relative shrink-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-textMuted" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filtruj podmioty (nazwa, rola, ścieżka /polska/...)..."
-            className="w-full bg-surface border border-border rounded-lg pl-9 pr-4 py-2 font-mono text-xs text-textPrimary focus:outline-none focus:border-accentPrimary"
-          />
+        <div className="space-y-2 shrink-0">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-textMuted" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Filtruj podmioty (nazwa, rola, nick, status housing, ścieżka /polska/...)..."
+              className="w-full bg-surface border border-border rounded-lg pl-9 pr-4 py-2 font-mono text-xs text-textPrimary focus:outline-none focus:border-accentPrimary"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar text-[11px] font-mono">
+            <span className="text-textMuted text-[10px] uppercase mr-1">FILTR:</span>
+            {[
+              { id: 'ALL', label: 'Wszystkie [11]' },
+              { id: 'CORE', label: 'Core [2]' },
+              { id: 'HOUSING', label: 'Housing 120m² [5]' },
+              { id: 'PEOPLE', label: 'Osoby [6]' },
+              { id: 'ORGS', label: 'Miejsca & Instytucje [2]' }
+            ].map((p) => (
+              <button
+                key={p.id}
+                onClick={() => setPresetFilter(p.id)}
+                className={`px-2.5 py-1 rounded-md border transition-all ${
+                  presetFilter === p.id
+                    ? 'bg-accentPrimary/20 border-accentPrimary text-accentPrimary font-bold'
+                    : 'bg-black/30 border-border/50 text-textMuted hover:text-textPrimary hover:bg-white/5'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+            {syncMsg && (
+              <span className="ml-auto text-accentPrimary animate-pulse font-mono text-xs">
+                {syncMsg}
+              </span>
+            )}
+          </div>
         </div>
       )}
 
@@ -658,6 +618,18 @@ const TreeNodeItem = ({
           >
             {node.name}
           </button>
+
+          {node.attributes?.housing_status && (
+            <span className={`text-[9px] px-1.5 py-0.2 rounded border font-semibold shrink-0 ${HOUSING_STATUS_BADGE[node.attributes.housing_status] || 'border-zinc-500 text-zinc-400'}`}>
+              [{node.attributes.housing_status.toUpperCase()}]
+            </span>
+          )}
+
+          {node.attributes?.modules && Object.keys(node.attributes.modules).length > 0 && (
+            <span className="text-[9px] px-1.5 py-0.2 rounded border border-accentPrimary/40 text-accentPrimary bg-accentPrimary/10 font-mono shrink-0" title="Kompletny zestaw 10 kart dziedzinowych">
+              [10M]
+            </span>
+          )}
 
           {node.attributes?.role && (
             <span className="text-accentSecondary text-[11px] truncate">
