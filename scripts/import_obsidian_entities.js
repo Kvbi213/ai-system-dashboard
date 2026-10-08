@@ -354,7 +354,7 @@ export async function importObsidianVault() {
 
   try {
     const firestoreDb = getFirestoreDb();
-    if (firestoreDb) {
+    if (firestoreDb && !process.env.VITEST) {
       console.log('[*] Replikacja danych encji do Firestore (entities_cache/latest)...');
       await firestoreDb.collection('entities_cache').doc('latest').set({
         tree,

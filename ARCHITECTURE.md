@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.32.0 (Stan na Październik 2026) 
+**Wersja Systemu:** v2.32.1 (Stan na Październik 2026) 
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE) 
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Entities & Intelligence OSINT Hub, Obsidian Vault Integration, 10-Domain Modules System, Hierarchical Origin Tree, Network Graph, Zero-Trust Security, Vitest 240/240 PASS w 20 pakietach)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Entities & Intelligence OSINT Hub, Obsidian Vault Integration, 10-Domain Modules System, Hierarchical Origin Tree, Network Graph, Zero-Trust Security, Vitest 243/243 PASS w 20 pakietach)
 
 ---
 
@@ -10,8 +10,8 @@
 System to zintegrowane środowisko asystenckie oparte na modelu LLM `openai/gpt-oss-120b` (Groq SDK). Projekt łączy w sobie cechy inteligentnego terminala poleceń, zarządzania zadaniami (To-Do), planu lekcji i harmonogramu zajęć (Timetable), kalendarza z możliwością ręcznego planowania, elastycznego budżetu z dynamicznym dysponowaniem środkami (autopodział dochodów 50/30/20, jedna pula, podział własny oraz transfery między koszykami), planera treningów, długoterminowej pamięci (Operator Brain), monitoringu parametrów systemu w czasie rzeczywistym przez Server-Sent Events (SSE), modułu drzewa podmiotów i relacji sieciowych (Entities & Intelligence OSINT Hub) oraz wyszukiwania w sieci na żywo (Brave Search API z harmonogramem oszczędzania limitów: 10:00, 15:00, 20:00).
 
 **Główne Paradygmaty:**
-1. **Multi-Cloud & Cloud-First Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (Prywatna Instancja Produkcyjna `void-potato-7721`), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`/api/agent`, `api/news`, `api/models`, `api/status`, `api/osint`, `api/pushbullet-webhook`, `api/gcp/budget-webhook`). Wszystkie operacje na telefonach, tabletach i desktopie natychmiast synchronizują się z chmurą przy wykorzystaniu transparentnej autoryzacji Firebase Anonymous Auth oraz Google OAuth.
-2. **Quality Gate & Automated Testing (240/240 PASS):** Zintegrowany silnik testowy Vitest (`npm test`) z 20 dedykowanymi zestawami testowymi weryfikującymi bezpieczeństwo Zero-Trust, ochronę SSRF, zbiór wzorcowy Librus (Golden Dataset), limitowanie budżetu Google Cloud i Pub/Sub, geolokalizację GPS, wywiad drogowy CANARD/GITD i alerty GDDKiA, integrację Librus Synergia, algorytm budżetowy, klasyfikację celów OSINT, strefę czasową `Europe/Warsaw`, eksport CSV, rejestr synchronizacji chmurowej, klasyfikator i parser powiadomień Pushbullet, autonomicznego agenta ciągłego, strażnika limitów Brave Search z segmentacją slotową, pełne drzewo encji i 10 modułów dziedzinowych Obsidian oraz renderowanie komponentów Reacta z `@testing-library/react` i `jsdom`.
+1. **Multi-Cloud & Cloud-First Architecture:** Aplikacja operuje hybrydowo: statyczny frontend i hosting Firebase (Prywatna Instancja Produkcyjna `void-potato-7721`), baza danych Cloud Firestore w regionie Warszawa (`europe-central2`), oraz dedykowany backend bezstanowy Vercel Serverless Gateway (`/api/agent`, `api/entities`, `api/news`, `api/models`, `api/status`, `api/osint`, `api/pushbullet-webhook`, `api/gcp/budget-webhook`). Wszystkie operacje na telefonach, tabletach i desktopie natychmiast synchronizują się z chmurą przy wykorzystaniu transparentnej autoryzacji Firebase Anonymous Auth oraz Google OAuth.
+2. **Quality Gate & Automated Testing (243/243 PASS):** Zintegrowany silnik testowy Vitest (`npm test`) z 20 dedykowanymi zestawami testowymi weryfikującymi bezpieczeństwo Zero-Trust, ochronę SSRF, zbiór wzorcowy Librus (Golden Dataset), limitowanie budżetu Google Cloud i Pub/Sub, geolokalizację GPS, wywiad drogowy CANARD/GITD i alerty GDDKiA, integrację Librus Synergia, algorytm budżetowy, klasyfikację celów OSINT, strefę czasową `Europe/Warsaw`, eksport CSV, rejestr synchronizacji chmurowej, klasyfikator i parser powiadomień Pushbullet, autonomicznego agenta ciągłego, strażnika limitów Brave Search z segmentacją slotową, pełne drzewo encji, odporność na błędy HTML i 10 modułów dziedzinowych Obsidian oraz renderowanie komponentów Reacta z `@testing-library/react` i `jsdom`.
 3. **Bidirectional Pushbullet Integration & Autonomous Expense Tracking:** Dwukierunkowa integracja ze smartfonem operatora. System nasłuchuje powiadomień płatniczych i bankowych ze strumienia WebSocket (`wss://stream.pushbullet.com`), deduplikuje je w oknie 60s, kognitywnie wyodrębnia kwotę i przypisuje do koszyka 50/30/20 (Needs vs Wants vs Savings), automatycznie rejestruje wydatek w SQLite i Firestore oraz wysyła potwierdzenie na telefon. Dodatkowo asystent AI może wysyłać wiadomości i zadania na smartfon operatora znacznikiem `[ACTION:SEND_PUSH]`.
 4. **Real-time SSE Telemetry & Dual Mode:** Backend Express dostarcza strumień Server-Sent Events (`/api/system/stream`) emitujący metryki CPU/RAM/Heap/Uptime co 2 sekundy. W chmurze komponent `SystemMonitor` automatycznie przechodzi w tryb telemetrii przeglądarkowej ze wskaźnikami `● SSE LIVE` i `● CLIENT`.
 5. **Instant Theme Toggle:** Szybki przełącznik trybu jasnego/ciemnego (Sun/Moon) umieszczony w widocznym miejscu w nagłówku mobilnym oraz stopce menu bocznego na desktopie, zintegrowany z pamięcią `localStorage` i 7 paletami kolorystycznymi.
@@ -72,6 +72,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │
 ├── /api/ ← Funkcje Vercel Serverless (Node.js Gateway)
 │ ├── gcp/budget-webhook.js ← Serverless Webhook odbioru komunikatów Cloud Pub/Sub Push dla budżetu
+│ ├── entities.js ← Brama Vercel Serverless Gateway dla drzewa podmiotów, relacji i profilów (/api/entities/*)
 │ ├── librus.js ← Gateway do Librus Synergia (/grades, /calendar, /timetable, CORS *, cloud proxy/demo)
 │ ├── agent.js ← CORS-enabled proxy do openai/gpt-oss-120b z wstrzykiwaniem kontekstu, narzędzi akcji & Live Brave Search
 │ ├── news.js ← Serverless endpoint newsowy z integracją Brave Search News API i kategoryzacją
@@ -101,6 +102,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │ ├── osint.js ← Narzędzia rozpoznania OSINT i klasyfikator celów.
 │ │
 │ ├── /services/ ← Usługi rozproszone i synchronizacja w czasie rzeczywistym.
+│ │ ├── clientEntityStore.js ← Magazyn hybrydowy podmiotów i relacji klienta, filtr usunięć drzewa, fallback in-memory/localStorage i Cloud Firestore sync.
 │ │ ├── entitiesService.js ← Silnik drzewa hierarchicznego (kraj/region/miasto/org/osoba), relacje grafowe, tree_path, formatowanie ASCII, geokodowanie.
 │ │ ├── gcpBudgetService.js ← Nadzór budżetowy Google Cloud Billing i odbiór alertów Cloud Pub/Sub.
 │ │ ├── geolocationService.js ← Geolokalizacja GPS (enableHighAccuracy), geokodowanie Nominatim / Google Geocoding, dystans Haversine.

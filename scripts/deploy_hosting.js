@@ -17,5 +17,5 @@ const env = {
 const targetProject = process.env.FIREBASE_PROJECT_ID || 'void-potato-7721';
 
 console.log(`[*] DEPLOY: Wypychanie pakietu do ${targetProject}.web.app...`);
-execSync(`firebase deploy --only hosting --project ${targetProject}`, { cwd: rootDir, env, stdio: 'inherit' });
+execSync(`firebase deploy --only hosting --project ${targetProject} --non-interactive`, { cwd: rootDir, env, stdio: 'inherit' });
 console.log(`[+] SUCCESS: Pomyślnie wdrożono nową wersję do chmury Firebase Hosting (${targetProject})!`);

@@ -35,6 +35,13 @@ import {
   DOMAIN_MODULES_CONFIG,
   HOUSING_STATUS_BADGE
 } from '../data/obsidianEntitiesData.js';
+import {
+  markEntityDeleted,
+  markRelationDeleted,
+  saveCustomRelation,
+  getEntityDetailsOffline,
+  isHtmlOrOfflineError
+} from '../services/clientEntityStore.js';
 
 const RELATION_TYPES = [
   'EMPLOYED_AT',
@@ -83,22 +90,30 @@ export const EntityDetailsModal = ({ entityId: initialEntityId, onClose, onEntit
     setLoading(true);
     setError('');
     try {
-      const res = await axios.get(`/api/entities/${id}`, { timeout: 7000 });
+      const res = await axios.get(`/api/entities/${id}`, { timeout: 4000 });
       if (res.data && res.data.success) {
         setEntity(res.data.entity);
         setRelations(res.data.relations || []);
+        return;
       } else {
         throw new Error(res.data?.error || 'Błąd pobierania danych');
       }
     } catch (err) {
-      // Fallback z zintegrowanego pakietu danych Obsidian
-      const fallback = FALLBACK_NODES[id];
-      if (fallback) {
-        setEntity(fallback);
-        setRelations(FALLBACK_RELATIONS[id] || []);
+      // Fallback z zintegrowanego magazynu klienta i pakietu Obsidian
+      const offlineData = getEntityDetailsOffline(id);
+      if (offlineData && offlineData.entity) {
+        setEntity(offlineData.entity);
+        setRelations(offlineData.relations || []);
         setError('');
       } else {
-        setError(err.response?.data?.error || err.message || 'Błąd sieci podczas pobierania podmiotu.');
+        const fallback = FALLBACK_NODES[id];
+        if (fallback) {
+          setEntity(fallback);
+          setRelations(FALLBACK_RELATIONS[id] || []);
+          setError('');
+        } else {
+          setError(err.response?.data?.error || err.message || 'Błąd sieci podczas pobierania podmiotu.');
+        }
       }
     } finally {
       setLoading(false);
@@ -126,6 +141,14 @@ export const EntityDetailsModal = ({ entityId: initialEntityId, onClose, onEntit
     if (!targetId.trim()) return;
     setRelSubmitting(true);
     setRelMsg('');
+    const localRel = {
+      id: 'rel-' + Date.now(),
+      source_id: currentEntityId,
+      target_id: targetId.trim(),
+      relation_type: relationType,
+      metadata: relNote.trim() ? { note: relNote.trim() } : {}
+    };
+
     try {
       const res = await axios.post('/api/entities/relations', {
         source_id: currentEntityId,
@@ -134,13 +157,24 @@ export const EntityDetailsModal = ({ entityId: initialEntityId, onClose, onEntit
         metadata: relNote.trim() ? { note: relNote.trim() } : {}
       });
       if (res.data?.success) {
+        saveCustomRelation(res.data.relation || localRel);
         setRelMsg('[+] Relacja została pomyślnie dodana.');
         setTargetId('');
         setRelNote('');
         fetchDetails(currentEntityId);
         if (onEntityUpdated) onEntityUpdated();
+        return;
       }
     } catch (err) {
+      if (isHtmlOrOfflineError(err)) {
+        saveCustomRelation(localRel);
+        setRelations(prev => [localRel, ...prev]);
+        setRelMsg('[+] Relacja zapisana w rejestrze podmiotów (tryb offline / chmura).');
+        setTargetId('');
+        setRelNote('');
+        if (onEntityUpdated) onEntityUpdated();
+        return;
+      }
       setRelMsg('[!] Błąd tworzenia relacji: ' + (err.response?.data?.error || err.message));
     } finally {
       setRelSubmitting(false);
@@ -151,10 +185,18 @@ export const EntityDetailsModal = ({ entityId: initialEntityId, onClose, onEntit
     try {
       const res = await axios.delete(`/api/entities/relations/${relId}`);
       if (res.data?.success) {
+        markRelationDeleted(relId);
         setRelations(prev => prev.filter(r => r.id !== relId));
         if (onEntityUpdated) onEntityUpdated();
+        return;
       }
     } catch (err) {
+      if (isHtmlOrOfflineError(err)) {
+        markRelationDeleted(relId);
+        setRelations(prev => prev.filter(r => r.id !== relId));
+        if (onEntityUpdated) onEntityUpdated();
+        return;
+      }
       alert('[!] Błąd usuwania relacji: ' + (err.response?.data?.error || err.message));
     }
   };
@@ -168,10 +210,18 @@ export const EntityDetailsModal = ({ entityId: initialEntityId, onClose, onEntit
     try {
       const res = await axios.delete(`/api/entities/${currentEntityId}?cascade=${cascade}`);
       if (res.data?.success) {
+        markEntityDeleted(currentEntityId, cascade);
         if (onEntityUpdated) onEntityUpdated();
         onClose();
+        return;
       }
     } catch (err) {
+      if (isHtmlOrOfflineError(err)) {
+        markEntityDeleted(currentEntityId, cascade);
+        if (onEntityUpdated) onEntityUpdated();
+        onClose();
+        return;
+      }
       alert('[!] Błąd usuwania podmiotu: ' + (err.response?.data?.error || err.message));
     } finally {
       setDeleting(false);

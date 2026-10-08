@@ -1,5 +1,20 @@
 ## Wersja Bieżąca
-**v2.32.0**
+**v2.32.1**
+
+## v 2.32.1 — 2026-10-08
+**Typ:** PATCH  
+**Zakres:** Eliminacja Defektu HTML Rewrite przy Usuwaniu Podmiotów, Klientowy Magazyn Hybrydowy (clientEntityStore), Brama Serverless Vercel (api/entities.js), Trwałe Odfiltrowywanie Węzłów z Drzewa oraz Nowe Testy (243/243 PASS w 20 pakietach testowych):
+- [+] Dodano: `modules/services/clientEntityStore.js` – moduł magazynu hybrydowego podmiotów i relacji z buforowaniem usunięć (`omnidash_entities_deleted_ids`), kaskadowym usuwaniem węzłów potomnych, rejestrem podmiotów i relacji własnych oraz odpornymi na brak `localStorage` metodami `getStorageItem`, `setStorageItem`, `removeStorageItem`.
+- [+] Dodano: `api/entities.js` – brama Vercel Serverless Gateway obsługująca endpointy `/api/entities/tree`, `/api/entities/stats`, `/api/entities/ascii`, `/api/entities/:id`, `/api/entities/relations` oraz operacje POST i DELETE.
+- [*] Zmodyfikowano: `vercel.json` – dodano regułę przekierowania `{ "source": "/api/entities/(.*)", "destination": "/api/entities?path=$1" }`.
+- [*] Zmodyfikowano: `modules/components/EntityDetailsModal.jsx` – wyeliminowano alert błędu HTML (`Endpoint /api/entities/... zwrócił HTML`) w `handleDeleteEntity`, `handleDeleteRelation` i `handleCreateRelation` poprzez zastosowanie transparentnego fallbacku do magazynu klienta i Cloud Firestore.
+- [*] Zmodyfikowano: `modules/components/EntityTreeView.jsx` – zintegrowano dynamiczne filtrowanie drzewa `filterTreeWithClientState`, przeliczanie statystyk, szynę zdarzeń `omnidash:entities-changed` oraz bezpieczną rejestrację podmiotów offline/chmurowych.
+- [*] Zmodyfikowano: `scripts/deploy_hosting.js` – dodano flagę `--non-interactive` do komendy wdrażania Firebase Hosting.
+- [*] Zmodyfikowano: `modules/firebaseClient.js` oraz `scripts/import_obsidian_entities.js` – zabezpieczono przed niepożądanymi połączeniami sieciowymi w środowisku testowym Vitest (`!process?.env?.VITEST`).
+- [+] Dodano: `tests/entities_hub.test.jsx` – sekcja `4. Cloud Resilience & HTML Rewrite Interception` weryfikująca klasyfikację błędów, filtrowanie usuniętych gałęzi oraz płynne usunięcie węzła w przypadku błędu HTML.
+- [*] Weryfikacja: 243/243 PASS w 20 pakietach testowych Vitest (100% PASS), czysty build i pomyślne wdrożenie produkcyjne na Firebase Hosting (`void-potato-7721.web.app`).
+
+---
 
 ## v 2.32.0 — 2026-10-07
 **Typ:** MINOR  

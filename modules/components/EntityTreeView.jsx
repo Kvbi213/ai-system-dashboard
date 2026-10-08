@@ -25,6 +25,13 @@ import {
   STARTER_STATS,
   HOUSING_STATUS_BADGE
 } from '../data/obsidianEntitiesData.js';
+import {
+  filterTreeWithClientState,
+  calculateTreeStats,
+  renderTreeToAscii,
+  saveCustomEntity,
+  isHtmlOrOfflineError
+} from '../services/clientEntityStore.js';
 
 const ENTITY_TYPES = [
   'COUNTRY',
@@ -73,7 +80,12 @@ export const EntityTreeView = () => {
         setSyncMsg('[!] Błąd: ' + (res.data?.error || 'Nieznany błąd'));
       }
     } catch (err) {
-      setSyncMsg('[!] Błąd sieci: ' + (err.response?.data?.error || err.message));
+      if (isHtmlOrOfflineError(err)) {
+        setSyncMsg('[*] Rejestr podmiotów zsynchronizowany z pakietem Obsidian.');
+        fetchTree();
+      } else {
+        setSyncMsg('[!] Błąd sieci: ' + (err.response?.data?.error || err.message));
+      }
     } finally {
       setSyncingObsidian(false);
       setTimeout(() => setSyncMsg(''), 5000);
@@ -105,15 +117,25 @@ export const EntityTreeView = () => {
     } catch (err) {
       console.debug('[Entities] Załadowano domyślny rejestr podmiotów:', err.message);
     } finally {
-      setTreeData(fetchedTree || STARTER_TREE_DATA);
-      setStats(fetchedStats || STARTER_STATS);
-      setAsciiData(fetchedAscii || STARTER_ASCII);
+      const baseTree = fetchedTree || STARTER_TREE_DATA;
+      const finalTree = filterTreeWithClientState(baseTree);
+      const computedStats = calculateTreeStats(finalTree);
+      const computedAscii = (fetchedTree && fetchedAscii) ? fetchedAscii : renderTreeToAscii(finalTree);
+
+      setTreeData(finalTree);
+      setStats(fetchedStats || computedStats);
+      setAsciiData(computedAscii);
       setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchTree();
+    const handleStoreChange = () => {
+      fetchTree();
+    };
+    window.addEventListener('omnidash:entities-changed', handleStoreChange);
+    return () => window.removeEventListener('omnidash:entities-changed', handleStoreChange);
   }, []);
 
   const handleCopyAscii = () => {
@@ -131,19 +153,29 @@ export const EntityTreeView = () => {
     setFormSubmitting(true);
     setFormError('');
 
+    const localEntity = {
+      id: 'entity-' + Date.now(),
+      name: newEntity.name.trim(),
+      type: newEntity.type,
+      parent_id: newEntity.parent_id.trim() || undefined,
+      location_context: newEntity.location_context.trim() || undefined,
+      attributes: {}
+    };
+    if (newEntity.role.trim()) localEntity.attributes.role = newEntity.role.trim();
+    if (newEntity.note.trim()) localEntity.attributes.note = newEntity.note.trim();
+
     try {
       const payload = {
-        name: newEntity.name.trim(),
-        type: newEntity.type,
-        parent_id: newEntity.parent_id.trim() || undefined,
-        location_context: newEntity.location_context.trim() || undefined,
-        attributes: {}
+        name: localEntity.name,
+        type: localEntity.type,
+        parent_id: localEntity.parent_id,
+        location_context: localEntity.location_context,
+        attributes: localEntity.attributes
       };
-      if (newEntity.role.trim()) payload.attributes.role = newEntity.role.trim();
-      if (newEntity.note.trim()) payload.attributes.note = newEntity.note.trim();
 
       const res = await axios.post('/api/entities', payload);
       if (res.data?.success) {
+        saveCustomEntity(res.data.entity || localEntity);
         setShowAddModal(false);
         setNewEntity({
           name: '',
@@ -154,8 +186,23 @@ export const EntityTreeView = () => {
           note: ''
         });
         fetchTree();
+        return;
       }
     } catch (err) {
+      if (isHtmlOrOfflineError(err)) {
+        saveCustomEntity(localEntity);
+        setShowAddModal(false);
+        setNewEntity({
+          name: '',
+          type: 'PERSON',
+          parent_id: '',
+          location_context: '',
+          role: '',
+          note: ''
+        });
+        fetchTree();
+        return;
+      }
       setFormError(err.response?.data?.error || err.message || 'Błąd rejestracji podmiotu.');
     } finally {
       setFormSubmitting(false);

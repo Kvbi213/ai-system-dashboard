@@ -16,6 +16,13 @@ import {
 } from '../modules/services/entitiesService.js';
 import EntityTreeView from '../modules/components/EntityTreeView.jsx';
 import EntityDetailsModal from '../modules/components/EntityDetailsModal.jsx';
+import {
+  getDeletedEntityIds,
+  markEntityDeleted,
+  resetClientEntityStore,
+  filterTreeWithClientState,
+  isHtmlOrOfflineError
+} from '../modules/services/clientEntityStore.js';
 
 vi.mock('axios');
 
@@ -208,4 +215,104 @@ describe('FAZA 4 & Integracja: Entities & Intelligence OSINT Hub Suite', () => {
     });
   });
 
+  describe('4. Cloud Resilience & HTML Rewrite Interception', () => {
+    beforeEach(() => {
+      resetClientEntityStore();
+    });
+
+    it('should correctly classify HTML and offline errors', () => {
+      const htmlErr = new Error('Endpoint /api/entities/node-damian?cascade=true zwrócił HTML');
+      expect(isHtmlOrOfflineError(htmlErr)).toBe(true);
+
+      const netErr = new Error('Network Error');
+      expect(isHtmlOrOfflineError(netErr)).toBe(true);
+
+      const status404 = { response: { status: 404 } };
+      expect(isHtmlOrOfflineError(status404)).toBe(true);
+    });
+
+    it('should filter deleted entities and their descendants from tree', () => {
+      const sampleTree = [
+        {
+          id: 'root-1',
+          name: 'Polska',
+          type: 'COUNTRY',
+          children: [
+            {
+              id: 'node-damian',
+              name: 'Damian',
+              type: 'PERSON',
+              children: [
+                { id: 'sub-asset-1', name: 'Zasób Damiana', type: 'ASSET', children: [] }
+              ]
+            },
+            {
+              id: 'node-jakub',
+              name: 'Jakub Lis',
+              type: 'PERSON',
+              children: []
+            }
+          ]
+        }
+      ];
+
+      markEntityDeleted('node-damian', true, sampleTree);
+      const filtered = filterTreeWithClientState(sampleTree);
+
+      expect(filtered[0].children.find(c => c.id === 'node-damian')).toBeUndefined();
+      expect(filtered[0].children.find(c => c.id === 'node-jakub')).toBeDefined();
+    });
+
+    it('should delete entity smoothly when backend returns HTML error', async () => {
+      const mockEntity = {
+        id: 'node-damian',
+        name: 'Damian',
+        type: 'PERSON',
+        tree_path: '/polska/pomorskie/starogard/damian/',
+        attributes: { role: 'Gamer / Modder' }
+      };
+
+      axios.get.mockResolvedValueOnce({
+        data: { success: true, entity: mockEntity, relations: [] }
+      });
+
+      // Symulacja błędu HTML Axios Interceptora przy próbie usunięcia
+      axios.delete.mockRejectedValueOnce(
+        new Error('Endpoint /api/entities/node-damian?cascade=true zwrócił HTML')
+      );
+
+      const onEntityUpdatedMock = vi.fn();
+      const onCloseMock = vi.fn();
+
+      // Mock okienek potwierdzenia
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+      render(
+        <EntityDetailsModal
+          entityId="node-damian"
+          onClose={onCloseMock}
+          onEntityUpdated={onEntityUpdatedMock}
+        />
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Damian')).toBeDefined();
+      });
+
+      // Kliknij przycisk usunięcia
+      const deleteBtn = screen.getByText(/USUŃ PODMIOT/i);
+      fireEvent.click(deleteBtn);
+
+      await waitFor(() => {
+        expect(confirmSpy).toHaveBeenCalled();
+        expect(onEntityUpdatedMock).toHaveBeenCalled();
+        expect(onCloseMock).toHaveBeenCalled();
+      });
+
+      expect(getDeletedEntityIds().has('node-damian')).toBe(true);
+      confirmSpy.mockRestore();
+    });
+  });
+
 });
+

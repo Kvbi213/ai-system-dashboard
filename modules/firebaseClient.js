@@ -21,7 +21,7 @@ export const firestore = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 
 // Automatyczna inicjalizacja sesji Firebase Auth (gwarancja request.auth != null)
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && !process?.env?.VITEST) {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
       signInAnonymously(auth).catch((err) => {
