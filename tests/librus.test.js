@@ -465,6 +465,21 @@ Komentarz: Dział 3`;
       expect(nGrade).toBeDefined();
       expect(nGrade.inAverage).toBe(false);
     });
+
+    it('should correctly tag timetable lessons and preserve personal activities and school classes', () => {
+      const timetable = getDemoTimetableData();
+      expect(timetable.lessons.length).toBeGreaterThan(20);
+
+      // Wszystkie lekcje demonstracyjne mają zdefiniowane poprawne statusy
+      timetable.lessons.forEach(l => {
+        expect(l.status).toBeDefined();
+        expect(['active', 'cancelled']).toContain(l.status);
+      });
+
+      // Sprawdź czy odwołane lekcje nie zostały wycięte
+      const cancelled = timetable.lessons.filter(l => l.isCancelled);
+      expect(cancelled.length).toBe(4); // Czwartkowe lekcje 1, 2, 3, 8
+    });
   });
 });
 

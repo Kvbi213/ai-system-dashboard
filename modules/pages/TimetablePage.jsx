@@ -260,6 +260,14 @@ const TimetablePage = () => {
   const [librusLastSync, setLibrusLastSync] = useState(null);
   const [absenceFilterOnly, setAbsenceFilterOnly] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+  const [deletedLessonIds, setDeletedLessonIds] = useState(() => {
+    try {
+      const stored = localStorage.getItem('timetable_deleted_ids');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const [activeCategory, setActiveCategory] = useState('all'); // 'all' | 'school' | 'personal'
   const [sortBy, setSortBy] = useState('time_asc'); // 'time_asc' | 'time_desc' | 'category' | 'status'
@@ -430,14 +438,37 @@ const TimetablePage = () => {
   // Podstawa lekcji: z bufora Librusa (priorytet nadrzędny) lub z bazy/cache jeśli bufor pusty
   // Wszystkie nazwiska nauczycieli są natychmiast rozwijane do pełnych imion i nazwisk.
   const baseLessons = useMemo(() => {
-    let source = STATIC_DEMO_TIMETABLE_LESSONS;
+    // 1. Bazowe źródło lekcji szkolnych (Librus live/cache lub wersja demo)
+    let schoolLessons = STATIC_DEMO_TIMETABLE_LESSONS.filter(l => !isPersonalLesson(l));
     if (librusData && Array.isArray(librusData.lessons) && librusData.lessons.length > 0) {
-      // Łączymy lekcje ze szkoły z aktywnościami osobistymi użytkownika zapisanymi w Firestore
-      const personalLessons = (lessons || []).filter(l => isPersonalLesson(l));
-      source = [...librusData.lessons, ...personalLessons];
-    } else if (lessons && lessons.length > 0) {
-      source = lessons;
+      schoolLessons = librusData.lessons;
     }
+
+    // Nadpisania lub dodatkowe lekcje szkolne z Firestore / bazy lokalnej (lessons)
+    const customSchoolLessons = (lessons || []).filter(l => !isPersonalLesson(l));
+    let mergedSchoolLessons = [...schoolLessons];
+    if (customSchoolLessons.length > 0) {
+      customSchoolLessons.forEach(custom => {
+        const idx = mergedSchoolLessons.findIndex(m => String(m.id) === String(custom.id));
+        if (idx >= 0) {
+          mergedSchoolLessons[idx] = { ...mergedSchoolLessons[idx], ...custom };
+        } else {
+          mergedSchoolLessons.push(custom);
+        }
+      });
+    }
+
+    // 2. Aktywności osobiste (Firestore z fallbackiem do demo jeśli brak wpisów)
+    const customPersonalLessons = (lessons || []).filter(l => isPersonalLesson(l));
+    let personalLessons = customPersonalLessons.length > 0
+      ? customPersonalLessons
+      : STATIC_DEMO_TIMETABLE_LESSONS.filter(l => isPersonalLesson(l));
+
+    let source = [...mergedSchoolLessons, ...personalLessons];
+    if (deletedLessonIds && deletedLessonIds.length > 0) {
+      source = source.filter(l => !deletedLessonIds.includes(String(l.id)));
+    }
+
     return source.map(l => {
       const fullTeacher = resolveFullTeacherName(l.cleanTeacher || l.teacher);
       const isPersonal = isPersonalLesson(l);
@@ -448,7 +479,7 @@ const TimetablePage = () => {
         cleanTeacher: fullTeacher || l.cleanTeacher || l.teacher
       };
     });
-  }, [lessons, librusData]);
+  }, [lessons, librusData, deletedLessonIds]);
 
   // Wzbogacenie lekcji o aktywne absencje i alerty zastępstw
   const enrichedLessons = useMemo(() => {
@@ -663,7 +694,10 @@ const TimetablePage = () => {
           setLibrusData(resp.data.data);
           setLibrusLastSync(resp.data.data.lastSync || new Date().toISOString());
           if (Array.isArray(resp.data.data.lessons)) {
-            setLessons(resp.data.data.lessons);
+            setLessons(prev => {
+              const personal = (prev || []).filter(l => isPersonalLesson(l));
+              return [...resp.data.data.lessons, ...personal];
+            });
           }
           const subsCount = resp.data.data.substitutions?.length || 0;
           setToastMessage(`[+] Zsynchronizowano plan z Librusa! Wykryto ${subsCount} zmian/zastępstw.`);
@@ -677,7 +711,10 @@ const TimetablePage = () => {
             setLibrusData(snap.data());
             setLibrusLastSync(snap.data().lastSync || new Date().toISOString());
             if (Array.isArray(snap.data().lessons)) {
-              setLessons(snap.data().lessons);
+              setLessons(prev => {
+                const personal = (prev || []).filter(l => isPersonalLesson(l));
+                return [...snap.data().lessons, ...personal];
+              });
             }
           }
           const snapCal = await getDoc(doc(firestore, 'librus_cache', 'calendar'));
@@ -763,6 +800,11 @@ const TimetablePage = () => {
   const handleDelete = async (id) => {
     const idStr = String(id);
     if (!window.confirm('Czy na pewno chcesz usunąć te zajęcia z planu?')) return;
+    setDeletedLessonIds(prev => {
+      const next = [...prev, idStr];
+      try { localStorage.setItem('timetable_deleted_ids', JSON.stringify(next)); } catch {}
+      return next;
+    });
     setLessons(prev => prev.filter(l => String(l.id) !== idStr));
     await deleteCloudDocument('timetable', idStr);
     if (!isCloudEnvironment()) {
