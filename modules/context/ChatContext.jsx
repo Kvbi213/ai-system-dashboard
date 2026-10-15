@@ -100,6 +100,35 @@ export const ChatProvider = ({ children }) => {
     }];
   });
 
+  const [harveyMessages, setHarveyMessages] = useState(() => {
+    const ghostMode = localStorage.getItem('system_ghost_mode') === 'true';
+    if (!ghostMode) {
+      try {
+        const clearedHarvey = parseInt(localStorage.getItem('system_chat_cleared_harvey') || '0', 10);
+        const saved = localStorage.getItem('system_harvey_history');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const filtered = parsed.filter(m => {
+              const msgTime = new Date(m.timestamp || m.updated_at || 0).getTime();
+              return !clearedHarvey || msgTime > clearedHarvey;
+            });
+            if (filtered.length > 0) return filtered;
+          }
+        }
+      } catch (e) {
+        console.warn('Nie udało się załadować historii Harvey:', e);
+      }
+    }
+    return [{ 
+      id: 'welcome_harvey_init',
+      role: 'ai', 
+      content: 'HARVEY ONLINE. Always Be Closing. Gotowy do prospectingu, analizy 23 sygnałów rynkowych, tworzenia kampanii cold email (AIDA/PAS/BAB) i zbijania obiekcji.',
+      timestamp: new Date().toISOString(),
+      chatMode: 'harvey'
+    }];
+  });
+
   const [thoughtsLog, setThoughtsLog] = useState([
     t("chatMentorActive", "System Mentor aktywowany. Oczekiwanie na dane wejściowe..."),
   ]);
@@ -115,6 +144,7 @@ export const ChatProvider = ({ children }) => {
       const clearedWorker = parseInt(localStorage.getItem('system_chat_cleared_worker') || '0', 10);
       const clearedMentor = parseInt(localStorage.getItem('system_chat_cleared_mentor') || '0', 10);
       const clearedDaemon = parseInt(localStorage.getItem('system_chat_cleared_daemon') || '0', 10);
+      const clearedHarvey = parseInt(localStorage.getItem('system_chat_cleared_harvey') || '0', 10);
 
       const allMsgs = Array.isArray(cloudMsgs) ? cloudMsgs : [];
 
@@ -138,6 +168,13 @@ export const ChatProvider = ({ children }) => {
         if (m.chatMode !== 'daemon') return false;
         const msgTime = new Date(m.timestamp || m.updated_at || 0).getTime();
         return !clearedDaemon || msgTime > clearedDaemon;
+      });
+
+      // Filtruj wiadomości dla trybu HARVEY nowsze niż znacznik czyszczenia
+      const harveyFromCloud = allMsgs.filter(m => {
+        if (m.chatMode !== 'harvey') return false;
+        const msgTime = new Date(m.timestamp || m.updated_at || 0).getTime();
+        return !clearedHarvey || msgTime > clearedHarvey;
       });
 
       setWorkerMessages(prev => {
@@ -234,6 +271,37 @@ export const ChatProvider = ({ children }) => {
         }
         return merged;
       });
+
+      setHarveyMessages(prev => {
+        const validPrev = prev.filter(m => {
+          const t = new Date(m.timestamp || 0).getTime();
+          return !clearedHarvey || t > clearedHarvey;
+        });
+
+        const map = new Map();
+        validPrev.forEach(m => {
+          const key = m.id || `${m.role}_${m.content}_${m.timestamp}`;
+          map.set(key, m);
+        });
+        harveyFromCloud.forEach(m => {
+          const key = m.id || `${m.role}_${m.content}_${m.timestamp}`;
+          map.set(key, m);
+        });
+
+        const merged = Array.from(map.values());
+        merged.sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
+
+        if (merged.length === 0) {
+          return [{
+            id: `welcome_harvey_${clearedHarvey || 'init'}`,
+            role: 'ai',
+            content: 'HARVEY ONLINE. Always Be Closing. Gotowy do prospectingu, analizy 23 sygnałów rynkowych, tworzenia kampanii cold email (AIDA/PAS/BAB) i zbijania obiekcji.',
+            timestamp: new Date(clearedHarvey || Date.now()).toISOString(),
+            chatMode: 'harvey'
+          }];
+        }
+        return merged;
+      });
     });
 
     const handleChatCleared = (e) => {
@@ -268,6 +336,15 @@ export const ChatProvider = ({ children }) => {
           chatMode: 'daemon'
         }]);
       }
+      if (targetMode === 'harvey' || targetMode === 'all') {
+        setHarveyMessages([{
+          id: `welcome_harvey_${ts}`,
+          role: 'ai',
+          content: 'HARVEY ONLINE. Always Be Closing. Gotowy do prospectingu, analizy 23 sygnałów rynkowych, tworzenia kampanii cold email (AIDA/PAS/BAB) i zbijania obiekcji.',
+          timestamp: iso,
+          chatMode: 'harvey'
+        }]);
+      }
     };
     window.addEventListener('chatCleared', handleChatCleared);
 
@@ -298,6 +375,13 @@ export const ChatProvider = ({ children }) => {
     }
   }, [daemonMessages]);
 
+  useEffect(() => {
+    const ghostMode = localStorage.getItem('system_ghost_mode') === 'true';
+    if (!ghostMode) {
+      localStorage.setItem('system_harvey_history', JSON.stringify(harveyMessages));
+    }
+  }, [harveyMessages]);
+
   const sendCommand = async (inputStr) => {
     if (!inputStr.trim()) return;
     const userText = inputStr.trim();
@@ -309,6 +393,7 @@ export const ChatProvider = ({ children }) => {
         const sysMsg = { role: 'ai', content, isSystem: true, timestamp: new Date().toISOString() };
         if (mode === 'worker') setWorkerMessages(prev => [...prev, sysMsg]);
         else if (mode === 'daemon') setDaemonMessages(prev => [...prev, sysMsg]);
+        else if (mode === 'harvey') setHarveyMessages(prev => [...prev, sysMsg]);
         else setMentorMessages(prev => [...prev, sysMsg]);
       };
 
@@ -342,6 +427,19 @@ export const ChatProvider = ({ children }) => {
           localStorage.setItem('system_daemon_history', JSON.stringify(welcome));
           window.dispatchEvent(new CustomEvent('chatCleared', { detail: { timestamp: clearTimestamp, mode: 'daemon' } }));
           clearChatHistoryCloud('daemon').catch(err => console.warn('[ChatContext] Błąd czyszczenia chmury daemon:', err));
+        } else if (mode === 'harvey') {
+          localStorage.setItem('system_chat_cleared_harvey', String(clearTimestamp));
+          const welcome = [{ 
+            id: `welcome_harvey_${clearTimestamp}`,
+            role: 'ai', 
+            content: 'HARVEY ONLINE. Always Be Closing. Gotowy do prospectingu, analizy 23 sygnałów rynkowych, tworzenia kampanii cold email (AIDA/PAS/BAB) i zbijania obiekcji.', 
+            timestamp: clearIso,
+            chatMode: 'harvey'
+          }];
+          setHarveyMessages(welcome);
+          localStorage.setItem('system_harvey_history', JSON.stringify(welcome));
+          window.dispatchEvent(new CustomEvent('chatCleared', { detail: { timestamp: clearTimestamp, mode: 'harvey' } }));
+          clearChatHistoryCloud('harvey').catch(err => console.warn('[ChatContext] Błąd czyszczenia chmury harvey:', err));
         } else {
           localStorage.setItem('system_chat_cleared_mentor', String(clearTimestamp));
           const welcome = [{ 
@@ -361,31 +459,33 @@ export const ChatProvider = ({ children }) => {
       }
       
       if (cmd === '/help') {
-        pushSysMsg(t('chatHelpMsg', 'Dostępne polecenia systemowe:\n- /clear - czyści ekran obecnego trybu oraz usuwa historię z chmury.\n- /purge - agresywnie usuwa historię z pamięci podręcznej i chmury dla obu trybów.\n- /mode [worker|mentor|daemon] - przełącza tryb sztucznej inteligencji.\n- /export - zapisuje log z rozmową do pliku na dysku twardym.\n- /ping - weryfikuje łączność i opóźnienie do API System.'));
+        pushSysMsg(t('chatHelpMsg', 'Dostępne polecenia systemowe:\n- /clear - czyści ekran obecnego trybu oraz usuwa historię z chmury.\n- /purge - agresywnie usuwa historię z pamięci podręcznej i chmury dla wszystkich trybów.\n- /mode [worker|mentor|daemon|harvey] - przełącza tryb sztucznej inteligencji.\n- /export - zapisuje log z rozmową do pliku na dysku twardym.\n- /ping - weryfikuje łączność i opóźnienie do API System.'));
         return;
       }
 
       if (cmd === '/mode') {
         const newMode = args[0];
-        if (newMode === 'worker' || newMode === 'mentor' || newMode === 'daemon') {
+        if (newMode === 'worker' || newMode === 'mentor' || newMode === 'daemon' || newMode === 'harvey') {
           setMode(newMode);
           setTimeout(() => {
             if (newMode === 'worker') {
               setWorkerMessages(prev => [...prev, { role: 'ai', content: t('chatSwitchedWorker', '[*] INFO: Przełączono na tryb inżynieryjny (WORKER).'), isSystem: true, timestamp: new Date().toISOString() }]);
             } else if (newMode === 'daemon') {
               setDaemonMessages(prev => [...prev, { role: 'ai', content: '[*] INFO: Przełączono na tryb autonomiczny (OMNIDAEMON).', isSystem: true, timestamp: new Date().toISOString() }]);
+            } else if (newMode === 'harvey') {
+              setHarveyMessages(prev => [...prev, { role: 'ai', content: '[*] INFO: Przełączono na tryb sprzedaży i prospectingu (HARVEY).', isSystem: true, timestamp: new Date().toISOString() }]);
             } else {
               setMentorMessages(prev => [...prev, { role: 'ai', content: t('chatSwitchedMentor', '[*] INFO: Przełączono na tryb analityczny (MENTOR).'), isSystem: true, timestamp: new Date().toISOString() }]);
             }
           }, 0);
         } else {
-          pushSysMsg(t('chatUnknownMode', '[!] BŁĄD: Nieznany tryb. Użyj: /mode worker, /mode mentor lub /mode daemon'));
+          pushSysMsg(t('chatUnknownMode', '[!] BŁĄD: Nieznany tryb. Użyj: /mode worker, /mode mentor, /mode daemon lub /mode harvey'));
         }
         return;
       }
 
       if (cmd === '/export') {
-        const msgs = mode === 'worker' ? workerMessages : (mode === 'daemon' ? daemonMessages : mentorMessages);
+        const msgs = mode === 'worker' ? workerMessages : (mode === 'daemon' ? daemonMessages : (mode === 'harvey' ? harveyMessages : mentorMessages));
         const textToSave = msgs.map(m => `[${m.role.toUpperCase()}]: ${m.content}`).join('\n\n');
         const blob = new Blob([textToSave], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
@@ -404,9 +504,11 @@ export const ChatProvider = ({ children }) => {
         localStorage.setItem('system_chat_cleared_worker', String(clearTimestamp));
         localStorage.setItem('system_chat_cleared_mentor', String(clearTimestamp));
         localStorage.setItem('system_chat_cleared_daemon', String(clearTimestamp));
+        localStorage.setItem('system_chat_cleared_harvey', String(clearTimestamp));
         localStorage.removeItem('system_chat_history');
         localStorage.removeItem('system_mentor_history');
         localStorage.removeItem('system_daemon_history');
+        localStorage.removeItem('system_harvey_history');
 
         const workerWelcome = [{ 
           id: `welcome_worker_${clearTimestamp}`,
@@ -429,10 +531,18 @@ export const ChatProvider = ({ children }) => {
           timestamp: clearIso,
           chatMode: 'daemon'
         }];
+        const harveyWelcome = [{ 
+          id: `welcome_harvey_${clearTimestamp}`,
+          role: 'ai', 
+          content: 'HARVEY ONLINE. Always Be Closing. Gotowy do prospectingu, analizy 23 sygnałów rynkowych, tworzenia kampanii cold email (AIDA/PAS/BAB) i zbijania obiekcji.', 
+          timestamp: clearIso,
+          chatMode: 'harvey'
+        }];
 
         setWorkerMessages(workerWelcome);
         setMentorMessages(mentorWelcome);
         setDaemonMessages(daemonWelcome);
+        setHarveyMessages(harveyWelcome);
         setThoughtsLog([t("chatPurgeMentor2", "System Mentor uruchomiony (PURGED).")]);
 
         window.dispatchEvent(new CustomEvent('chatCleared', { detail: { timestamp: clearTimestamp, mode: 'all' } }));
@@ -605,6 +715,75 @@ export const ChatProvider = ({ children }) => {
       }
     }
 
+    // HARVEY MODE
+    if (mode === 'harvey') {
+      setHarveyMessages(prev => [...prev, userMsg]);
+      try {
+        const result = await dispatchAiQuery({
+          text: userText,
+          mode: 'harvey',
+          newsCategories,
+          userName,
+          language: systemLanguage,
+          onProgress: (milestone) => {
+            if (milestone.trace) {
+              setLiveTrace(milestone.trace);
+            }
+            const msId = 'ms_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+            const msMsg = {
+              id: msId,
+              role: 'ai',
+              content: milestone.text,
+              timestamp: new Date().toISOString(),
+              chatMode: 'harvey',
+              isMilestone: true,
+              executionTrace: milestone.trace || null
+            };
+            setHarveyMessages(prev => [...prev, msMsg]);
+            if (!ghostMode) {
+              saveCloudDocument('chat_history', msId, msMsg);
+            }
+          }
+        });
+
+        const content = result.content || 'Polecenie zrealizowane przez HARVEY.';
+        const widgets = result.widgets || [];
+        const aiMsgId = (Date.now() + 1).toString();
+        const aiMsg = { 
+          id: aiMsgId, 
+          role: 'ai', 
+          content, 
+          widgets, 
+          timestamp: new Date().toISOString(), 
+          chatMode: 'harvey',
+          executionTrace: result.executionTrace || null 
+        };
+
+        setHarveyMessages(prev => [...prev, aiMsg]);
+        if (!ghostMode) {
+          saveCloudDocument('chat_history', aiMsgId, aiMsg);
+        }
+
+        if (result.mentor_thoughts) {
+          const time = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+          setThoughtsLog(prev => [`${time} > [HARVEY] ${result.mentor_thoughts}`, ...prev]);
+        }
+
+        setLiveTrace(null);
+        setIsProcessing(false);
+        return { content, widgets };
+      } catch (error) {
+        setHarveyMessages(prev => [...prev, {
+          role: 'ai',
+          content: t('chatTimeout', 'BŁĄD POŁĄCZENIA: ') + (error?.message || 'Nieznany błąd'),
+          timestamp: new Date().toISOString()
+        }]);
+        setLiveTrace(null);
+        setIsProcessing(false);
+        return { content: t("chatSorryErr", "Przepraszam, wystąpił błąd połączenia."), widgets: [] };
+      }
+    }
+
     // WORKER MODE
     setWorkerMessages(prev => [...prev, userMsg]);
     try {
@@ -675,6 +854,7 @@ export const ChatProvider = ({ children }) => {
     workerMessages, setWorkerMessages,
     mentorMessages, setMentorMessages,
     daemonMessages, setDaemonMessages,
+    harveyMessages, setHarveyMessages,
     thoughtsLog, setThoughtsLog,
     sendCommand
   };

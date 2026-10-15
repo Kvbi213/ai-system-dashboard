@@ -216,6 +216,13 @@ export const GOOGLE_DEFAULT_VOICES = [
   { id: 'en-US-Neural2-F', name: 'Neural2-F (Damski - US Expressive)' }
 ];
 
+export const FISH_AUDIO_DEFAULT_VOICES = [
+  { id: '800a830bc9bc42dd90a7826279f53835', name: 'Anna (Damski - Naturalny, ekspresyjny)' },
+  { id: '54d9e8460ec444009252c4167e4fe337', name: 'Michał (Męski - Dynamiczny, profesjonalny)' },
+  { id: '7f92f8afb8ec43bf81429cc1c9199cb1', name: 'Piotr (Męski - Ciepły lektor)' },
+  { id: 'custom', name: 'Własny model referencyjny Fish Audio (Custom ID)' }
+];
+
 export const GOOGLE_TTS_FREE_TIER_LIMIT = 1000000; // 1 000 000 znaków/miesiąc w darmowym pakiecie Google Cloud Free Tier
 
 export function getGoogleTtsMonthlyUsage() {
@@ -266,10 +273,12 @@ class TTSService {
     if (typeof localStorage !== 'undefined') {
       const stored = localStorage.getItem('system_tts_engine');
       if (stored === 'web') return 'browser';
-      if (stored) return stored; // 'browser' | 'elevenlabs' | 'google' | 'edge' | 'openai'
+      if (stored === 'fish_audio' || stored === 'fish') return 'fish_audio';
+      if (stored) return stored; // 'browser' | 'elevenlabs' | 'google' | 'edge' | 'openai' | 'fish_audio'
     }
-    // Domyślnie ElevenLabs jeśli skonfigurowany jest klucz, następnie Google Cloud lub Edge Neural
+    // Domyślnie ElevenLabs jeśli skonfigurowany jest klucz, następnie Fish Audio, Google Cloud lub Edge Neural
     if (this.getElevenLabsKey()) return 'elevenlabs';
+    if (this.getFishAudioKey()) return 'fish_audio';
     if (this.getGoogleApiKey()) return 'google';
     return 'edge';
   }
@@ -301,6 +310,17 @@ class TTSService {
     return envKey.trim();
   }
 
+  getFishAudioKey() {
+    if (typeof localStorage !== 'undefined') {
+      const stored = localStorage.getItem('system_fish_audio_api_key');
+      if (stored && stored.trim()) return stored.trim();
+    }
+    const envKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FISH_AUDIO_API_KEY) ||
+                   (typeof process !== 'undefined' && process.env?.FISH_AUDIO_API_KEY) ||
+                   '';
+    return envKey.trim();
+  }
+
   getOpenAiKey() {
     if (typeof localStorage === 'undefined') return '';
     return localStorage.getItem('system_openai_tts_api_key') || '';
@@ -311,6 +331,9 @@ class TTSService {
     const engine = this.getEngine();
     if (engine === 'browser') {
       return localStorage.getItem('system_browser_voice_id') || 'Google polski';
+    }
+    if (engine === 'fish_audio' || engine === 'fish') {
+      return localStorage.getItem('system_fish_audio_voice_id') || FISH_AUDIO_DEFAULT_VOICES[0].id;
     }
     if (engine === 'google') {
       return localStorage.getItem('system_google_voice_id') || GOOGLE_DEFAULT_VOICES[0].id;
@@ -600,6 +623,32 @@ class TTSService {
       }
     }
 
+    // 5. SILNIK FISH AUDIO (ULTRA-NATURALNY AI)
+    if (engine === 'fish_audio' || engine === 'fish') {
+      const apiKey = explicitApiKey || this.getFishAudioKey();
+      const voiceId = explicitVoiceId || this.getVoiceId();
+
+      try {
+        await this.speakWithFishAudio(clean, apiKey, voiceId, { onStart, onEnd, onError });
+        return;
+      } catch (err) {
+        console.warn('[TTSService] Błąd Fish Audio TTS, próba przejścia do Edge TTS:', err.message);
+        try {
+          await this.speakWithEdgeTTS(clean, localStorage.getItem('system_edge_voice_id') || 'pl-PL-MarekNeural', { onStart, onEnd, onError });
+          return;
+        } catch (edgeErr) {
+          console.warn('[TTSService] Błąd rezerwowego Edge TTS:', edgeErr.message);
+        }
+
+        try {
+          await this.speakWithBrowserTTS(clean, localStorage.getItem('system_browser_voice_id') || 'Google polski', { onStart, onEnd, onError });
+          return;
+        } catch (bErr) {
+          console.warn('[TTSService] Błąd Browser TTS fallback:', bErr.message);
+        }
+      }
+    }
+
     // Ostateczna próba odtworzenia za pomocą przeglądarki Web Speech jeśli cokolwiek innego zawiodło
     try {
       await this.speakWithBrowserTTS(clean, localStorage.getItem('system_browser_voice_id') || 'Google polski', { onStart, onEnd, onError });
@@ -797,6 +846,82 @@ class TTSService {
 
     if (!audioBlob || audioBlob.size === 0) {
       throw new Error('Brak klucza API OpenAI lub niepowodzenie żądania');
+    }
+
+    await this.playAudioBlob(audioBlob, { onStart, onEnd, onError });
+  }
+
+  /**
+   * Synteza za pomocą Fish Audio API (https://api.fish.audio/v1/tts)
+   */
+  async speakWithFishAudio(text, apiKey, voiceId, { onStart, onEnd, onError } = {}) {
+    let audioBlob = null;
+    const targetVoice = (voiceId && voiceId !== 'custom') ? voiceId : FISH_AUDIO_DEFAULT_VOICES[0].id;
+
+    // 1. Bezpośrednie zapytanie z przeglądarki jeśli klucz API jest podany
+    if (apiKey) {
+      try {
+        const payload = {
+          text,
+          reference_id: targetVoice,
+          format: 'mp3',
+          mp3_bitrate: 128,
+          latency: 'normal'
+        };
+        const res = await fetch('https://api.fish.audio/v1/tts', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey.trim()}`,
+            'Content-Type': 'application/json',
+            'Accept': 'audio/mpeg'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('audio') || contentType.includes('mpeg') || contentType.includes('octet-stream')) {
+            audioBlob = await res.blob();
+          }
+        } else {
+          const errText = await res.text();
+          console.warn(`[FishAudio Direct] Błąd ${res.status}:`, errText);
+        }
+      } catch (directErr) {
+        console.warn('[FishAudio Direct Fetch] Błąd sieciowy/CORS:', directErr.message);
+      }
+    }
+
+    // 2. Próba odpytania proxy backendowego
+    if (!audioBlob) {
+      const endpoints = isCloudEnvironment()
+        ? ['https://ai-system-dashboard.vercel.app/api/tts']
+        : ['/api/voice/tts', 'https://ai-system-dashboard.vercel.app/api/tts'];
+
+      for (const endpoint of endpoints) {
+        try {
+          const proxyRes = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              engine: 'fish_audio',
+              text,
+              voiceId: targetVoice,
+              apiKey: apiKey || undefined
+            })
+          });
+
+          const contentType = proxyRes.headers.get('content-type') || '';
+          if (proxyRes.ok && (contentType.includes('audio') || contentType.includes('mpeg') || contentType.includes('octet-stream'))) {
+            audioBlob = await proxyRes.blob();
+            if (audioBlob && audioBlob.size > 0) break;
+          }
+        } catch {}
+      }
+    }
+
+    if (!audioBlob || audioBlob.size === 0) {
+      throw new Error('Brak klucza API Fish Audio lub niepowodzenie żądania syntezy mowy');
     }
 
     await this.playAudioBlob(audioBlob, { onStart, onEnd, onError });

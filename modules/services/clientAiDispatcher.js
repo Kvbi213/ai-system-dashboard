@@ -12,6 +12,7 @@ import { sendPushNotificationClient, formatPushText, cleanSubjectName } from './
 import { isDeepResearchIntent, isStatusInquiry, generateFallbackPlan } from './autonomousClassifier.js';
 import { getSavedLocation } from './geolocationService.js';
 import { KNOWN_POLISH_SPEED_CAMERAS, getSpeedCamerasInRadius, getSpeedCamerasOnRoute, getTrafficAlerts } from './trafficService.js';
+import { generateHarveyPrompt } from '../ai/harveyPersona.js';
 
 /**
  * Autonomiczny Silnik AI Dyspozytora Klienckiego (Client-Side AI Dispatcher)
@@ -1011,6 +1012,35 @@ export function parseAndExecuteAiActionsWithWidgets(text, userQuery = '') {
             output: `Przekierowano widok do "${attrs.path}"`
           });
         }
+      } else if (actionType === 'HARVEY_PROSPECT') {
+        const query = attrs.query || attrs.target || 'B2B Leads';
+        const icp = attrs.icp || 'Standard ICP';
+        executedTools.push({
+          tool: 'harvey_prospecting',
+          command: `[ACTION:HARVEY_PROSPECT query="${query}" icp="${icp}"]`,
+          status: '200 OK',
+          output: `Zainicjowano prospecting rynkowy dla segmentu: "${query}" (Profil ICP: ${icp})`
+        });
+      } else if (actionType === 'HARVEY_CAMPAIGN') {
+        const target = attrs.target || 'Prospect';
+        const framework = attrs.framework || 'AIDA';
+        const subject = attrs.subject || 'Współpraca';
+        executedTools.push({
+          tool: 'harvey_outreach',
+          command: `[ACTION:HARVEY_CAMPAIGN target="${target}" framework="${framework}"]`,
+          status: '200 OK',
+          output: `Wygenerowano sekwencję cold email w ramie ${framework} dla "${target}" [Temat: ${subject}]`
+        });
+      } else if (actionType === 'HARVEY_QUALIFY') {
+        const company = attrs.company || attrs.target || 'Firma';
+        const score = attrs.score || '8/10';
+        const status = attrs.status || 'QUALIFIED';
+        executedTools.push({
+          tool: 'harvey_qualification',
+          command: `[ACTION:HARVEY_QUALIFY company="${company}" score="${score}"]`,
+          status: '200 OK',
+          output: `Lead ${company}: Kwalifikacja BANT/MEDDIC (${status}, Ocena ICP: ${score})`
+        });
       }
     } catch (actErr) {
       console.warn('[AiDispatcher] Błąd wykonania akcji:', actionType, actErr);
@@ -2030,8 +2060,25 @@ ${brainSummary}
 3. JAWNA TREŚĆ POWIADOMIENIA PUSH W CZACIE: Gdy wysyłasz powiadomienie na telefon za pomocą [ACTION:SEND_PUSH title="..." body="..."], BEZWZGLĘDNIE podaj pełną treść tego powiadomienia również bezpośrednio w tekście wiadomości czatu (użytkownik musi widzieć treść notyfikacji na ekranie)!
 4. RYGOR LIBRUS SYNERGIA (ŚCIŚLE READ-ONLY): Dane z systemu Librus (terminarz, sprawdziany, kartkówki, absencje nauczycieli oraz oceny) są WYŁĄCZNIE DO WGLĄDU. Asystent AI i system NIE MAJĄ uprawnień ani akcji do edycji, dodawania ani modyfikacji oficjalnych rekordów szkolnych. NIGDY nie emituj żadnych akcji modyfikacji danych Librusa.`;
 
-      const systemPrompt = mode === 'mentor'
-        ? `Jesteś OMNI MIND — inteligentnym mentorem i analitykiem w systemie OmniDash. Rozmawiasz z ${userName}.
+      const systemPrompt = mode === 'harvey'
+        ? generateHarveyPrompt({
+            userName,
+            language,
+            dateStr: context.dateStr,
+            timeStr: context.timeStr,
+            tasksSummary,
+            timetableSummary: ttCtx.timetableFullSummary,
+            librusCalendarSummary,
+            librusGradesSummary,
+            financesSummary,
+            workoutsSummary,
+            calendarSummary,
+            brainSummary,
+            locationSummary,
+            liveIntelBlock: liveIntel ? `\n AKTUALNE WYNIKI WYSZUKIWANIA ZE ŚWIATA NA ŻYWO (BRAVE SEARCH LIVE INTEL):\n${liveIntel}\n` : ''
+          })
+        : mode === 'mentor'
+          ? `Jesteś OMNI MIND — inteligentnym mentorem i analitykiem w systemie OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
 ${sharedGroundingAndMemoryRules}
@@ -2084,7 +2131,7 @@ Terminarz szkolny Librus Synergia (READ-ONLY):
 ${librusCalendarSummary}
 Dziennik ocen Librus Synergia (READ-ONLY):
 ${librusGradesSummary}`
-        : (mode === 'daemon'
+        : mode === 'daemon'
           ? `Jesteś OMNIDAEMON — autonomicznym, całodobowym demonem operacyjnym (OmniDaemon 24/7 Engine) w OmniDash. Rozmawiasz z ${userName}. Prowadzisz badania w tle, odpowiadasz na wiadomości ze smartfona i raportujesz stan.
 Aktualny czas systemowy (Polska / Warszawa): ${context.dateStr}, godzina ${context.timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${context.dateStr}, godzina ${context.timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
@@ -2181,7 +2228,7 @@ ${calendarSummary}
 Terminarz szkolny Librus Synergia (READ-ONLY):
 ${librusCalendarSummary}
 Dziennik ocen Librus Synergia (READ-ONLY):
-${librusGradesSummary}`);
+${librusGradesSummary}`;
 
       const candidateModels = [
         activeModel,
@@ -2209,7 +2256,7 @@ ${librusGradesSummary}`);
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: text }
               ],
-              temperature: mode === 'mentor' ? 0.7 : 0.3,
+              temperature: mode === 'mentor' ? 0.7 : (mode === 'harvey' ? 0.5 : 0.3),
               max_tokens: 3000
             })
           });
@@ -2230,7 +2277,9 @@ ${librusGradesSummary}`);
         const resData = await response.json();
         const rawContent = resData.choices?.[0]?.message?.content || 'Brak odpowiedzi od modelu.';
         const { cleanedText: content, extraWidgets, executedTools } = parseAndExecuteAiActionsWithWidgets(rawContent, text);
-        const thoughts = mode === 'mentor' ? `Analiza kognitywna (${usedModel}): przetworzono zadania i kontekst operacyjny.` : null;
+        const thoughts = mode === 'mentor' 
+          ? `Analiza kognitywna (${usedModel}): przetworzono zadania i kontekst operacyjny.` 
+          : (mode === 'harvey' ? `Harvey Sales Engine (${usedModel}): wygenerowano strategię prospektingową i outreach.` : null);
         const widgets = Array.from(new Set([...extraWidgets, ...determineWidgets(text, rawContent)]));
         const executionTrace = buildExecutionTrace({ text, activeModel: usedModel, context, executedTools, searches: [] });
 

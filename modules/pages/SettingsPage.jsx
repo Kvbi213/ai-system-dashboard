@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { COLOR_PRESETS, NEWS_CATEGORIES } from '../config/constants';
 import { initializeAllFirestoreCollections, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
 import { wakeWordService } from '../services/wakeWordService';
-import { ttsService, EDGE_DEFAULT_VOICES, ELEVENLABS_DEFAULT_VOICES, OPENAI_DEFAULT_VOICES, GOOGLE_DEFAULT_VOICES, BROWSER_DEFAULT_VOICES, getBrowserVoices, fetchElevenLabsVoices, checkElevenLabsQuota } from '../services/ttsService';
+import { ttsService, EDGE_DEFAULT_VOICES, ELEVENLABS_DEFAULT_VOICES, OPENAI_DEFAULT_VOICES, GOOGLE_DEFAULT_VOICES, BROWSER_DEFAULT_VOICES, FISH_AUDIO_DEFAULT_VOICES, getBrowserVoices, fetchElevenLabsVoices, checkElevenLabsQuota } from '../services/ttsService';
 import { getPushbulletApiKey, setPushbulletApiKey, testPushbulletConnection } from '../services/pushbulletService';
 import { acquireHighAccuracyLocation, getSavedLocation } from '../services/geolocationService';
 import { firestore } from '../firebaseClient';
@@ -209,6 +209,13 @@ const SettingsPage = () => {
   const [googleVoiceId, setGoogleVoiceId] = useState(() => localStorage.getItem('system_google_voice_id') || GOOGLE_DEFAULT_VOICES[0].id);
   const [showGoogleKey, setShowGoogleKey] = useState(false);
   const [openAiTtsKey, setOpenAiTtsKey] = useState(() => localStorage.getItem('system_openai_tts_api_key') || '');
+  const [fishAudioKey, setFishAudioKey] = useState(() => {
+    const envKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FISH_AUDIO_API_KEY) || '';
+    return localStorage.getItem('system_fish_audio_api_key') || envKey;
+  });
+  const [fishAudioVoiceId, setFishAudioVoiceId] = useState(() => localStorage.getItem('system_fish_audio_voice_id') || FISH_AUDIO_DEFAULT_VOICES[0].id);
+  const [customFishVoiceId, setCustomFishVoiceId] = useState(() => localStorage.getItem('system_fish_audio_custom_voice_id') || '');
+  const [showFishKey, setShowFishKey] = useState(false);
   const [elevenVoiceId, setElevenVoiceId] = useState(() => localStorage.getItem('system_elevenlabs_voice_id') || ELEVENLABS_DEFAULT_VOICES[0].id);
   const [elevenVoicesList, setElevenVoicesList] = useState(() => {
     try {
@@ -684,6 +691,21 @@ const SettingsPage = () => {
     localStorage.setItem('system_openai_tts_api_key', val);
   };
 
+  const updateFishAudioKey = (val) => {
+    setFishAudioKey(val);
+    localStorage.setItem('system_fish_audio_api_key', val);
+  };
+
+  const updateFishAudioVoiceId = (val) => {
+    setFishAudioVoiceId(val);
+    localStorage.setItem('system_fish_audio_voice_id', val);
+  };
+
+  const updateCustomFishVoiceId = (val) => {
+    setCustomFishVoiceId(val);
+    localStorage.setItem('system_fish_audio_custom_voice_id', val);
+  };
+
   const updateElevenVoiceId = (val) => {
     setElevenVoiceId(val);
     localStorage.setItem('system_elevenlabs_voice_id', val);
@@ -786,7 +808,9 @@ const SettingsPage = () => {
           ? googleVoiceId
           : ttsEngine === 'edge' 
             ? edgeVoiceId 
-            : openAiVoiceId;
+            : ttsEngine === 'fish_audio'
+              ? (fishAudioVoiceId === 'custom' && customFishVoiceId.trim() ? customFishVoiceId.trim() : fishAudioVoiceId)
+              : openAiVoiceId;
 
     const activeApiKey = ttsEngine === 'elevenlabs'
       ? (elevenLabsKey || ttsService.getElevenLabsKey())
@@ -794,7 +818,9 @@ const SettingsPage = () => {
         ? (googleTtsKey || ttsService.getGoogleApiKey())
         : ttsEngine === 'openai'
           ? (openAiTtsKey || ttsService.getOpenAiKey())
-          : undefined;
+          : ttsEngine === 'fish_audio'
+            ? (fishAudioKey || ttsService.getFishAudioKey())
+            : undefined;
 
     let voiceLabel = '';
     if (ttsEngine === 'browser') {
@@ -812,6 +838,9 @@ const SettingsPage = () => {
     } else if (ttsEngine === 'openai') {
       const found = OPENAI_DEFAULT_VOICES.find(v => v.id === activeVoiceId);
       voiceLabel = found ? found.name.split(' (')[0] : 'OpenAI';
+    } else if (ttsEngine === 'fish_audio') {
+      const found = FISH_AUDIO_DEFAULT_VOICES.find(v => v.id === activeVoiceId);
+      voiceLabel = found ? found.name.split(' (')[0] : 'Fish Audio';
     } else {
       voiceLabel = 'Omni';
     }
@@ -1562,7 +1591,7 @@ const SettingsPage = () => {
                   </div>
                   <p className="text-xs text-textMuted mb-3">Wybierz dostawcę realistycznej syntezy mowy dla odpowiedzi asystenta.</p>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2">
                     <button
                       type="button"
                       onClick={() => updateTtsEngine('browser')}
@@ -1593,6 +1622,22 @@ const SettingsPage = () => {
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-accentPrimary/20 text-accentPrimary font-mono font-bold">POLECANY</span>
                       </div>
                       <p className="text-[11px] text-textMuted mt-1">Realistyczne głosy Marek & Zofia bez żadnego klucza API.</p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => updateTtsEngine('fish_audio')}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        ttsEngine === 'fish_audio'
+                          ? 'border-accentPrimary bg-accentPrimary/15 shadow-md shadow-accentPrimary/10'
+                          : 'border-border bg-surface/60 hover:bg-white/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs font-mono text-textPrimary">Fish Audio</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 font-mono font-bold">AUDIO-AI</span>
+                      </div>
+                      <p className="text-[11px] text-textMuted mt-1">Klonowanie i naturalny głos Fish Audio (api.fish.audio).</p>
                     </button>
 
                     <button
@@ -1956,6 +2001,82 @@ const SettingsPage = () => {
                         ))}
                       </select>
                     </div>
+                  </div>
+                )}
+
+                {/* FISH AUDIO CONFIG */}
+                {ttsEngine === 'fish_audio' && (
+                  <div className="p-4 rounded-xl border border-accentPrimary/40 bg-accentPrimary/5 space-y-3 animate-fade-in">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-accentPrimary" />
+                        <span className="text-xs font-bold font-mono text-textPrimary">Fish Audio API (Ultra-Naturalny TTS & Klonowanie Głosu)</span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30 font-bold">
+                        AUDIO-AI V1
+                      </span>
+                    </div>
+                    <p className="text-xs text-textMuted">
+                      Nowoczesny silnik syntezy mowy z klonowaniem głosu. Wykorzystuje oficjalny endpoint https://api.fish.audio/v1/tts z obsługą polskich modeli referencyjnych.
+                    </p>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-textPrimary font-sans mb-1.5">
+                        Klucz API Fish Audio
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showFishKey ? 'text' : 'password'}
+                          value={fishAudioKey}
+                          onChange={(e) => updateFishAudioKey(e.target.value)}
+                          placeholder="Klucz API (lub zdefiniuj FISH_AUDIO_API_KEY w .env)"
+                          className="w-full bg-surface border border-border rounded-lg pl-3 pr-10 py-2 text-xs font-mono text-textPrimary placeholder:text-textMuted focus:outline-none focus:border-accentPrimary"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowFishKey(!showFishKey)}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-textMuted hover:text-textPrimary"
+                        >
+                          {showFishKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-textMuted mt-1">
+                        Klucz możesz wygenerować bezpłatnie na https://fish.audio. W przypadku braku klucza lub błędu system płynnie przełącza się na Microsoft Edge Neural.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-textPrimary font-sans mb-1.5">
+                        Wybór Głosu Referencyjnego
+                      </label>
+                      <select
+                        value={fishAudioVoiceId}
+                        onChange={(e) => updateFishAudioVoiceId(e.target.value)}
+                        className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-xs font-mono text-textPrimary focus:outline-none focus:border-accentPrimary"
+                      >
+                        {FISH_AUDIO_DEFAULT_VOICES.map(v => (
+                          <option key={v.id} value={v.id}>{v.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {fishAudioVoiceId === 'custom' && (
+                      <div>
+                        <label className="block text-xs font-semibold text-textPrimary font-sans mb-1.5">
+                          Własny Reference ID (Model ID z biblioteki Fish Audio)
+                        </label>
+                        <input
+                          type="text"
+                          value={customFishVoiceId}
+                          onChange={(e) => updateCustomFishVoiceId(e.target.value)}
+                          placeholder="np. 800a830bc9bc42dd90a7826279f53835"
+                          className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-xs font-mono text-textPrimary placeholder:text-textMuted focus:outline-none focus:border-accentPrimary"
+                        />
+                        <p className="text-[11px] text-textMuted mt-1">
+                          Wklej identyfikator modelu lub sklonowanego głosu z biblioteki Fish Audio.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 

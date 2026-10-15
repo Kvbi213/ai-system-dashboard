@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Terminal as TerminalIcon, Send, Code, BrainCircuit, Bot, Lightbulb, X, Mic, MicOff, Loader2, Copy, Check, Radio, User, Sparkles, Volume2, VolumeX, ArrowDown, StopCircle, AlertTriangle } from 'lucide-react';
+import { Terminal as TerminalIcon, Send, Code, BrainCircuit, Bot, Briefcase, Lightbulb, X, Mic, MicOff, Loader2, Copy, Check, Radio, User, Sparkles, Volume2, VolumeX, ArrowDown, StopCircle, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -154,10 +154,10 @@ const ChatMessage = ({ msg, mode = 'worker' }) => {
         <div className="flex items-center justify-between w-full mb-1.5 px-1">
           <div className="flex items-center gap-2 text-xs">
             <div className="w-6 h-6 rounded-lg bg-accentPrimary/20 border border-accentPrimary/40 flex items-center justify-center text-accentPrimary shadow-[0_0_10px_rgba(var(--color-accent-primary),0.3)]">
-              {mode === 'mentor' ? <BrainCircuit className="w-3.5 h-3.5" /> : (mode === 'daemon' ? <Bot className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />)}
+              {mode === 'mentor' ? <BrainCircuit className="w-3.5 h-3.5" /> : (mode === 'daemon' ? <Bot className="w-3.5 h-3.5" /> : (mode === 'harvey' ? <Briefcase className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />))}
             </div>
             <span className="font-mono font-bold text-textPrimary tracking-wide">
-              {mode === 'mentor' ? 'OMNI MIND' : (mode === 'daemon' ? 'OMNIDAEMON' : 'OMNI EXEC')}
+              {mode === 'mentor' ? 'OMNI MIND' : (mode === 'daemon' ? 'OMNIDAEMON' : (mode === 'harvey' ? 'HARVEY (SALES & OUTREACH)' : 'OMNI EXEC'))}
             </span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/40 text-accentPrimary/90 border border-accentPrimary/20">
               openai/gpt-oss-120b
@@ -379,6 +379,7 @@ const Terminal = () => {
     workerMessages,
     mentorMessages,
     daemonMessages,
+    harveyMessages,
     thoughtsLog,
     sendCommand
   } = useChatContext();
@@ -430,6 +431,8 @@ const Terminal = () => {
     { cmd: '/purge', desc: t('termCmdPurge', 'Agresywnie czyści pamięć i ekran') },
     { cmd: '/mode worker', desc: t('termCmdWorker', 'Przełącza na tryb inżynieryjny') },
     { cmd: '/mode mentor', desc: t('termCmdMentor', 'Przełącza na tryb analityczny') },
+    { cmd: '/mode daemon', desc: 'Przełącza na tryb autonomiczny (OmniDaemon)' },
+    { cmd: '/mode harvey', desc: 'Przełącza na tryb sprzedaży i prospectingu (Harvey)' },
     { cmd: '/export', desc: t('termCmdExport', 'Zapisuje historię czatu do pliku TXT') },
     { cmd: '/ping', desc: t('termCmdPing', 'Sprawdza łączność i opóźnienie') },
     { cmd: '/help', desc: t('termCmdHelp', 'Wyświetla listę poleceń') }
@@ -960,7 +963,7 @@ const Terminal = () => {
   }, [mode]);
 
 
-  const messages = mode === 'worker' ? workerMessages : (mode === 'daemon' ? daemonMessages : mentorMessages);
+  const messages = mode === 'worker' ? workerMessages : (mode === 'daemon' ? daemonMessages : (mode === 'harvey' ? harveyMessages : mentorMessages));
 
   const toggleRecording = async () => {
     if (isRecording) {
@@ -1062,8 +1065,14 @@ const Terminal = () => {
           >
             <Bot className="w-3.5 h-3.5" /> OMNIDAEMON
           </button>
+          <button 
+            onClick={() => { setMode('harvey'); setShowThoughts(false); }}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-mono transition-colors ${mode === 'harvey' ? 'bg-accentPrimary text-black font-bold' : 'text-textMuted hover:text-textPrimary'}`}
+          >
+            <Briefcase className="w-3.5 h-3.5" /> HARVEY
+          </button>
         </div>
-        {mode === 'mentor' && (
+        {(mode === 'mentor' || mode === 'harvey') && (
           <button 
             onClick={() => setShowThoughts(!showThoughts)}
             className={`p-2 rounded-lg transition-colors border border-transparent ${showThoughts ? 'bg-accentPrimary text-black' : 'text-accentPrimary hover:bg-accentPrimary/20 hover:border-accentPrimary/50'}`}
@@ -1157,10 +1166,10 @@ const Terminal = () => {
                   {isManualMuted
                     ? 'MIKROFON // WYCISZONY'
                     : isSpeaking 
-                      ? (mode === 'mentor' ? 'OMNI MIND // ODPOWIADA...' : (mode === 'daemon' ? 'OMNIDAEMON // ODPOWIADA...' : 'OMNI EXEC // ODPOWIADA...')) 
+                      ? (mode === 'mentor' ? 'OMNI MIND // ODPOWIADA...' : (mode === 'daemon' ? 'OMNIDAEMON // ODPOWIADA...' : (mode === 'harvey' ? 'HARVEY // ODPOWIADA...' : 'OMNI EXEC // ODPOWIADA...'))) 
                       : isProcessingSpeech 
-                        ? (mode === 'mentor' ? 'OMNI MIND // ANALIZUJE...' : (mode === 'daemon' ? 'OMNIDAEMON // ANALIZUJE...' : 'OMNI EXEC // PRZETWARZA...')) 
-                        : (mode === 'mentor' ? 'OMNI MIND // SŁUCHA...' : (mode === 'daemon' ? 'OMNIDAEMON // SŁUCHA...' : 'OMNI EXEC // SŁUCHA...'))}
+                        ? (mode === 'mentor' ? 'OMNI MIND // ANALIZUJE...' : (mode === 'daemon' ? 'OMNIDAEMON // ANALIZUJE...' : (mode === 'harvey' ? 'HARVEY // ANALIZUJE...' : 'OMNI EXEC // PRZETWARZA...'))) 
+                        : (mode === 'mentor' ? 'OMNI MIND // SŁUCHA...' : (mode === 'daemon' ? 'OMNIDAEMON // SŁUCHA...' : (mode === 'harvey' ? 'HARVEY // SŁUCHA...' : 'OMNI EXEC // SŁUCHA...')))}
                 </span>
                 {isManualMuted && (
                   <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/25 text-amber-200 border border-amber-500/40 font-bold flex items-center gap-1">
@@ -1257,7 +1266,7 @@ const Terminal = () => {
             {(!liveTrace || (liveTrace.searches?.length === 0 && liveTrace.commands?.length === 0 && liveTrace.exploredFiles?.length === 0)) && (
               <div className="flex items-center gap-2.5 text-textMuted font-sans animate-pulse">
                 <Loader2 className="w-4 h-4 animate-spin text-accentPrimary" />
-                <span className="text-xs font-mono">{mode === 'mentor' ? 'OMNI MIND analizuje zapytanie...' : (mode === 'daemon' ? 'OMNIDAEMON przetwarza zapytanie...' : 'OMNI EXEC przetwarza odpowiedź...')}</span>
+                <span className="text-xs font-mono">{mode === 'mentor' ? 'OMNI MIND analizuje zapytanie...' : (mode === 'daemon' ? 'OMNIDAEMON przetwarza zapytanie...' : (mode === 'harvey' ? 'HARVEY analizuje rynek i obiekcje...' : 'OMNI EXEC przetwarza odpowiedź...'))}</span>
               </div>
             )}
           </div>
@@ -1358,7 +1367,7 @@ const Terminal = () => {
       </form>
 
       {/* Pane z przemyśleniami */}
-      {showThoughts && mode === 'mentor' && (
+      {showThoughts && (mode === 'mentor' || mode === 'harvey') && (
         <div className="absolute top-12 right-2 w-64 bg-background border border-accentPrimary/40 rounded-xl shadow-[0_0_20px_rgba(var(--color-accent-primary),0.15)] z-10 flex flex-col overflow-hidden animate-fade-in-up">
           <div className="p-3 border-b border-border/50 flex justify-between items-center bg-black/20">
             <span className="font-mono text-[10px] uppercase text-accentPrimary font-bold tracking-wider flex items-center gap-2">

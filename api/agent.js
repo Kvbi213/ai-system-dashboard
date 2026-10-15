@@ -1,4 +1,5 @@
 import Groq from 'groq-sdk';
+import { generateHarveyPrompt } from '../modules/ai/harveyPersona.js';
 
 export const config = {
   maxDuration: 60,
@@ -706,8 +707,25 @@ ${allLessonsStr}`.trim();
       : '';
 
     // Wybór promptu systemowego w zależności od trybu
-    const systemPrompt = mode === 'mentor'
-      ? `Jesteś OMNI MIND — nadrzędnym inteligentnym mentorem, analitykiem strategicznym i powiernikiem użytkownika w systemie OmniDash. Rozmawiasz z ${userName}.
+    const systemPrompt = mode === 'harvey'
+      ? generateHarveyPrompt({
+          userName,
+          language,
+          dateStr,
+          timeStr,
+          tasksSummary,
+          timetableSummary,
+          librusCalendarSummary,
+          librusGradesSummary,
+          financesSummary,
+          workoutsSummary,
+          calendarSummary,
+          brainSummary,
+          locationSummary,
+          liveIntelBlock
+        })
+      : (mode === 'mentor'
+          ? `Jesteś OMNI MIND — nadrzędnym inteligentnym mentorem, analitykiem strategicznym i powiernikiem użytkownika w systemie OmniDash. Rozmawiasz z ${userName}.
 Aktualny czas systemowy (Polska / Warszawa): ${dateStr}, godzina ${timeStr}.
 PAMIĘTAJ: Aktualna data i dokładna godzina użytkownika to ${dateStr}, godzina ${timeStr}. Jeśli użytkownik pyta o czas lub godzinę, ZAWSZE podawaj dokładnie tę godzinę.
 
@@ -930,7 +948,7 @@ ${liveIntelBlock}`;
             { role: 'system', content: systemPrompt },
             { role: 'user', content: incomingText }
           ],
-          temperature: mode === 'mentor' ? 0.7 : 0.4,
+          temperature: mode === 'mentor' ? 0.7 : (mode === 'harvey' ? 0.5 : 0.4),
           max_tokens: 3500,
         });
         effectiveModel = candidate;
@@ -964,7 +982,9 @@ ${liveIntelBlock}`;
 
     const mentor_thoughts = mode === 'mentor' 
       ? `Głęboka analiza kognitywna (${effectiveModel}): przetworzono kontekst operacyjny (${tasks.length} zadań, ${calendar.length} wydarzeń${liveWebIntel ? ', aktywne wyszukiwanie Brave Search' : ''}).` 
-      : null;
+      : (mode === 'harvey' 
+          ? `Harvey Sales Engine (${effectiveModel}): przetworzono zapytanie prospektingowe w oparciu o 23 sygnały i ramy cold email.` 
+          : null);
 
     const widgets = determineWidgets(incomingText, agent_response);
 

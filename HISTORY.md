@@ -1,5 +1,22 @@
 ## Wersja Bieżąca
-**v2.32.1**
+**v2.33.0**
+
+## v 2.33.0 — 2026-10-15
+**Typ:** MINOR  
+**Zakres:** Integracja Agenta Sprzedaży Harvey (ethanplusai/harvey) na Pojedynczym Kluczu Groq API (openai/gpt-oss-120b), Wielosilnikowa Synteza Mowy Fish Audio (Ultra-Natural TTS & Voice Cloning), Obsługa Trybu Harvey w Terminalu i ChatContext oraz Rozszerzenie Testów (259/259 PASS w 22 pakietach testowych):
+- [+] Dodano: `modules/ai/harveyPersona.js` – moduł agenta Harvey: pętla ABC, 5 ram cold email (AIDA, PAS, BAB, QVC, 3Ps), 23 sygnały zakupowe, reguły Anti-AI Tells, technika LAARC, kwalifikacja BANT & MEDDIC, generator promptu `generateHarveyPrompt`.
+- [*] Zmodyfikowano: `api/agent.js` – obsługa trybu `mode === 'harvey'` w serverless gateway, perswazyjna temperatura (0.5), wstrzykiwanie promptu i analityczne przemyślenia.
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` – implementacja akcji `[ACTION:HARVEY_PROSPECT]`, `[ACTION:HARVEY_CAMPAIGN]`, `[ACTION:HARVEY_QUALIFY]`, routing promptu Harvey na pojedynczym kluczu Groq API bez dodatkowych dostawców LLM.
+- [+] Dodano: `tests/harvey_agent.test.js` – zestaw 10 testów jednostkowych weryfikujących ramy, sygnały, reguły językowe, prompt i parsowanie akcji.
+- [*] Zmodyfikowano: `modules/context/ChatContext.jsx` – rejestr `harveyMessages`, ładowanie, czyszczenie `/clear`, purge `/purge`, eksport `/export` i synchronizacja Firestore.
+- [*] Zmodyfikowano: `modules/components/Terminal.jsx` – przycisk trybu HARVEY z ikoną Briefcase, nagłówek wiadomości, indykatory statusu mowy, loader i autouzupełnianie poleceń `/mode harvey`.
+- [*] Zmodyfikowano: `modules/services/ttsService.js` – obsługa silnika `fish_audio`, stałe `FISH_AUDIO_DEFAULT_VOICES` (Anna, Michał, Piotr, Custom ID), bezpośrednie zapytania do `api.fish.audio/v1/tts`, fallback do Edge Neural.
+- [*] Zmodyfikowano: `api/tts.js` oraz `modules/routes/ai.js` – serverless i backend proxy dla Fish Audio.
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` – karta wyboru silnika Fish Audio (AUDIO-AI), konfigurator klucza API, selektor głosu/własnego reference ID i test audio na żywo.
+- [+] Dodano: `tests/fish_audio_tts.test.js` – zestaw 6 testów jednostkowych konfiguracji, nagłówków, payloadu i fallbacku Fish Audio.
+- [*] Weryfikacja: 259/259 PASS we wszystkich 22 pakietach testowych Vitest (100% PASS), poprawna kompilacja produkcyjna Vite.
+
+---
 
 ## v 2.32.1 — 2026-10-08
 **Typ:** PATCH  

@@ -192,6 +192,40 @@ router.post('/voice/tts', async (req, res) => {
       return res.send(buffer);
     }
 
+    // 5. Silnik Fish Audio
+    if (engine === 'fish_audio' || engine === 'fish') {
+      const key = apiKey || process.env.FISH_AUDIO_API_KEY;
+      if (!key) {
+        return res.status(400).json({ error: 'Brak klucza API Fish Audio' });
+      }
+
+      const targetVoice = (voiceId && voiceId !== 'custom') ? voiceId : '800a830bc9bc42dd90a7826279f53835';
+      const fishRes = await fetch('https://api.fish.audio/v1/tts', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${key.trim()}`,
+          'Content-Type': 'application/json',
+          'Accept': 'audio/mpeg'
+        },
+        body: JSON.stringify({
+          text: safeText,
+          reference_id: targetVoice,
+          format: 'mp3',
+          mp3_bitrate: 128,
+          latency: 'normal'
+        })
+      });
+
+      if (!fishRes.ok) {
+        const errText = await fishRes.text();
+        return res.status(fishRes.status).json({ error: `Błąd Fish Audio API: ${errText}` });
+      }
+
+      res.setHeader('Content-Type', 'audio/mpeg');
+      const arrayBuffer = await fishRes.arrayBuffer();
+      return res.send(Buffer.from(arrayBuffer));
+    }
+
     return res.status(400).json({ error: 'Nieobsługiwany silnik syntezy TTS' });
   } catch (err) {
     logError('POST /api/voice/tts', err);
