@@ -170,17 +170,25 @@ export function computeGradeStats(subjects = []) {
     const rawSem1 = subj.semester?.[0];
     const rawSem2 = subj.semester?.[1];
 
-    const sem1Grades = extractGradesList(rawSem1).map(g => ({
-      ...g,
-      details: parseGradeInfo(g.info),
-      numericValue: parseGradeNumeric(g.value)
-    }));
+    const sem1Grades = extractGradesList(rawSem1).map(g => {
+      const details = parseGradeInfo(g.info);
+      return {
+        ...g,
+        details,
+        inAverage: details?.inAverage !== undefined ? details.inAverage : (g.inAverage !== undefined ? g.inAverage : true),
+        numericValue: parseGradeNumeric(g.value)
+      };
+    });
 
-    const sem2Grades = extractGradesList(rawSem2).map(g => ({
-      ...g,
-      details: parseGradeInfo(g.info),
-      numericValue: parseGradeNumeric(g.value)
-    }));
+    const sem2Grades = extractGradesList(rawSem2).map(g => {
+      const details = parseGradeInfo(g.info);
+      return {
+        ...g,
+        details,
+        inAverage: details?.inAverage !== undefined ? details.inAverage : (g.inAverage !== undefined ? g.inAverage : true),
+        numericValue: parseGradeNumeric(g.value)
+      };
+    });
 
     const calcAverage = (gradesList) => {
       let sum = 0;
@@ -226,13 +234,17 @@ export function computeGradeStats(subjects = []) {
       }
     }
 
+    const allGrades = [...sem1Grades, ...sem2Grades];
+
     return {
       ...subj,
       name: cleanName,
       sem1Grades,
       sem2Grades,
+      grades: allGrades,
       sem1Avg,
       sem2Avg,
+      average: typeof subj.average === 'number' ? subj.average : (finalAvg > 0 ? finalAvg : (subj.average || 0)),
       computedAverage: finalAvg
     };
   });
@@ -436,85 +448,108 @@ export function getDemoGradesData() {
   const mockSubjects = [
     {
       name: 'Język polski',
-      average: '4.80',
+      average: 3.50,
       semester: [
         [
-          { id: 101, value: '5', info: 'Kategoria: Sprawdzian\nWaga: 3\nData: 2026-02-14\nNauczyciel: M. Nowak\nKomentarz: Epoka romantyzmu' },
-          { id: 102, value: '4+', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-03-02\nNauczyciel: M. Nowak\nKomentarz: Lektura Kordian' },
-          { id: 103, value: '5', info: 'Kategoria: Odpowiedź ustna\nWaga: 2\nData: 2026-03-18\nNauczyciel: M. Nowak\nKomentarz: Analiza wiersza' }
+          { id: 101, value: '1', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-02-14\nNauczyciel: A. Negowska\nKomentarz: Gramatyka' },
+          { id: 102, value: '4', info: 'Kategoria: Odpowiedź ustna\nWaga: 1\nData: 2026-03-02\nNauczyciel: A. Negowska\nKomentarz: Lektura' },
+          { id: 103, value: '5+', info: 'Kategoria: Wypracowanie\nWaga: 1\nData: 2026-03-18\nNauczyciel: A. Negowska\nKomentarz: Analiza tekstu' }
         ],
-        [
-          { id: 104, value: '5-', info: 'Kategoria: Wypracowanie\nWaga: 3\nData: 2026-04-10\nNauczyciel: M. Nowak\nKomentarz: Motyw władzy' },
-          { id: 105, value: '5', info: 'Kategoria: Praca na lekcji\nWaga: 1\nData: 2026-04-22\nNauczyciel: M. Nowak' }
-        ]
+        []
       ]
     },
     {
       name: 'Matematyka',
-      average: '5.20',
+      average: 3.67,
       semester: [
         [
-          { id: 201, value: '5', info: 'Kategoria: Sprawdzian\nWaga: 3\nData: 2026-02-18\nNauczyciel: A. Wiśniewski\nKomentarz: Ciągi arytmetyczne i geometryczne' },
-          { id: 202, value: '5+', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-03-05\nNauczyciel: A. Wiśniewski' },
-          { id: 203, value: '6', info: 'Kategoria: Zadanie dodatkowe\nWaga: 2\nData: 2026-03-24\nNauczyciel: A. Wiśniewski\nKomentarz: Zadania olimpijskie' }
+          { id: 201, value: '3', info: 'Kategoria: Sprawdzian\nWaga: 2\nData: 2026-02-18\nNauczyciel: Z. Bahr\nKomentarz: Funkcje kwadratowe' },
+          { id: 202, value: '5', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-03-05\nNauczyciel: Z. Bahr' },
+          { id: 203, value: '5', info: 'Kategoria: Praca na lekcji\nWaga: 1\nData: 2026-03-12\nNauczyciel: Z. Bahr' },
+          { id: 204, value: '3', info: 'Kategoria: Sprawdzian\nWaga: 1\nData: 2026-03-24\nNauczyciel: Z. Bahr\nKomentarz: Ciągi liczbowe' },
+          { id: 205, value: '3', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-04-02\nNauczyciel: Z. Bahr' }
         ],
-        [
-          { id: 204, value: '5', info: 'Kategoria: Sprawdzian\nWaga: 3\nData: 2026-04-15\nNauczyciel: A. Wiśniewski\nKomentarz: Rachunek prawdopodobieństwa' },
-          { id: 205, value: '4+', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-04-29\nNauczyciel: A. Wiśniewski' }
-        ]
+        []
       ]
     },
     {
       name: 'Język angielski',
-      average: '5.60',
+      average: 5.00,
       semester: [
         [
-          { id: 301, value: '6', info: 'Kategoria: Sprawdzian\nWaga: 3\nData: 2026-02-12\nNauczyciel: E. Smith\nKomentarz: Advanced Grammar Unit 4' },
-          { id: 302, value: '5', info: 'Kategoria: Prezentacja\nWaga: 2\nData: 2026-03-08\nNauczyciel: E. Smith\nKomentarz: Artificial Intelligence in Modern Society' }
+          { id: 301, value: '5', info: 'Kategoria: Sprawdzian\nWaga: 2\nData: 2026-02-12\nNauczyciel: J. Ziemba\nKomentarz: Unit 4 test' },
+          { id: 302, value: '5', info: 'Kategoria: Prezentacja\nWaga: 2\nData: 2026-03-08\nNauczyciel: J. Ziemba' },
+          { id: 303, value: '-', info: 'Kategoria: Nieprzygotowanie\nWaga: 0\nLicz do średniej: nie\nData: 2026-03-15\nNauczyciel: J. Ziemba' },
+          { id: 304, value: '+', info: 'Kategoria: Aktywność\nWaga: 0\nLicz do średniej: nie\nData: 2026-03-22\nNauczyciel: J. Ziemba' }
         ],
-        [
-          { id: 303, value: '6', info: 'Kategoria: Esej\nWaga: 3\nData: 2026-04-12\nNauczyciel: E. Smith\nKomentarz: Critical essay' },
-          { id: 304, value: '5+', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-05-03\nNauczyciel: E. Smith\nKomentarz: Phrasal verbs' }
-        ]
+        []
       ]
     },
     {
-      name: 'Informatyka',
-      average: '6.00',
+      name: 'Język niemiecki',
+      average: 3.50,
       semester: [
         [
-          { id: 401, value: '6', info: 'Kategoria: Projekt\nWaga: 3\nData: 2026-02-20\nNauczyciel: P. Zieliński\nKomentarz: Architektura fullstack w Node.js' },
-          { id: 402, value: '6', info: 'Kategoria: Sprawdzian praktyczny\nWaga: 3\nData: 2026-03-15\nNauczyciel: P. Zieliński\nKomentarz: Algorytmy grafowe' }
+          { id: 351, value: '4+', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-02-20\nNauczyciel: B. Chyła\nKomentarz: Słownictwo rozdz. 3' },
+          { id: 352, value: '2+', info: 'Kategoria: Odpowiedź ustna\nWaga: 1\nData: 2026-03-16\nNauczyciel: B. Chyła' }
         ],
-        [
-          { id: 403, value: '6', info: 'Kategoria: Projekt grupowy\nWaga: 3\nData: 2026-04-25\nNauczyciel: P. Zieliński\nKomentarz: Model AI & REST API' }
-        ]
-      ]
-    },
-    {
-      name: 'Fizyka',
-      average: '4.75',
-      semester: [
-        [
-          { id: 501, value: '4+', info: 'Kategoria: Sprawdzian\nWaga: 3\nData: 2026-02-22\nNauczyciel: T. Lewandowski\nKomentarz: Termodynamika' },
-          { id: 502, value: '5', info: 'Kategoria: Ćwiczenia laboratoryjne\nWaga: 2\nData: 2026-03-12\nNauczyciel: T. Lewandowski' }
-        ],
-        [
-          { id: 503, value: '5', info: 'Kategoria: Sprawdzian\nWaga: 3\nData: 2026-04-18\nNauczyciel: T. Lewandowski\nKomentarz: Optyka falowa' }
-        ]
+        []
       ]
     },
     {
       name: 'Historia',
-      average: '5.00',
+      average: 4.00,
       semester: [
         [
-          { id: 601, value: '5', info: 'Kategoria: Sprawdzian\nWaga: 3\nData: 2026-02-25\nNauczyciel: D. Kamińska\nKomentarz: Dwudziestolecie międzywojenne' }
+          { id: 601, value: '4', info: 'Kategoria: Sprawdzian\nWaga: 2\nData: 2026-02-25\nNauczyciel: W. Wardyn\nKomentarz: I wojna światowa' },
+          { id: 602, value: '4', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-03-14\nNauczyciel: W. Wardyn' },
+          { id: 603, value: '4', info: 'Kategoria: Projekt\nWaga: 1\nData: 2026-04-02\nNauczyciel: W. Wardyn' }
         ],
+        []
+      ]
+    },
+    {
+      name: 'Informatyka',
+      average: 6.00,
+      semester: [
         [
-          { id: 602, value: '5', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-04-14\nNauczyciel: D. Kamińska' },
-          { id: 603, value: '5', info: 'Kategoria: Projekt\nWaga: 2\nData: 2026-05-02\nNauczyciel: D. Kamińska' }
-        ]
+          { id: 401, value: '6', info: 'Kategoria: Projekt\nWaga: 3\nData: 2026-02-20\nNauczyciel: A. Becker\nKomentarz: Projekt aplikacji' },
+          { id: 402, value: '6', info: 'Kategoria: Sprawdzian praktyczny\nWaga: 3\nData: 2026-03-15\nNauczyciel: A. Becker' }
+        ],
+        []
+      ]
+    },
+    {
+      name: 'Systemy operacyjne',
+      average: 5.75,
+      semester: [
+        [
+          { id: 701, value: '6', info: 'Kategoria: Laboratorium\nWaga: 2\nData: 2026-02-28\nNauczyciel: P. Wojnarowski\nKomentarz: Konfiguracja Linux' },
+          { id: 702, value: '5+', info: 'Kategoria: Sprawdzian\nWaga: 2\nData: 2026-03-20\nNauczyciel: P. Wojnarowski\nKomentarz: Skrypty Bash' }
+        ],
+        []
+      ]
+    },
+    {
+      name: 'Lokalne sieci komputerowe',
+      average: 5.54,
+      semester: [
+        [
+          { id: 801, value: '6', info: 'Kategoria: Konfiguracja sieci\nWaga: 3\nData: 2026-03-02\nNauczyciel: Ł. Kryła\nKomentarz: VLAN i Routing' },
+          { id: 802, value: '5', info: 'Kategoria: Sprawdzian\nWaga: 2\nData: 2026-03-19\nNauczyciel: Ł. Kryła' },
+          { id: 803, value: '5+', info: 'Kategoria: Kartkówka\nWaga: 2\nData: 2026-04-05\nNauczyciel: Ł. Kryła' }
+        ],
+        []
+      ]
+    },
+    {
+      name: 'Urządzenia techniki komputerowej',
+      average: 'N',
+      semester: [
+        [
+          { id: 901, value: 'N', info: 'Kategoria: Klasyfikacja semestralna\nWaga: 0\nLicz do średniej: nie\nData: 2026-03-25\nNauczyciel: B. Gembiak\nKomentarz: Nieklasyfikowany' }
+        ],
+        []
       ]
     }
   ];
@@ -525,7 +560,8 @@ export function getDemoGradesData() {
     luckyNumber: 17,
     lastSync: new Date().toISOString(),
     status: 'demo',
-    ...stats
+    ...stats,
+    overallAverage: 4.62
   };
 }
 
@@ -891,9 +927,225 @@ export function checkTimeOverlap(lessonStartStr, lessonEndStr, absenceRangeStr) 
 }
 
 /**
+ * Parsuje kod HTML planu lekcji Librus Synergia z bezpośrednim wykrywaniem lekcji odwołanych.
+ */
+export function parseTimetableHtml($, from, to) {
+  const days = [
+    "Monday",
+    "Tuesday", 
+    "Wednesday", 
+    "Thursday", 
+    "Friday", 
+    "Saturday", 
+    "Sunday"
+  ];
+  const DAY_KEYS_MAP = {
+    Monday: 'monday',
+    Tuesday: 'tuesday',
+    Wednesday: 'wednesday',
+    Thursday: 'thursday',
+    Friday: 'friday',
+    Saturday: 'saturday',
+    Sunday: 'sunday'
+  };
+
+  const table = {};
+  const hours = [];
+  const allLessons = [];
+
+  const capitalize = (str) => {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
+  const determineColor = (subject) => {
+    const s = (subject || '').toLowerCase();
+    if (s.includes('informatyk') || s.includes('systemy') || s.includes('sieci') || s.includes('komputer')) return 'cyan';
+    if (s.includes('matematyk') || s.includes('fizyk')) return 'indigo';
+    if (s.includes('angielski') || s.includes('niemiecki')) return 'amber';
+    if (s.includes('polski') || s.includes('histori')) return 'rose';
+    if (s.includes('chem') || s.includes('biolog') || s.includes('zdrowotna')) return 'emerald';
+    if (s.includes('wychowanie fiz') || s.includes('wf')) return 'purple';
+    return 'blue';
+  };
+
+  const determineType = (subject) => {
+    const s = (subject || '').toLowerCase();
+    if (s.includes('pracownia') || s.includes('laboratorium')) return 'Laboratorium';
+    if (s.includes('ćwiczenia') || s.includes('wf') || s.includes('fizyczne')) return 'Ćwiczenia';
+    if (s.includes('projekt')) return 'Projekt';
+    if (s.includes('angielski') || s.includes('niemiecki')) return 'Lektorat';
+    return 'Wykład';
+  };
+
+  let rows = $("table.decorated.plan-lekcji tbody tr.line1");
+  if (rows.length === 0) {
+    rows = $("tr.line1");
+  }
+
+  rows.each((rowIndex, row) => {
+    if ($(row).hasClass("line0")) return;
+    const hour = $(row).find("th").text().trim();
+    if (hour) hours.push(hour);
+
+    const allTds = $(row).find("td");
+    let lessonCells = allTds;
+    if (allTds.length >= 7 || (allTds.length > 5 && $(allTds[0]).find(".text").length === 0 && /^\d+$/.test($(allTds[0]).text().trim()))) {
+      lessonCells = allTds.slice(1, -1);
+    }
+
+    lessonCells.each((dayIndex, cell) => {
+      if (dayIndex >= days.length) return;
+      const dayName = days[dayIndex];
+      const dayId = DAY_KEYS_MAP[dayName] || dayName.toLowerCase();
+      if (!table[dayId]) table[dayId] = [];
+
+      const $cell = $(cell);
+      if (!$cell.text().trim()) return;
+
+      const times = (hour || '').replace(/\u00a0/g, ' ').split(/\s*-\s*/);
+      const timeStart = (times[0] || '08:00').trim();
+      const timeEnd = (times[1] || '08:45').trim();
+
+      const parseCellDetails = (rawSubject, rawTeacherRoom, isCancelledLesson) => {
+        let cleanSubj = (rawSubject || '')
+          .replace(/odwołan\w*/gi, '')
+          .replace(/\(odwołane\)/gi, '')
+          .replace(/[()]/g, '')
+          .trim();
+        if (!cleanSubj) return null;
+
+        let teacher = '';
+        let room = '';
+        if (rawTeacherRoom) {
+          let trText = rawTeacherRoom.replace(/<[^>]*>/g, '').trim();
+          trText = trText.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
+          if (trText.startsWith('-')) trText = trText.substring(1).trim();
+          const match = trText.match(/^(.+?)\s+s\.\s+(.+)$/);
+          teacher = match ? match[1].trim() : trText;
+          room = match ? (match[2].trim().startsWith('s.') ? match[2].trim() : `s. ${match[2].trim()}`) : '';
+        }
+
+        const cleanTeacher = cleanTeacherName(teacher);
+        const subjectFormatted = capitalize(cleanSubj);
+        const lessonId = `librus_${dayId}_${rowIndex}_${timeStart.replace(':', '')}${isCancelledLesson ? '_c' : ''}`;
+
+        return {
+          id: lessonId,
+          day: dayId,
+          subject: subjectFormatted,
+          time_start: timeStart,
+          time_end: timeEnd,
+          room: room,
+          teacher: teacher || '',
+          cleanTeacher: cleanTeacher,
+          type: determineType(subjectFormatted),
+          color: determineColor(subjectFormatted),
+          notes: isCancelledLesson ? '[!] Lekcja odwołana w Librus Synergia' : (teacher ? `Nauczyciel: ${teacher}` : ''),
+          isCancelled: isCancelledLesson,
+          status: isCancelledLesson ? 'cancelled' : 'active',
+          statusLabel: isCancelledLesson ? 'Odwołana' : 'Aktywna',
+          isLibrus: true
+        };
+      };
+
+      const hasStrike = $cell.find("s").length > 0;
+      const planInfoText = $cell.find(".plan-lekcji-info").text().trim();
+      const isCancelledByInfo = /odwołan/i.test(planInfoText);
+
+      // 1. Sprawdź czy jest odwołana lekcja (tag <s> lub plan-lekcji-info: odwołane)
+      if (hasStrike || isCancelledByInfo) {
+        let struckSubj = '';
+        let struckTeacherRoom = '';
+
+        if (hasStrike) {
+          const sElements = $cell.find("s");
+          struckSubj = $(sElements[0]).text().trim();
+          if (sElements.length > 1) {
+            struckTeacherRoom = $(sElements[1]).text().trim();
+          }
+        }
+        
+        if (!struckSubj) {
+          const textDiv = $cell.find(".text").first();
+          const fullHtml = textDiv.length > 0 ? textDiv.html() : $cell.html();
+          const parts = (fullHtml || '').split(/<br\s*\/?>/i);
+          struckSubj = parts[0] ? parts[0].replace(/<[^>]*>/g, '').trim() : '';
+          struckTeacherRoom = parts[1] ? parts[1].replace(/<[^>]*>/g, '').trim() : '';
+        }
+
+        const cancelledLesson = parseCellDetails(struckSubj, struckTeacherRoom, true);
+        if (cancelledLesson) {
+          table[dayId].push(cancelledLesson);
+          allLessons.push(cancelledLesson);
+        }
+      }
+
+      // 2. Sprawdź czy jest aktywna lekcja (b lub tekst niebędący w s)
+      const activeB = $cell.find("b").filter((_, el) => $(el).closest("s").length === 0);
+      let activeLesson = null;
+
+      if (activeB.length > 0) {
+        const activeSubj = activeB.first().text().trim();
+        const textDiv = activeB.first().closest(".text");
+        let activeTR = '';
+        if (textDiv.length > 0) {
+          const parts = (textDiv.html() || '').split(/<br\s*\/?>/i);
+          if (parts.length > 1) {
+            const tempDiv = $('<div>').html(parts.slice(1).join('<br>'));
+            tempDiv.find("s, .plan-lekcji-info").remove();
+            activeTR = tempDiv.text().trim();
+          }
+        }
+        activeLesson = parseCellDetails(activeSubj, activeTR, false);
+      } else if (!hasStrike && !isCancelledByInfo) {
+        const textDiv = $cell.find(".text").first();
+        const fullHtml = textDiv.length > 0 ? textDiv.html() : $cell.html();
+        const parts = (fullHtml || '').split(/<br\s*\/?>/i);
+        const subj = parts[0] ? parts[0].replace(/<[^>]*>/g, '').trim() : '';
+        const tr = parts[1] ? parts[1].replace(/<[^>]*>/g, '').trim() : '';
+        activeLesson = parseCellDetails(subj, tr, false);
+      }
+
+      if (activeLesson) {
+        table[dayId].push(activeLesson);
+        allLessons.push(activeLesson);
+      }
+    });
+  });
+
+  return {
+    hours,
+    table,
+    lessons: allLessons
+  };
+}
+
+/**
  * Pobiera tygodniowy plan lekcji z Librus Synergia i normalizuje strukturę.
  */
 export async function fetchLibrusTimetableFromSource(client, from, to) {
+  // 1. Bezpośrednie pobranie HTML ze scraperem obsługującym tagi <s> i odwołane lekcje
+  if (client && typeof client._request === 'function') {
+    try {
+      const FormDataClass = (await import('form-data')).default;
+      const formData = new FormDataClass();
+      if (from && to) {
+        formData.append("tydzien", `${from}_${to}`);
+      }
+      const $ = await client._request("post", "przegladaj_plan_lekcji", formData);
+      if ($ && typeof $ === 'function') {
+        const parsed = parseTimetableHtml($, from, to);
+        if (parsed && parsed.lessons && parsed.lessons.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (reqErr) {
+      console.warn('[!] ALERT :: LIBRUS :: Bezpośrednie zapytanie HTML nie powiodło się, używam standardowego parsera:', reqErr.message);
+    }
+  }
+
+  // 2. Standardowy fallback do client.calendar.getTimetable
   const rawTimetable = await client.calendar.getTimetable(from, to);
   if (!rawTimetable || !rawTimetable.table) {
     return { hours: [], table: {}, lessons: [] };
@@ -944,13 +1196,19 @@ export async function fetchLibrusTimetableFromSource(client, from, to) {
     (lessonsList || []).forEach((item, idx) => {
       if (!item || !item.subject) return;
 
+      const isCancelled = item.isCancelled || 
+                          /odwołan/i.test(item.subject) || 
+                          /odwołan/i.test(item.notes || '') ||
+                          /odwołan/i.test(item.status || '');
+
       // Rozbij time np. '08:50 - 09:35'
       const times = (item.time || '').replace(/\u00a0/g, ' ').split(/\s*-\s*/);
       const timeStart = (times[0] || '08:00').trim();
       const timeEnd = (times[1] || '08:45').trim();
 
       const cleanTeacher = cleanTeacherName(item.teacher);
-      const subjectFormatted = capitalize(item.subject.trim());
+      const cleanSubject = item.subject.replace(/\(odwołane\)/gi, '').trim();
+      const subjectFormatted = capitalize(cleanSubject);
       const lessonId = `librus_${dayId}_${idx}_${timeStart.replace(':', '')}`;
 
       const lessonObj = {
@@ -964,7 +1222,10 @@ export async function fetchLibrusTimetableFromSource(client, from, to) {
         cleanTeacher: cleanTeacher,
         type: determineType(item.subject),
         color: determineColor(item.subject),
-        notes: item.teacher ? `Nauczyciel: ${item.teacher}` : '',
+        notes: isCancelled ? '[!] Lekcja odwołana w Librus Synergia' : (item.teacher ? `Nauczyciel: ${item.teacher}` : ''),
+        isCancelled: !!isCancelled,
+        status: isCancelled ? 'cancelled' : (item.status || 'active'),
+        statusLabel: isCancelled ? 'Odwołana' : (item.statusLabel || 'Aktywna'),
         isLibrus: true
       };
 
@@ -1235,7 +1496,7 @@ export function getDemoTimetableData() {
     { id: 'librus_wed_4', day: 'wednesday', subject: 'Historia', time_start: '14:05', time_end: '14:50', room: 's. 06', teacher: 'Wardyn Wojciech', type: 'Wykład', color: 'rose', notes: '' },
     { id: 'librus_wed_5', day: 'wednesday', subject: 'Matematyka', time_start: '14:55', time_end: '15:40', room: 's. 26', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
 
-    // Czwartek
+    // Czwartek (Zgodnie z Synergia Librus: lekcje 1, 2, 3 i 8 odwołane, okienka 4-5, matematyka 6-7 odbywa się)
     { 
       id: 'librus_thu_1', 
       day: 'thursday', 
@@ -1246,22 +1507,10 @@ export function getDemoTimetableData() {
       teacher: 'Negowska Alicja', 
       type: 'Wykład', 
       color: 'rose', 
-      notes: ''
-    },
-    { id: 'librus_thu_2', day: 'thursday', subject: 'Język angielski zawodowy', time_start: '08:50', time_end: '09:35', room: 's. Z2', teacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: '' },
-    { id: 'librus_thu_3', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: '' },
-    { id: 'librus_thu_4', day: 'thursday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 05', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
-    { 
-      id: 'librus_thu_5', 
-      day: 'thursday', 
-      subject: 'Język polski', 
-      time_start: '13:15', 
-      time_end: '14:00', 
-      room: 's. 34', 
-      teacher: 'Negowska Alicja', 
-      type: 'Wykład', 
-      color: 'rose', 
-      notes: '[!] NIEOBECNOŚĆ: Negowska Alicja (08:50 do 14:50)',
+      notes: '[!] ODWOŁANA (nieobecność nauczyciela)',
+      isCancelled: true,
+      status: 'cancelled',
+      statusLabel: 'Odwołana',
       absenceAlert: {
         isAbsent: true,
         teacher: 'Negowska Alicja',
@@ -1271,6 +1520,56 @@ export function getDemoTimetableData() {
         suggestedStatus: 'okienko_or_sub'
       }
     },
+    { 
+      id: 'librus_thu_2', 
+      day: 'thursday', 
+      subject: 'Język angielski zawodowy', 
+      time_start: '08:50', 
+      time_end: '09:35', 
+      room: 's. Z2', 
+      teacher: 'Ziemba Joanna', 
+      type: 'Lektorat', 
+      color: 'amber', 
+      notes: '[!] ODWOŁANA',
+      isCancelled: true,
+      status: 'cancelled',
+      statusLabel: 'Odwołana'
+    },
+    { 
+      id: 'librus_thu_3', 
+      day: 'thursday', 
+      subject: 'Język angielski', 
+      time_start: '09:40', 
+      time_end: '10:25', 
+      room: 's. Z2', 
+      teacher: 'Ziemba Joanna', 
+      type: 'Lektorat', 
+      color: 'amber', 
+      notes: '[!] ODWOŁANA',
+      isCancelled: true,
+      status: 'cancelled',
+      statusLabel: 'Odwołana'
+    },
+    { id: 'librus_thu_4', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_thu_5', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '11:30', time_end: '12:15', room: 's. 1.16', teacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_thu_6', day: 'thursday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 05', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: 'Zajęcia odbywają się (sala 05)' },
+    { id: 'librus_thu_7', day: 'thursday', subject: 'Matematyka', time_start: '13:15', time_end: '14:00', room: 's. 05', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: 'Zajęcia odbywają się (sala 05)' },
+    { 
+      id: 'librus_thu_8', 
+      day: 'thursday', 
+      subject: 'Język niemiecki', 
+      time_start: '14:05', 
+      time_end: '14:50', 
+      room: 's. Z1', 
+      teacher: 'Chyła Beata', 
+      type: 'Lektorat', 
+      color: 'amber', 
+      notes: '[!] ODWOŁANA',
+      isCancelled: true,
+      status: 'cancelled',
+      statusLabel: 'Odwołana'
+    },
+    { id: 'librus_thu_9', day: 'thursday', subject: 'Biologia', time_start: '14:55', time_end: '15:40', room: 's. 19', teacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '' },
 
     // Piątek
     { id: 'librus_fri_1', day: 'friday', subject: 'Język angielski', time_start: '08:00', time_end: '08:45', room: 's. Z2', teacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: '' },
@@ -1280,6 +1579,13 @@ export function getDemoTimetableData() {
     { id: 'librus_fri_5', day: 'friday', subject: 'Chemia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '' },
     { id: 'librus_fri_6', day: 'friday', subject: 'Edukacja obywatelska', time_start: '12:20', time_end: '13:05', room: 's. 09', teacher: 'Czarna Alicja', type: 'Wykład', color: 'rose', notes: '' }
   ];
+
+  const normalizedLessons = demoLessons.map(l => ({
+    isCancelled: false,
+    status: 'active',
+    statusLabel: 'Aktywna',
+    ...l
+  }));
 
   return {
     isDemo: true,
@@ -1295,7 +1601,7 @@ export function getDemoTimetableData() {
       '14:05 - 14:50',
       '14:55 - 15:40'
     ],
-    lessons: demoLessons,
+    lessons: normalizedLessons,
     substitutions: [
       {
         lessonId: 'librus_thu_5',

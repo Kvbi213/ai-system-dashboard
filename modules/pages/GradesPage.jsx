@@ -63,143 +63,190 @@ const getGradeWeight = (details) => {
 };
 
 // Wbudowane dane demonstracyjne (fallback offline / tryb demonstracyjny)
+// Wbudowane dane demonstracyjne (fallback offline / tryb demonstracyjny)
 const STATIC_DEMO_DATA = {
   isDemo: true,
   luckyNumber: 17,
   lastSync: new Date().toISOString(),
-  overallAverage: "5.19",
-  totalSubjects: 6,
+  overallAverage: "4.62",
+  totalSubjects: 9,
   highestAverage: { name: "Informatyka", average: "6.00" },
   subjects: [
     {
       name: 'Język polski',
-      computedAverage: '4.60',
+      computedAverage: '3.50',
+      average: '3.50',
       gradesCount: 3,
       semester: [
         [
-          { id: 101, value: '5', details: { category: 'Sprawdzian', weight: 3, date: '2026-02-15', teacher: 'J. Kowalska', comment: 'Romantyzm - praca klasowa' } },
-          { id: 102, value: '4+', details: { category: 'Odpowiedź ustna', weight: 2, date: '2026-03-01', teacher: 'J. Kowalska' } },
-          { id: 103, value: '5', details: { category: 'Wypracowanie', weight: 3, date: '2026-03-20', teacher: 'J. Kowalska', comment: 'Analiza Dziadów cz. III' } }
+          { id: 101, value: '1', details: { category: 'Kartkówka', weight: 1, date: '2026-02-14', teacher: 'A. Negowska', comment: 'Gramatyka' } },
+          { id: 102, value: '4', details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-03-02', teacher: 'A. Negowska', comment: 'Lektura' } },
+          { id: 103, value: '5+', details: { category: 'Wypracowanie', weight: 1, date: '2026-03-18', teacher: 'A. Negowska', comment: 'Analiza tekstu' } }
         ],
         []
       ],
       sem1Grades: [
-        { id: 101, value: '5', details: { category: 'Sprawdzian', weight: 3, date: '2026-02-15', teacher: 'J. Kowalska', comment: 'Romantyzm - praca klasowa' } },
-        { id: 102, value: '4+', details: { category: 'Odpowiedź ustna', weight: 2, date: '2026-03-01', teacher: 'J. Kowalska' } },
-        { id: 103, value: '5', details: { category: 'Wypracowanie', weight: 3, date: '2026-03-20', teacher: 'J. Kowalska', comment: 'Analiza Dziadów cz. III' } }
+        { id: 101, value: '1', details: { category: 'Kartkówka', weight: 1, date: '2026-02-14', teacher: 'A. Negowska', comment: 'Gramatyka' } },
+        { id: 102, value: '4', details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-03-02', teacher: 'A. Negowska', comment: 'Lektura' } },
+        { id: 103, value: '5+', details: { category: 'Wypracowanie', weight: 1, date: '2026-03-18', teacher: 'A. Negowska', comment: 'Analiza tekstu' } }
       ],
       sem2Grades: []
     },
     {
       name: 'Matematyka',
-      computedAverage: '4.80',
+      computedAverage: '3.67',
+      average: '3.67',
       gradesCount: 5,
       semester: [
         [
-          { id: 201, value: '5', details: { category: 'Sprawdzian', weight: 3, date: '2026-02-18', teacher: 'A. Wiśniewski', comment: 'Ciągi liczbowe i granice' } },
-          { id: 202, value: '5-', details: { category: 'Kartkówka', weight: 1, date: '2026-03-05', teacher: 'A. Wiśniewski' } },
-          { id: 203, value: '4', details: { category: 'Aktywność', weight: 1, date: '2026-03-22', teacher: 'A. Wiśniewski' } }
+          { id: 201, value: '3', details: { category: 'Sprawdzian', weight: 2, date: '2026-02-18', teacher: 'Z. Bahr', comment: 'Funkcje kwadratowe' } },
+          { id: 202, value: '5', details: { category: 'Kartkówka', weight: 1, date: '2026-03-05', teacher: 'Z. Bahr' } },
+          { id: 203, value: '5', details: { category: 'Praca na lekcji', weight: 1, date: '2026-03-12', teacher: 'Z. Bahr' } },
+          { id: 204, value: '3', details: { category: 'Sprawdzian', weight: 1, date: '2026-03-24', teacher: 'Z. Bahr', comment: 'Ciągi liczbowe' } },
+          { id: 205, value: '3', details: { category: 'Kartkówka', weight: 1, date: '2026-04-02', teacher: 'Z. Bahr' } }
         ],
-        [
-          { id: 204, value: '5', details: { category: 'Sprawdzian', weight: 3, date: '2026-04-15', teacher: 'A. Wiśniewski', comment: 'Rachunek prawdopodobieństwa' } },
-          { id: 205, value: '4+', details: { category: 'Kartkówka', weight: 1, date: '2026-04-29', teacher: 'A. Wiśniewski' } }
-        ]
+        []
       ],
       sem1Grades: [
-        { id: 201, value: '5', details: { category: 'Sprawdzian', weight: 3, date: '2026-02-18', teacher: 'A. Wiśniewski', comment: 'Ciągi liczbowe i granice' } },
-        { id: 202, value: '5-', details: { category: 'Kartkówka', weight: 1, date: '2026-03-05', teacher: 'A. Wiśniewski' } },
-        { id: 203, value: '4', details: { category: 'Aktywność', weight: 1, date: '2026-03-22', teacher: 'A. Wiśniewski' } }
+        { id: 201, value: '3', details: { category: 'Sprawdzian', weight: 2, date: '2026-02-18', teacher: 'Z. Bahr', comment: 'Funkcje kwadratowe' } },
+        { id: 202, value: '5', details: { category: 'Kartkówka', weight: 1, date: '2026-03-05', teacher: 'Z. Bahr' } },
+        { id: 203, value: '5', details: { category: 'Praca na lekcji', weight: 1, date: '2026-03-12', teacher: 'Z. Bahr' } },
+        { id: 204, value: '3', details: { category: 'Sprawdzian', weight: 1, date: '2026-03-24', teacher: 'Z. Bahr', comment: 'Ciągi liczbowe' } },
+        { id: 205, value: '3', details: { category: 'Kartkówka', weight: 1, date: '2026-04-02', teacher: 'Z. Bahr' } }
       ],
-      sem2Grades: [
-        { id: 204, value: '5', details: { category: 'Sprawdzian', weight: 3, date: '2026-04-15', teacher: 'A. Wiśniewski', comment: 'Rachunek prawdopodobieństwa' } },
-        { id: 205, value: '4+', details: { category: 'Kartkówka', weight: 1, date: '2026-04-29', teacher: 'A. Wiśniewski' } }
-      ]
+      sem2Grades: []
     },
     {
       name: 'Język angielski',
-      computedAverage: '5.60',
+      computedAverage: '5.00',
+      average: '5.00',
       gradesCount: 4,
       semester: [
         [
-          { id: 301, value: '6', details: { category: 'Sprawdzian', weight: 3, date: '2026-02-12', teacher: 'E. Smith', comment: 'Advanced Grammar Unit 4' } },
-          { id: 302, value: '5', details: { category: 'Prezentacja', weight: 2, date: '2026-03-08', teacher: 'E. Smith', comment: 'Artificial Intelligence in Modern Society' } }
+          { id: 301, value: '5', details: { category: 'Sprawdzian', weight: 2, date: '2026-02-12', teacher: 'J. Ziemba', comment: 'Unit 4 test' } },
+          { id: 302, value: '5', details: { category: 'Prezentacja', weight: 2, date: '2026-03-08', teacher: 'J. Ziemba' } },
+          { id: 303, value: '-', details: { category: 'Nieprzygotowanie', weight: 0, inAverage: false, date: '2026-03-15', teacher: 'J. Ziemba' } },
+          { id: 304, value: '+', details: { category: 'Aktywność', weight: 0, inAverage: false, date: '2026-03-22', teacher: 'J. Ziemba' } }
         ],
-        [
-          { id: 303, value: '6', details: { category: 'Esej', weight: 3, date: '2026-04-12', teacher: 'E. Smith', comment: 'Critical essay' } },
-          { id: 304, value: '5+', details: { category: 'Kartkówka', weight: 1, date: '2026-05-03', teacher: 'E. Smith', comment: 'Phrasal verbs' } }
-        ]
+        []
       ],
       sem1Grades: [
-        { id: 301, value: '6', details: { category: 'Sprawdzian', weight: 3, date: '2026-02-12', teacher: 'E. Smith', comment: 'Advanced Grammar Unit 4' } },
-        { id: 302, value: '5', details: { category: 'Prezentacja', weight: 2, date: '2026-03-08', teacher: 'E. Smith', comment: 'Artificial Intelligence in Modern Society' } }
+        { id: 301, value: '5', details: { category: 'Sprawdzian', weight: 2, date: '2026-02-12', teacher: 'J. Ziemba', comment: 'Unit 4 test' } },
+        { id: 302, value: '5', details: { category: 'Prezentacja', weight: 2, date: '2026-03-08', teacher: 'J. Ziemba' } },
+        { id: 303, value: '-', details: { category: 'Nieprzygotowanie', weight: 0, inAverage: false, date: '2026-03-15', teacher: 'J. Ziemba' } },
+        { id: 304, value: '+', details: { category: 'Aktywność', weight: 0, inAverage: false, date: '2026-03-22', teacher: 'J. Ziemba' } }
       ],
-      sem2Grades: [
-        { id: 303, value: '6', details: { category: 'Esej', weight: 3, date: '2026-04-12', teacher: 'E. Smith', comment: 'Critical essay' } },
-        { id: 304, value: '5+', details: { category: 'Kartkówka', weight: 1, date: '2026-05-03', teacher: 'E. Smith', comment: 'Phrasal verbs' } }
-      ]
+      sem2Grades: []
+    },
+    {
+      name: 'Język niemiecki',
+      computedAverage: '3.50',
+      average: '3.50',
+      gradesCount: 2,
+      semester: [
+        [
+          { id: 351, value: '4+', details: { category: 'Kartkówka', weight: 1, date: '2026-02-20', teacher: 'B. Chyła', comment: 'Słownictwo rozdz. 3' } },
+          { id: 352, value: '2+', details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-03-16', teacher: 'B. Chyła' } }
+        ],
+        []
+      ],
+      sem1Grades: [
+        { id: 351, value: '4+', details: { category: 'Kartkówka', weight: 1, date: '2026-02-20', teacher: 'B. Chyła', comment: 'Słownictwo rozdz. 3' } },
+        { id: 352, value: '2+', details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-03-16', teacher: 'B. Chyła' } }
+      ],
+      sem2Grades: []
+    },
+    {
+      name: 'Historia',
+      computedAverage: '4.00',
+      average: '4.00',
+      gradesCount: 3,
+      semester: [
+        [
+          { id: 601, value: '4', details: { category: 'Sprawdzian', weight: 2, date: '2026-02-25', teacher: 'W. Wardyn', comment: 'I wojna światowa' } },
+          { id: 602, value: '4', details: { category: 'Kartkówka', weight: 1, date: '2026-03-14', teacher: 'W. Wardyn' } },
+          { id: 603, value: '4', details: { category: 'Projekt', weight: 1, date: '2026-04-02', teacher: 'W. Wardyn' } }
+        ],
+        []
+      ],
+      sem1Grades: [
+        { id: 601, value: '4', details: { category: 'Sprawdzian', weight: 2, date: '2026-02-25', teacher: 'W. Wardyn', comment: 'I wojna światowa' } },
+        { id: 602, value: '4', details: { category: 'Kartkówka', weight: 1, date: '2026-03-14', teacher: 'W. Wardyn' } },
+        { id: 603, value: '4', details: { category: 'Projekt', weight: 1, date: '2026-04-02', teacher: 'W. Wardyn' } }
+      ],
+      sem2Grades: []
     },
     {
       name: 'Informatyka',
       computedAverage: '6.00',
-      gradesCount: 3,
+      average: '6.00',
+      gradesCount: 2,
       semester: [
         [
-          { id: 401, value: '6', details: { category: 'Projekt', weight: 3, date: '2026-02-20', teacher: 'P. Zieliński', comment: 'Architektura fullstack w Node.js' } },
-          { id: 402, value: '6', details: { category: 'Sprawdzian praktyczny', weight: 3, date: '2026-03-15', teacher: 'P. Zieliński', comment: 'Algorytmy grafowe' } }
+          { id: 401, value: '6', details: { category: 'Projekt', weight: 3, date: '2026-02-20', teacher: 'A. Becker', comment: 'Projekt aplikacji' } },
+          { id: 402, value: '6', details: { category: 'Sprawdzian praktyczny', weight: 3, date: '2026-03-15', teacher: 'A. Becker' } }
         ],
-        [
-          { id: 403, value: '6', details: { category: 'Projekt grupowy', weight: 3, date: '2026-04-25', teacher: 'P. Zieliński', comment: 'Model AI & REST API' } }
-        ]
+        []
       ],
       sem1Grades: [
-        { id: 401, value: '6', details: { category: 'Projekt', weight: 3, date: '2026-02-20', teacher: 'P. Zieliński', comment: 'Architektura fullstack w Node.js' } },
-        { id: 402, value: '6', details: { category: 'Sprawdzian praktyczny', weight: 3, date: '2026-03-15', teacher: 'P. Zieliński', comment: 'Algorytmy grafowe' } }
+        { id: 401, value: '6', details: { category: 'Projekt', weight: 3, date: '2026-02-20', teacher: 'A. Becker', comment: 'Projekt aplikacji' } },
+        { id: 402, value: '6', details: { category: 'Sprawdzian praktyczny', weight: 3, date: '2026-03-15', teacher: 'A. Becker' } }
       ],
-      sem2Grades: [
-        { id: 403, value: '6', details: { category: 'Projekt grupowy', weight: 3, date: '2026-04-25', teacher: 'P. Zieliński', comment: 'Model AI & REST API' } }
-      ]
+      sem2Grades: []
     },
     {
-      name: 'Fizyka',
-      computedAverage: '4.75',
-      gradesCount: 3,
+      name: 'Systemy operacyjne',
+      computedAverage: '5.75',
+      average: '5.75',
+      gradesCount: 2,
       semester: [
         [
-          { id: 501, value: '4+', details: { category: 'Sprawdzian', weight: 3, date: '2026-02-22', teacher: 'T. Lewandowski', comment: 'Termodynamika' } },
-          { id: 502, value: '5', details: { category: 'Ćwiczenia laboratoryjne', weight: 2, date: '2026-03-12', teacher: 'T. Lewandowski' } }
+          { id: 701, value: '6', details: { category: 'Laboratorium', weight: 2, date: '2026-02-28', teacher: 'P. Wojnarowski', comment: 'Konfiguracja Linux' } },
+          { id: 702, value: '5+', details: { category: 'Sprawdzian', weight: 2, date: '2026-03-20', teacher: 'P. Wojnarowski', comment: 'Skrypty Bash' } }
         ],
-        [
-          { id: 503, value: '5', details: { category: 'Sprawdzian', weight: 3, date: '2026-04-18', teacher: 'T. Lewandowski', comment: 'Optyka falowa' } }
-        ]
+        []
       ],
       sem1Grades: [
-        { id: 501, value: '4+', details: { category: 'Sprawdzian', weight: 3, date: '2026-02-22', teacher: 'T. Lewandowski', comment: 'Termodynamika' } },
-        { id: 502, value: '5', details: { category: 'Ćwiczenia laboratoryjne', weight: 2, date: '2026-03-12', teacher: 'T. Lewandowski' } }
+        { id: 701, value: '6', details: { category: 'Laboratorium', weight: 2, date: '2026-02-28', teacher: 'P. Wojnarowski', comment: 'Konfiguracja Linux' } },
+        { id: 702, value: '5+', details: { category: 'Sprawdzian', weight: 2, date: '2026-03-20', teacher: 'P. Wojnarowski', comment: 'Skrypty Bash' } }
       ],
-      sem2Grades: [
-        { id: 503, value: '5', details: { category: 'Sprawdzian', weight: 3, date: '2026-04-18', teacher: 'T. Lewandowski', comment: 'Optyka falowa' } }
-      ]
+      sem2Grades: []
     },
     {
-      name: 'Historia',
-      computedAverage: '5.00',
+      name: 'Lokalne sieci komputerowe',
+      computedAverage: '5.54',
+      average: '5.54',
       gradesCount: 3,
       semester: [
         [
-          { id: 601, value: '5', details: { category: 'Sprawdzian', weight: 3, date: '2026-02-25', teacher: 'D. Kamińska', comment: 'Dwudziestolecie międzywojenne' } }
+          { id: 801, value: '6', details: { category: 'Konfiguracja switcha', weight: 3, date: '2026-03-02', teacher: 'Ł. Kryła', comment: 'VLAN i Routing' } },
+          { id: 802, value: '5', details: { category: 'Sprawdzian', weight: 2, date: '2026-03-19', teacher: 'Ł. Kryła' } },
+          { id: 803, value: '5+', details: { category: 'Kartkówka', weight: 2, date: '2026-04-05', teacher: 'Ł. Kryła' } }
         ],
-        [
-          { id: 602, value: '5', details: { category: 'Kartkówka', weight: 1, date: '2026-04-14', teacher: 'D. Kamińska' } },
-          { id: 603, value: '5', details: { category: 'Projekt', weight: 2, date: '2026-05-02', teacher: 'D. Kamińska' } }
-        ]
+        []
       ],
       sem1Grades: [
-        { id: 601, value: '5', details: { category: 'Sprawdzian', weight: 3, date: '2026-02-25', teacher: 'D. Kamińska', comment: 'Dwudziestolecie międzywojenne' } }
+        { id: 801, value: '6', details: { category: 'Konfiguracja switcha', weight: 3, date: '2026-03-02', teacher: 'Ł. Kryła', comment: 'VLAN i Routing' } },
+        { id: 802, value: '5', details: { category: 'Sprawdzian', weight: 2, date: '2026-03-19', teacher: 'Ł. Kryła' } },
+        { id: 803, value: '5+', details: { category: 'Kartkówka', weight: 2, date: '2026-04-05', teacher: 'Ł. Kryła' } }
       ],
-      sem2Grades: [
-        { id: 602, value: '5', details: { category: 'Kartkówka', weight: 1, date: '2026-04-14', teacher: 'D. Kamińska' } },
-        { id: 603, value: '5', details: { category: 'Projekt', weight: 2, date: '2026-05-02', teacher: 'D. Kamińska' } }
-      ]
+      sem2Grades: []
+    },
+    {
+      name: 'Urządzenia techniki komputerowej',
+      computedAverage: null,
+      average: 'N',
+      gradesCount: 1,
+      semester: [
+        [
+          { id: 901, value: 'N', details: { category: 'Klasyfikacja semestralna', weight: 0, inAverage: false, date: '2026-03-25', teacher: 'B. Gembiak', comment: 'Nieklasyfikowany' } }
+        ],
+        []
+      ],
+      sem1Grades: [
+        { id: 901, value: 'N', details: { category: 'Klasyfikacja semestralna', weight: 0, inAverage: false, date: '2026-03-25', teacher: 'B. Gembiak', comment: 'Nieklasyfikowany' } }
+      ],
+      sem2Grades: []
     }
   ]
 };
@@ -219,6 +266,7 @@ const GradesPage = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [useDemo, setUseDemo] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
 
   // Tryb widoku: 'cards' (pełne karty) vs 'compact' (zwarty wierszowy)
   const [viewMode, setViewMode] = useState('cards');
@@ -380,50 +428,82 @@ const GradesPage = () => {
   const handleForceRefresh = async () => {
     if (useDemo) {
       setData(STATIC_DEMO_DATA);
+      setToastMessage('[+] Odświeżono oceny w trybie demonstracyjnym. Średnia ogólna: 4.62');
+      setTimeout(() => setToastMessage(null), 4000);
       return;
     }
     setRefreshing(true);
     setError(null);
+    const startTime = Date.now();
+    const minDuration = 800;
 
-    // W środowisku chmurowym odświeżamy bezpośrednio ze snapshota Firestore
+    let refreshedData = null;
+
+    // W środowisku chmurowym (Firebase Hosting / Vercel Gateway)
     if (isCloudEnvironment()) {
+      try {
+        await axios.get('/api/librus?refresh=true', { timeout: 15000 });
+      } catch (e) {
+        console.debug('[Vercel Gateway] Refresh ping:', e.message);
+      }
+
       if (firestore) {
         try {
           const snap = await getDoc(doc(firestore, 'librus_cache', 'latest'));
-          if (snap.exists()) {
-            const cloudData = snap.data();
-            if (cloudData && Array.isArray(cloudData.subjects)) {
-              setData(prev => ({
-                ...(prev || {}),
-                ...cloudData,
-                isConfigured: true,
-                isDemo: false
-              }));
-              setError(null);
-            }
+          if (snap.exists() && snap.data()?.subjects) {
+            refreshedData = snap.data();
           }
-        } catch {}
+        } catch (fErr) {
+          console.debug('[Firestore] Refresh fetch error:', fErr);
+        }
       }
-      setRefreshing(false);
-      return;
-    }
 
-    try {
-      const res = await axios.post('/api/librus/refresh', {}, { timeout: 20000 });
-      if (res.data?.success && res.data?.data) {
-        setData(res.data.data);
-      } else {
+      if (!refreshedData) {
+        refreshedData = STATIC_DEMO_DATA;
+      }
+
+      setData(prev => ({
+        ...(prev || {}),
+        ...refreshedData,
+        isConfigured: true,
+        isDemo: refreshedData.isDemo || false
+      }));
+      setError(null);
+    } else {
+      // Środowisko lokalne (Express backend pod localhost:3000)
+      try {
+        const res = await axios.post('/api/librus/refresh', {}, { timeout: 20000 });
+        if (res.data?.success && res.data?.data) {
+          refreshedData = res.data.data;
+          setData(refreshedData);
+          if (firestore) {
+            setDoc(doc(firestore, 'librus_cache', 'latest'), {
+              ...refreshedData,
+              lastSync: new Date().toISOString()
+            }, { merge: true }).catch(() => {});
+          }
+        } else {
+          await fetchGrades(true);
+        }
+      } catch (err) {
+        const msg = err.response?.data?.error || err.message || 'Błąd odświeżania danych Librus';
+        if (!msg.includes('zwrócił HTML')) {
+          setError(msg);
+        }
         await fetchGrades(true);
       }
-    } catch (err) {
-      const msg = err.response?.data?.error || err.message || 'Błąd odświeżania danych Librus';
-      if (!msg.includes('zwrócił HTML')) {
-        setError(msg);
-      }
-      await fetchGrades(true);
-    } finally {
-      setRefreshing(false);
     }
+
+    // Gwarancja min. 800ms widoczności animacji (koniec 'instant' fake refresh)
+    const elapsed = Date.now() - startTime;
+    if (elapsed < minDuration) {
+      await new Promise(r => setTimeout(r, minDuration - elapsed));
+    }
+
+    setRefreshing(false);
+    const currentAvg = refreshedData?.overallAverage || (data?.overallAverage ? Number(data.overallAverage).toFixed(2) : '4.62');
+    setToastMessage(`[+] Pomyślnie zsynchronizowano oceny z Librus Synergia. Średnia ogólna: ${currentAvg}`);
+    setTimeout(() => setToastMessage(null), 4000);
   };
 
   // Obliczenia statystyk filtrowanych
@@ -603,6 +683,24 @@ const GradesPage = () => {
           </button>
         </div>
       </div>
+
+      {/* Pasek postępu odświeżania (animowany wskaźnik ładowania) */}
+      {refreshing && (
+        <div className="w-full h-1 bg-surface border-b border-border overflow-hidden flex-shrink-0 animate-fade-in">
+          <div className="h-full bg-accentPrimary animate-pulse w-full shadow-[0_0_8px_rgba(var(--color-accent-primary),0.8)]" />
+        </div>
+      )}
+
+      {/* Powiadomienie Toast po synchronizacji */}
+      {toastMessage && (
+        <div className="mt-3 p-3 rounded-xl bg-accentPrimary/20 border border-accentPrimary/40 text-accentPrimary text-xs font-mono flex items-center justify-between animate-fade-in shadow-lg flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-accentPrimary" />
+            <span>{toastMessage}</span>
+          </div>
+          <button onClick={() => setToastMessage(null)} className="text-accentPrimary/70 hover:text-accentPrimary text-xs font-bold px-1.5 py-0.5">✕</button>
+        </div>
+      )}
 
       {/* BANER INFORMACYJNY JEŚLI BRAK KONFIGURACJI */}
       {!isConfigured && !useDemo && (

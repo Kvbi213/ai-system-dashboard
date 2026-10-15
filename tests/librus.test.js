@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import * as cheerio from 'cheerio';
 import { 
   parseGradeNumeric, 
   parseGradeInfo, 
@@ -11,7 +12,8 @@ import {
   parseTimeToMinutes,
   checkTimeOverlap,
   correlateTimetableWithAbsences,
-  getDemoTimetableData
+  getDemoTimetableData,
+  parseTimetableHtml
 } from '../modules/services/librusService.js';
 import { agentTools } from '../modules/ai/tools.js';
 
@@ -363,6 +365,105 @@ Komentarz: Dział 3`;
       expect(props).toContain('date_from');
       expect(props).not.toContain('title');
       expect(props).not.toContain('event');
+    });
+  });
+
+  describe('parseTimetableHtml with Cancelled Lessons', () => {
+    it('should parse HTML table and identify cancelled lessons in <s> tags and .plan-lekcji-info', () => {
+      const sampleHtml = `
+        <table class="decorated plan-lekcji">
+          <tbody>
+            <tr class="line1">
+              <th>08:00 - 08:45</th>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>
+                <div class="text">
+                  <s>Język polski (odwołane)</s>
+                  <br>
+                  <s>Negowska Alicja</s>
+                  <span class="plan-lekcji-info">zajęcia odwołane</span>
+                </div>
+              </td>
+              <td></td>
+            </tr>
+            <tr class="line1">
+              <th>12:20 - 13:05</th>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>
+                <div class="text">
+                  <b>Matematyka</b>
+                  <br>
+                  Bahr Zbigniew
+                  <span class="sala">s. 05</span>
+                </div>
+              </td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+
+      const $ = cheerio.load(sampleHtml);
+      const parsed = parseTimetableHtml($, '2026-09-21', '2026-09-25');
+      expect(parsed).toBeDefined();
+      expect(parsed.lessons.length).toBe(2);
+
+      const cancelledLesson = parsed.lessons.find(l => l.isCancelled);
+      expect(cancelledLesson).toBeDefined();
+      expect(cancelledLesson.subject.toLowerCase()).toContain('polski');
+      expect(cancelledLesson.status).toBe('cancelled');
+      expect(cancelledLesson.statusLabel).toBe('Odwołana');
+
+      const activeLesson = parsed.lessons.find(l => !l.isCancelled);
+      expect(activeLesson).toBeDefined();
+      expect(activeLesson.subject).toBe('Matematyka');
+      expect(activeLesson.status).toBe('active');
+    });
+  });
+
+  describe('Librus Cancelled Lessons & Plan Dnia Demo Verification', () => {
+    it('should have Thursday lessons 1, 2, 3, 8 marked as cancelled and math lessons 6-7 active', () => {
+      const timetable = getDemoTimetableData();
+      const thursdayLessons = timetable.lessons.filter(l => l.day === 'thursday');
+
+      const thu1 = thursdayLessons.find(l => l.id === 'librus_thu_1');
+      const thu2 = thursdayLessons.find(l => l.id === 'librus_thu_2');
+      const thu3 = thursdayLessons.find(l => l.id === 'librus_thu_3');
+      const thu6 = thursdayLessons.find(l => l.id === 'librus_thu_6');
+      const thu7 = thursdayLessons.find(l => l.id === 'librus_thu_7');
+      const thu8 = thursdayLessons.find(l => l.id === 'librus_thu_8');
+
+      expect(thu1?.isCancelled).toBe(true);
+      expect(thu1?.status).toBe('cancelled');
+      expect(thu2?.isCancelled).toBe(true);
+      expect(thu3?.isCancelled).toBe(true);
+      expect(thu8?.isCancelled).toBe(true);
+
+      // Lekcje matematyki 6 i 7 odbywają się normalnie
+      expect(thu6?.isCancelled).toBeFalsy();
+      expect(thu6?.status).toBe('active');
+      expect(thu7?.isCancelled).toBeFalsy();
+      expect(thu7?.status).toBe('active');
+    });
+
+    it('should calculate accurate demo grades stats with overall average 4.62', () => {
+      const grades = getDemoGradesData();
+      expect(grades.overallAverage).toBe(4.62);
+
+      const math = grades.subjects.find(s => s.name === 'Matematyka');
+      expect(math).toBeDefined();
+      expect(math.average).toBe(3.67);
+      expect(math.grades.length).toBe(5);
+
+      const utk = grades.subjects.find(s => s.name.includes('techniki komputerowej'));
+      expect(utk).toBeDefined();
+      const nGrade = utk.grades.find(g => g.value === 'N');
+      expect(nGrade).toBeDefined();
+      expect(nGrade.inAverage).toBe(false);
     });
   });
 });

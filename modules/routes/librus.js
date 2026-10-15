@@ -23,6 +23,7 @@ const router = express.Router();
 router.get('/grades', async (req, res) => {
   const creds = getLibrusCredentials();
   const forceDemo = req.query.demo === 'true';
+  const forceRefresh = req.query.refresh === 'true';
 
   if (forceDemo) {
     return res.json({
@@ -32,8 +33,20 @@ router.get('/grades', async (req, res) => {
     });
   }
 
+  // Wymuszone odświeżenie danych z serwera Synergia
+  if (forceRefresh && creds.isConfigured) {
+    const syncRes = await syncLibrusGrades();
+    if (syncRes.success) {
+      return res.json({
+        success: true,
+        isConfigured: true,
+        ...syncRes.data
+      });
+    }
+  }
+
   const cached = await getCachedGrades();
-  if (cached) {
+  if (cached && !forceRefresh) {
     return res.json({
       success: true,
       isConfigured: creds.isConfigured,

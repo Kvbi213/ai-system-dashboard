@@ -4,7 +4,8 @@ import {
   GraduationCap, Plus, Trash2, Edit2, Clock, MapPin, User, 
   Search, Filter, Calendar, BookOpen, ChevronRight, Copy, 
   Sparkles, CheckCircle, AlertCircle, LayoutGrid, List, RefreshCw,
-  AlertTriangle, UserX, CheckCircle2
+  AlertTriangle, UserX, CheckCircle2, ArrowUpDown, Tag, AlertOctagon,
+  Dumbbell, Coffee, Briefcase
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { subscribeCollection, saveCloudDocument, deleteCloudDocument, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
@@ -34,7 +35,25 @@ const LESSON_TYPES = [
   { id: 'Seminarium', label: 'Seminarium', defaultColor: 'rose' },
   { id: 'Lektorat', label: 'Lektorat', defaultColor: 'amber' },
   { id: 'Konsultacje', label: 'Konsultacje', defaultColor: 'blue' },
+  { id: 'Osobiste', label: 'Osobiste', defaultColor: 'emerald' },
   { id: 'Inne', label: 'Inne', defaultColor: 'slate' },
+];
+
+const PERSONAL_CATEGORIES = [
+  { id: 'Trening', label: 'Trening / Sport', color: 'emerald' },
+  { id: 'Nauka', label: 'Nauka własna', color: 'purple' },
+  { id: 'Spotkanie', label: 'Spotkanie / Konsultacja', color: 'blue' },
+  { id: 'Praca', label: 'Praca / Projekt', color: 'cyan' },
+  { id: 'Hobby', label: 'Hobby / Czas wolny', color: 'amber' },
+  { id: 'Zdrowie', label: 'Zdrowie / Odpoczynek', color: 'rose' },
+  { id: 'Inne', label: 'Inne aktywności', color: 'slate' }
+];
+
+const PRIORITIES = [
+  { id: 'low', label: 'Niski', badge: 'bg-slate-500/20 text-slate-300 border-slate-500/40' },
+  { id: 'normal', label: 'Normalny', badge: 'bg-blue-500/20 text-blue-300 border-blue-500/40' },
+  { id: 'high', label: 'Wysoki', badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
+  { id: 'critical', label: 'Krytyczny', badge: 'bg-rose-500/20 text-rose-300 border-rose-500/40' }
 ];
 
 const COLOR_MAP = {
@@ -113,52 +132,122 @@ const STATIC_DEMO_ABSENCE_EVENTS = [
 
 const STATIC_DEMO_TIMETABLE_LESSONS = [
   // Poniedziałek
-  { id: 'librus_mon_1', day: 'monday', subject: 'Informatyka', time_start: '08:50', time_end: '09:35', room: 's. 17', teacher: 'Becker Adam', cleanTeacher: 'Becker Adam', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia informatyczna', isLibrus: true },
-  { id: 'librus_mon_2', day: 'monday', subject: 'Informatyka', time_start: '09:40', time_end: '10:25', room: 's. 17', teacher: 'Becker Adam', cleanTeacher: 'Becker Adam', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia informatyczna', isLibrus: true },
-  { id: 'librus_mon_3', day: 'monday', subject: 'Chemia', time_start: '10:40', time_end: '11:25', room: 's. 31', teacher: 'Kolasińska Paulina', cleanTeacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true },
-  { id: 'librus_mon_4', day: 'monday', subject: 'Edukacja zdrowotna', time_start: '11:30', time_end: '12:15', room: 's. 38', teacher: 'Spych Monika', cleanTeacher: 'Spych Monika', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true },
-  { id: 'librus_mon_5', day: 'monday', subject: 'Systemy operacyjne', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: 'Teoria i architektura systemów', isLibrus: true },
-  { id: 'librus_mon_6', day: 'monday', subject: 'Systemy operacyjne', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: 'Warsztaty praktyczne', isLibrus: true },
+  { id: 'librus_mon_1', day: 'monday', subject: 'Informatyka', time_start: '08:50', time_end: '09:35', room: 's. 17', teacher: 'Becker Adam', cleanTeacher: 'Becker Adam', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia informatyczna', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_mon_2', day: 'monday', subject: 'Informatyka', time_start: '09:40', time_end: '10:25', room: 's. 17', teacher: 'Becker Adam', cleanTeacher: 'Becker Adam', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia informatyczna', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_mon_3', day: 'monday', subject: 'Chemia', time_start: '10:40', time_end: '11:25', room: 's. 31', teacher: 'Kolasińska Paulina', cleanTeacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_mon_4', day: 'monday', subject: 'Edukacja zdrowotna', time_start: '11:30', time_end: '12:15', room: 's. 38', teacher: 'Spych Monika', cleanTeacher: 'Spych Monika', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_mon_5', day: 'monday', subject: 'Systemy operacyjne', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: 'Teoria i architektura systemów', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_mon_6', day: 'monday', subject: 'Systemy operacyjne', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: 'Warsztaty praktyczne', isLibrus: true, category: 'school', status: 'active' },
 
   // Wtorek
-  { id: 'librus_tue_1', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:00', time_end: '08:45', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true },
-  { id: 'librus_tue_2', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:50', time_end: '09:35', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true },
-  { id: 'librus_tue_3', day: 'tuesday', subject: 'Zajęcia z wychowawcą', time_start: '09:40', time_end: '10:25', room: 's. 1.16', teacher: 'Ziemba Joanna', cleanTeacher: 'Ziemba Joanna', type: 'Wykład', color: 'amber', notes: 'Godzina wychowawcza', isLibrus: true },
-  { id: 'librus_tue_4', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '10:40', time_end: '11:25', room: 's. WF', teacher: 'Łysakowski Grzegorz', cleanTeacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: 'Grupa 1', isLibrus: true },
-  { id: 'librus_tue_5', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '11:30', time_end: '12:15', room: 's. WF', teacher: 'Łysakowski Grzegorz', cleanTeacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: 'Grupa 1', isLibrus: true },
-  { id: 'librus_tue_6', day: 'tuesday', subject: 'Pracownia systemów operacyjnych', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Reszka Sławomir', cleanTeacher: 'Reszka Sławomir', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true },
-  { id: 'librus_tue_7', day: 'tuesday', subject: 'Pracownia systemów operacyjnych', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Reszka Sławomir', cleanTeacher: 'Reszka Sławomir', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true },
-  { id: 'librus_tue_8', day: 'tuesday', subject: 'Matematyka', time_start: '14:05', time_end: '14:50', room: 's. 26', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true },
-  { id: 'librus_tue_9', day: 'tuesday', subject: 'Religia', time_start: '14:55', time_end: '15:40', room: 's. 24', teacher: 'Gizela Maciej', cleanTeacher: 'Gizela Maciej', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true },
+  { id: 'librus_tue_1', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:00', time_end: '08:45', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_tue_2', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:50', time_end: '09:35', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_tue_3', day: 'tuesday', subject: 'Zajęcia z wychowawcą', time_start: '09:40', time_end: '10:25', room: 's. 1.16', teacher: 'Ziemba Joanna', cleanTeacher: 'Ziemba Joanna', type: 'Wykład', color: 'amber', notes: 'Godzina wychowawcza', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_tue_4', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '10:40', time_end: '11:25', room: 's. WF', teacher: 'Łysakowski Grzegorz', cleanTeacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_tue_5', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '11:30', time_end: '12:15', room: 's. WF', teacher: 'Łysakowski Grzegorz', cleanTeacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_tue_6', day: 'tuesday', subject: 'Pracownia systemów operacyjnych', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Reszka Sławomir', cleanTeacher: 'Reszka Sławomir', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_tue_7', day: 'tuesday', subject: 'Pracownia systemów operacyjnych', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Reszka Sławomir', cleanTeacher: 'Reszka Sławomir', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_tue_8', day: 'tuesday', subject: 'Matematyka', time_start: '14:05', time_end: '14:50', room: 's. 26', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_tue_9', day: 'tuesday', subject: 'Religia', time_start: '14:55', time_end: '15:40', room: 's. 24', teacher: 'Gizela Maciej', cleanTeacher: 'Gizela Maciej', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'personal_tue_1', day: 'tuesday', subject: 'Trening siłowy', time_start: '16:15', time_end: '17:45', room: 'Gym Park', teacher: '', cleanTeacher: '', type: 'Osobiste', color: 'emerald', notes: 'FBW + rozciąganie po szkole', isLibrus: false, category: 'personal', personalCategory: 'Trening', priority: 'high', status: 'active' },
 
   // Środa
-  { id: 'librus_wed_1', day: 'wednesday', subject: 'Biznes i zarządzanie', time_start: '10:40', time_end: '11:25', room: 's. 0.2', teacher: 'Sokół Paweł', cleanTeacher: 'Sokół Paweł', type: 'Wykład', color: 'blue', notes: '', isLibrus: true },
-  { id: 'librus_wed_2', day: 'wednesday', subject: 'Biologia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Łukaszczyk-Wulgaris Joanna', cleanTeacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true },
-  { id: 'librus_wed_3', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Gembiak Bartosz', cleanTeacher: 'Gembiak Bartosz', type: 'Laboratorium', color: 'cyan', notes: 'Sprzęt i diagnostyka', isLibrus: true },
-  { id: 'librus_wed_4', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Gembiak Bartosz', cleanTeacher: 'Gembiak Bartosz', type: 'Laboratorium', color: 'cyan', notes: 'Warsztaty sprzętowe', isLibrus: true },
-  { id: 'librus_wed_5', day: 'wednesday', subject: 'Historia', time_start: '14:05', time_end: '14:50', room: 's. 06', teacher: 'Wardyn Wojciech', cleanTeacher: 'Wardyn Wojciech', type: 'Wykład', color: 'rose', notes: '', isLibrus: true },
-  { id: 'librus_wed_6', day: 'wednesday', subject: 'Matematyka', time_start: '14:55', time_end: '15:40', room: 's. 26', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true },
+  { id: 'librus_wed_1', day: 'wednesday', subject: 'Biznes i zarządzanie', time_start: '10:40', time_end: '11:25', room: 's. 0.2', teacher: 'Sokół Paweł', cleanTeacher: 'Sokół Paweł', type: 'Wykład', color: 'blue', notes: '', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_wed_2', day: 'wednesday', subject: 'Biologia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Łukaszczyk-Wulgaris Joanna', cleanTeacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_wed_3', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Gembiak Bartosz', cleanTeacher: 'Gembiak Bartosz', type: 'Laboratorium', color: 'cyan', notes: 'Sprzęt i diagnostyka', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_wed_4', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Gembiak Bartosz', cleanTeacher: 'Gembiak Bartosz', type: 'Laboratorium', color: 'cyan', notes: 'Warsztaty sprzętowe', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_wed_5', day: 'wednesday', subject: 'Historia', time_start: '14:05', time_end: '14:50', room: 's. 06', teacher: 'Wardyn Wojciech', cleanTeacher: 'Wardyn Wojciech', type: 'Wykład', color: 'rose', notes: '', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_wed_6', day: 'wednesday', subject: 'Matematyka', time_start: '14:55', time_end: '15:40', room: 's. 26', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true, category: 'school', status: 'active' },
 
-  // Czwartek
-  { id: 'librus_thu_1', day: 'thursday', subject: 'Język polski', time_start: '08:00', time_end: '08:45', room: 's. 34', teacher: 'Negowska Alicja', cleanTeacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true },
-  { id: 'librus_thu_2', day: 'thursday', subject: 'Język angielski zawodowy', time_start: '08:50', time_end: '09:35', room: 's. Z2', teacher: 'Ziemba Joanna', cleanTeacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: 'Grupa 1', isLibrus: true },
-  { id: 'librus_thu_3', day: 'thursday', subject: 'Język angielski', time_start: '09:40', time_end: '10:25', room: 's. Z2', teacher: 'Ziemba Joanna', cleanTeacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: 'Grupa 1', isLibrus: true },
-  { id: 'librus_thu_4', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Kryła Łukasz', cleanTeacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: 'Konfiguracja LAN', isLibrus: true },
-  { id: 'librus_thu_5', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '11:30', time_end: '12:15', room: 's. 1.16', teacher: 'Kryła Łukasz', cleanTeacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: 'Protokoły i routing', isLibrus: true },
-  { id: 'librus_thu_6', day: 'thursday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 05', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true },
-  { id: 'librus_thu_7', day: 'thursday', subject: 'Matematyka', time_start: '13:15', time_end: '14:00', room: 's. 05', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true },
-  { id: 'librus_thu_8', day: 'thursday', subject: 'Język niemiecki', time_start: '14:05', time_end: '14:50', room: 's. Z1', teacher: 'Chyła Beata', cleanTeacher: 'Chyła Beata', type: 'Lektorat', color: 'amber', notes: 'Grupa 1', isLibrus: true },
-  { id: 'librus_thu_9', day: 'thursday', subject: 'Biologia', time_start: '14:55', time_end: '15:40', room: 's. 19', teacher: 'Łukaszczyk-Wulgaris Joanna', cleanTeacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true },
+  // Czwartek (Zgodnie z Librus: lekcje 1, 2, 3 i 8 odwołane, okienka 4-5, matematyka 6-7 odbywa się)
+  { 
+    id: 'librus_thu_1', 
+    day: 'thursday', 
+    subject: 'Język polski', 
+    time_start: '08:00', 
+    time_end: '08:45', 
+    room: 's. 34', 
+    teacher: 'Negowska Alicja', 
+    cleanTeacher: 'Negowska Alicja', 
+    type: 'Wykład', 
+    color: 'rose', 
+    notes: '[!] ODWOŁANA (nieobecność nauczyciela)', 
+    isLibrus: true,
+    isCancelled: true,
+    status: 'cancelled',
+    statusLabel: 'Odwołana',
+    category: 'school'
+  },
+  { 
+    id: 'librus_thu_2', 
+    day: 'thursday', 
+    subject: 'Język angielski zawodowy', 
+    time_start: '08:50', 
+    time_end: '09:35', 
+    room: 's. Z2', 
+    teacher: 'Ziemba Joanna', 
+    cleanTeacher: 'Ziemba Joanna', 
+    type: 'Lektorat', 
+    color: 'amber', 
+    notes: 'Grupa 1 - zajęcia odwołane', 
+    isLibrus: true,
+    isCancelled: true,
+    status: 'cancelled',
+    statusLabel: 'Odwołana',
+    category: 'school'
+  },
+  { 
+    id: 'librus_thu_3', 
+    day: 'thursday', 
+    subject: 'Język angielski', 
+    time_start: '09:40', 
+    time_end: '10:25', 
+    room: 's. Z2', 
+    teacher: 'Ziemba Joanna', 
+    cleanTeacher: 'Ziemba Joanna', 
+    type: 'Lektorat', 
+    color: 'amber', 
+    notes: 'Grupa 1 - zajęcia odwołane', 
+    isLibrus: true,
+    isCancelled: true,
+    status: 'cancelled',
+    statusLabel: 'Odwołana',
+    category: 'school'
+  },
+  { id: 'librus_thu_4', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Kryła Łukasz', cleanTeacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: 'Konfiguracja LAN', isLibrus: true, isCancelled: false, status: 'active', category: 'school' },
+  { id: 'librus_thu_5', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '11:30', time_end: '12:15', room: 's. 1.16', teacher: 'Kryła Łukasz', cleanTeacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: 'Protokoły i routing', isLibrus: true, isCancelled: false, status: 'active', category: 'school' },
+  { id: 'librus_thu_6', day: 'thursday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 05', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: 'Zajęcia odbywają się (sala 05)', isLibrus: true, isCancelled: false, status: 'active', category: 'school' },
+  { id: 'librus_thu_7', day: 'thursday', subject: 'Matematyka', time_start: '13:15', time_end: '14:00', room: 's. 05', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: 'Zajęcia odbywają się (sala 05)', isLibrus: true, isCancelled: false, status: 'active', category: 'school' },
+  { 
+    id: 'librus_thu_8', 
+    day: 'thursday', 
+    subject: 'Język niemiecki', 
+    time_start: '14:05', 
+    time_end: '14:50', 
+    room: 's. Z1', 
+    teacher: 'Chyła Beata', 
+    cleanTeacher: 'Chyła Beata', 
+    type: 'Lektorat', 
+    color: 'amber', 
+    notes: 'Grupa 1 - zajęcia odwołane', 
+    isLibrus: true,
+    isCancelled: true,
+    status: 'cancelled',
+    statusLabel: 'Odwołana',
+    category: 'school'
+  },
+  { id: 'librus_thu_9', day: 'thursday', subject: 'Biologia', time_start: '14:55', time_end: '15:40', room: 's. 19', teacher: 'Łukaszczyk-Wulgaris Joanna', cleanTeacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true, isCancelled: false, status: 'active', category: 'school' },
+  { id: 'personal_thu_1', day: 'thursday', subject: 'Projekt AI Dashboard', time_start: '16:00', time_end: '18:00', room: 'Pracownia domowa', teacher: '', cleanTeacher: '', type: 'Osobiste', color: 'purple', notes: 'Implementacja widoku Plan Dnia & testy', isLibrus: false, category: 'personal', personalCategory: 'Praca', priority: 'critical', status: 'active' },
 
   // Piątek
-  { id: 'librus_fri_1', day: 'friday', subject: 'Język angielski', time_start: '08:00', time_end: '08:45', room: 's. Z2', teacher: 'Ziemba Joanna', cleanTeacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: 'Grupa 1', isLibrus: true },
-  { id: 'librus_fri_2', day: 'friday', subject: 'Język niemiecki', time_start: '08:50', time_end: '09:35', room: 's. Z1', teacher: 'Chyła Beata', cleanTeacher: 'Chyła Beata', type: 'Lektorat', color: 'amber', notes: 'Grupa 1', isLibrus: true },
-  { id: 'librus_fri_3', day: 'friday', subject: 'Wychowanie fizyczne', time_start: '09:40', time_end: '10:25', room: 's. WF', teacher: 'Łysakowski Grzegorz', cleanTeacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: 'Grupa 1', isLibrus: true },
-  { id: 'librus_fri_4', day: 'friday', subject: 'Lokalne sieci komputerowe', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Wykład', color: 'cyan', notes: 'Architektura sieciowa', isLibrus: true },
-  { id: 'librus_fri_5', day: 'friday', subject: 'Chemia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Kolasińska Paulina', cleanTeacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true },
-  { id: 'librus_fri_6', day: 'friday', subject: 'Edukacja obywatelska', time_start: '12:20', time_end: '13:05', room: 's. 09', teacher: 'Czarna Alicja', cleanTeacher: 'Czarna Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true },
-  { id: 'librus_fri_7', day: 'friday', subject: 'Język polski', time_start: '13:15', time_end: '14:00', room: 's. 34', teacher: 'Negowska Alicja', cleanTeacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true },
-  { id: 'librus_fri_8', day: 'friday', subject: 'Język polski', time_start: '14:05', time_end: '14:50', room: 's. 34', teacher: 'Negowska Alicja', cleanTeacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true }
+  { id: 'librus_fri_1', day: 'friday', subject: 'Język angielski', time_start: '08:00', time_end: '08:45', room: 's. Z2', teacher: 'Ziemba Joanna', cleanTeacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_fri_2', day: 'friday', subject: 'Język niemiecki', time_start: '08:50', time_end: '09:35', room: 's. Z1', teacher: 'Chyła Beata', cleanTeacher: 'Chyła Beata', type: 'Lektorat', color: 'amber', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_fri_3', day: 'friday', subject: 'Wychowanie fizyczne', time_start: '09:40', time_end: '10:25', room: 's. WF', teacher: 'Łysakowski Grzegorz', cleanTeacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_fri_4', day: 'friday', subject: 'Lokalne sieci komputerowe', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Wykład', color: 'cyan', notes: 'Architektura sieciowa', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_fri_5', day: 'friday', subject: 'Chemia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Kolasińska Paulina', cleanTeacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_fri_6', day: 'friday', subject: 'Edukacja obywatelska', time_start: '12:20', time_end: '13:05', room: 's. 09', teacher: 'Czarna Alicja', cleanTeacher: 'Czarna Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_fri_7', day: 'friday', subject: 'Język polski', time_start: '13:15', time_end: '14:00', room: 's. 34', teacher: 'Negowska Alicja', cleanTeacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true, category: 'school', status: 'active' },
+  { id: 'librus_fri_8', day: 'friday', subject: 'Język polski', time_start: '14:05', time_end: '14:50', room: 's. 34', teacher: 'Negowska Alicja', cleanTeacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true, category: 'school', status: 'active' }
 ];
 
 const TimetablePage = () => {
@@ -171,6 +260,9 @@ const TimetablePage = () => {
   const [librusLastSync, setLibrusLastSync] = useState(null);
   const [absenceFilterOnly, setAbsenceFilterOnly] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+
+  const [activeCategory, setActiveCategory] = useState('all'); // 'all' | 'school' | 'personal'
+  const [sortBy, setSortBy] = useState('time_asc'); // 'time_asc' | 'time_desc' | 'category' | 'status'
 
   const [selectedDay, setSelectedDay] = useState('all'); // 'all' | 'monday' | ...
   const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'grid'
@@ -191,7 +283,10 @@ const TimetablePage = () => {
     teacher: '',
     type: 'Wykład',
     color: 'indigo',
-    notes: ''
+    notes: '',
+    category: 'school',
+    personalCategory: 'Nauka',
+    priority: 'normal'
   });
 
   // Zegar systemowy do dynamicznego sprawdzania trwających lekcji
@@ -315,19 +410,40 @@ const TimetablePage = () => {
     return Math.max(parseTimeToMinutes(lStart), aStart) < Math.min(parseTimeToMinutes(lEnd), aEnd);
   };
 
+  const isPersonalLesson = (lesson) => {
+    return lesson?.category === 'personal' || lesson?.itemType === 'personal' || lesson?.type === 'Osobiste';
+  };
+
+  const getLessonCategory = (lesson) => {
+    return isPersonalLesson(lesson) ? 'personal' : 'school';
+  };
+
+  const isLessonCancelled = (lesson) => {
+    return !!(
+      lesson?.isCancelled || 
+      lesson?.status === 'cancelled' || 
+      lesson?.statusLabel === 'Odwołana' ||
+      (typeof lesson?.notes === 'string' && /odwołan/i.test(lesson.notes))
+    );
+  };
+
   // Podstawa lekcji: z bufora Librusa (priorytet nadrzędny) lub z bazy/cache jeśli bufor pusty
   // Wszystkie nazwiska nauczycieli są natychmiast rozwijane do pełnych imion i nazwisk.
   const baseLessons = useMemo(() => {
     let source = STATIC_DEMO_TIMETABLE_LESSONS;
     if (librusData && Array.isArray(librusData.lessons) && librusData.lessons.length > 0) {
-      source = librusData.lessons;
+      // Łączymy lekcje ze szkoły z aktywnościami osobistymi użytkownika zapisanymi w Firestore
+      const personalLessons = (lessons || []).filter(l => isPersonalLesson(l));
+      source = [...librusData.lessons, ...personalLessons];
     } else if (lessons && lessons.length > 0) {
       source = lessons;
     }
     return source.map(l => {
       const fullTeacher = resolveFullTeacherName(l.cleanTeacher || l.teacher);
+      const isPersonal = isPersonalLesson(l);
       return {
         ...l,
+        category: isPersonal ? 'personal' : (l.category || 'school'),
         teacher: fullTeacher || l.teacher,
         cleanTeacher: fullTeacher || l.cleanTeacher || l.teacher
       };
@@ -365,7 +481,7 @@ const TimetablePage = () => {
       const matched = absences.find(abs => {
         // 1. Sprawdzenie zgodności nauczyciela (odrzucenie false positives po imieniu lub podciągach)
         const currentTeacher = lesson.cleanTeacher || lesson.teacher;
-        if (!matchTeacherNames(currentTeacher, abs.teacher)) return false;
+        if (!currentTeacher || !matchTeacherNames(currentTeacher, abs.teacher)) return false;
 
         // 2. Weryfikacja zakresu datowego - absencje dotyczą wyłącznie bieżącego tygodnia
         if (abs.date) {
@@ -434,15 +550,44 @@ const TimetablePage = () => {
     return { activeLesson: active, nextLesson: next };
   }, [todayUpcomingLessons, currentMinutes]);
 
+  // Liczniki kategorii dla zakładek (Wszystkie, Szkolne, Osobiste)
+  const categoryCounts = useMemo(() => {
+    let all = 0;
+    let school = 0;
+    let personal = 0;
+    enrichedLessons.forEach(l => {
+      if (selectedDay !== 'all' && l.day !== selectedDay) return;
+      all++;
+      if (getLessonCategory(l) === 'personal') {
+        personal++;
+      } else {
+        school++;
+      }
+    });
+    return { all, school, personal };
+  }, [enrichedLessons, selectedDay]);
+
   // Statystyki tygodniowe
   const stats = useMemo(() => {
     const totalLessons = enrichedLessons.length;
     let totalMinutes = 0;
     const subjects = new Set();
+    let cancelledCount = 0;
+    let personalCount = 0;
+    let schoolCount = 0;
 
     enrichedLessons.forEach(l => {
-      const dur = Math.max(0, parseTimeToMinutes(l.time_end) - parseTimeToMinutes(l.time_start));
-      totalMinutes += dur;
+      const isCanc = isLessonCancelled(l);
+      if (isCanc) cancelledCount++;
+      if (getLessonCategory(l) === 'personal') {
+        personalCount++;
+      } else {
+        schoolCount++;
+      }
+      if (!isCanc) {
+        const dur = Math.max(0, parseTimeToMinutes(l.time_end) - parseTimeToMinutes(l.time_start));
+        totalMinutes += dur;
+      }
       if (l.subject) subjects.add(l.subject.trim());
     });
 
@@ -455,7 +600,10 @@ const TimetablePage = () => {
       totalHours: hours,
       uniqueSubjects: subjects.size,
       todayCount,
-      totalAbsencesCount
+      totalAbsencesCount,
+      cancelledCount,
+      personalCount,
+      schoolCount
     };
   }, [enrichedLessons, todayDayId]);
 
@@ -465,6 +613,8 @@ const TimetablePage = () => {
       .filter(l => {
         if (absenceFilterOnly && !l.absenceAlert?.isAbsent) return false;
         if (selectedDay !== 'all' && l.day !== selectedDay) return false;
+        if (activeCategory === 'school' && getLessonCategory(l) !== 'school') return false;
+        if (activeCategory === 'personal' && getLessonCategory(l) !== 'personal') return false;
         if (typeFilter !== 'all' && l.type !== typeFilter) return false;
         if (searchQuery.trim() !== '') {
           const q = searchQuery.toLowerCase();
@@ -472,17 +622,37 @@ const TimetablePage = () => {
           const matchRoom = l.room?.toLowerCase().includes(q);
           const matchTeacher = l.teacher?.toLowerCase().includes(q);
           const matchNotes = l.notes?.toLowerCase().includes(q);
-          if (!matchSubject && !matchRoom && !matchTeacher && !matchNotes) return false;
+          const matchPersonalCat = l.personalCategory?.toLowerCase().includes(q);
+          if (!matchSubject && !matchRoom && !matchTeacher && !matchNotes && !matchPersonalCat) return false;
         }
         return true;
       })
       .sort((a, b) => {
-        const dayA = DAYS.findIndex(d => d.id === a.day);
-        const dayB = DAYS.findIndex(d => d.id === b.day);
-        if (dayA !== dayB) return dayA - dayB;
+        if (selectedDay === 'all') {
+          const dayA = DAYS.findIndex(d => d.id === a.day);
+          const dayB = DAYS.findIndex(d => d.id === b.day);
+          if (dayA !== dayB) return dayA - dayB;
+        }
+
+        if (sortBy === 'time_desc') {
+          return parseTimeToMinutes(b.time_start) - parseTimeToMinutes(a.time_start);
+        }
+        if (sortBy === 'category') {
+          const catA = getLessonCategory(a);
+          const catB = getLessonCategory(b);
+          if (catA !== catB) return catA.localeCompare(catB);
+          return parseTimeToMinutes(a.time_start) - parseTimeToMinutes(b.time_start);
+        }
+        if (sortBy === 'status') {
+          const aCanc = isLessonCancelled(a) ? 1 : 0;
+          const bCanc = isLessonCancelled(b) ? 1 : 0;
+          if (aCanc !== bCanc) return aCanc - bCanc;
+          return parseTimeToMinutes(a.time_start) - parseTimeToMinutes(b.time_start);
+        }
+        // default: time_asc
         return parseTimeToMinutes(a.time_start) - parseTimeToMinutes(b.time_start);
       });
-  }, [enrichedLessons, selectedDay, typeFilter, searchQuery, absenceFilterOnly]);
+  }, [enrichedLessons, selectedDay, activeCategory, typeFilter, searchQuery, absenceFilterOnly, sortBy]);
 
   const handleSyncLibrusTimetable = async () => {
     setIsSyncingLibrus(true);
@@ -526,7 +696,7 @@ const TimetablePage = () => {
     }
   };
 
-  const handleOpenAddModal = (defaultDay = 'monday') => {
+  const handleOpenAddModal = (defaultDay = 'monday', initialCategory = activeCategory === 'personal' ? 'personal' : 'school') => {
     setEditingLesson(null);
     setFormData({
       day: selectedDay !== 'all' ? selectedDay : defaultDay,
@@ -535,15 +705,19 @@ const TimetablePage = () => {
       time_end: '09:30',
       room: '',
       teacher: '',
-      type: 'Wykład',
-      color: 'indigo',
-      notes: ''
+      type: initialCategory === 'personal' ? 'Osobiste' : 'Wykład',
+      color: initialCategory === 'personal' ? 'emerald' : 'indigo',
+      notes: '',
+      category: initialCategory,
+      personalCategory: 'Nauka',
+      priority: 'normal'
     });
     setShowModal(true);
   };
 
   const handleOpenEditModal = (lesson) => {
     setEditingLesson(lesson);
+    const isPersonal = isPersonalLesson(lesson);
     setFormData({
       day: lesson.day || 'monday',
       subject: lesson.subject || '',
@@ -551,9 +725,12 @@ const TimetablePage = () => {
       time_end: lesson.time_end || '09:30',
       room: lesson.room || '',
       teacher: lesson.teacher || '',
-      type: lesson.type || 'Wykład',
-      color: lesson.color || 'indigo',
-      notes: lesson.notes || ''
+      type: lesson.type || (isPersonal ? 'Osobiste' : 'Wykład'),
+      color: lesson.color || (isPersonal ? 'emerald' : 'indigo'),
+      notes: lesson.notes || '',
+      category: isPersonal ? 'personal' : 'school',
+      personalCategory: lesson.personalCategory || 'Nauka',
+      priority: lesson.priority || 'normal'
     });
     setShowModal(true);
   };
@@ -619,9 +796,13 @@ const TimetablePage = () => {
     e.preventDefault();
     if (!formData.subject.trim()) return;
 
+    const isPersonal = formData.category === 'personal';
     const lessonPayload = {
       ...formData,
-      id: editingLesson ? String(editingLesson.id) : 't_' + Date.now(),
+      id: editingLesson ? String(editingLesson.id) : (isPersonal ? 'personal_' : 't_') + Date.now(),
+      category: isPersonal ? 'personal' : 'school',
+      itemType: isPersonal ? 'personal' : 'school',
+      isLibrus: isPersonal ? false : !!formData.isLibrus,
       updated_at: new Date().toISOString()
     };
 
@@ -642,6 +823,8 @@ const TimetablePage = () => {
         }
       } catch {}
     }
+    setToastMessage(`[+] ${isPersonal ? 'Zapisano aktywność osobistą' : 'Zapisano zajęcia'} w Planie Dnia.`);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
   return (
@@ -656,16 +839,18 @@ const TimetablePage = () => {
             <nav aria-label="breadcrumb" className="hidden sm:flex items-center space-x-2 text-sm text-textMuted mb-0.5">
               <span className="text-sm font-medium text-textMuted/70">OmniDash</span>
               <span className="text-sm font-medium text-textMuted/70">/</span>
-              <span className="text-sm font-medium text-textPrimary">Harmonogram</span>
+              <span className="text-sm font-medium text-textMuted/70">Harmonogram</span>
+              <span className="text-sm font-medium text-textMuted/70">/</span>
+              <span className="text-sm font-medium text-textPrimary">Plan Dnia</span>
             </nav>
             <h1 className="text-lg sm:text-2xl font-bold text-textPrimary tracking-tight flex items-center gap-2">
-              Plan Lekcji & Zajęć
+              Plan Dnia
               <span className="text-[10px] sm:text-[11px] font-mono px-2 py-0.5 rounded-full bg-accentPrimary/10 text-accentPrimary border border-accentPrimary/30">
                 LIVE
               </span>
             </h1>
             <p className="hidden md:block text-xs text-textMuted mt-0.5">
-              Tygodniowy rozkład zajęć akademickich i dydaktycznych ze statystykami i powiadomieniami na żywo.
+              Zintegrowany harmonogram dnia: zajęcia dydaktyczne (Librus Synergia) oraz aktywności osobiste.
             </p>
           </div>
         </div>
@@ -714,7 +899,7 @@ const TimetablePage = () => {
             className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-accentPrimary text-background font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(var(--color-accent-primary),0.3)] hover:brightness-110 active:scale-95 transition-all shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span>Dodaj Lekcję</span>
+            <span>Dodaj do Planu</span>
           </button>
         </div>
       </header>
@@ -930,8 +1115,107 @@ const TimetablePage = () => {
         </div>
       )}
 
-      {/* 3. Pasek Nawigacji Dni i Filtrów */}
-      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between flex-shrink-0">
+      {/* 3. Pasek Nawigacji Dni, Kategoryzacji i Filtrów */}
+      <div className="flex flex-col gap-3 flex-shrink-0">
+        {/* Kategoryzacja (jak w Kalendarzu) + Sortowanie i Filtry */}
+        <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between">
+          {/* Segmented control: Wszystkie | Szkolne | Osobiste */}
+          <div className="flex items-center bg-surface border border-white/10 rounded-xl p-1 gap-1 w-full sm:w-auto">
+            <button
+              onClick={() => setActiveCategory('all')}
+              className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                activeCategory === 'all'
+                  ? 'bg-accentPrimary text-background shadow-sm font-bold'
+                  : 'text-textMuted hover:text-textPrimary'
+              }`}
+            >
+              <span>Wszystkie</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                activeCategory === 'all' ? 'bg-black/30 text-background' : 'bg-white/10 text-textMuted'
+              }`}>
+                {categoryCounts.all}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveCategory('school')}
+              className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                activeCategory === 'school'
+                  ? 'bg-accentPrimary text-background shadow-sm font-bold'
+                  : 'text-textMuted hover:text-textPrimary'
+              }`}
+            >
+              <GraduationCap className="w-3.5 h-3.5" />
+              <span>Szkolne</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                activeCategory === 'school' ? 'bg-black/30 text-background' : 'bg-white/10 text-textMuted'
+              }`}>
+                {categoryCounts.school}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveCategory('personal')}
+              className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                activeCategory === 'personal'
+                  ? 'bg-accentPrimary text-background shadow-sm font-bold'
+                  : 'text-textMuted hover:text-textPrimary'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Osobiste</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                activeCategory === 'personal' ? 'bg-black/30 text-background' : 'bg-white/10 text-textMuted'
+              }`}>
+                {categoryCounts.personal}
+              </span>
+            </button>
+          </div>
+
+          {/* Narzędzia filtracji & sortowania */}
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            {/* Sortowanie */}
+            <div className="flex items-center gap-1.5 bg-surface border border-white/10 rounded-xl px-2.5 py-1 text-xs">
+              <ArrowUpDown className="w-3.5 h-3.5 text-textMuted shrink-0" />
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                className="bg-transparent text-textPrimary text-xs focus:outline-none cursor-pointer"
+                title="Wybierz kryterium sortowania"
+              >
+                <option value="time_asc" className="bg-surface text-textPrimary">Czas: rosnąco</option>
+                <option value="time_desc" className="bg-surface text-textPrimary">Czas: malejąco</option>
+                <option value="category" className="bg-surface text-textPrimary">Kategoria (Szkolne/Osobiste)</option>
+                <option value="status" className="bg-surface text-textPrimary">Status (Aktywne/Odwołane)</option>
+              </select>
+            </div>
+
+            {/* Szukaj */}
+            <div className="relative flex-1 sm:w-48">
+              <Search className="w-3.5 h-3.5 text-textMuted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Szukaj zajęć, sali..."
+                className="w-full bg-surface border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-textPrimary placeholder:text-textMuted/60 focus:outline-none focus:border-accentPrimary transition-colors"
+              />
+            </div>
+
+            {/* Typ */}
+            <select
+              value={typeFilter}
+              onChange={e => setTypeFilter(e.target.value)}
+              className="bg-surface border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
+            >
+              <option value="all" className="bg-surface text-textPrimary">Wszystkie typy</option>
+              {LESSON_TYPES.map(t => (
+                <option key={t.id} value={t.id} className="bg-surface text-textPrimary">{t.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         {/* Zakładki Dni */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
           <button
@@ -947,7 +1231,7 @@ const TimetablePage = () => {
           {DAYS.map(d => {
             const isToday = d.id === todayDayId;
             const isSelected = selectedDay === d.id;
-            const dayLessonsCount = lessons.filter(l => l.day === d.id).length;
+            const dayLessonsCount = enrichedLessons.filter(l => l.day === d.id).length;
 
             return (
               <button
@@ -973,31 +1257,6 @@ const TimetablePage = () => {
               </button>
             );
           })}
-        </div>
-
-        {/* Wyszukiwarka i filtr typu */}
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1 sm:w-56">
-            <Search className="w-3.5 h-3.5 text-textMuted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Szukaj przedmiotu, sali..."
-              className="w-full bg-surface border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-textPrimary placeholder:text-textMuted/60 focus:outline-none focus:border-accentPrimary transition-colors"
-            />
-          </div>
-
-          <select
-            value={typeFilter}
-            onChange={e => setTypeFilter(e.target.value)}
-            className="bg-surface border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
-          >
-            <option value="all">Wszystkie typy</option>
-            {LESSON_TYPES.map(t => (
-              <option key={t.id} value={t.id}>{t.label}</option>
-            ))}
-          </select>
         </div>
       </div>
 
@@ -1060,34 +1319,53 @@ const TimetablePage = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
                       {dayItems.map(lesson => {
                         const style = COLOR_MAP[lesson.color] || COLOR_MAP.indigo;
-                        const isNow = lesson.day === todayDayId && 
+                        const isPersonal = isPersonalLesson(lesson);
+                        const isCancelled = isLessonCancelled(lesson);
+                        const hasAbsence = !isCancelled && !!lesson.absenceAlert?.isAbsent;
+                        const duration = Math.max(0, parseTimeToMinutes(lesson.time_end) - parseTimeToMinutes(lesson.time_start));
+                        const isNow = !isCancelled && lesson.day === todayDayId && 
                           currentMinutes >= parseTimeToMinutes(lesson.time_start) && 
                           currentMinutes <= parseTimeToMinutes(lesson.time_end);
-                        const duration = Math.max(0, parseTimeToMinutes(lesson.time_end) - parseTimeToMinutes(lesson.time_start));
-                        const hasAbsence = !!lesson.absenceAlert?.isAbsent;
-                        const isCancelled = lesson.isCancelled || lesson.status === 'cancelled';
+                        const priorityObj = PRIORITIES.find(p => p.id === lesson.priority);
 
                         return (
                           <div
                             key={lesson.id}
                             className={`glass-panel p-4 rounded-xl border transition-all duration-200 hover:-translate-y-0.5 relative group flex flex-col justify-between ${
                               isCancelled
-                                ? 'border-dashed border-white/20 bg-surface/20 opacity-75'
+                                ? 'border-dashed border-rose-500/50 bg-rose-950/20 shadow-[0_0_15px_rgba(244,63,94,0.12)]'
                                 : hasAbsence
                                   ? 'border-amber-500/70 shadow-[0_0_20px_rgba(245,158,11,0.25)] bg-amber-950/15 ring-1 ring-amber-500/40'
                                   : isNow 
                                     ? 'border-emerald-500/70 shadow-[0_0_20px_rgba(16,185,129,0.2)] bg-emerald-950/10' 
-                                    : `${style.border} ${style.glow} hover:border-white/30`
+                                    : isPersonal
+                                      ? 'border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.1)] hover:border-emerald-500/60 bg-emerald-950/5'
+                                      : `${style.border} ${style.glow} hover:border-white/30`
                             }`}
                           >
                             <div>
                               {/* Pasek górny karty */}
                               <div className="flex items-center justify-between gap-2 mb-2">
                                 <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className={`w-2 h-2 rounded-full ${hasAbsence ? 'bg-amber-400 animate-pulse' : style.dot}`}></span>
-                                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded-md border font-semibold ${style.badge}`}>
-                                    {lesson.type || 'Zajęcia'}
-                                  </span>
+                                  <span className={`w-2 h-2 rounded-full ${isCancelled ? 'bg-rose-400' : (hasAbsence ? 'bg-amber-400 animate-pulse' : style.dot)}`}></span>
+                                  
+                                  {isPersonal ? (
+                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md border font-bold bg-emerald-500/15 text-emerald-300 border-emerald-500/40 flex items-center gap-1">
+                                      <Sparkles className="w-3 h-3 text-emerald-400" />
+                                      {lesson.personalCategory || 'Osobiste'}
+                                    </span>
+                                  ) : (
+                                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded-md border font-semibold ${style.badge}`}>
+                                      {lesson.type || 'Zajęcia'}
+                                    </span>
+                                  )}
+
+                                  {isPersonal && priorityObj && (
+                                    <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded border font-semibold ${priorityObj.badge}`}>
+                                      {priorityObj.label}
+                                    </span>
+                                  )}
+
                                   {isNow && (
                                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-500 text-background font-bold animate-pulse">
                                       LIVE
@@ -1100,8 +1378,14 @@ const TimetablePage = () => {
                                     </span>
                                   )}
                                   {isCancelled && (
-                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/50 font-bold">
-                                      [X] OKIENKO
+                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/50 font-bold flex items-center gap-1">
+                                      <AlertOctagon className="w-3 h-3 text-rose-400" />
+                                      [!] ODWOŁANA
+                                    </span>
+                                  )}
+                                  {isCancelled && (
+                                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold">
+                                      OKIENKO
                                     </span>
                                   )}
                                 </div>
@@ -1119,7 +1403,9 @@ const TimetablePage = () => {
                                 </span>
                               </div>
 
-                              <h3 className={`text-base font-bold text-textPrimary tracking-tight leading-snug mb-3 ${isCancelled ? 'line-through text-textMuted/60' : ''}`}>
+                              <h3 className={`text-base font-bold tracking-tight leading-snug mb-3 ${
+                                isCancelled ? 'line-through text-rose-200/60' : 'text-textPrimary'
+                              }`}>
                                 {lesson.subject}
                               </h3>
 
@@ -1141,8 +1427,21 @@ const TimetablePage = () => {
                                 )}
                               </div>
 
+                              {/* Baner odwołanej lekcji */}
+                              {isCancelled && (
+                                <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-[11px] text-rose-200 mb-3 font-mono leading-relaxed">
+                                  <div className="flex items-center gap-1.5 font-bold text-rose-300 mb-0.5">
+                                    <AlertOctagon className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                                    <span>Lekcja odwołana w Librus Synergia</span>
+                                  </div>
+                                  <div className="text-[10px] text-textMuted">
+                                    Okienko w planie zajęć — czas wolny na zadania, naukę lub przerwę.
+                                  </div>
+                                </div>
+                              )}
+
                               {/* Alert nieobecności nauczyciela */}
-                              {hasAbsence && (
+                              {!isCancelled && hasAbsence && (
                                 <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-200 mb-3 font-mono leading-relaxed">
                                   <div className="flex items-center gap-1.5 font-bold text-amber-300 mb-0.5">
                                     <UserX className="w-3.5 h-3.5 text-amber-400 shrink-0" />
@@ -1169,19 +1468,17 @@ const TimetablePage = () => {
                               </span>
 
                               <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
-                                {hasAbsence && (
-                                  <button
-                                    onClick={() => handleToggleCancelled(lesson)}
-                                    className={`px-2 py-1 text-[10px] font-mono rounded-lg transition-colors border ${
-                                      isCancelled 
-                                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30' 
-                                        : 'bg-white/5 hover:bg-rose-500/20 text-textMuted hover:text-rose-300 border-white/10'
-                                    }`}
-                                    title={isCancelled ? 'Przywróć lekcję' : 'Oznacz jako odwołaną (okienko)'}
-                                  >
-                                    {isCancelled ? 'Przywróć' : 'Okienko?'}
-                                  </button>
-                                )}
+                                <button
+                                  onClick={() => handleToggleCancelled(lesson)}
+                                  className={`px-2 py-1 text-[10px] font-mono rounded-lg transition-colors border ${
+                                    isCancelled 
+                                      ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30' 
+                                      : 'bg-white/5 hover:bg-rose-500/20 text-textMuted hover:text-rose-300 border-white/10'
+                                  }`}
+                                  title={isCancelled ? 'Przywróć lekcję' : 'Oznacz jako odwołaną (okienko)'}
+                                >
+                                  {isCancelled ? 'Przywróć' : 'Okienko?'}
+                                </button>
                                 <button
                                   onClick={() => handleDuplicate(lesson)}
                                   className="p-1.5 text-textMuted hover:text-accentPrimary hover:bg-white/5 rounded-lg transition-colors"
@@ -1192,7 +1489,7 @@ const TimetablePage = () => {
                                 <button
                                   onClick={() => handleOpenEditModal(lesson)}
                                   className="p-1.5 text-textMuted hover:text-cyan-400 hover:bg-white/5 rounded-lg transition-colors"
-                                  title="Edytuj lekcję"
+                                  title="Edytuj aktywność"
                                 >
                                   <Edit2 className="w-3.5 h-3.5" />
                                 </button>
@@ -1246,9 +1543,10 @@ const TimetablePage = () => {
                         </div>
                       ) : (
                         dayLessons.map(lesson => {
+                          const isPersonal = isPersonalLesson(lesson);
+                          const isCancelled = isLessonCancelled(lesson);
                           const style = COLOR_MAP[lesson.color] || COLOR_MAP.indigo;
-                          const hasAbsence = !!lesson.absenceAlert?.isAbsent;
-                          const isCancelled = lesson.isCancelled || lesson.status === 'cancelled';
+                          const hasAbsence = !isCancelled && !!lesson.absenceAlert?.isAbsent;
 
                           return (
                             <div
@@ -1256,19 +1554,29 @@ const TimetablePage = () => {
                               onClick={() => handleOpenEditModal(lesson)}
                               className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:scale-[1.02] relative ${
                                 isCancelled
-                                  ? 'border-dashed border-white/20 bg-surface/20 opacity-60 line-through'
+                                  ? 'border-dashed border-rose-500/50 bg-rose-950/25 opacity-70'
                                   : hasAbsence
                                     ? 'border-amber-500/70 bg-amber-950/25 shadow-[0_0_12px_rgba(245,158,11,0.25)] ring-1 ring-amber-500/30'
-                                    : `${style.badge} ${style.border}`
+                                    : isPersonal
+                                      ? 'border-emerald-500/40 bg-emerald-950/20'
+                                      : `${style.badge} ${style.border}`
                               }`}
                             >
                               <div className="flex items-center justify-between text-[10px] font-mono font-bold opacity-80 mb-0.5">
                                 <span>{lesson.time_start} - {lesson.time_end}</span>
-                                {hasAbsence && (
+                                {isCancelled && (
+                                  <span className="text-rose-400 text-[9px] font-bold">[!] ODWOŁANA</span>
+                                )}
+                                {!isCancelled && hasAbsence && (
                                   <span className="text-amber-400 text-[9px] font-bold animate-pulse">[!] ABSENCJA</span>
                                 )}
+                                {isPersonal && (
+                                  <span className="text-emerald-400 text-[9px] font-bold">OSOBISTE</span>
+                                )}
                               </div>
-                              <div className="text-xs font-bold text-textPrimary line-clamp-2 leading-tight">
+                              <div className={`text-xs font-bold leading-tight line-clamp-2 ${
+                                isCancelled ? 'line-through text-rose-200/70' : 'text-textPrimary'
+                              }`}>
                                 {lesson.subject}
                               </div>
                               {lesson.teacher && (
@@ -1301,17 +1609,17 @@ const TimetablePage = () => {
         )}
       </main>
 
-      {/* 5. Modal Dodawania / Edycji Lekcji */}
+      {/* 5. Modal Dodawania / Edycji Zajęć / Aktywności */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
           <div className="glass-panel w-full max-w-lg rounded-2xl border border-white/20 p-6 shadow-2xl relative bg-surface/95 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-accentPrimary/20 border border-accentPrimary/30 flex items-center justify-center text-accentPrimary">
-                  <GraduationCap className="w-4 h-4" />
+                  {formData.category === 'personal' ? <Sparkles className="w-4 h-4" /> : <GraduationCap className="w-4 h-4" />}
                 </div>
                 <h3 className="text-base font-bold text-textPrimary">
-                  {editingLesson ? 'Edycja Lekcji w Planie' : 'Nowa Lekcja / Zajęcia'}
+                  {editingLesson ? 'Edycja w Planie Dnia' : (formData.category === 'personal' ? 'Nowa Aktywność Osobista' : 'Nowa Lekcja / Zajęcia Szkolne')}
                 </h3>
               </div>
               <button
@@ -1323,20 +1631,64 @@ const TimetablePage = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              {/* Przedmiot */}
+              {/* Wybór kategorii głównej: Szkolne vs Osobiste */}
               <div>
-                <label className="block text-textMuted font-medium mb-1">Nazwa Przedmiotu / Kursu *</label>
+                <label className="block text-textMuted font-medium mb-1.5">Kategoria Planu Dnia *</label>
+                <div className="grid grid-cols-2 gap-2 p-1 bg-black/30 rounded-xl border border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ 
+                      ...formData, 
+                      category: 'school', 
+                      type: 'Wykład',
+                      color: 'indigo'
+                    })}
+                    className={`py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${
+                      formData.category === 'school'
+                        ? 'bg-accentPrimary text-background shadow-sm'
+                        : 'text-textMuted hover:text-textPrimary'
+                    }`}
+                  >
+                    <GraduationCap className="w-4 h-4" />
+                    <span>Szkolne (Librus)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ 
+                      ...formData, 
+                      category: 'personal', 
+                      type: 'Osobiste',
+                      color: 'emerald'
+                    })}
+                    className={`py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${
+                      formData.category === 'personal'
+                        ? 'bg-accentPrimary text-background shadow-sm'
+                        : 'text-textMuted hover:text-textPrimary'
+                    }`}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span>Osobiste (Prywatne)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Nazwa przedmiotu lub aktywności */}
+              <div>
+                <label className="block text-textMuted font-medium mb-1">
+                  {formData.category === 'personal' ? 'Nazwa Aktywności / Zadania *' : 'Nazwa Przedmiotu / Kursu *'}
+                </label>
                 <input
                   type="text"
                   required
                   value={formData.subject}
                   onChange={e => setFormData({ ...formData, subject: e.target.value })}
-                  placeholder="np. Architektura Systemów AI, Matematyka Dyskretna..."
+                  placeholder={formData.category === 'personal' ? 'np. Trening FBW, Nauka Pythona, Projekt AI...' : 'np. Architektura Systemów AI, Matematyka...'}
                   className="w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
                 />
               </div>
 
-              {/* Dzień tygodnia i Typ */}
+              {/* Dzień tygodnia oraz Typ / Podkategoria */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-textMuted font-medium mb-1">Dzień Tygodnia</label>
@@ -1351,26 +1703,64 @@ const TimetablePage = () => {
                   </select>
                 </div>
 
+                {formData.category === 'personal' ? (
+                  <div>
+                    <label className="block text-textMuted font-medium mb-1">Kategoria Osobista</label>
+                    <select
+                      value={formData.personalCategory || 'Trening'}
+                      onChange={e => {
+                        const sel = PERSONAL_CATEGORIES.find(c => c.id === e.target.value);
+                        setFormData({ 
+                          ...formData, 
+                          personalCategory: e.target.value,
+                          color: sel ? sel.color : formData.color
+                        });
+                      }}
+                      className="w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
+                    >
+                      {PERSONAL_CATEGORIES.map(c => (
+                        <option key={c.id} value={c.id}>{c.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-textMuted font-medium mb-1">Typ Zajęć</label>
+                    <select
+                      value={formData.type}
+                      onChange={e => {
+                        const selectedT = LESSON_TYPES.find(t => t.id === e.target.value);
+                        setFormData({ 
+                          ...formData, 
+                          type: e.target.value,
+                          color: selectedT ? selectedT.defaultColor : formData.color
+                        });
+                      }}
+                      className="w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
+                    >
+                      {LESSON_TYPES.filter(t => t.id !== 'Osobiste').map(t => (
+                        <option key={t.id} value={t.id}>{t.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {/* Priorytet dla aktywności osobistych */}
+              {formData.category === 'personal' && (
                 <div>
-                  <label className="block text-textMuted font-medium mb-1">Typ Zajęć</label>
+                  <label className="block text-textMuted font-medium mb-1">Priorytet Aktywności</label>
                   <select
-                    value={formData.type}
-                    onChange={e => {
-                      const selectedT = LESSON_TYPES.find(t => t.id === e.target.value);
-                      setFormData({ 
-                        ...formData, 
-                        type: e.target.value,
-                        color: selectedT ? selectedT.defaultColor : formData.color
-                      });
-                    }}
+                    value={formData.priority || 'normal'}
+                    onChange={e => setFormData({ ...formData, priority: e.target.value })}
                     className="w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
                   >
-                    {LESSON_TYPES.map(t => (
-                      <option key={t.id} value={t.id}>{t.label}</option>
+                    {PRIORITIES.map(p => (
+                      <option key={p.id} value={p.id}>{p.label}</option>
                     ))}
                   </select>
                 </div>
-              </div>
+              )}
 
               {/* Godziny Rozpoczęcia i Zakończenia */}
               <div className="grid grid-cols-2 gap-3">
@@ -1397,29 +1787,33 @@ const TimetablePage = () => {
                 </div>
               </div>
 
-              {/* Sala i Prowadzący */}
+              {/* Sala / Miejsce i Prowadzący */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-textMuted font-medium mb-1">Sala / Budynek</label>
+                  <label className="block text-textMuted font-medium mb-1">
+                    {formData.category === 'personal' ? 'Miejsce / Lokalizacja' : 'Sala / Budynek'}
+                  </label>
                   <input
                     type="text"
                     value={formData.room}
                     onChange={e => setFormData({ ...formData, room: e.target.value })}
-                    placeholder="np. Sala 104, Lab AI 2..."
+                    placeholder={formData.category === 'personal' ? 'np. Dom, Siłownia, Biuro...' : 'np. Sala 104, Lab AI 2...'}
                     className="w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-textMuted font-medium mb-1">Prowadzący / Nauczyciel</label>
-                  <input
-                    type="text"
-                    value={formData.teacher}
-                    onChange={e => setFormData({ ...formData, teacher: e.target.value })}
-                    placeholder="np. prof. dr hab. Jan Nowak"
-                    className="w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
-                  />
-                </div>
+                {formData.category === 'school' && (
+                  <div>
+                    <label className="block text-textMuted font-medium mb-1">Prowadzący / Nauczyciel</label>
+                    <input
+                      type="text"
+                      value={formData.teacher}
+                      onChange={e => setFormData({ ...formData, teacher: e.target.value })}
+                      placeholder="np. prof. dr hab. Jan Nowak"
+                      className="w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Kolor Akcentu */}
@@ -1442,12 +1836,14 @@ const TimetablePage = () => {
 
               {/* Notatki */}
               <div>
-                <label className="block text-textMuted font-medium mb-1">Notatki / Linki / Sylabus</label>
+                <label className="block text-textMuted font-medium mb-1">
+                  {formData.category === 'personal' ? 'Notatki / Cele / Zadania' : 'Notatki / Linki / Sylabus'}
+                </label>
                 <textarea
                   rows={2}
                   value={formData.notes}
                   onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="np. Wymagane materiały, hasło do sali wirtualnej, tematyka..."
+                  placeholder={formData.category === 'personal' ? 'np. Plan treningowy, lista zadań do zrobienia...' : 'np. Wymagane materiały, hasło do sali...'}
                   className="w-full bg-black/30 border border-white/15 rounded-xl p-3 text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors resize-none"
                 />
               </div>

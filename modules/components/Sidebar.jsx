@@ -124,7 +124,7 @@ const Sidebar = () => {
   const navItems = [
     { name: 'Pulpit', path: '/', icon: <LayoutDashboard className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Ekran główny' },
     { name: 'Asystent AI', path: '/chat', icon: <MessageSquare className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Konwersacja LLM' },
-    { name: 'Plan Lekcji', path: '/timetable', icon: <GraduationCap className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Rozkład zajęć' },
+    { name: 'Plan Dnia', path: '/timetable', icon: <GraduationCap className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Harmonogram dnia i zajęcia' },
     { name: 'Oceny', path: '/grades', icon: <Award className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Librus Synergia' },
     { name: 'Finanse', path: '/finances', icon: <Wallet className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Budżet 50/30/20' },
     { name: 'Treningi', path: '/workouts', icon: <Dumbbell className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Dziennik fitness' },
@@ -181,7 +181,7 @@ const Sidebar = () => {
   const mobileQuickTabs = [
     { name: 'Pulpit', path: '/', icon: LayoutDashboard },
     { name: 'Czat AI', path: '/chat', icon: MessageSquare },
-    { name: 'Plan', path: '/timetable', icon: GraduationCap },
+    { name: 'Plan Dnia', path: '/timetable', icon: GraduationCap },
     { name: 'Finanse', path: '/finances', icon: Wallet }
   ];
 

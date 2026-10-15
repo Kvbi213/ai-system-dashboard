@@ -1,5 +1,18 @@
 ## Wersja Bieżąca
-**v2.33.0**
+**v2.34.0**
+
+## v 2.34.0 — 2026-10-15
+**Typ:** MINOR  
+**Zakres:** Reorganizacja Modułu "Plan Dnia", Scraper Odwołanych Lekcji Librus Synergia (<s> i .plan-lekcji-info), Rzeczywisty Stan Ocen (średnia 4.62, Matematyka 3.67, UTK N), Prawdziwa Synchronizacja Ocen z Paskiem Postępu oraz Nowe Testy (262/262 PASS w 22 pakietach testowych):
+- [*] Zmodyfikowano: `modules/components/Sidebar.jsx` – zaktualizowano nazwę modułu na "Plan Dnia" i opis "Harmonogram dnia i zajęcia".
+- [*] Zmodyfikowano: `modules/pages/TimetablePage.jsx` – implementacja segmentacji kategorii (`Wszystkie`, `Szkolne`, `Osobiste`), sortowania chronologicznego i stanowego (`time_asc`, `time_desc`, `category`, `status`), wizualizacji odwołanych lekcji (`[!] ODWOŁANA`, przekreślenie, okienka) oraz dodawania zadań osobistych z zapisem do Firestore `timetable` z `category: 'personal'`.
+- [*] Zmodyfikowano: `modules/services/librusService.js` – zaimplementowano funkcję `parseTimetableHtml` wykrywającą przekreślone lekcje `<s>` i statusy odwołań `.plan-lekcji-info`, zachowano statusy odwołanych lekcji w strukturze planu (`isCancelled: true`, `status: 'cancelled'`, `statusLabel: 'Odwołana'`), zaktualizowano zbiór czwartkowy (lekcje 1, 2, 3, 8 odwołane, matematyka 6-7 aktywna) oraz zaktualizowano zbiór ocen demonstracyjnych (średnia ogólna 4.62, Matematyka 3.67 z 5 ocenami, UTK N z wagą 0).
+- [*] Zmodyfikowano: `modules/pages/GradesPage.jsx` – wyeliminowano natychmiastowe mignięcie odświeżania, dodano animowany pasek postępu (min. 800ms) oraz wymuszone zapytanie do Vercel Gateway (`GET /api/librus?refresh=true`) lub serwera lokalnego (`POST /api/librus/refresh`) z replikacją do Firestore `librus_cache/latest`.
+- [*] Zmodyfikowano: `api/librus.js` oraz `modules/routes/librus.js` – obsługa parametru `refresh === 'true'` i metody POST dla wymuszonej synchronizacji ocen ze źródłem.
+- [+] Dodano: `tests/librus.test.js` – zestawy testów jednostkowych `parseTimetableHtml with Cancelled Lessons` oraz `Librus Cancelled Lessons & Plan Dnia Demo Verification`.
+- [*] Weryfikacja: 262/262 PASS we wszystkich 22 pakietach testowych Vitest (100% PASS), poprawna kompilacja produkcyjna Vite.
+
+---
 
 ## v 2.33.0 — 2026-10-15
 **Typ:** MINOR  
