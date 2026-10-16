@@ -5,7 +5,7 @@ import {
   Search, Filter, Calendar, BookOpen, ChevronRight, Copy, 
   Sparkles, CheckCircle, AlertCircle, LayoutGrid, List, RefreshCw,
   AlertTriangle, UserX, CheckCircle2, ArrowUpDown, Tag, AlertOctagon,
-  Dumbbell, Coffee, Briefcase
+  Dumbbell, Coffee, Briefcase, Layers
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { subscribeCollection, saveCloudDocument, deleteCloudDocument, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
@@ -130,7 +130,7 @@ const STATIC_DEMO_ABSENCE_EVENTS = [
   }
 ];
 
-const STATIC_DEMO_TIMETABLE_LESSONS = [
+const STATIC_DEMO_SCHOOL_LESSONS = [
   // Poniedziałek
   { id: 'librus_mon_1', day: 'monday', subject: 'Informatyka', time_start: '08:50', time_end: '09:35', room: 's. 17', teacher: 'Becker Adam', cleanTeacher: 'Becker Adam', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia informatyczna', isLibrus: true, category: 'school', status: 'active' },
   { id: 'librus_mon_2', day: 'monday', subject: 'Informatyka', time_start: '09:40', time_end: '10:25', room: 's. 17', teacher: 'Becker Adam', cleanTeacher: 'Becker Adam', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia informatyczna', isLibrus: true, category: 'school', status: 'active' },
@@ -149,7 +149,6 @@ const STATIC_DEMO_TIMETABLE_LESSONS = [
   { id: 'librus_tue_7', day: 'tuesday', subject: 'Pracownia systemów operacyjnych', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Reszka Sławomir', cleanTeacher: 'Reszka Sławomir', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
   { id: 'librus_tue_8', day: 'tuesday', subject: 'Matematyka', time_start: '14:05', time_end: '14:50', room: 's. 26', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true, category: 'school', status: 'active' },
   { id: 'librus_tue_9', day: 'tuesday', subject: 'Religia', time_start: '14:55', time_end: '15:40', room: 's. 24', teacher: 'Gizela Maciej', cleanTeacher: 'Gizela Maciej', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'personal_tue_1', day: 'tuesday', subject: 'Trening siłowy', time_start: '16:15', time_end: '17:45', room: 'Gym Park', teacher: '', cleanTeacher: '', type: 'Osobiste', color: 'emerald', notes: 'FBW + rozciąganie po szkole', isLibrus: false, category: 'personal', personalCategory: 'Trening', priority: 'high', status: 'active' },
 
   // Środa
   { id: 'librus_wed_1', day: 'wednesday', subject: 'Biznes i zarządzanie', time_start: '10:40', time_end: '11:25', room: 's. 0.2', teacher: 'Sokół Paweł', cleanTeacher: 'Sokół Paweł', type: 'Wykład', color: 'blue', notes: '', isLibrus: true, category: 'school', status: 'active' },
@@ -237,7 +236,6 @@ const STATIC_DEMO_TIMETABLE_LESSONS = [
     category: 'school'
   },
   { id: 'librus_thu_9', day: 'thursday', subject: 'Biologia', time_start: '14:55', time_end: '15:40', room: 's. 19', teacher: 'Łukaszczyk-Wulgaris Joanna', cleanTeacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true, isCancelled: false, status: 'active', category: 'school' },
-  { id: 'personal_thu_1', day: 'thursday', subject: 'Projekt AI Dashboard', time_start: '16:00', time_end: '18:00', room: 'Pracownia domowa', teacher: '', cleanTeacher: '', type: 'Osobiste', color: 'purple', notes: 'Implementacja widoku Plan Dnia & testy', isLibrus: false, category: 'personal', personalCategory: 'Praca', priority: 'critical', status: 'active' },
 
   // Piątek
   { id: 'librus_fri_1', day: 'friday', subject: 'Język angielski', time_start: '08:00', time_end: '08:45', room: 's. Z2', teacher: 'Ziemba Joanna', cleanTeacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
@@ -248,6 +246,53 @@ const STATIC_DEMO_TIMETABLE_LESSONS = [
   { id: 'librus_fri_6', day: 'friday', subject: 'Edukacja obywatelska', time_start: '12:20', time_end: '13:05', room: 's. 09', teacher: 'Czarna Alicja', cleanTeacher: 'Czarna Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true, category: 'school', status: 'active' },
   { id: 'librus_fri_7', day: 'friday', subject: 'Język polski', time_start: '13:15', time_end: '14:00', room: 's. 34', teacher: 'Negowska Alicja', cleanTeacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true, category: 'school', status: 'active' },
   { id: 'librus_fri_8', day: 'friday', subject: 'Język polski', time_start: '14:05', time_end: '14:50', room: 's. 34', teacher: 'Negowska Alicja', cleanTeacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true, category: 'school', status: 'active' }
+];
+
+const STATIC_DEMO_PERSONAL_ROUTINE = [
+  // Poniedziałek (FBW Strych)
+  { id: 'personal_mon_wake', day: 'monday', subject: 'Poranny rozruch', time_start: '06:00', time_end: '06:30', room: 'Dom', teacher: 'Rutyna', type: 'Osobiste', color: 'amber', notes: 'Pobudka, szklanka wody + 5g kreatyny przygotowane wieczorem na biurku. Szybka toaleta i wyjście.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
+  { id: 'personal_mon_dinner', day: 'monday', subject: 'Obiad & Reset', time_start: '16:15', time_end: '17:00', room: 'Dom', teacher: 'Posiłek', type: 'Osobiste', color: 'emerald', notes: 'Spokojny obiad (paliwo na resztę dnia) i chwila na odcięcie się od szkoły.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'normal', status: 'active' },
+  { id: 'personal_mon_workout', day: 'monday', subject: 'Blok A: Trening Full Body (Strych)', time_start: '17:00', time_end: '18:00', room: 'Strych', teacher: 'FBW Trening', type: 'Osobiste', color: 'purple', notes: 'Wchodzisz na strych, robisz 30–40 min zestaw Full Body + po treningu szejk WPC. Drążek, dipy, wiosłowanie, OHP, goblet squat, unoszenie kolan.', isLibrus: false, category: 'personal', personalCategory: 'Trening', priority: 'critical', status: 'active' },
+  { id: 'personal_mon_chill', day: 'monday', subject: 'Blok B: Czas dla siebie / Chill', time_start: '18:00', time_end: '20:00', room: 'Strefa Chill', teacher: 'Odpoczynek', type: 'Osobiste', color: 'cyan', notes: 'Relaks, gierki, znajomi, e-pet – czas na zresetowanie głowy.', isLibrus: false, category: 'personal', personalCategory: 'Hobby', priority: 'low', status: 'active' },
+  { id: 'personal_mon_dev', day: 'monday', subject: 'Blok C: Praca głęboka / Kodowanie / Unity', time_start: '20:00', time_end: '22:30', room: 'Workstation', teacher: 'PROTOCOL: BLACKOUT', type: 'Osobiste', color: 'indigo', notes: 'Dwie godziny skupienia na własnych projektach, zleceń i dłubaniu przy silniku PROTOCOL: BLACKOUT.', isLibrus: false, category: 'personal', personalCategory: 'Praca', priority: 'critical', status: 'active' },
+  { id: 'personal_mon_sleep', day: 'monday', subject: 'Wyciszenie i Sen', time_start: '22:30', time_end: '23:00', room: 'Sypialnia', teacher: 'Regeneracja', type: 'Osobiste', color: 'slate', notes: 'Szybki prysznic, odstawienie ekranów, melatonina z melisą. 23:00: Odcięcie – 7 godzin snu do 06:00 rano.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
+
+  // Wtorek (Nauka & Sprawdziany)
+  { id: 'personal_tue_wake', day: 'tuesday', subject: 'Poranny rozruch', time_start: '06:00', time_end: '06:30', room: 'Dom', teacher: 'Rutyna', type: 'Osobiste', color: 'amber', notes: 'Pobudka, szklanka wody + 5g kreatyny przygotowane wieczorem na biurku. Szybka toaleta i wyjście.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
+  { id: 'personal_tue_dinner', day: 'tuesday', subject: 'Obiad & Reset', time_start: '16:15', time_end: '17:00', room: 'Dom', teacher: 'Posiłek', type: 'Osobiste', color: 'emerald', notes: 'Spokojny obiad (paliwo na resztę dnia) i chwila na odcięcie się od szkoły.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'normal', status: 'active' },
+  { id: 'personal_tue_study', day: 'tuesday', subject: 'Blok A: Nauka & Powtórki', time_start: '17:00', time_end: '18:00', room: 'Biurko', teacher: 'Edukacja', type: 'Osobiste', color: 'indigo', notes: '1h czystej nauki do sprawdzianów i kartkówek, żeby nie robić zaległości.', isLibrus: false, category: 'personal', personalCategory: 'Nauka', priority: 'high', status: 'active' },
+  { id: 'personal_tue_chill', day: 'tuesday', subject: 'Blok B: Czas dla siebie / Chill', time_start: '18:00', time_end: '20:00', room: 'Strefa Chill', teacher: 'Odpoczynek', type: 'Osobiste', color: 'cyan', notes: 'Relaks, gierki, znajomi, e-pet – czas na zresetowanie głowy.', isLibrus: false, category: 'personal', personalCategory: 'Hobby', priority: 'low', status: 'active' },
+  { id: 'personal_tue_dev', day: 'tuesday', subject: 'Blok C: Praca głęboka / Kodowanie / Unity', time_start: '20:00', time_end: '22:30', room: 'Workstation', teacher: 'PROTOCOL: BLACKOUT', type: 'Osobiste', color: 'indigo', notes: 'Dwie godziny skupienia na własnych projektach, zleceń i dłubaniu przy silniku PROTOCOL: BLACKOUT.', isLibrus: false, category: 'personal', personalCategory: 'Praca', priority: 'critical', status: 'active' },
+  { id: 'personal_tue_sleep', day: 'tuesday', subject: 'Wyciszenie i Sen', time_start: '22:30', time_end: '23:00', room: 'Sypialnia', teacher: 'Regeneracja', type: 'Osobiste', color: 'slate', notes: 'Szybki prysznic, odstawienie ekranów, melatonina z melisą. 23:00: Odcięcie – 7 godzin snu do 06:00 rano.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
+
+  // Środa (FBW Strych)
+  { id: 'personal_wed_wake', day: 'wednesday', subject: 'Poranny rozruch', time_start: '06:00', time_end: '06:30', room: 'Dom', teacher: 'Rutyna', type: 'Osobiste', color: 'amber', notes: 'Pobudka, szklanka wody + 5g kreatyny przygotowane wieczorem na biurku. Szybka toaleta i wyjście.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
+  { id: 'personal_wed_dinner', day: 'wednesday', subject: 'Obiad & Reset', time_start: '16:15', time_end: '17:00', room: 'Dom', teacher: 'Posiłek', type: 'Osobiste', color: 'emerald', notes: 'Spokojny obiad (paliwo na resztę dnia) i chwila na odcięcie się od szkoły.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'normal', status: 'active' },
+  { id: 'personal_wed_workout', day: 'wednesday', subject: 'Blok A: Trening Full Body (Strych)', time_start: '17:00', time_end: '18:00', room: 'Strych', teacher: 'FBW Trening', type: 'Osobiste', color: 'purple', notes: 'Wchodzisz na strych, robisz 30–40 min zestaw Full Body + po treningu szejk WPC. Drążek, dipy, wiosłowanie, OHP, goblet squat, unoszenie kolan.', isLibrus: false, category: 'personal', personalCategory: 'Trening', priority: 'critical', status: 'active' },
+  { id: 'personal_wed_chill', day: 'wednesday', subject: 'Blok B: Czas dla siebie / Chill', time_start: '18:00', time_end: '20:00', room: 'Strefa Chill', teacher: 'Odpoczynek', type: 'Osobiste', color: 'cyan', notes: 'Relaks, gierki, znajomi, e-pet – czas na zresetowanie głowy.', isLibrus: false, category: 'personal', personalCategory: 'Hobby', priority: 'low', status: 'active' },
+  { id: 'personal_wed_dev', day: 'wednesday', subject: 'Blok C: Praca głęboka / Kodowanie / Unity', time_start: '20:00', time_end: '22:30', room: 'Workstation', teacher: 'PROTOCOL: BLACKOUT', type: 'Osobiste', color: 'indigo', notes: 'Dwie godziny skupienia na własnych projektach, zleceń i dłubaniu przy silniku PROTOCOL: BLACKOUT.', isLibrus: false, category: 'personal', personalCategory: 'Praca', priority: 'critical', status: 'active' },
+  { id: 'personal_wed_sleep', day: 'wednesday', subject: 'Wyciszenie i Sen', time_start: '22:30', time_end: '23:00', room: 'Sypialnia', teacher: 'Regeneracja', type: 'Osobiste', color: 'slate', notes: 'Szybki prysznic, odstawienie ekranów, melatonina z melisą. 23:00: Odcięcie – 7 godzin snu do 06:00 rano.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
+
+  // Czwartek (Nauka & Sprawdziany)
+  { id: 'personal_thu_wake', day: 'thursday', subject: 'Poranny rozruch', time_start: '06:00', time_end: '06:30', room: 'Dom', teacher: 'Rutyna', type: 'Osobiste', color: 'amber', notes: 'Pobudka, szklanka wody + 5g kreatyny przygotowane wieczorem na biurku. Szybka toaleta i wyjście.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
+  { id: 'personal_thu_dinner', day: 'thursday', subject: 'Obiad & Reset', time_start: '16:15', time_end: '17:00', room: 'Dom', teacher: 'Posiłek', type: 'Osobiste', color: 'emerald', notes: 'Spokojny obiad (paliwo na resztę dnia) i chwila na odcięcie się od szkoły.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'normal', status: 'active' },
+  { id: 'personal_thu_study', day: 'thursday', subject: 'Blok A: Nauka & Powtórki', time_start: '17:00', time_end: '18:00', room: 'Biurko', teacher: 'Edukacja', type: 'Osobiste', color: 'indigo', notes: '1h czystej nauki do sprawdzianów i kartkówek, żeby nie robić zaległości.', isLibrus: false, category: 'personal', personalCategory: 'Nauka', priority: 'high', status: 'active' },
+  { id: 'personal_thu_chill', day: 'thursday', subject: 'Blok B: Czas dla siebie / Chill', time_start: '18:00', time_end: '20:00', room: 'Strefa Chill', teacher: 'Odpoczynek', type: 'Osobiste', color: 'cyan', notes: 'Relaks, gierki, znajomi, e-pet – czas na zresetowanie głowy.', isLibrus: false, category: 'personal', personalCategory: 'Hobby', priority: 'low', status: 'active' },
+  { id: 'personal_thu_dev', day: 'thursday', subject: 'Blok C: Praca głęboka / Kodowanie / Unity', time_start: '20:00', time_end: '22:30', room: 'Workstation', teacher: 'PROTOCOL: BLACKOUT', type: 'Osobiste', color: 'indigo', notes: 'Dwie godziny skupienia na własnych projektach, zleceń i dłubaniu przy silniku PROTOCOL: BLACKOUT.', isLibrus: false, category: 'personal', personalCategory: 'Praca', priority: 'critical', status: 'active' },
+  { id: 'personal_thu_sleep', day: 'thursday', subject: 'Wyciszenie i Sen', time_start: '22:30', time_end: '23:00', room: 'Sypialnia', teacher: 'Regeneracja', type: 'Osobiste', color: 'slate', notes: 'Szybki prysznic, odstawienie ekranów, melatonina z melisą. 23:00: Odcięcie – 7 godzin snu do 06:00 rano.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
+
+  // Piątek (FBW Strych)
+  { id: 'personal_fri_wake', day: 'friday', subject: 'Poranny rozruch', time_start: '06:00', time_end: '06:30', room: 'Dom', teacher: 'Rutyna', type: 'Osobiste', color: 'amber', notes: 'Pobudka, szklanka wody + 5g kreatyny przygotowane wieczorem na biurku. Szybka toaleta i wyjście.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
+  { id: 'personal_fri_dinner', day: 'friday', subject: 'Obiad & Reset', time_start: '16:15', time_end: '17:00', room: 'Dom', teacher: 'Posiłek', type: 'Osobiste', color: 'emerald', notes: 'Spokojny obiad (paliwo na resztę dnia) i chwila na odcięcie się od szkoły.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'normal', status: 'active' },
+  { id: 'personal_fri_workout', day: 'friday', subject: 'Blok A: Trening Full Body (Strych)', time_start: '17:00', time_end: '18:00', room: 'Strych', teacher: 'FBW Trening', type: 'Osobiste', color: 'purple', notes: 'Wchodzisz na strych, robisz 30–40 min zestaw Full Body + po treningu szejk WPC. Drążek, dipy, wiosłowanie, OHP, goblet squat, unoszenie kolan.', isLibrus: false, category: 'personal', personalCategory: 'Trening', priority: 'critical', status: 'active' },
+  { id: 'personal_fri_chill', day: 'friday', subject: 'Blok B: Czas dla siebie / Chill', time_start: '18:00', time_end: '20:00', room: 'Strefa Chill', teacher: 'Odpoczynek', type: 'Osobiste', color: 'cyan', notes: 'Relaks, gierki, znajomi, e-pet – czas na zresetowanie głowy.', isLibrus: false, category: 'personal', personalCategory: 'Hobby', priority: 'low', status: 'active' },
+  { id: 'personal_fri_dev', day: 'friday', subject: 'Blok C: Praca głęboka / Kodowanie / Unity', time_start: '20:00', time_end: '22:30', room: 'Workstation', teacher: 'PROTOCOL: BLACKOUT', type: 'Osobiste', color: 'indigo', notes: 'Dwie godziny skupienia na własnych projektach, zleceń i dłubaniu przy silniku PROTOCOL: BLACKOUT.', isLibrus: false, category: 'personal', personalCategory: 'Praca', priority: 'critical', status: 'active' },
+  { id: 'personal_fri_sleep', day: 'friday', subject: 'Wyciszenie i Sen', time_start: '22:30', time_end: '23:00', room: 'Sypialnia', teacher: 'Regeneracja', type: 'Osobiste', color: 'slate', notes: 'Szybki prysznic, odstawienie ekranów, melatonina z melisą. 23:00: Odcięcie – 7 godzin snu do 06:00 rano.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' }
+];
+
+const STATIC_DEMO_TIMETABLE_LESSONS = [
+  ...STATIC_DEMO_SCHOOL_LESSONS,
+  ...STATIC_DEMO_PERSONAL_ROUTINE
 ];
 
 const TimetablePage = () => {
@@ -419,7 +464,17 @@ const TimetablePage = () => {
   };
 
   const isPersonalLesson = (lesson) => {
-    return lesson?.category === 'personal' || lesson?.itemType === 'personal' || lesson?.type === 'Osobiste';
+    if (!lesson) return false;
+    if (lesson.isPersonal === true || lesson.isPersonal === 'true') return true;
+    if (lesson.category === 'personal' || lesson.itemType === 'personal' || lesson.type === 'Osobiste') return true;
+    const idStr = String(lesson.id || '');
+    if (idStr.startsWith('personal_') || idStr.startsWith('routine_') || idStr.startsWith('workout_')) return true;
+    if (lesson.personalCategory && lesson.personalCategory !== '') return true;
+    return false;
+  };
+
+  const isSchoolLesson = (lesson) => {
+    return !isPersonalLesson(lesson);
   };
 
   const getLessonCategory = (lesson) => {
@@ -441,7 +496,7 @@ const TimetablePage = () => {
     // 1. Bazowe źródło lekcji szkolnych (Librus live/cache lub wersja demo)
     let schoolLessons = STATIC_DEMO_TIMETABLE_LESSONS.filter(l => !isPersonalLesson(l));
     if (librusData && Array.isArray(librusData.lessons) && librusData.lessons.length > 0) {
-      schoolLessons = librusData.lessons;
+      schoolLessons = librusData.lessons.map(l => ({ ...l, category: 'school', isPersonal: false }));
     }
 
     // Nadpisania lub dodatkowe lekcje szkolne z Firestore / bazy lokalnej (lessons)
@@ -451,9 +506,9 @@ const TimetablePage = () => {
       customSchoolLessons.forEach(custom => {
         const idx = mergedSchoolLessons.findIndex(m => String(m.id) === String(custom.id));
         if (idx >= 0) {
-          mergedSchoolLessons[idx] = { ...mergedSchoolLessons[idx], ...custom };
+          mergedSchoolLessons[idx] = { ...mergedSchoolLessons[idx], ...custom, category: 'school', isPersonal: false };
         } else {
-          mergedSchoolLessons.push(custom);
+          mergedSchoolLessons.push({ ...custom, category: 'school', isPersonal: false });
         }
       });
     }
@@ -461,7 +516,7 @@ const TimetablePage = () => {
     // 2. Aktywności osobiste (Firestore z fallbackiem do demo jeśli brak wpisów)
     const customPersonalLessons = (lessons || []).filter(l => isPersonalLesson(l));
     let personalLessons = customPersonalLessons.length > 0
-      ? customPersonalLessons
+      ? customPersonalLessons.map(l => ({ ...l, category: 'personal', isPersonal: true, type: l.type || 'Osobiste' }))
       : STATIC_DEMO_TIMETABLE_LESSONS.filter(l => isPersonalLesson(l));
 
     let source = [...mergedSchoolLessons, ...personalLessons];
@@ -470,13 +525,14 @@ const TimetablePage = () => {
     }
 
     return source.map(l => {
-      const fullTeacher = resolveFullTeacherName(l.cleanTeacher || l.teacher);
       const isPersonal = isPersonalLesson(l);
+      const fullTeacher = isPersonal ? (l.teacher || '') : resolveFullTeacherName(l.cleanTeacher || l.teacher);
       return {
         ...l,
-        category: isPersonal ? 'personal' : (l.category || 'school'),
-        teacher: fullTeacher || l.teacher,
-        cleanTeacher: fullTeacher || l.cleanTeacher || l.teacher
+        category: isPersonal ? 'personal' : 'school',
+        isPersonal,
+        teacher: fullTeacher || l.teacher || '',
+        cleanTeacher: fullTeacher || l.cleanTeacher || l.teacher || ''
       };
     });
   }, [lessons, librusData, deletedLessonIds]);
@@ -872,10 +928,16 @@ const TimetablePage = () => {
   return (
     <div className="flex flex-col h-full gap-3 sm:gap-5 overflow-y-auto custom-scrollbar font-sans pb-24 md:pb-8 min-h-0">
       {/* 1. Header Bar */}
-      <header className="glass-panel p-3.5 sm:p-5 rounded-2xl border border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 flex-shrink-0 shadow-lg">
+      <header className="glass-panel p-3.5 sm:p-5 rounded-2xl border border-white/10 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 flex-shrink-0 shadow-lg">
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-accentPrimary/20 border border-accentPrimary/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(var(--color-accent-primary),0.2)]">
-            <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-accentPrimary" />
+            {activeCategory === 'personal' ? (
+              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-accentPrimary" />
+            ) : activeCategory === 'school' ? (
+              <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-accentPrimary" />
+            ) : (
+              <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-accentPrimary" />
+            )}
           </div>
           <div>
             <nav aria-label="breadcrumb" className="hidden sm:flex items-center space-x-2 text-sm text-textMuted mb-0.5">
@@ -883,68 +945,187 @@ const TimetablePage = () => {
               <span className="text-sm font-medium text-textMuted/70">/</span>
               <span className="text-sm font-medium text-textMuted/70">Harmonogram</span>
               <span className="text-sm font-medium text-textMuted/70">/</span>
-              <span className="text-sm font-medium text-textPrimary">Plan Dnia</span>
+              <span className="text-sm font-medium text-textPrimary">
+                {activeCategory === 'school' ? 'Szkolny Plan Lekcji' : (activeCategory === 'personal' ? 'Osobisty Plan Dnia' : 'Plan Dnia')}
+              </span>
             </nav>
             <h1 className="text-lg sm:text-2xl font-bold text-textPrimary tracking-tight flex items-center gap-2">
-              Plan Dnia
+              {activeCategory === 'school' ? 'Szkolny Plan Lekcji' : (activeCategory === 'personal' ? 'Osobisty Plan Dnia' : 'Plan Dnia')}
               <span className="text-[10px] sm:text-[11px] font-mono px-2 py-0.5 rounded-full bg-accentPrimary/10 text-accentPrimary border border-accentPrimary/30">
-                LIVE
+                {activeCategory === 'school' ? 'LIBRUS SYNERGIA' : (activeCategory === 'personal' ? 'RUTYNA & FBW' : 'ZINTEGROWANY')}
               </span>
             </h1>
             <p className="hidden md:block text-xs text-textMuted mt-0.5">
-              Zintegrowany harmonogram dnia: zajęcia dydaktyczne (Librus Synergia) oraz aktywności osobiste.
+              {activeCategory === 'school'
+                ? 'Oficjalny rozkład lekcji dydaktycznych i zastępstw z Librus Synergia (Technikum TEB Edukacja).'
+                : (activeCategory === 'personal'
+                  ? 'Stały schemat dnia (06:00 – 23:00): poranny rozruch, trening FBW na strychu, praca głęboka i sen.'
+                  : 'Zintegrowany harmonogram dnia: zajęcia dydaktyczne (Librus Synergia) oraz aktywności osobiste.')}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end pt-1 sm:pt-0 border-t sm:border-t-0 border-border/40">
-          <button
-            onClick={() => setShowStats(prev => !prev)}
-            className="px-2.5 py-1.5 rounded-xl border border-white/10 bg-surface text-textMuted hover:text-textPrimary text-xs font-mono transition-colors flex items-center gap-1.5 shadow-sm"
-            title="Przełącz widoczność kafelków analitycznych"
-          >
-            <span>{showStats ? 'Zwiń Statystyki ▴' : 'Rozwiń Statystyki ▾'}</span>
-          </button>
-
-          <div className="flex items-center bg-surface border border-white/10 rounded-xl p-1">
+        {/* PRZEŁĄCZNIK TRYBÓW (ZAKŁADEK) + PRZYCISKI AKCJI */}
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full xl:w-auto justify-between xl:justify-end pt-2 xl:pt-0 border-t xl:border-t-0 border-border/40">
+          
+          {/* SEGMENTED TAB SWITCHER (Jak w Kalendarzu) */}
+          <div className="flex items-center p-1 rounded-xl bg-surface border border-white/10 text-xs font-mono shadow-sm">
             <button
-              onClick={() => setViewMode('cards')}
-              className={`p-1.5 sm:p-2 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${viewMode === 'cards' ? 'bg-accentPrimary/20 text-accentPrimary shadow-sm' : 'text-textMuted hover:text-textPrimary'}`}
-              title="Widok kart"
+              onClick={() => setActiveCategory('all')}
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                activeCategory === 'all'
+                  ? 'bg-accentPrimary text-background font-bold shadow-sm'
+                  : 'text-textMuted hover:text-textPrimary'
+              }`}
+              title="Pokaż wszystkie zajęcia i aktywności"
             >
-              <List className="w-4 h-4" />
-              <span className="inline">Karty</span>
+              <Layers className="w-3.5 h-3.5" />
+              <span>Wszystkie</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
+                activeCategory === 'all' ? 'bg-black/40 text-background' : 'bg-white/10 text-textMuted'
+              }`}>
+                {categoryCounts.all}
+              </span>
             </button>
+
             <button
-              onClick={() => setViewMode('grid')}
-              className={`p-1.5 sm:p-2 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${viewMode === 'grid' ? 'bg-accentPrimary/20 text-accentPrimary shadow-sm' : 'text-textMuted hover:text-textPrimary'}`}
-              title="Widok siatki tygodniowej"
+              onClick={() => setActiveCategory('school')}
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                activeCategory === 'school'
+                  ? 'bg-accentPrimary text-background font-bold shadow-sm'
+                  : 'text-textMuted hover:text-textPrimary'
+              }`}
+              title="Przełącz na Szkolny Plan Lekcji (Librus Synergia)"
             >
-              <LayoutGrid className="w-4 h-4" />
-              <span className="inline">Siatka</span>
+              <GraduationCap className="w-3.5 h-3.5" />
+              <span>Szkolny (Librus)</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
+                activeCategory === 'school' ? 'bg-black/40 text-background' : 'bg-white/10 text-textMuted'
+              }`}>
+                {categoryCounts.school}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveCategory('personal')}
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                activeCategory === 'personal'
+                  ? 'bg-accentPrimary text-background font-bold shadow-sm'
+                  : 'text-textMuted hover:text-textPrimary'
+              }`}
+              title="Przełącz na Osobisty Plan Dnia (Rutyna & Trening FBW)"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Osobisty (Rutyna)</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
+                activeCategory === 'personal' ? 'bg-black/40 text-background' : 'bg-white/10 text-textMuted'
+              }`}>
+                {categoryCounts.personal}
+              </span>
             </button>
           </div>
 
-          <button
-            onClick={handleSyncLibrusTimetable}
-            disabled={isSyncingLibrus}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-accentPrimary/40 bg-accentPrimary/10 text-accentPrimary hover:bg-accentPrimary/20 text-xs font-mono font-bold transition-all active:scale-95 disabled:opacity-50"
-            title="Pobierz oficjalny plan lekcji i zastępstwa z Librusa"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isSyncingLibrus ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{isSyncingLibrus ? 'Pobieranie...' : 'Pobierz z Librusa'}</span>
-            <span className="sm:hidden">Librus</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowStats(prev => !prev)}
+              className="px-2.5 py-1.5 rounded-xl border border-white/10 bg-surface text-textMuted hover:text-textPrimary text-xs font-mono transition-colors flex items-center gap-1.5 shadow-sm"
+              title="Przełącz widoczność kafelków analitycznych"
+            >
+              <span>{showStats ? 'Zwiń ▴' : 'Statystyki ▾'}</span>
+            </button>
 
-          <button
-            onClick={() => handleOpenAddModal(selectedDay !== 'all' ? selectedDay : 'monday')}
-            className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-accentPrimary text-background font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(var(--color-accent-primary),0.3)] hover:brightness-110 active:scale-95 transition-all shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Dodaj do Planu</span>
-          </button>
+            <div className="flex items-center bg-surface border border-white/10 rounded-xl p-1">
+              <button
+                onClick={() => setViewMode('cards')}
+                className={`p-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition-all ${viewMode === 'cards' ? 'bg-accentPrimary/20 text-accentPrimary shadow-sm' : 'text-textMuted hover:text-textPrimary'}`}
+                title="Widok kart"
+              >
+                <List className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Karty</span>
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition-all ${viewMode === 'grid' ? 'bg-accentPrimary/20 text-accentPrimary shadow-sm' : 'text-textMuted hover:text-textPrimary'}`}
+                title="Widok siatki tygodniowej"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Siatka</span>
+              </button>
+            </div>
+
+            {activeCategory !== 'personal' && (
+              <button
+                onClick={handleSyncLibrusTimetable}
+                disabled={isSyncingLibrus}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-accentPrimary/40 bg-accentPrimary/10 text-accentPrimary hover:bg-accentPrimary/20 text-xs font-mono font-bold transition-all active:scale-95 disabled:opacity-50"
+                title="Pobierz oficjalny plan lekcji i zastępstwa z Librusa"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncingLibrus ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{isSyncingLibrus ? 'Pobieranie...' : 'Sync Librus'}</span>
+                <span className="sm:hidden">Librus</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => handleOpenAddModal(selectedDay !== 'all' ? selectedDay : 'monday')}
+              className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 bg-accentPrimary text-background font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(var(--color-accent-primary),0.3)] hover:brightness-110 active:scale-95 transition-all shrink-0"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>{activeCategory === 'personal' ? 'Dodaj do Rutyny' : (activeCategory === 'school' ? 'Dodaj Lekcję' : 'Dodaj do Planu')}</span>
+            </button>
+          </div>
         </div>
       </header>
+
+      {/* 1.5. Pasek Szybkiego Przełączania / Context Bar */}
+      <div className="p-2.5 sm:p-3 rounded-xl border border-white/10 bg-surface/60 backdrop-blur-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs flex-shrink-0 shadow-sm">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+            activeCategory === 'personal' ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : (activeCategory === 'school' ? 'bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]' : 'bg-accentPrimary shadow-[0_0_8px_rgba(var(--color-accent-primary),0.8)]')
+          }`} />
+          <span className="font-mono text-textMuted shrink-0">Aktywny tryb:</span>
+          <span className="font-bold text-textPrimary truncate">
+            {activeCategory === 'personal' ? 'Osobisty Plan Dnia (Rutyna 06:00-23:00 & Trening FBW)' : (activeCategory === 'school' ? 'Szkolny Plan Lekcji (Librus Synergia • TEB Edukacja)' : 'Zintegrowany Harmonogram Dnia (Wszystkie)')}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
+          <span className="text-[11px] font-mono text-textMuted hidden md:inline">Szybkie przełączanie:</span>
+          <button
+            onClick={() => setActiveCategory('school')}
+            className={`px-2.5 py-1 rounded-lg border font-mono text-[11px] font-semibold flex items-center gap-1.5 transition-all ${
+              activeCategory === 'school'
+                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 ring-1 ring-cyan-500/30'
+                : 'bg-surface hover:bg-cyan-500/10 text-textMuted hover:text-cyan-300 border-white/10'
+            }`}
+          >
+            <GraduationCap className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Plan Szkolny</span>
+          </button>
+          <button
+            onClick={() => setActiveCategory('personal')}
+            className={`px-2.5 py-1 rounded-lg border font-mono text-[11px] font-semibold flex items-center gap-1.5 transition-all ${
+              activeCategory === 'personal'
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 ring-1 ring-emerald-500/30'
+                : 'bg-surface hover:bg-emerald-500/10 text-textMuted hover:text-emerald-300 border-white/10'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Plan Osobisty</span>
+          </button>
+          <button
+            onClick={() => setActiveCategory('all')}
+            className={`px-2.5 py-1 rounded-lg border font-mono text-[11px] font-semibold flex items-center gap-1.5 transition-all ${
+              activeCategory === 'all'
+                ? 'bg-accentPrimary/20 text-accentPrimary border-accentPrimary/40 ring-1 ring-accentPrimary/30'
+                : 'bg-surface hover:bg-white/10 text-textMuted hover:text-textPrimary border-white/10'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Wszystkie</span>
+          </button>
+        </div>
+      </div>
 
       {/* Powiadomienie Toast */}
       {toastMessage && (

@@ -133,9 +133,15 @@ export const initDB = () => {
             type TEXT DEFAULT 'Wykład',
             color TEXT DEFAULT 'indigo',
             notes TEXT,
+            category TEXT DEFAULT 'school',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
           )
         `);
+
+        // Migracja kolumny category dla kompatybilności wstecznej
+        db.run(`ALTER TABLE timetable ADD COLUMN category TEXT DEFAULT 'school'`, () => {});
+        db.run(`UPDATE timetable SET category = 'personal' WHERE id LIKE 'personal_%' OR id LIKE 'workout_%' OR type = 'Osobiste'`, () => {});
+        db.run(`CREATE INDEX IF NOT EXISTS idx_timetable_category ON timetable(category)`);
 
         db.run(`
           CREATE TABLE IF NOT EXISTS agent_jobs (

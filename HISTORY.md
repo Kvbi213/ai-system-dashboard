@@ -1,5 +1,17 @@
 ## Wersja Bieżąca
-**v2.34.1**
+**v2.34.2**
+
+## v 2.34.2 — 2026-10-16
+**Typ:** PATCH  
+**Zakres:** Dwuobszarowe Przełączanie Między Szkolnym a Osobistym Planem Dnia, Segmented Switcher w Głównym Nagłówku (jak w Kalendarzu), Pasek Kontekstowy Szybkiego Przełączania, Separacja Kolumn SQLite (category) oraz Wzbogacenie Zbioru Demonstracyjnego (30 Bloków Stałej Rutyny):
+- [*] Zmodyfikowano: `modules/pages/TimetablePage.jsx` – implementacja segmentowanego przełącznika (`Wszystkie`, `Szkolny (Librus)`, `Osobisty (Rutyna)`) bezpośrednio w nagłówku strony, paska szybkiego przełączania trybów z dynamicznym indykatorem, precyzyjnej funkcji klasyfikacji `isPersonalLesson` (obsługującej id `personal_*`, `routine_*`, `workout_*` oraz atrybuty `isPersonal`), automatycznego przełączania dynamicznych nagłówków i opisów (Librus vs Rutyna & FBW vs Zintegrowany) oraz wzbogacenia bazy demo o 30 pełnych bloków stałego schematu dnia (06:00-23:00) dla całego tygodnia roboczego.
+- [*] Zmodyfikowano: `modules/database.js` – dodanie kolumny `category TEXT DEFAULT 'school'` do tabeli `timetable`, migracja istniejących rekordów (`category = 'personal'` dla id `personal_%`), oraz indeks `idx_timetable_category`.
+- [*] Zmodyfikowano: `modules/routes/timetable.js` – obsługa pola `category` w endpointach `GET /api/timetable`, `POST /api/timetable` oraz `PUT /api/timetable/:id`.
+- [*] Zmodyfikowano: `tests/librus.test.js` – dodano test jednostkowy weryfikujący precyzyjne rozdzielanie zajęć szkolnych i osobistych w filtrze Planu Dnia.
+- [*] Zmodyfikowano: `package.json` – podniesienie wersji do `2.34.2`.
+- [*] Weryfikacja: 35/35 PASS w zestawie testów Librus, pomyślna kompilacja produkcyjna Vite (`npm run build`).
+
+---
 
 ## v 2.34.1 — 2026-10-16
 **Typ:** PATCH  

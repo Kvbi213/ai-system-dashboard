@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v2.34.1 (Stan na Październik 2026) 
+**Wersja Systemu:** v2.34.2 (Stan na Październik 2026) 
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE) 
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Plan Dnia & Stały Schemat Dnia, Attic FBW Workouts, Scraper Odwołanych Lekcji Librus Synergia, Harvey Sales Specialist, Fish Audio Ultra-Natural TTS, Entities & Intelligence OSINT Hub, Obsidian Vault Integration, Zero-Trust Security)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Plan Dnia: Przełącznik Osobisty / Szkolny, Stały Schemat Dnia, Attic FBW Workouts, Scraper Odwołanych Lekcji Librus Synergia, Harvey Sales Specialist, Fish Audio Ultra-Natural TTS, Entities & Intelligence OSINT Hub, Obsidian Vault Integration, Zero-Trust Security)
 
 ---
 

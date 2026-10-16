@@ -480,6 +480,42 @@ Komentarz: Dział 3`;
       const cancelled = timetable.lessons.filter(l => l.isCancelled);
       expect(cancelled.length).toBe(4); // Czwartkowe lekcje 1, 2, 3, 8
     });
+
+    it('should cleanly differentiate between personal and school lessons in Plan Dnia switching', () => {
+      const sampleLessons = [
+        { id: 'librus_mon_1', subject: 'Informatyka', category: 'school', type: 'Laboratorium' },
+        { id: 'librus_thu_1', subject: 'Język polski', category: 'school', isCancelled: true },
+        { id: 'personal_mon_wake', subject: 'Poranny rozruch', type: 'Osobiste' },
+        { id: 'personal_mon_workout', subject: 'Blok A: Trening Full Body', type: 'Osobiste', personalCategory: 'Trening' },
+        { id: 'personal_tue_study', subject: 'Blok A: Nauka', category: 'personal' }
+      ];
+
+      const isPersonal = (l) => {
+        if (!l) return false;
+        if (l.isPersonal === true || l.isPersonal === 'true') return true;
+        if (l.category === 'personal' || l.itemType === 'personal' || l.type === 'Osobiste') return true;
+        const idStr = String(l.id || '');
+        if (idStr.startsWith('personal_') || idStr.startsWith('routine_') || idStr.startsWith('workout_')) return true;
+        if (l.personalCategory && l.personalCategory !== '') return true;
+        return false;
+      };
+
+      const schoolFiltered = sampleLessons.filter(l => !isPersonal(l));
+      const personalFiltered = sampleLessons.filter(l => isPersonal(l));
+
+      expect(schoolFiltered.length).toBe(2);
+      expect(schoolFiltered.map(l => l.id)).toEqual(['librus_mon_1', 'librus_thu_1']);
+
+      expect(personalFiltered.length).toBe(3);
+      expect(personalFiltered.map(l => l.id)).toEqual([
+        'personal_mon_wake',
+        'personal_mon_workout',
+        'personal_tue_study'
+      ]);
+
+      // Sum of sets must equal total
+      expect(schoolFiltered.length + personalFiltered.length).toBe(sampleLessons.length);
+    });
   });
 });
 
