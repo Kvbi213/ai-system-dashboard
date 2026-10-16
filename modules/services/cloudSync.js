@@ -32,7 +32,27 @@ export const INITIAL_FIRESTORE_DATA = {
     { id: '5', title: 'Personalizacja widżetów i analiza przepływów danych', priority: 'MEDIUM', status: 'pending', category: 'dashboard' }
   ],
   finances: [],
-  workouts: [],
+  workouts: [
+    {
+      id: 'w_fbw_strych_plan',
+      title: 'Plan Główny: Full Body Workout (Strych)',
+      type: 'Siłowy',
+      date: new Date().toISOString().split('T')[0],
+      description: `### Zasady Treningowe (Poniedziałek / Środa / Piątek)
+- **Czas i Miejsce:** 30–40 min na strychu + po treningu szejk WPC
+- **Serie:** 2 serie robocze na każde ćwiczenie (poprzedzone rozgrzewką i 1 serią lekką)
+- **Powtórzenia:** 8–12 w serii (progresja ciężarem/gumą po domknięciu 12 powt.)
+- **Przerwy:** 1,5–2 minuty między seriami
+
+### Zestaw 6 Ćwiczeń (FBW):
+1. **Podciąganie na drążku (nachwyt lub z gumą)** — Plecy + Biceps | 2 serie × 8–12 powt.
+2. **Dipy na poręczach lub Pompki klasyczne** — Klatka + Barki + Triceps | 2 serie × 8–12 powt.
+3. **Wiosłowanie hantlem w opadzie tułowia** — Grzbiet + Ramiona | 2 serie na stronę × 8–12 powt.
+4. **Wyciskanie hantli nad głowę stojąc (OHP)** — Barki | 2 serie × 8–12 powt.
+5. **Przysiady z hantlem przy klatce (Goblet Squat)** — Nogi | 2 serie × 10–12 powt.
+6. **Unoszenie kolan do klatki w wiszeniu** — Brzuch / Core | 2 serie × 10–12 powt.`
+    }
+  ],
   calendar: [
     { id: 'c1', title: 'Przegląd Architektury OmniDash & Firestore', event_date: new Date().toISOString().split('T')[0], event_time: '10:00', priority: 'HIGH' },
     { id: 'c2', title: 'Audyt Stabilności Modelu GPT-120B', event_date: new Date().toISOString().split('T')[0], event_time: '14:30', priority: 'MEDIUM' }
@@ -42,7 +62,10 @@ export const INITIAL_FIRESTORE_DATA = {
     { id: 'b2', category: 'Engine & Model', fact: 'Podstawowy model kognitywny: openai/gpt-oss-120b zasilany przez Vercel Serverless Gateway.', created_at: new Date().toISOString() },
     { id: 'b3', category: 'Architecture', fact: 'Ekosystem rozproszony: Firebase Hosting + Firestore Realtime Database + Vercel Serverless API.', created_at: new Date().toISOString() },
     { id: 'b4', category: 'Preferences', fact: 'Formatowanie odpowiedzi: wyczerpujące, merytoryczne, wieloaspektowe z drzewiastymi strukturami Markdown.', created_at: new Date().toISOString() },
-    { id: 'b5', category: 'Wiedza', fact: 'Sale lekcyjne zaczynające się od „Z” oraz „SZ” oraz sale z numerem po kropce (np. 1.2, 1.16) znajdują się w innym budynku niż sale bez takiego oznaczenia (np. sala 34, 17).', created_at: new Date().toISOString() }
+    { id: 'b5', category: 'Wiedza', fact: 'Sale lekcyjne zaczynające się od „Z” oraz „SZ” oraz sale z numerem po kropce (np. 1.2, 1.16) znajdują się w innym budynku niż sale bez takiego oznaczenia (np. sala 34, 17).', created_at: new Date().toISOString() },
+    { id: 'b6', category: 'Rutyna & Schemat Dnia', fact: 'Stały schemat dnia (Poniedziałek – Piątek): 06:00-06:30 Poranny rozruch (woda + 5g kreatyny z biurka), 06:30-16:15 Szkoła i powrót, 16:15-17:00 Obiad & Reset, 17:00-18:00 Blok A (Pon/Śr/Pt: Trening na strychu 30-40 min FBW + szejk WPC; Wt/Czw: Nauka 1h), 18:00-20:00 Blok B (Chill, gierki, znajomi, e-pet), 20:00-22:30 Blok C (Praca głęboka: kodowanie, Unity, PROTOCOL: BLACKOUT), 22:30-23:00 Wyciszenie (melatonina z melisą), 23:00-06:00 Sen (7h).', created_at: new Date().toISOString() },
+    { id: 'b7', category: 'Plan Treningowy', fact: 'Plan treningowy FBW na strychu (Poniedziałek / Środa / Piątek, 30-40 min): 2 serie robocze po 8-12 powt. (1.5-2 min przerw): 1. Podciąganie na drążku (Plecy+Biceps), 2. Dipy na poręczach / pompki (Klatka+Barki+Triceps), 3. Wiosłowanie hantlem w opadzie (Grzbiet+Ramiona), 4. Wyciskanie hantli OHP stojąc (Barki), 5. Przysiady Goblet Squat (Nogi), 6. Unoszenie kolan do klatki w wiszeniu (Brzuch/Core). Po treningu szejk WPC.', created_at: new Date().toISOString() },
+    { id: 'b8', category: 'Suplementacja & Zdrowie', fact: 'Rano: szklanka wody + 5g kreatyny. Po treningu: szejk białkowy WPC. Wieczorem o 22:30: melatonina z melisą. Równo 7h snu (23:00-06:00).', created_at: new Date().toISOString() }
   ],
   chat_history: [
     { id: 'm1', role: 'ai', content: 'SYSTEM ONLINE. Silnik openai/gpt-oss-120b połączony przez Vercel Serverless Gateway. Baza Firestore zsynchronizowana.', timestamp: new Date().toISOString() }

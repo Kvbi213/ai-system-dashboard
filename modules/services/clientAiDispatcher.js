@@ -117,6 +117,32 @@ function getClientContextSummary() {
         saveCloudDocument('operator_brain', roomFact.id, roomFact);
       } catch {}
     }
+    const routineFactExists = operatorBrain.some(b => b && b.fact && b.fact.toLowerCase().includes('stały schemat dnia'));
+    if (!routineFactExists) {
+      const routineFacts = [
+        {
+          id: 'b6',
+          category: 'Rutyna & Schemat Dnia',
+          fact: 'Stały schemat dnia (Poniedziałek – Piątek): 06:00-06:30 Poranny rozruch (woda + 5g kreatyny), 06:30-16:15 Szkoła i powrót, 16:15-17:00 Obiad & Reset, 17:00-18:00 Blok A (Pon/Śr/Pt: Trening strych FBW + szejk WPC; Wt/Czw: Nauka 1h), 18:00-20:00 Blok B (Chill/znajomi/relaks), 20:00-22:30 Blok C (Deep work / Kodowanie / Unity / PROTOCOL: BLACKOUT), 22:30-23:00 Wyciszenie (melatonina z melisą), 23:00-06:00 Sen (7h).',
+          created_at: new Date().toISOString()
+        },
+        {
+          id: 'b7',
+          category: 'Plan Treningowy',
+          fact: 'Plan treningowy FBW na strychu (Poniedziałek / Środa / Piątek, 30-40 min): 2 serie robocze po 8-12 powt. (1.5-2 min przerw): 1. Podciąganie na drążku (Plecy+Biceps), 2. Dipy na poręczach / pompki (Klatka+Barki+Triceps), 3. Wiosłowanie hantlem w opadzie (Grzbiet+Ramiona), 4. Wyciskanie hantli OHP stojąc (Barki), 5. Przysiady Goblet Squat (Nogi), 6. Unoszenie kolan do klatki w wiszeniu (Brzuch/Core). Po treningu szejk WPC.',
+          created_at: new Date().toISOString()
+        }
+      ];
+      routineFacts.forEach(f => {
+        operatorBrain.push(f);
+        try {
+          saveCloudDocument('operator_brain', f.id, f);
+        } catch {}
+      });
+      try {
+        localStorage.setItem('cloud_cache_operator_brain', JSON.stringify(operatorBrain));
+      } catch {}
+    }
   } catch {}
 
   let timetable = [];

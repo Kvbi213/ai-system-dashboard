@@ -1,5 +1,18 @@
 ## Wersja Bieżąca
-**v2.34.0**
+**v2.34.1**
+
+## v 2.34.1 — 2026-10-16
+**Typ:** PATCH  
+**Zakres:** Trwałe Wdrożenie Stałego Schematu Dnia (Poniedziałek – Piątek) i Planu Treningowego FBW na Strychu, Synchronizacja ze Skarbcem Obsidian (informacje/SCHEMAT_DNIA_I_TRENING.md), Zapis do Baz Danych SQLite i Cloud Firestore oraz Ugruntowanie Kontekstu Kognitywnego Asystenta AI:
+- [+] Dodano: `scripts/seed_daily_routine_and_workouts.js` – deterministyczny skrypt seeder wykonujący bezkolizyjne wstrzyknięcie 30 stałych bloków planu dnia (06:00-06:30 Poranny rozruch, 06:30-16:15 Szkoła & Powrót, 16:15-17:00 Obiad & Reset, 17:00-18:00 Blok A: Trening/Nauka naprzemiennie, 18:00-20:00 Blok B: Czas dla siebie/Chill, 20:00-22:30 Blok C: Praca głęboka/Kodowanie/Unity, 22:30-23:00 Wyciszenie i Sen) do SQLite `timetable` oraz Cloud Firestore `timetable`, 4 wpisów treningowych i master guide FBW do SQLite `workouts` i Cloud Firestore `workouts`, oraz 3 kluczowych faktów rutyny do SQLite `user_memory` i Cloud Firestore `operator_brain`.
+- [+] Dodano: `data/SCHEMAT_DNIA_I_TRENING.md` – kanoniczny dokument repozytorium opisujący harmonogram dobowy i protokół ćwiczeń FBW.
+- [+] Zsynchronizowano ze Skarbcem Obsidian: `C:\Users\Jakub Lis\Documents\OBSIDIAN\informacje\SCHEMAT_DNIA_I_TRENING.md` – bezpośrednia integracja z lokalną bazą wiedzy operatora.
+- [*] Zmodyfikowano: `modules/services/cloudSync.js` – rozszerzenie początkowych struktur danych `INITIAL_FIRESTORE_DATA` o plan treningowy FBW oraz wpisy pamięci stałej (`b6`, `b7`, `b8`) w kolekcji `operator_brain`.
+- [*] Zmodyfikowano: `modules/services/clientAiDispatcher.js` – implementacja mechanizmu autouzupełniania faktów rutyny i treningu w pamięci podręcznej asystenta AI (`_fillRoutineAndWorkoutFacts`), gwarantującego natychmiastowe ugruntowanie odpowiedzi bez opóźnień sieciowych.
+- [*] Zmodyfikowano: `package.json` – inkrementacja wersji do `2.34.1`.
+- [*] Weryfikacja: pomyślne przejście testów integracyjnych i poprawna kompilacja produkcyjna Vite (`npm run build`).
+
+---
 
 ## v 2.34.0 — 2026-10-15
 **Typ:** MINOR  
