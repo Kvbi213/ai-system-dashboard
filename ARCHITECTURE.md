@@ -381,5 +381,10 @@ Pełna specyfikacja strategiczna znajduje się w plikach: `docs/architecture/ROA
    - `firebase/delete-user-data`: Zgodne z RODO automatyczne czyszczenie danych użytkownika po usunięciu konta.
    - Google Cloud Identity Platform & Cloud IAM: Rygorystyczne role administracyjne i weryfikacja JWT w backendzie.
 
+### [*] Filar 3: Integracja z Frameworkiem OpenJarvis (Local-First AI & Agent Stack - v3.2 - P1)
+1. **Hybrydowy Silnik LLM (Local-First Inference)**: Wykonywanie rutynowych zadań lokalnie na stacji roboczej (Ollama / Rust), z płynnym fallbackiem do Groq LPU (`openai/gpt-oss-120b`) i chmury tylko w razie potrzeby.
+2. **Built-in Agents**: Adopcja wzorca `morning_digest` do generowania porannego briefingu audio TTS (06:00–06:30), wzorca `deep_research` z cytowaniami w OSINT oraz wzorca `monitor_operative` z kompresją pamięci w OmniDaemon 24/7.
+3. **Open Agent Skills Standard (`agentskills.io`)**: Dostęp do katalogu ponad 13 700 skilli społecznościowych oraz optymalizacja DSPy promptów na podstawie lokalnej telemetrii.
+
 ---
 *Dokument zsynchronizowany z Protokołem Antigravity (NANO v3.2).*

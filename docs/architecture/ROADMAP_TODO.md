@@ -32,9 +32,13 @@ Rejestr zadań dzieli się na trzy twarde kategorie priorytetów inżynieryjnych
 │  └── Interaktywny FBW Tracker       ├── Firestore Multi-Tenant Schema       │
 │                                     └── Firebase Extensions & GCP Cloud IAM │
 │                                                                             │
-│  [ TASK-03: ADVANCED INTEGRATIONS ] ◄── [ TASK-04: ENTERPRISE CLOUD EXT ]   │
-│  ├── Voice / TTS Multimodal         ├── Cloud Storage Image Resizer         │
-│  └── IoT Smart Access ESP32         └── Trigger Email & RODO Auto-Purge     │
+│  [ TASK-03: IOT & SMART ACCESS ] ──► [ TASK-05: OPENJARVIS AGENT STACK ]    │
+│  ├── ESP32 / MQTT Mosquitto         ├── Local-First Offline (Ollama / Rust) │
+│  └── Dynamiczne OTP / QR            ├── Morning Digest (TTS Briefing 06:00) │
+│                                     ├── Deep Research & Continuous Operative│
+│  [ TASK-04: ENTERPRISE CLOUD EXT ]  └── agentskills.io (~13k+ skilli)       │
+│  ├── Image Resizer & Email Trigger                                          │
+│  └── RODO/GDPR Auto-Purge                                                   │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -135,6 +139,27 @@ Rejestr zadań dzieli się na trzy twarde kategorie priorytetów inżynieryjnych
 - **Zakres Wykonawczy:**
   - Wdrożenie strumieniowania audio w czasie rzeczywistym (Real-time Audio Streaming) w trybie rozmowy na żywo.
   - Wybór głosu asystenta bezpośrednio w profilu użytkownika.
+
+---
+
+### [*] TASK-05: Integracja Frameworka OpenJarvis (Local-First AI & Agent Ecosystem)
+- **Priorytet:** `[*] WYSOKI (P1)`
+- **Stan:** `[~] ZAPLANOWANE (Analiza architektury open-jarvis/OpenJarvis)`
+- **Źródło Referencyjne:** `https://github.com/open-jarvis/OpenJarvis` (Stanford SAIL / Hazy Research, Apache 2.0)
+- **Zakres Wykonawczy i Potencjał Integracyjny dla OmniDash:**
+  1. **Architektura Local-First (Hybrydowy Silnik LLM):**
+     - Adaptacja podejścia OpenJarvis: wykonywanie 85%+ rutynowych zapytań lokalnie na stacji roboczej operatora (za pośrednictwem Ollama / rozszerzeń Rust / Python venv), a odpytywanie chmury Groq LPU (`openai/gpt-oss-120b`) wyłącznie przy złożonym rozumowaniu lub braku mocy lokalnej.
+     - Pełna praca offline modułu asystenckiego na stacji roboczej Windows / WSL2.
+  2. **Adopcja Wzorców Gotowych Agentów Specjalistycznych (Built-in Agents):**
+     - **`morning_digest`**: Wdrożenie autonomicznego generatora porannego briefingu audio (TTS). Automatyczna synteza danych z Planu Dnia (06:00–06:30), odwołanych lekcji Librus, wydarzeń z Kalendarza, pogody Open-Meteo i nagłówków ITNewsTicker przed wyjściem do szkoły.
+     - **`deep_research`**: Wielokrokowe badanie i przeszukiwanie źródeł z automatycznym formatowaniem cytowań akademickich i technicznych w module OSINT.
+     - **`monitor_operative` & `operative`**: Wzmocnienie autonomicznego agenta OmniDaemon 24/7 (`autonomousAgent.js`) o techniki kompresji pamięci, długohoryzontowy monitoring procesów i stanów systemu.
+     - **`code-assistant` & `native_openhands`**: Izolowane środowisko CodeAct do generowania i wykonywania skryptów pomocniczych na żądanie.
+  3. **Standard Otwartych Umiejętności (Open Agent Skills Standard - `agentskills.io`):**
+     - Integracja z uniwersalnym katalogiem umiejętności (dostęp do ponad 13 700 skilli społecznościowych z ekosystemów OpenClaw i Hermes Agent).
+     - Optymalizacja jakości działania narzędzi na podstawie lokalnych śladów telemetrycznych za pomocą DSPy (`jarvis optimize skills --policy dspy`).
+  4. **Most Komunikacyjny (WSL2 / Windows CLI & Express Bridge):**
+     - Integracja lokalnego serwera API OpenJarvis (`jarvis gui` / API daemon) z backendem `core.server.js:5000` za pośrednictwem lokalnego mostu HTTP / SSE.
 
 ---
 

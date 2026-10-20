@@ -16,6 +16,7 @@ Ten plik służy jako bieżący notatnik zgłoszeń operacyjnych. Pełny, strate
 - [ ] Wbudowana przeglądarka zintegrowana z kontami użytkownika.
 - [ ] Wsparcie dla bezpośredniego streamingu WebRTC Audio dla Hej Omni.
 - [ ] Moduł bramy IoT Smart Access (ESP32 / MQTT Mosquitto).
+- [ ] **TASK-05:** Integracja z frameworkiem OpenJarvis (Local-First AI, Morning Digest 06:00 audio briefing, Deep Research, katalog skilli `agentskills.io`). Zob. `docs/architecture/ROADMAP_TODO.md`.
 
 ## [NISKI] Zrealizowane (Archiwum)
 - **[Naprawione]** Odczyt czasu z powiadomień Pushbullet był przesunięty o 2h (UTC vs Local Time).
