@@ -7,7 +7,7 @@ const EntitiesPage = () => {
   const [activeView, setActiveView] = useState('tree'); // 'graph' | 'tree' | 'matrix' | 'domains'
 
   return (
-    <div className="flex-1 flex flex-col w-full space-y-space-lg text-on-surface antialiased">
+    <div className="flex-1 flex flex-col w-full space-y-space-lg text-on-surface antialiased max-w-full overflow-x-hidden">
       
       {/* 1. TOP AMBIENT GLOW BACKDROP & HEADER */}
       <div className="relative w-full">
@@ -38,7 +38,7 @@ const EntitiesPage = () => {
 
           {/* Action Panel & View Selector (Sonoma Segmented) */}
           <div className="flex flex-wrap items-center gap-space-sm self-start xl:self-end">
-            <div className="flex items-center p-1 rounded-lg bg-surface-container-lowest border border-outline-variant/30">
+            <div className="flex items-center p-1 rounded-lg bg-surface-container-lowest border border-outline-variant/30 overflow-x-auto max-w-full custom-scrollbar">
               <button
                 onClick={() => setActiveView('graph')}
                 className={`px-space-md py-1.5 rounded-lg font-label-md text-label-md transition-all flex items-center gap-space-xs ${

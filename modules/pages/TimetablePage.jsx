@@ -468,6 +468,25 @@ export const TimetablePage = () => {
   });
 
   // Diagnostics & Sync
+  const [isLibrusEnabled, setIsLibrusEnabled] = useState(() => {
+    return localStorage.getItem('system_librus_enabled') === 'true';
+  });
+
+  useEffect(() => {
+    const handleLibrusConfig = (e) => {
+      if (e.detail?.enabled !== undefined) {
+        setIsLibrusEnabled(e.detail.enabled);
+      } else {
+        setIsLibrusEnabled(localStorage.getItem('system_librus_enabled') === 'true');
+      }
+    };
+    window.addEventListener('librusConfigChanged', handleLibrusConfig);
+    window.addEventListener('systemConfigUpdated', handleLibrusConfig);
+    return () => {
+      window.removeEventListener('librusConfigChanged', handleLibrusConfig);
+      window.removeEventListener('systemConfigUpdated', handleLibrusConfig);
+    };
+  }, []);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastVerifyText, setLastVerifyText] = useState('8 min temu');
   
@@ -576,7 +595,10 @@ export const TimetablePage = () => {
     setTimeout(() => {
       setIsSyncing(false);
       setLastVerifyText('Przed chwilą (0 s)');
-    }, 900);
+      if (!isLibrusEnabled) {
+        alert('[*] Tryb autonomiczny: Plan dnia zaktualizowany z bazy lokalnej (bez Librus API).');
+      }
+    }, 800);
   };
 
   // Handle Quick Exception Submit
@@ -755,7 +777,7 @@ END:VEVENT`).join('\n');
               <span className={`material-symbols-outlined text-[16px] text-primary ${isSyncing ? 'animate-spin' : ''}`}>
                 sync
               </span>
-              <span>Synchronizuj Librus (API)</span>
+              <span>{isLibrusEnabled ? 'Synchronizuj Librus (API)' : 'Synchronizuj Lokalnie (Offline)'}</span>
             </button>
             
             <button 

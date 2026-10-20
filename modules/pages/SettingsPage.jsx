@@ -170,6 +170,18 @@ export const SettingsPage = () => {
 
   // Tab Navigation
   const [activeTab, setActiveTab] = useState('kernel');
+  const [librusIntegrationEnabled, setLibrusIntegrationEnabled] = useState(() => {
+    return localStorage.getItem('system_librus_enabled') === 'true';
+  });
+
+  const toggleLibrusIntegration = () => {
+    const nextVal = !librusIntegrationEnabled;
+    setLibrusIntegrationEnabled(nextVal);
+    localStorage.setItem('system_librus_enabled', nextVal ? 'true' : 'false');
+    window.dispatchEvent(new CustomEvent('librusConfigChanged', { detail: { enabled: nextVal } }));
+    window.dispatchEvent(new CustomEvent('systemConfigUpdated', { detail: { librusEnabled: nextVal } }));
+    triggerToast(nextVal ? '[+] WŁĄCZONO INTEGRACJĘ LIBRUS API' : '[*] AKTYWOWANO TRYB AUTONOMICZNY (BEZ LIBRUS API)');
+  };
 
   // Active Theme
   const [theme, setTheme] = useState(() => localStorage.getItem('system_theme') || 'dark');
@@ -577,7 +589,7 @@ COMMIT;
   }, [ttsEngine, browserVoicesList]);
 
   return (
-    <div className="flex-1 bg-background text-on-surface min-h-screen pb-24 font-body-md selection:bg-primary/20 selection:text-primary">
+    <div className="flex-1 bg-background text-on-surface min-h-screen pb-24 font-body-md selection:bg-primary/20 selection:text-primary max-w-full overflow-x-hidden">
       {/* Toast Alert */}
       {savedToast && (
         <div className="fixed top-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 bg-surface-container-highest border border-primary/40 rounded-xl shadow-2xl text-primary font-mono text-xs tracking-wider animate-bounce">
@@ -652,6 +664,56 @@ COMMIT;
         {/* 1. JĄDRO & MOTYWY */}
         {activeTab === 'kernel' && (
           <div className="space-y-8 animate-in fade-in duration-200">
+            {/* Kreator Konfiguracji & Integracje API */}
+            <div className="bg-surface-container-low border border-outline-variant/30 rounded-2xl p-6 flex flex-col gap-4 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-base font-bold text-on-surface flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    Kreator Konfiguracji Systemowej (Setup Wizard)
+                  </h3>
+                  <p className="text-xs text-on-surface-variant mt-1">
+                    Uruchom ponownie interaktywny panel wprowadzający: tożsamość, tryby API, klucze i kafelki HUD.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent('openSetupWizard'))}
+                  className="px-4 py-2.5 rounded-xl bg-primary text-on-primary font-bold text-xs font-mono shadow-md hover:bg-primary-fixed-dim transition-all active:scale-95 shrink-0"
+                >
+                  {"[>] URUCHOM KREATOR ONBOARDINGU"}
+                </button>
+              </div>
+
+              <div className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${librusIntegrationEnabled ? 'bg-secondary animate-pulse' : 'bg-primary'}`} />
+                  <div>
+                    <span className="font-mono text-xs font-bold text-on-surface block">
+                      {librusIntegrationEnabled ? 'Integracja Librus Synergia API: WŁĄCZONA' : 'Tryb Autonomiczny (Bez Librus API): AKTYWNY'}
+                    </span>
+                    <span className="text-[11px] text-on-surface-variant">
+                      {librusIntegrationEnabled
+                        ? 'Plan lekcji i oceny są synchronizowane z kontem szkolnym Librus.'
+                        : 'Plan dnia i oceny działają w 100% lokalnie w SQLite i Firestore bez scrapera Librus.'}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={toggleLibrusIntegration}
+                  className={`px-3.5 py-1.5 rounded-lg font-mono text-xs font-bold border transition-all shrink-0 ${
+                    librusIntegrationEnabled
+                      ? 'bg-secondary/20 text-secondary border-secondary/40 hover:bg-secondary/30'
+                      : 'bg-primary/20 text-primary border-primary/40 hover:bg-primary/30'
+                  }`}
+                >
+                  {librusIntegrationEnabled ? 'Przełącz na Tryb Autonomiczny' : 'Włącz Librus API'}
+                </button>
+              </div>
+            </div>
+
             {/* Siatka Motywów */}
             <div className="bg-surface-container-low border border-outline-variant/30 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-4">

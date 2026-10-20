@@ -289,6 +289,24 @@
     animation: softEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
+  @keyframes pageMorph {
+    0% {
+      opacity: 0;
+      transform: translateY(10px) scale(0.992);
+      filter: blur(1.5px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+  }
+
+  .page-morph-enter {
+    animation: pageMorph 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    will-change: transform, opacity, filter;
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }

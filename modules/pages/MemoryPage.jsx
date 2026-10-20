@@ -198,7 +198,7 @@ const MemoryPage = () => {
   };
 
   return (
-    <div className="flex flex-col w-full relative">
+    <div className="flex flex-col w-full relative max-w-full overflow-x-hidden">
       {/* Top Ambient Glow Field */}
       <div className="relative w-full overflow-hidden pointer-events-none">
         <div className="absolute -top-32 left-1/4 w-[560px] h-48 bg-primary-container/10 rounded-full blur-[110px]"></div>
@@ -218,7 +218,7 @@ const MemoryPage = () => {
           </div>
 
           {/* Hash & Integrity Verification Capsule */}
-          <div className="flex items-center gap-space-sm bg-surface-container-low px-space-md py-space-xs rounded-full shadow-sm border border-white/[0.04]">
+          <div className="flex items-center flex-wrap gap-1.5 sm:gap-space-sm bg-surface-container-low px-2.5 sm:px-space-md py-1 sm:py-space-xs rounded-xl sm:rounded-full shadow-sm border border-white/[0.04] max-w-full overflow-hidden text-xs">
             <span className="material-symbols-outlined text-[15px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
               verified_user
             </span>
@@ -249,7 +249,7 @@ const MemoryPage = () => {
           </div>
 
           {/* Firestore Sync Segmented Controller */}
-          <div className="flex items-center gap-space-md self-start lg:self-auto bg-surface-container-lowest p-space-xs rounded-xl shadow-md border border-white/[0.04]">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-space-md self-start lg:self-auto bg-surface-container-lowest p-space-xs rounded-xl shadow-md border border-white/[0.04] max-w-full">
             <div className="flex items-center gap-space-sm px-space-sm py-space-xs">
               <div className="flex flex-col text-right">
                 <span className="font-label-md text-label-md text-on-surface font-medium leading-none">
@@ -356,7 +356,7 @@ const MemoryPage = () => {
         {/* LEFT PANEL: Fact Browser & Search Engine */}
         <section className="xl:col-span-7 flex flex-col gap-space-md">
           {/* Panel Header & Action */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-space-xs">
               <span className="material-symbols-outlined text-primary text-[20px]">manage_search</span>
               <h2 className="font-headline-md text-headline-md text-on-surface font-semibold">
@@ -527,7 +527,7 @@ const MemoryPage = () => {
                 </button>
               </div>
             </div>
-            <pre className="font-code-mono text-[12px] leading-5 text-on-surface-variant overflow-x-auto p-space-xs max-h-56">
+            <pre className="font-code-mono text-[12px] leading-5 text-on-surface-variant overflow-x-auto p-space-xs max-h-56 max-w-full custom-scrollbar">
               <code>
                 {`{
   `}<span className="text-secondary">"system_version"</span>{`: `}<span className="text-primary">"3.0.4-academic"</span>{`,

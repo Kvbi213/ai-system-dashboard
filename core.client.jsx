@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './modules/i18n';
@@ -104,11 +104,31 @@ axios.interceptors.response.use(
   (error) => Promise.reject(error)
 );
 
+// Kontener płynnego przewijania i morfingu strony przy przejściu między podstronami
+const PageMorphContainer = ({ children }) => {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    const mainEl = document.querySelector('main');
+    if (mainEl) {
+      mainEl.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    }
+  }, [location.pathname]);
+
+  return (
+    <div key={location.pathname} className="page-morph-enter flex-1 w-full flex flex-col min-w-0 max-w-full">
+      {children}
+    </div>
+  );
+};
+
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isVerifying, setIsVerifying] = useState(true);
   const [missingKeys, setMissingKeys] = useState([]);
   const [setupCompleted, setSetupCompleted] = useState(false);
+  const [showSetupModal, setShowSetupModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Monkey-patch window.fetch aby zawierał nagłówek Authorization
@@ -267,6 +287,12 @@ const App = () => {
     );
   }
 
+  useEffect(() => {
+    const handleOpenWizard = () => setShowSetupModal(true);
+    window.addEventListener('openSetupWizard', handleOpenWizard);
+    return () => window.removeEventListener('openSetupWizard', handleOpenWizard);
+  }, []);
+
   const handleUnlock = async () => {
     setIsAuthenticated(true);
     const isCloudMode = window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com');
@@ -284,8 +310,8 @@ const App = () => {
   const renderContent = () => {
     if (!isAuthenticated) return <LockScreen onUnlock={handleUnlock} />;
 
-    if (!setupCompleted) {
-      return <SetupWizard onComplete={() => setSetupCompleted(true)} />;
+    if (!setupCompleted || showSetupModal) {
+      return <SetupWizard onComplete={() => { setSetupCompleted(true); setShowSetupModal(false); }} />;
     }
 
     if (missingKeys.length > 0) {
@@ -317,9 +343,10 @@ const App = () => {
             />
 
             {/* Główny obszar zawartości (Router) */}
-            <main className="md:pl-64 pt-16 flex-1 w-full px-3 sm:px-space-md md:px-space-lg py-space-md bg-background min-h-screen flex flex-col pb-safe">
+            <main className="md:pl-64 pt-16 flex-1 w-full px-3 sm:px-space-md md:px-space-lg py-space-md bg-background min-h-screen flex flex-col pb-safe max-w-full overflow-x-hidden">
               <React.Suspense fallback={<PageFallback />}>
-                <Routes>
+                <PageMorphContainer>
+                  <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/chat" element={<ChatPage />} />
                   <Route path="/search" element={<SearchPage />} />
@@ -338,6 +365,7 @@ const App = () => {
                   <Route path="/server" element={<ServerPage />} />
                   <Route path="/browser" element={<BrowserPage />} />
                 </Routes>
+                </PageMorphContainer>
               </React.Suspense>
             </main>
 

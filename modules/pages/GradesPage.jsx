@@ -218,6 +218,25 @@ const GradesPage = () => {
   });
   const [loading, setLoading] = useState(() => !localStorage.getItem('cloud_cache_librus_grades'));
   const [refreshing, setRefreshing] = useState(false);
+  const [isLibrusEnabled, setIsLibrusEnabled] = useState(() => {
+    return localStorage.getItem('system_librus_enabled') === 'true';
+  });
+
+  useEffect(() => {
+    const handleLibrusConfig = (e) => {
+      if (e.detail?.enabled !== undefined) {
+        setIsLibrusEnabled(e.detail.enabled);
+      } else {
+        setIsLibrusEnabled(localStorage.getItem('system_librus_enabled') === 'true');
+      }
+    };
+    window.addEventListener('librusConfigChanged', handleLibrusConfig);
+    window.addEventListener('systemConfigUpdated', handleLibrusConfig);
+    return () => {
+      window.removeEventListener('librusConfigChanged', handleLibrusConfig);
+      window.removeEventListener('systemConfigUpdated', handleLibrusConfig);
+    };
+  }, []);
   const [error, setError] = useState(null);
   const [useDemo, setUseDemo] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
@@ -585,9 +604,26 @@ const GradesPage = () => {
   }, [data?.lastSync]);
 
   return (
-    <div className="flex-1 flex flex-col w-full space-y-space-lg text-on-surface antialiased">
+    <div className="flex-1 flex flex-col w-full space-y-space-lg text-on-surface antialiased max-w-full overflow-x-hidden">
       
       {/* 1. TOP NAVIGATION & ACTION STRIP */}
+
+      {/* Baner informacyjny trybu autonomicznego */}
+      {!isLibrusEnabled && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-surface-container-high/60 border border-primary/30 text-xs font-mono text-on-surface">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+            <span>[TRYB AUTONOMICZNY: LIBRUS API WYŁĄCZONE] — Dziennik ocen działa lokalnie. Oceny demonstracyjne i własne wpisy są aktywne.</span>
+          </div>
+          <button 
+            type="button" 
+            onClick={() => window.dispatchEvent(new CustomEvent('openSetupWizard'))}
+            className="px-2.5 py-1 rounded bg-primary/20 text-primary hover:bg-primary/30 font-bold transition-colors shrink-0 self-start sm:self-auto"
+          >
+            Włącz API
+          </button>
+        </div>
+      )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
         <div className="flex flex-col gap-space-xs">
           <div className="flex items-center gap-space-xs font-code-mono text-label-sm text-outline">
@@ -601,9 +637,11 @@ const GradesPage = () => {
             <h1 className="font-headline-xl text-headline-xl text-on-surface tracking-tight">
               Dziennik Ocen i Średnia Ważona
             </h1>
-            <div className="flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-surface-container-high text-primary font-code-mono text-label-sm shadow-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              <span>Librus Synergia v3.2 [ONLINE]</span>
+            <div className="flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-surface-container-high font-code-mono text-label-sm shadow-sm">
+              <span className={`w-1.5 h-1.5 rounded-full ${isLibrusEnabled ? 'bg-secondary animate-pulse' : 'bg-primary'}`} />
+              <span className={isLibrusEnabled ? 'text-secondary font-bold' : 'text-primary font-bold'}>
+                {isLibrusEnabled ? 'Librus Synergia v3.2 [ONLINE]' : 'Rejestr Ocen [TRYB AUTONOMICZNY]'}
+              </span>
             </div>
           </div>
         </div>

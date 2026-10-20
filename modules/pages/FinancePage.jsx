@@ -461,7 +461,7 @@ const FinancePage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-space-md">
           
           {/* Koperta 1: Needs (50%) */}
-          <div className="rounded-xl bg-surface-container-low p-space-lg flex flex-col justify-between space-y-space-lg shadow-sm border border-outline-variant/20">
+          <div className="rounded-xl bg-surface-container-low p-space-lg flex flex-col justify-between space-y-space-lg shadow-sm border border-outline-variant/20 overflow-hidden">
             <div>
               <div className="flex items-start justify-between">
                 <div>
@@ -535,7 +535,7 @@ const FinancePage = () => {
           </div>
 
           {/* Koperta 2: Wants (30%) */}
-          <div className="rounded-xl bg-surface-container-low p-space-lg flex flex-col justify-between space-y-space-lg shadow-sm border border-outline-variant/20">
+          <div className="rounded-xl bg-surface-container-low p-space-lg flex flex-col justify-between space-y-space-lg shadow-sm border border-outline-variant/20 overflow-hidden">
             <div>
               <div className="flex items-start justify-between">
                 <div>
@@ -609,7 +609,7 @@ const FinancePage = () => {
           </div>
 
           {/* Koperta 3: Savings (20%) */}
-          <div className="rounded-xl bg-surface-container-low p-space-lg flex flex-col justify-between space-y-space-lg shadow-sm border border-outline-variant/20">
+          <div className="rounded-xl bg-surface-container-low p-space-lg flex flex-col justify-between space-y-space-lg shadow-sm border border-outline-variant/20 overflow-hidden">
             <div>
               <div className="flex items-start justify-between">
                 <div>
@@ -730,7 +730,7 @@ const FinancePage = () => {
           </div>
 
           {/* Ledger Table */}
-          <div className="overflow-x-auto">
+          <div className="w-full max-w-full overflow-x-auto custom-scrollbar">
             <table className="w-full text-left font-body-md text-body-md">
               <thead>
                 <tr className="font-label-sm text-label-sm uppercase text-outline tracking-wider bg-surface-container-lowest/60">

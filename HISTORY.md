@@ -1,5 +1,21 @@
 ## Wersja Bieżąca
-**v3.1.3**
+**v3.2.0**
+
+## v 3.2.0 — 2026-10-20
+**Typ:** MINOR  
+**Zakres:** Autentyczny Panel Wprowadzający (Setup Wizard), Pełny Tryb Autonomiczny dla Planu Dnia i Ocen, Płynna Nawigacja Smooth Morph & Scroll to Top, Redukcja Rozmiarów Mobilnych i Likwidacja Bocznego Przewijania:
+- [+] Dodano: `modules/components/SetupWizard.jsx` – wielokrokowy kreator onboardingowy z konfiguracją tożsamości operatora, wyborem 7 motywów wizualnych, przełącznikiem trybów pracy (Autonomiczny Offline vs Librus Synergia API), selektorem silnika LLM (Groq LPU, Gemini 1.5, Custom Key), mostkiem Pushbullet oraz selekcją widgetów kokpitu.
+- [+] Dodano: `core.client.jsx` – implementacja `PageMorphContainer` z automatycznym przewijaniem na samą górę (`window.scrollTo({ top: 0, behavior: 'smooth' })`) przy zmianie tras oraz obsługa zdarzenia `openSetupWizard` do uruchamiania kreatora w locie.
+- [+] Dodano: `assets/styles/index.css` – animacja `@keyframes pageMorph` zapewniająca subtelną translację, skalowanie $0.992 \to 1.0$ i redukcję rozmycia przy przejściach między podstronami.
+- [*] Zmodyfikowano: `modules/pages/ChatPage.jsx` – optymalizacja pod urządzenia mobilne: zmniejszenie typografii nagłówka i dymków, przesunięcie dialogu na szczyt siatki (`order-1 lg:order-2`), kondensacja paska wejściowego i pływającego HUD mowy na telefonach.
+- [*] Zmodyfikowano: `modules/pages/TimetablePage.jsx` & `modules/pages/GradesPage.jsx` – obsługa trybu autonomicznego (`system_librus_enabled: false`): brak błędów scrapera przy braku konta Librus, lokalna synchronizacja bazy danych i dedykowane banery informacyjne `[TRYB AUTONOMICZNY]`.
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` – integracja dedykowanego kafelka uruchamiania Kreatora Onboardingu (`[>] URUCHOM KREATOR ONBOARDINGU`) oraz przełącznik trybu Librus API w zakładce Jądro.
+- [-] Usunięto: Eliminacja niepożądanego przewijania bocznego (horizontal slider) na ekranach mobilnych w modułach: `FinancePage.jsx` (`overflow-hidden` kart i `overflow-x-auto` tabeli), `CalendarPage.jsx` (`overflow-x-auto min-w-[320px]`), `EntitiesPage.jsx` & `EntityTreeView.jsx` (ograniczenie wcięć i zawijanie zakładek), `MemoryPage.jsx` (`flex-wrap` sum kontrolnych i bazy danych).
+- [+] Dodano: Raport wydania `docs/versions/v3.2.0.md`.
+- [*] Zmodyfikowano: `package.json` – inkrementacja wersji do `3.2.0`.
+- [*] Weryfikacja: 264/264 PASS w 22 zestawach testowych Vitest (100%), kompilacja produkcyjna Vite w 16.32s bez błędów.
+
+---
 
 ## v 3.1.3 — 2026-10-20
 **Typ:** PATCH  

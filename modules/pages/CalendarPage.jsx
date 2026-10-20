@@ -366,7 +366,7 @@ const CalendarPage = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col w-full space-y-space-md text-on-surface antialiased">
+    <div className="flex-1 flex flex-col w-full space-y-space-md text-on-surface antialiased max-w-full overflow-x-hidden">
       
       {/* 1. SUB-HEADER & CONTEXT BAR */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md bg-surface-container-low p-space-md rounded-xl shadow-sm border border-outline-variant/20">
@@ -446,7 +446,7 @@ const CalendarPage = () => {
         <div className="xl:col-span-8 flex flex-col space-y-space-md">
           
           {/* Month Navigation Bar */}
-          <div className="flex items-center justify-between bg-surface-container-low px-space-lg py-space-sm rounded-xl border border-outline-variant/20 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between bg-surface-container-low px-3 sm:px-space-lg py-space-sm rounded-xl border border-outline-variant/20 shadow-sm gap-2">
             <div className="flex items-center gap-space-md">
               <div className="flex items-center gap-space-xs">
                 <span className="font-headline-md text-headline-md font-semibold text-on-surface">
@@ -486,7 +486,8 @@ const CalendarPage = () => {
           </div>
 
           {/* Month Calendar Grid (Dark Precision Architecture) */}
-          <div className="bg-surface-container-lowest p-px rounded-xl overflow-hidden shadow-sm border border-outline-variant/20">
+          <div className="w-full max-w-full overflow-x-auto custom-scrollbar">
+            <div className="min-w-[320px] bg-surface-container-lowest p-px rounded-xl overflow-hidden shadow-sm border border-outline-variant/20">
             {/* Weekday Headers */}
             <div className="grid grid-cols-7 gap-px bg-surface-container-high text-center">
               {['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Niedz'].map((day, idx) => (
@@ -506,7 +507,7 @@ const CalendarPage = () => {
                   <div
                     key={idx}
                     onClick={() => setSelectedDate(new Date(cell.dateStr))}
-                    className={`min-h-[105px] p-1.5 flex flex-col justify-between transition-colors cursor-pointer ${
+                    className={`min-h-[70px] sm:min-h-[105px] p-1 sm:p-1.5 flex flex-col justify-between transition-colors cursor-pointer ${
                       cell.isCurrentMonth
                         ? 'bg-surface-container-lowest hover:bg-surface-container'
                         : 'bg-surface-container-lowest/60 opacity-40'
@@ -556,6 +557,7 @@ const CalendarPage = () => {
                 );
               })}
             </div>
+          </div>
           </div>
 
           {/* Quick Inline Add Engine: Direct to SQLite WAL & Firestore */}

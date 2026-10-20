@@ -621,7 +621,7 @@ const ChatPage = () => {
   }, [toolsList]);
 
   return (
-    <div className="flex flex-col w-full h-full gap-space-md custom-scrollbar pb-24 md:pb-6 font-body-md text-on-surface">
+    <div className="flex flex-col w-full h-full gap-space-md custom-scrollbar pb-24 md:pb-6 font-body-md text-on-surface max-w-full overflow-x-hidden">
       
       {/* Dynamic Atmospheric Glow Accent */}
       <div className="relative w-full overflow-hidden rounded-xl bg-surface-container-lowest p-space-md shadow-sm border border-outline-variant/30">
@@ -632,7 +632,7 @@ const ChatPage = () => {
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
           <div className="flex flex-col gap-space-xs">
             <div className="flex items-center gap-space-sm flex-wrap">
-              <span className="font-headline-lg text-headline-lg text-on-surface font-semibold tracking-tight">
+              <span className="text-base sm:text-headline-lg text-on-surface font-semibold tracking-tight">
                 Omni Chat AI • Groq LPU Engine
               </span>
               <span className="px-space-sm py-0.5 rounded-full bg-surface-container-high text-primary font-code-mono text-code-mono text-xs flex items-center gap-1.5 border border-outline-variant/40">
@@ -640,7 +640,7 @@ const ChatPage = () => {
                 GPT-OSS-120B
               </span>
             </div>
-            <p className="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+            <p className="text-xs sm:text-body-md text-on-surface-variant max-w-2xl">
               Autonomiczne wywoływanie narzędzi (Tool Calling) • Ciągła konwersacja głosowa Live Voice • Wykrywanie słowa „Hej Omni”
             </p>
           </div>
@@ -707,7 +707,7 @@ const ChatPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-md items-start">
         
         {/* Left Column: Context, Audio HUD, Tool Inspector, Threads (4/3 cols) */}
-        <div className="lg:col-span-4 xl:col-span-3 flex flex-col gap-space-md">
+        <div className="order-2 lg:order-1 lg:col-span-4 xl:col-span-3 flex flex-col gap-space-md">
           
           {/* Live Voice HUD Card */}
           <div className={`p-space-md rounded-xl bg-surface-container-low shadow-sm flex flex-col gap-space-sm border transition-all ${
@@ -868,12 +868,12 @@ const ChatPage = () => {
         </div>
 
         {/* Center / Right Feed Area (8/9 Cols) */}
-        <div className="lg:col-span-8 xl:col-span-9 flex flex-col gap-space-md min-w-0">
+        <div className="order-1 lg:order-2 lg:col-span-8 xl:col-span-9 flex flex-col gap-space-md min-w-0">
           
           {/* Dialogue Container */}
           <div 
             ref={dialogueBoxRef}
-            className="flex flex-col gap-space-lg p-space-lg rounded-xl bg-surface-container-low min-h-[580px] max-h-[70vh] overflow-y-auto custom-scrollbar shadow-sm border border-outline-variant/30 relative"
+            className="flex flex-col gap-3 sm:gap-space-lg p-2.5 sm:p-space-lg rounded-xl bg-surface-container-low min-h-[360px] sm:min-h-[580px] max-h-[65vh] sm:max-h-[70vh] overflow-y-auto custom-scrollbar shadow-sm border border-outline-variant/30 relative"
           >
             {/* System Marker */}
             <div className="flex items-center justify-center gap-space-sm text-outline font-code-mono text-code-mono text-xs">
@@ -890,13 +890,13 @@ const ChatPage = () => {
             )}
 
             {/* Default Mockup Message 1: Operator Query */}
-            <div className="flex items-start justify-end gap-space-md pl-8">
+            <div className="flex items-start justify-end gap-2 sm:gap-space-md pl-1 sm:pl-8">
               <div className="flex flex-col items-end gap-space-xs max-w-2xl">
                 <div className="flex items-center gap-space-xs">
                   <span className="font-label-sm text-label-sm text-outline">12:14:02</span>
                   <span className="font-label-md text-label-md text-on-surface font-semibold">Operator K.</span>
                 </div>
-                <div className="p-space-md rounded-2xl rounded-tr-xs bg-surface-container-high text-on-surface font-body-md text-body-md shadow-sm border border-outline-variant/20">
+                <div className="p-2.5 sm:p-space-md rounded-2xl rounded-tr-xs bg-surface-container-high text-on-surface text-xs sm:text-body-md shadow-sm border border-outline-variant/20 max-w-[90%] sm:max-w-2xl">
                   Omni, przygotuj mi plan na dzisiejszy trening na strychu i sprawdź czy w Librusie nie ma odwołanych lekcji lub okienek.
                 </div>
                 <div className="flex items-center gap-space-xs text-outline font-code-mono text-[11px]">
@@ -910,7 +910,7 @@ const ChatPage = () => {
             </div>
 
             {/* Default Mockup Message 2: Omni AI Response with Tool Execution Card */}
-            <div className="flex items-start gap-space-md pr-8">
+            <div className="flex items-start gap-2 sm:gap-space-md pr-1 sm:pr-8">
               <div className="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-semibold shrink-0 shadow-[0_0_12px_rgba(77,142,255,0.3)]">
                 <span className="material-symbols-outlined text-[18px]">smart_toy</span>
               </div>
@@ -960,7 +960,7 @@ const ChatPage = () => {
                 </div>
 
                 {/* Natural Language Answer Body */}
-                <div className="p-space-md rounded-2xl rounded-tl-xs bg-surface-container text-on-surface font-body-md text-body-md shadow-sm w-full space-y-space-sm leading-relaxed border border-outline-variant/30">
+                <div className="p-2.5 sm:p-space-md rounded-2xl rounded-tl-xs bg-surface-container text-on-surface text-xs sm:text-body-md shadow-sm w-full space-y-space-sm leading-relaxed border border-outline-variant/30">
                   <p>
                     Sprawdziłem Twój dzisiejszy harmonogram. O <strong>12:45 masz okienko</strong> (odwołana lekcja fizyki), co daje idealny bufor czasowy na krótką regenerację przed blokiem popołudniowym.
                   </p>
@@ -1032,7 +1032,7 @@ const ChatPage = () => {
               const isUser = msg.role === 'user';
               if (isUser) {
                 return (
-                  <div key={msg.id || idx} className="flex items-start justify-end gap-space-md pl-8 animate-fade-in">
+                  <div key={msg.id || idx} className="flex items-start justify-end gap-2 sm:gap-space-md pl-1 sm:pl-8 animate-fade-in">
                     <div className="flex flex-col items-end gap-space-xs max-w-2xl">
                       <div className="flex items-center gap-space-xs">
                         <span className="font-label-sm text-label-sm text-outline">
@@ -1040,7 +1040,7 @@ const ChatPage = () => {
                         </span>
                         <span className="font-label-md text-label-md text-on-surface font-semibold">Operator K.</span>
                       </div>
-                      <div className="p-space-md rounded-2xl rounded-tr-xs bg-surface-container-high text-on-surface font-body-md text-body-md shadow-sm border border-outline-variant/30">
+                      <div className="p-2.5 sm:p-space-md rounded-2xl rounded-tr-xs bg-surface-container-high text-on-surface text-xs sm:text-body-md shadow-sm border border-outline-variant/30 max-w-[90%] sm:max-w-2xl">
                         {msg.content}
                       </div>
                       <div className="flex items-center gap-space-xs text-outline font-code-mono text-[11px]">
@@ -1055,7 +1055,7 @@ const ChatPage = () => {
                 );
               } else {
                 return (
-                  <div key={msg.id || idx} className="flex items-start gap-space-md pr-8 animate-fade-in">
+                  <div key={msg.id || idx} className="flex items-start gap-2 sm:gap-space-md pr-1 sm:pr-8 animate-fade-in">
                     <div className="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-semibold shrink-0 shadow-[0_0_12px_rgba(77,142,255,0.3)]">
                       <span className="material-symbols-outlined text-[18px]">smart_toy</span>
                     </div>
@@ -1067,7 +1067,7 @@ const ChatPage = () => {
                           {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }) : 'Teraz'}
                         </span>
                       </div>
-                      <div className="p-space-md rounded-2xl rounded-tl-xs bg-surface-container text-on-surface font-body-md text-body-md shadow-sm w-full leading-relaxed border border-outline-variant/30">
+                      <div className="p-2.5 sm:p-space-md rounded-2xl rounded-tl-xs bg-surface-container text-on-surface text-xs sm:text-body-md shadow-sm w-full leading-relaxed border border-outline-variant/30">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </div>
                     </div>
@@ -1111,12 +1111,12 @@ const ChatPage = () => {
           </div>
 
           {/* Bottom Interactive Glass Input Console (Sticky bottom-4) */}
-          <div className="p-space-md rounded-2xl bg-surface-container-low/95 backdrop-blur-xl shadow-lg flex flex-col gap-space-sm sticky bottom-4 border border-outline-variant/40">
+          <div className="p-2 sm:p-space-md rounded-2xl bg-surface-container-low/95 backdrop-blur-xl shadow-lg flex flex-col gap-2 sm:gap-space-sm sticky bottom-2 sm:bottom-4 border border-outline-variant/40">
             
             {/* Input Textarea Bar */}
             <form onSubmit={onSendMessage} className="relative flex items-center">
               <input 
-                className="w-full bg-surface-container-lowest text-on-surface placeholder:text-outline text-body-md font-body-md rounded-xl pl-space-md pr-32 py-space-md focus:outline-none focus:ring-1 focus:ring-primary shadow-inner border border-outline-variant/30" 
+                className="w-full bg-surface-container-lowest text-on-surface placeholder:text-outline text-xs sm:text-body-md rounded-xl pl-3 sm:pl-space-md pr-24 sm:pr-32 py-2.5 sm:py-space-md focus:outline-none focus:ring-1 focus:ring-primary shadow-inner border border-outline-variant/30" 
                 id="user-chat-input" 
                 placeholder={
                   isLiveMode

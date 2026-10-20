@@ -350,7 +350,7 @@ export const EntityTreeView = () => {
       {/* Top Header & Actions Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
         {/* Navigation Tabs - macOS Sonoma Segmented Control */}
-        <div className="flex items-center p-1 rounded-xl bg-surface-container-lowest border border-white/[0.08]">
+        <div className="flex items-center p-1 rounded-xl bg-surface-container-lowest border border-white/[0.08] overflow-x-auto max-w-full custom-scrollbar">
           <button
             onClick={() => setActiveTab('tree')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-code-mono text-xs transition-all ${
@@ -360,7 +360,7 @@ export const EntityTreeView = () => {
             }`}
           >
             <FolderTree className="w-3.5 h-3.5" />
-            <span>{"[>] DRZEWO HIERARCHII"}</span>
+            <span className="whitespace-nowrap">{"[>] DRZEWO HIERARCHII"}</span>
           </button>
           <button
             onClick={() => setActiveTab('ascii')}
@@ -371,7 +371,7 @@ export const EntityTreeView = () => {
             }`}
           >
             <Terminal className="w-3.5 h-3.5" />
-            <span>{"[>] TERMINAL ASCII"}</span>
+            <span className="whitespace-nowrap">{"[>] TERMINAL ASCII"}</span>
           </button>
           <button
             onClick={() => setActiveTab('json')}
@@ -382,7 +382,7 @@ export const EntityTreeView = () => {
             }`}
           >
             <Code className="w-3.5 h-3.5" />
-            <span>{"[>] STRUKTURA JSON"}</span>
+            <span className="whitespace-nowrap">{"[>] STRUKTURA JSON"}</span>
           </button>
         </div>
 
@@ -533,7 +533,7 @@ export const EntityTreeView = () => {
                 <span>{copied ? '[OK] SKOPIOWANO' : '[>] KOPIUJ'}</span>
               </button>
             </div>
-            <pre className="flex-1 overflow-y-auto custom-scrollbar font-code-mono text-xs text-primary bg-surface-container-lowest p-4 rounded-xl mt-3 border border-white/[0.08] whitespace-pre">
+            <pre className="flex-1 overflow-auto custom-scrollbar font-code-mono text-xs text-primary bg-surface-container-lowest p-4 rounded-xl mt-3 border border-white/[0.08] whitespace-pre max-w-full">
               {asciiData || '[*] Brak danych podglądu ASCII.'}
             </pre>
           </div>
@@ -711,10 +711,10 @@ const TreeNodeItem = ({
   return (
     <div className="select-none font-mono text-xs">
       <div
-        className="group flex items-center justify-between p-1.5 rounded-lg hover:bg-white/5 transition-colors border border-transparent hover:border-border/40"
-        style={{ paddingLeft: `${depth * 1.5 + 0.5}rem` }}
+        className="group flex items-center justify-between p-1.5 rounded-lg hover:bg-white/5 transition-colors border border-transparent hover:border-border/40 max-w-full min-w-0 overflow-hidden"
+        style={{ paddingLeft: `${Math.min(depth * 0.75 + 0.25, 3)}rem` }}
       >
-        <div className="flex items-center gap-2 overflow-hidden mr-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-hidden mr-2 min-w-0 flex-1">
           {hasChildren ? (
             <button
               onClick={() => setExpanded(!expanded)}
