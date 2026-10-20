@@ -138,9 +138,9 @@ const App = () => {
       ['theme-light', 'theme-retro', 'theme-monochrome', 'theme-matrix', 'theme-synthwave', 'theme-nordic'].forEach(cls => {
         root.classList.remove(cls);
       });
-      if (themeName && themeName !== 'dark') {
-        root.classList.add(`theme-${themeName}`);
-      }
+      root.setAttribute('data-theme', themeName || 'dark');
+      root.classList.add(`theme-${themeName || 'dark'}`);
+      if (themeName === 'light') { root.classList.remove('dark'); root.classList.add('light'); } else { root.classList.remove('light'); root.classList.add('dark'); }
     };
 
     const savedTheme = localStorage.getItem('system_theme') || 'dark';

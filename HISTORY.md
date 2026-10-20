@@ -1,5 +1,18 @@
 ## Wersja Bieżąca
-**v3.1.1**
+**v3.1.2**
+
+## v 3.1.2 — 2026-10-20
+**Typ:** MINOR  
+**Zakres:** Nowy Przepływ Treningowy FBW (Katalog Planów -> Live Sesja), Dynamiczny Silnik 7 Motywów CSS, Likwidacja Nakładania Widgetów HUD oraz Kompleksowa Rozbudowa Ustawień Systemowych:
+- [+] Dodano: `modules/pages/WorkoutsPage.jsx` – rozdzielenie strony treningowej na tryb katalogu planów (`catalog`) i aktywny kokpit treningowy (`active`). Sesja nie odpala się automatycznie – operator wybiera gotowy plan (`FBW Strych A/B`, `Kalistenika`, `Regeneracja`) lub tworzy nowy w dedykowanym kreatorze.
+- [+] Dodano: `tailwind.config.js` & `assets/styles/index.css` – dynamiczne zmienne CSS `var(--color-...)` dla 7 wariantów motywów (`dark`, `retro`, `monochrome`, `matrix`, `synthwave`, `nordic`, `light`), zapewniające natychmiastową i globalną zmianę barw całego interfejsu.
+- [*] Zmodyfikowano: `modules/components/CommandPalette.jsx` – przesunięcie pływającego przycisku terminala do `right-36`, likwidując nakładanie na pigułkę głosową `VoiceInspectorHUD.jsx` (`right-4`).
+- [+] Dodano: `modules/pages/SettingsPage.jsx` – głęboka rekonstrukcja ustawień w oparciu o 7 zakładek: Jądro & Motywy, Głos & TTS (Edge TTS, ElevenLabs, Fish Audio, Web Speech API, OpenAI, Google z testem audio live), Sztuczna Inteligencja (Groq Llama 3.3 70B, DeepSeek R1, Claude 3.5, Gemini 1.5, suwak kontekstu, sandbox narzędzi), Geolokalizacja (GPS high-accuracy, stacje Open-Meteo), Powiadomienia (Pushbullet bridge, test push, kanały zdarzeń), Ergonomia UI (zegar 24h, sekundy, suwak blur 0-24px, Apple Spring animacje, tryb kompaktowy, ticker RSS), Baza Danych & Skarbiec (inicjalizacja 11 kolekcji Firestore, SQLite WAL, polityki Anti-SSRF/Sandbox/Zero-Emoji, skarbiec API, factory reset).
+- [+] Dodano: Raport wydania `docs/versions/v3.1.2.md`.
+- [*] Zmodyfikowano: `package.json` – inkrementacja wersji do `3.1.2`.
+- [*] Weryfikacja: 264/264 PASS w 22 zestawach testowych Vitest (100%), kompilacja produkcyjna Vite w 9.69s bez błędów.
+
+---
 
 ## v 3.1.1 — 2026-10-20
 **Typ:** PATCH  

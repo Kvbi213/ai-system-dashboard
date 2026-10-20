@@ -159,7 +159,7 @@ const CommandPalette = () => {
         {/* Floating Quick Action trigger in bottom right */}
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-4 right-4 z-40 hidden sm:flex items-center gap-2 px-3 py-1.5 bg-surface-container-low/90 hover:bg-surface-container backdrop-blur-md border border-white/[0.08] hover:border-primary/50 text-outline hover:text-primary rounded-full text-xs font-code-mono transition-all shadow-lg group active:scale-95"
+          className="fixed bottom-4 right-36 z-40 hidden sm:flex items-center gap-2 px-3 py-1.5 bg-surface-container-low/90 hover:bg-surface-container backdrop-blur-md border border-white/[0.08] hover:border-primary/50 text-outline hover:text-primary rounded-full text-xs font-code-mono transition-all shadow-lg group active:scale-95"
           title="Otwórz Omni Command Palette (Ctrl+K)"
         >
           <span className="material-symbols-outlined text-[15px] text-primary">terminal</span>
