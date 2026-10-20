@@ -41,6 +41,8 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 ├── /docs/ ← Dokumentacja techniczna, architektoniczna i raporty wydań
 │   ├── architecture/
 │   │   ├── AI_PERMISSIONS_AND_SECURITY.md ← Pełna specyfikacja uprawnień AI, Policy Engine i tarczy sandboxingu
+│   │   ├── MASTER_GUI_REDESIGN_DOCUMENT.md ← Nadrzędna specyfikacja redesignu GUI v3.0 i architektury Mobile-First
+│   │   ├── TOPOGRAFIA_SYSTEMU_TREE.md ← Kompletne drzewo sitemap 15 tras, subwidoków, modalów i API
 │   │   └── BUGS.md
 │   ├── versions/ ← Raporty wydań SemVer (v1.0.0 do v2.30.0)
 │   └── errors/ ← Baza rejestru ERROR_DIFF
