@@ -42,6 +42,7 @@ Cały projekt jest osadzony w katalogu na pulpicie użytkownika. Poniżej znajdu
 │   ├── architecture/
 │   │   ├── AI_PERMISSIONS_AND_SECURITY.md ← Pełna specyfikacja uprawnień AI, Policy Engine i tarczy sandboxingu
 │   │   ├── MASTER_GUI_REDESIGN_DOCUMENT.md ← Nadrzędna specyfikacja redesignu GUI v3.0 i architektury Mobile-First
+│   │   ├── ROADMAP_TODO.md ← Nadrzędny rejestr zadań, backlog P0-P2 i specyfikacja kont użytkowników
 │   │   ├── TOPOGRAFIA_SYSTEMU_TREE.md ← Kompletne drzewo sitemap 15 tras, subwidoków, modalów i API
 │   │   └── BUGS.md
 │   ├── versions/ ← Raporty wydań SemVer (v1.0.0 do v2.30.0)
@@ -355,4 +356,30 @@ Projekt chmurowy w Google Firebase został utworzony w architekturze ścisłej i
   - Dane są zapisywane automatycznie po każdym udanym pobraniu z Librusa (zarówno z poziomu backendu, jak i frontendu za pośrednictwem `setDoc`) z zachowaniem rygoru READ-ONLY (żadne dane w samym systemie Librus Synergia nie są modyfikowane).
 
 ---
-*Dokument zrealizowany zgodnie ze zleceniem. Podpisano: Agent AI.*
+
+## 10. REJESTR ZADAŃ, ROADMAP & SYSTEM KONT UŻYTKOWNIKÓW (TODO MATRIX)
+
+Pełna specyfikacja strategiczna znajduje się w plikach: `docs/architecture/ROADMAP_TODO.md` oraz `docs/architecture/MASTER_GUI_REDESIGN_DOCUMENT.md`.
+
+### [!] Filar 1: Kompleksowy Redesign GUI & Architektura Mobile-First (v3.0 - P0)
+1. **Eliminacja anomalii mobilnych**: Likwidacja konfliktu podwójnego paddingu (`pb-20` vs `pb-24`), usunięcie zagnieżdżonego scroll-jackingu uniemożliwiającego przewijanie na iOS/Android, przejście na elastyczny viewport `fixed inset-0` ze strefami `env(safe-area-inset-*)`.
+2. **Unifikacja komponentów**: Wdrożenie bazy `<PageHeader>`, `<MetricCard>`, `<SegmentedControl>`, `<AdaptiveModal>` w `modules/components/ui/`.
+3. **Re-architektura modułu Treningów (`WorkoutsPage.jsx`)**: Interaktywny rejestrator schematu FBW na strych (drążek nachwyt, dipy/pompki, wiosłowanie, OHP, goblet squat, unoszenie kolan) ze stepperami serii (2 serie × 8-12 powt.), rejestracją ciężarów/gum i stoperem przerw (90s / 120s).
+
+### [!] Filar 2: Wielometodowy System Kont Użytkowników & Ekosystem Firebase / GCP (v3.1 - P0)
+1. **Baza Użytkowników w Cloud Firestore**:
+   - Kolekcja `users/{uid}`: profil (nazwa, email, tel, photoURL, rola RBAC: `admin`, `operator`, `guest`, preferencje).
+   - Izolacja kolekcji operacyjnych: model multi-tenant (`userId: uid`) ze ścisłymi regułami `firestore.rules`.
+2. **Matryca Autoryzacji Firebase Authentication**:
+   - **Google Sign-In (`GoogleAuthProvider`)**: Bezproblemowe logowanie 1-kliknięciem przez Google Cloud Identity.
+   - **E-mail & Hasło / Magic Link (`EmailAuthProvider`, `sendSignInLinkToEmail`)**: Tradycyjna rejestracja i bezhasłowy dostęp pocztowy.
+   - **Numer Telefonu & SMS OTP (`PhoneAuthProvider` + `RecaptchaVerifier`)**: Weryfikacja kodem SMS na smartfon.
+   - **Płynna Migracja Kont Anonimowych (`linkWithCredential`)**: Zachowanie danych gościa po podpięciu tożsamości.
+3. **Pełne Wykorzystanie Firebase Extensions & Google Cloud Platform**:
+   - `firebase/firestore-send-email`: Automatyczne wysyłanie raportów budżetowych i powiadomień.
+   - `firebase/storage-resize-images`: Skalowanie avatarów użytkowników do zoptymalizowanych formatów WebP w Cloud Storage.
+   - `firebase/delete-user-data`: Zgodne z RODO automatyczne czyszczenie danych użytkownika po usunięciu konta.
+   - Google Cloud Identity Platform & Cloud IAM: Rygorystyczne role administracyjne i weryfikacja JWT w backendzie.
+
+---
+*Dokument zsynchronizowany z Protokołem Antigravity (NANO v3.2).*
