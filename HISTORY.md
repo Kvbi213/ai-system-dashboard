@@ -1,5 +1,17 @@
 ## Wersja Bieżąca
-**v3.0.0**
+**v3.0.1**
+
+## v 3.0.1 — 2026-10-20
+**Typ:** PATCH  
+**Zakres:** Eliminacja defektu wykonawczego ReferenceError w `SettingsPage.jsx` (`resetToDefaults is not defined`), implementacja procedur zapisu konfiguracji i resetu do domyślnych, rozgłoszenie zdarzeń synchronizacyjnych `CustomEvent`, pigułka wizualnej indykacji sukcesu zapisu, 100% zgodność testów (264/264 PASS):
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` – implementacja funkcji `saveSettings` (zapis stanów do `localStorage`, emisja `visibleNavChanged`, `newsCategoriesChanged`, `activeWidgetsChanged`, `defaultModelChanged`, `sysMonitorPrefsChanged`, `themeChanged`) oraz `resetToDefaults` (przywrócenie wartości fabrycznych, reset klas DOM i atrybutu `data-theme`, synchronizacja storage i zdarzeń).
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` – dodanie pigułki statusu zapisu konfiguracji w nagłówku akcji globalnych.
+- [+] Dodano: Karta błędu `docs/errors/ERROR_DIFF_20261020_settings_reference_error.md` z post-mortem (STATUS: RESOLVED).
+- [+] Dodano: Raport wydania `docs/versions/v3.0.1.md`.
+- [*] Zmodyfikowano: `package.json` – podniesienie wersji do `3.0.1`.
+- [*] Weryfikacja: 264/264 PASS w 22 zestawach testowych Vitest, czysta kompilacja produkcyjna Vite (`npm run build`).
+
+---
 
 ## v 3.0.0 — 2026-10-20
 **Typ:** MAJOR  

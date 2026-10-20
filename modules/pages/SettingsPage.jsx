@@ -1074,6 +1074,119 @@ const SettingsPage = () => {
     reader.readAsText(file);
   };
 
+  const saveSettings = () => {
+    localStorage.setItem('system_theme', theme);
+    localStorage.setItem('system_accent', localStorage.getItem('system_accent') || '0 255 102');
+    localStorage.setItem('system_accent_hex', accent);
+    localStorage.setItem('system_language', systemLang);
+    localStorage.setItem('system_notifications', JSON.stringify(notifications));
+    localStorage.setItem('system_ghost_mode', JSON.stringify(ghostMode));
+    localStorage.setItem('system_news_categories', JSON.stringify(selectedNewsCategories));
+    localStorage.setItem('system_sysmonitor', JSON.stringify(sysMonitorPrefs));
+    localStorage.setItem('system_active_widgets', JSON.stringify(activeWidgets));
+    localStorage.setItem('system_voice_pref', voicePref);
+    localStorage.setItem('system_voice_rate', String(voiceRate));
+    localStorage.setItem('system_user_name', userName);
+    localStorage.setItem('system_visible_nav', JSON.stringify(visibleNav));
+    localStorage.setItem('system_default_model', defaultModel);
+    localStorage.setItem('system_glassmorphism', String(glassmorphism));
+    localStorage.setItem('system_animations', String(animations));
+    localStorage.setItem('system_compact_ui', String(compactUi));
+    localStorage.setItem('system_clock_24h', String(clock24h));
+    localStorage.setItem('system_clock_seconds', String(clockSeconds));
+    localStorage.setItem('system_tts_engine', ttsEngine);
+
+    window.dispatchEvent(new CustomEvent('visibleNavChanged', { detail: visibleNav }));
+    window.dispatchEvent(new CustomEvent('newsCategoriesChanged', { detail: selectedNewsCategories }));
+    window.dispatchEvent(new CustomEvent('activeWidgetsChanged', { detail: activeWidgets }));
+    window.dispatchEvent(new CustomEvent('defaultModelChanged', { detail: defaultModel }));
+    window.dispatchEvent(new CustomEvent('sysMonitorPrefsChanged', { detail: sysMonitorPrefs }));
+    window.dispatchEvent(new CustomEvent('themeChanged', { detail: theme }));
+
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  const resetToDefaults = () => {
+    setTheme('dark');
+    changeAccent('0 255 102', '#00FF66');
+    setNotifications(true);
+    setGhostMode(false);
+    setGlassmorphism(true);
+    setAnimations(true);
+    setCompactUi(false);
+    setClock24h(true);
+    setClockSeconds(false);
+    setDefaultModel('openai/gpt-oss-120b');
+    setVisibleNav(DEFAULT_VISIBLE_NAV);
+    setSelectedNewsCategories(['ai', 'security']);
+    setSysMonitorPrefs({ cpu: true, ram: true, uptime: true });
+    setActiveWidgets({
+      systemMonitor: true,
+      networkMonitor: true,
+      cryptoTracker: true,
+      quickNotes: true,
+      tokenTracker: true,
+      modelStatus: true,
+      promptVault: true,
+      agentQueue: true
+    });
+    setVoicePref('paulina');
+    setVoiceRate(1.8);
+    setUserName('Użytkownik');
+
+    document.documentElement.classList.remove('no-glass', 'no-animations', 'compact-mode');
+    document.documentElement.setAttribute('data-theme', 'dark');
+
+    localStorage.setItem('system_theme', 'dark');
+    localStorage.setItem('system_accent', '0 255 102');
+    localStorage.setItem('system_accent_hex', '#00FF66');
+    localStorage.setItem('system_language', 'pl');
+    localStorage.setItem('system_notifications', 'true');
+    localStorage.setItem('system_ghost_mode', 'false');
+    localStorage.setItem('system_glassmorphism', 'true');
+    localStorage.setItem('system_animations', 'true');
+    localStorage.setItem('system_compact_ui', 'false');
+    localStorage.setItem('system_clock_24h', 'true');
+    localStorage.setItem('system_clock_seconds', 'false');
+    localStorage.setItem('system_default_model', 'openai/gpt-oss-120b');
+    localStorage.setItem('system_visible_nav', JSON.stringify(DEFAULT_VISIBLE_NAV));
+    localStorage.setItem('system_news_categories', JSON.stringify(['ai', 'security']));
+    localStorage.setItem('system_sysmonitor', JSON.stringify({ cpu: true, ram: true, uptime: true }));
+    localStorage.setItem('system_active_widgets', JSON.stringify({
+      systemMonitor: true,
+      networkMonitor: true,
+      cryptoTracker: true,
+      quickNotes: true,
+      tokenTracker: true,
+      modelStatus: true,
+      promptVault: true,
+      agentQueue: true
+    }));
+    localStorage.setItem('system_voice_pref', 'paulina');
+    localStorage.setItem('system_voice_rate', '1.8');
+    localStorage.setItem('system_user_name', 'Użytkownik');
+
+    window.dispatchEvent(new CustomEvent('visibleNavChanged', { detail: DEFAULT_VISIBLE_NAV }));
+    window.dispatchEvent(new CustomEvent('newsCategoriesChanged', { detail: ['ai', 'security'] }));
+    window.dispatchEvent(new CustomEvent('activeWidgetsChanged', { detail: {
+      systemMonitor: true,
+      networkMonitor: true,
+      cryptoTracker: true,
+      quickNotes: true,
+      tokenTracker: true,
+      modelStatus: true,
+      promptVault: true,
+      agentQueue: true
+    } }));
+    window.dispatchEvent(new CustomEvent('defaultModelChanged', { detail: 'openai/gpt-oss-120b' }));
+    window.dispatchEvent(new CustomEvent('sysMonitorPrefsChanged', { detail: { cpu: true, ram: true, uptime: true } }));
+    window.dispatchEvent(new CustomEvent('themeChanged', { detail: 'dark' }));
+
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
   const SectionHeader = ({ icon: Icon, title, className = '' }) => (
     <h2 className={`font-mono text-base text-textPrimary mb-5 flex items-center gap-2.5 ${className}`}>
       <span className="p-1.5 rounded-lg bg-accentPrimary/10 border border-accentPrimary/20">
@@ -1120,6 +1233,12 @@ const SettingsPage = () => {
 
         {/* Global Actions */}
         <div className="flex items-center gap-space-sm shrink-0">
+          {saved && (
+            <span className="text-xs font-label-md text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-md flex items-center gap-1.5 animate-pulse">
+              <Check className="w-3.5 h-3.5" />
+              <span>Konfiguracja zapisana</span>
+            </span>
+          )}
           <button 
             type="button"
             onClick={resetToDefaults}
