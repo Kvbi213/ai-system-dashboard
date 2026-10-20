@@ -7,6 +7,7 @@ import i18n from './modules/i18n';
 import './assets/styles/index.css';
 
 import Sidebar from './modules/components/Sidebar';
+import AppHeader from './modules/components/AppHeader';
 import Dashboard from './modules/pages/Dashboard';
 import ChatPage from './modules/pages/ChatPage';
 import LockScreen from './modules/pages/LockScreen';
@@ -108,6 +109,7 @@ const App = () => {
   const [isVerifying, setIsVerifying] = useState(true);
   const [missingKeys, setMissingKeys] = useState([]);
   const [setupCompleted, setSetupCompleted] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Monkey-patch window.fetch aby zawierał nagłówek Authorization
   useEffect(() => {
@@ -294,17 +296,28 @@ const App = () => {
       <ChatProvider>
         <BrowserRouter>
           <GlobalEventListener />
-          <div className="h-[100dvh] w-full bg-background overflow-hidden flex flex-col md:flex-row font-sans text-textPrimary relative">
+          <div className="min-h-screen w-full bg-background flex flex-col font-sans text-on-surface relative">
             
             <OnboardingTour />
             <CommandPalette />
             <ToastContainer />
             
             {/* Nawigacja (Desktop Sidebar + Mobilny Header i Bottom Bar) */}
-            <Sidebar />
+            <AppHeader
+              onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              isMobileMenuOpen={isMobileMenuOpen}
+              onLockScreen={() => {
+                sessionStorage.removeItem('dashboard_token');
+                setIsAuthenticated(false);
+              }}
+            />
+            <Sidebar
+              isMobileOpen={isMobileMenuOpen}
+              onCloseMobile={() => setIsMobileMenuOpen(false)}
+            />
 
             {/* Główny obszar zawartości (Router) */}
-            <div className="flex-1 h-full p-2.5 sm:p-4 md:p-8 overflow-hidden min-w-0 flex flex-col pb-20 md:pb-0">
+            <main className="md:pl-64 pt-16 flex-1 w-full px-3 sm:px-space-md md:px-space-lg py-space-md bg-background min-h-screen flex flex-col pb-safe">
               <React.Suspense fallback={<PageFallback />}>
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
@@ -326,7 +339,7 @@ const App = () => {
                   <Route path="/browser" element={<BrowserPage />} />
                 </Routes>
               </React.Suspense>
-            </div>
+            </main>
 
           </div>
         </BrowserRouter>

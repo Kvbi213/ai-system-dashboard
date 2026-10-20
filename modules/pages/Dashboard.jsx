@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import WeatherWidget from '../components/WeatherWidget';
 import TodoList from '../components/TodoList';
@@ -31,66 +30,75 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className="flex flex-col h-full gap-3 sm:gap-4 overflow-hidden">
+    <div className="flex flex-col w-full h-full gap-space-md animate-soft-enter">
+      {/* Top Ambient Glow Field */}
+      <div className="relative w-full overflow-hidden pointer-events-none">
+        <div className="absolute -top-32 left-1/4 w-[560px] h-48 bg-primary-container/10 rounded-full blur-[110px]"></div>
+        <div className="absolute -top-24 right-1/4 w-[480px] h-40 bg-secondary-container/15 rounded-full blur-[90px]"></div>
+      </div>
+
       {/* Header Bar */}
-      <header
-        className="glass-panel flex-shrink-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 p-3.5 sm:p-5 opacity-0 animate-soft-enter"
-        style={{ animationDelay: '50ms' }}
-      >
-        <div className="flex flex-col">
-          <nav aria-label="breadcrumb" className="hidden sm:flex items-center space-x-2 text-sm text-textMuted mb-1">
-            <span className="flex items-center text-base font-medium text-textMuted/70">OmniDash</span>
-            <span className="shrink-0 text-lg font-medium text-textMuted/70">/</span>
-            <span className="flex items-center text-base font-medium text-textPrimary">Pulpit</span>
+      <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-space-md p-space-md bg-surface-container-low rounded-xl border border-white/[0.04] shadow-sm">
+        <div className="flex flex-col gap-space-xs">
+          <nav aria-label="breadcrumb" className="flex items-center space-x-2 font-code-mono text-label-sm text-outline">
+            <span className="hover:text-primary transition-colors cursor-pointer">OmniDash</span>
+            <span className="text-outline-variant">/</span>
+            <span>Core Systems</span>
+            <span className="text-outline-variant">/</span>
+            <span className="text-primary font-medium">Pulpit Główny</span>
           </nav>
-          <p className="hidden md:block text-xs sm:text-sm font-medium text-textMuted mb-2">Przeglądaj wszystkie moduły i aktywności systemu.</p>
           
-          <div className="flex items-baseline gap-3 sm:gap-4">
-            <span className="font-sans text-2xl sm:text-3xl text-textPrimary font-bold tracking-tight tabular-nums">
+          <div className="flex items-baseline gap-space-md flex-wrap">
+            <span className="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight tabular-nums">
               {time.toLocaleTimeString(currentLocale, { hour12: false })}
             </span>
-            <span className="font-sans text-xs sm:text-sm text-textMuted">
+            <span className="font-body-md text-body-md text-on-surface-variant capitalize">
               {time.toLocaleDateString(currentLocale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </span>
+            <span className="px-space-xs py-0.5 rounded-full bg-surface-container-high text-primary font-code-mono text-[11px] font-semibold flex items-center gap-1 border border-white/[0.04]">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+              Kognitywny Root HUD
             </span>
           </div>
         </div>
-        <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-t-0 border-border/40">
-          <div className="flex items-center gap-2 font-sans text-xs sm:text-sm text-accentPrimary font-medium">
-            <span className="w-2.5 h-2.5 rounded-full bg-accentPrimary animate-pulse inline-block" />
-            Wszystko działa prawidłowo
+
+        <div className="flex items-center justify-between lg:justify-end gap-space-md w-full lg:w-auto pt-space-xs lg:pt-0 border-t lg:border-t-0 border-white/[0.04]">
+          <div className="flex items-center gap-space-xs px-space-md py-space-xs rounded-full bg-surface-container text-primary font-code-mono text-label-sm border border-white/[0.04]">
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <span>Nominalny Stan Systemu</span>
           </div>
           <WeatherWidget />
         </div>
       </header>
 
-      {/* Main Grid */}
-      <main className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 overflow-y-auto p-1">
-        {/* Todo */}
-        <div id="tour-todo" className="lg:col-span-1 lg:row-span-2 min-h-[400px] opacity-0 animate-soft-enter" style={{ animationDelay: '100ms' }}>
+      {/* Main Grid Workstation */}
+      <main className="grid grid-cols-1 lg:grid-cols-3 gap-space-md flex-1 overflow-y-auto pb-20 md:pb-6">
+        {/* Todo Column */}
+        <div id="tour-todo" className="lg:col-span-1 lg:row-span-2 min-h-[420px] bg-surface-container-low rounded-xl border border-white/[0.04] p-space-sm shadow-sm">
           <TodoList />
         </div>
 
-        {/* IT News */}
-        <div className="lg:col-span-2 min-h-[300px] opacity-0 animate-soft-enter" style={{ animationDelay: '150ms' }}>
+        {/* IT News Banner */}
+        <div className="lg:col-span-2 min-h-[300px] bg-surface-container-low rounded-xl border border-white/[0.04] p-space-sm shadow-sm">
           <ITNewsTicker selectedCategories={newsCategories} />
         </div>
 
         {/* Routines & NewsFeed */}
-        <div className="lg:col-span-1 min-h-[250px] opacity-0 animate-soft-enter" style={{ animationDelay: '200ms' }}>
+        <div className="lg:col-span-1 min-h-[260px] bg-surface-container-low rounded-xl border border-white/[0.04] p-space-sm shadow-sm">
           <RoutinesWidget />
         </div>
-        <div className="lg:col-span-1 min-h-[250px] opacity-0 animate-soft-enter" style={{ animationDelay: '250ms' }}>
+        <div className="lg:col-span-1 min-h-[260px] bg-surface-container-low rounded-xl border border-white/[0.04] p-space-sm shadow-sm">
           <NewsFeed />
         </div>
       </main>
 
-      {/* Floating Widgets Button */}
+      {/* Floating Widgets Trigger Button */}
       <button 
         onClick={() => navigate('/widgets')}
-        className="hidden md:flex fixed bottom-8 right-8 w-14 h-14 bg-surface backdrop-blur-md border border-border rounded-full items-center justify-center text-textPrimary hover:scale-110 hover:border-accentPrimary hover:text-accentPrimary transition-all z-50 shadow-xl"
-        title="Otwórz bibliotekę widżetów"
+        className="hidden md:flex fixed bottom-6 right-6 w-12 h-12 bg-primary text-on-primary rounded-xl items-center justify-center hover:scale-105 active:scale-95 transition-all z-40 shadow-[0_0_24px_rgba(173,198,255,0.3)]"
+        title="Otwórz widżety i telemetrię"
       >
-        <Plus className="w-6 h-6 transition-transform" />
+        <span className="material-symbols-outlined text-[22px]">add</span>
       </button>
     </div>
   );

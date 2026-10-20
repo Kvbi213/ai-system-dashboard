@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./core.client.jsx",
@@ -8,7 +9,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: 'var(--color-bg, #121316)',
+        background: '#121316',
         surface: '#121316',
         'surface-dim': '#121316',
         'surface-bright': '#38393c',
@@ -41,25 +42,72 @@ export default {
         'on-error': '#690005',
         'error-container': '#93000a',
         'on-error-container': '#ffdad6',
-        border: 'var(--color-border)',
-        accentPrimary: 'rgb(var(--color-accent-primary) / <alpha-value>)',
-        accentSecondary: 'var(--color-accent-secondary)',
-        textPrimary: 'var(--color-text-primary)',
-        textMuted: 'var(--color-text-muted)',
+        'primary-fixed': '#d8e2ff',
+        'primary-fixed-dim': '#adc6ff',
+        'on-primary-fixed': '#001a42',
+        'on-primary-fixed-variant': '#004395',
+        'secondary-fixed': '#e1e0ff',
+        'secondary-fixed-dim': '#c0c1ff',
+        'on-secondary-fixed': '#07006c',
+        'on-secondary-fixed-variant': '#2f2ebe',
+        'tertiary-fixed': '#ffdcc6',
+        'tertiary-fixed-dim': '#ffb786',
+        'on-tertiary-fixed': '#311400',
+        'on-tertiary-fixed-variant': '#723600',
+        'on-background': '#e3e2e6',
+        'surface-variant': '#343538',
+
+        // Legacy compatibility aliases for test assertions & custom themes
+        border: 'var(--color-border, rgba(255, 255, 255, 0.08))',
+        accentPrimary: 'rgb(var(--color-accent-primary, 0 255 102) / <alpha-value>)',
+        accentSecondary: 'var(--color-accent-secondary, #00E5FF)',
+        textPrimary: 'var(--color-text-primary, #e3e2e6)',
+        textMuted: 'var(--color-text-muted, #8c909f)',
+      },
+      spacing: {
+        'space-xs': '0.25rem',
+        'space-sm': '0.5rem',
+        'space-md': '0.875rem',
+        'space-lg': '1.5rem',
+        'space-xl': '2.5rem',
+        gutter: '1.25rem',
+        'gutter-desktop': '1.5rem',
+        margin: '1rem',
+        'margin-tablet': '1.5rem',
+        'margin-desktop': '2rem',
       },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
         'code-mono': ['"JetBrains Mono"', 'monospace'],
+        'display-lg': ['Inter', 'sans-serif'],
+        'headline-xl': ['Inter', 'sans-serif'],
+        'headline-xl-mobile': ['Inter', 'sans-serif'],
+        'headline-lg': ['Inter', 'sans-serif'],
+        'headline-md': ['Inter', 'sans-serif'],
+        'body-lg': ['Inter', 'sans-serif'],
+        'body-md': ['Inter', 'sans-serif'],
+        'label-md': ['Inter', 'sans-serif'],
+        'label-sm': ['Inter', 'sans-serif'],
+      },
+      fontSize: {
+        'code-mono': ['0.8125rem', { lineHeight: '1.25rem', letterSpacing: '0em', fontWeight: '400' }],
+        'headline-lg': ['1.5rem', { lineHeight: '2rem', letterSpacing: '-0.02em', fontWeight: '600' }],
+        'body-md': ['0.875rem', { lineHeight: '1.375rem', letterSpacing: '-0.005em', fontWeight: '400' }],
+        'label-sm': ['0.6875rem', { lineHeight: '0.875rem', letterSpacing: '0.04em', fontWeight: '600' }],
+        'headline-xl': ['2.25rem', { lineHeight: '2.75rem', letterSpacing: '-0.03em', fontWeight: '600' }],
+        'headline-md': ['1.25rem', { lineHeight: '1.75rem', letterSpacing: '-0.015em', fontWeight: '500' }],
+        'display-lg': ['3.5rem', { lineHeight: '4rem', letterSpacing: '-0.035em', fontWeight: '600' }],
+        'body-lg': ['1rem', { lineHeight: '1.625rem', letterSpacing: '-0.01em', fontWeight: '400' }],
+        'label-md': ['0.8125rem', { lineHeight: '1.125rem', letterSpacing: '0.01em', fontWeight: '500' }],
+        'headline-xl-mobile': ['1.75rem', { lineHeight: '2.25rem', letterSpacing: '-0.025em', fontWeight: '600' }],
       },
       animation: {
         blink: 'blink 1s infinite',
         shimmer: 'shimmer 2s infinite linear',
-        'fade-in-up': 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-        'neon-pulse': 'neonPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'gradient-shift': 'gradientShift 15s ease infinite',
+        'fade-in-up': 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'dropdown-in': 'dropdownIn 0.2s ease-out forwards',
+        'dropdown-in': 'dropdownIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards',
       },
       keyframes: {
         blink: {
@@ -71,19 +119,11 @@ export default {
           '100%': { backgroundPosition: '1000px 0' },
         },
         fadeInUp: {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '0%': { opacity: '0', transform: 'translateY(12px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
-        neonPulse: {
-          '0%, 100%': { textShadow: '0 0 10px rgba(var(--color-accent-primary), 0.5), 0 0 20px rgba(var(--color-accent-primary), 0.3)' },
-          '50%': { textShadow: '0 0 15px rgba(var(--color-accent-primary), 0.8), 0 0 30px rgba(var(--color-accent-primary), 0.5)' },
-        },
-        gradientShift: {
-          '0%, 100%': { backgroundPosition: '0% 50%' },
-          '50%': { backgroundPosition: '100% 50%' },
-        },
         dropdownIn: {
-          '0%': { opacity: '0', transform: 'translateY(10px) scale(0.95)' },
+          '0%': { opacity: '0', transform: 'translateY(8px) scale(0.98)' },
           '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
         }
       }
