@@ -11,6 +11,9 @@ const GlobalEventListener = () => {
 
     const handleWakeWord = (e) => {
       const payload = e.detail?.payload || '';
+      try {
+        sessionStorage.setItem('pending_voice_payload', payload || '__EMPTY__');
+      } catch {}
       navigate('/chat');
       // Krótki timeout gwarantujący zamontowanie komponentu ChatPage / Terminal
       setTimeout(() => {
@@ -21,6 +24,9 @@ const GlobalEventListener = () => {
     };
 
     const handleOpenVoice = () => {
+      try {
+        sessionStorage.setItem('pending_voice_payload', '__EMPTY__');
+      } catch {}
       navigate('/chat');
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('startContinuousLiveVoice', {

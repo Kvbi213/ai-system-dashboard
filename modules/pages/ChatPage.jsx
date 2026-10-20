@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import { useChatContext } from '../context/ChatContext';
-import { wakeWordService } from '../services/wakeWordService';
+import { wakeWordService, isAcousticEcho, cleanTextForSpeech } from '../services/wakeWordService';
 import { ttsService } from '../services/ttsService';
 
 const AVAILABLE_MODELS = [
@@ -25,14 +25,51 @@ const DEFAULT_THREADS = [
   { id: 'th3', title: 'OSINT rekonesans IP ASN4812', date: '12 Paź', time: '22:05', active: false },
 ];
 
+const EXIT_PHRASES = [
+  'stop', 'koniec', 'dziękuję', 'dziekuje', 'dzięki', 'dzieki',
+  'zamknij', 'to wszystko', 'anuluj', 'wyłącz', 'do widzenia', 'nara'
+];
+
+// Odtwarzanie natychmiastowego czystego dźwięku potwierdzenia wybudzenia (Web Audio API)
+const playChime = () => {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const now = ctx.currentTime;
+    
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(880, now);
+    gain1.gain.setValueAtTime(0.12, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.12);
+
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(1320, now + 0.08);
+    gain2.gain.setValueAtTime(0.14, now + 0.08);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.08);
+    osc2.stop(now + 0.25);
+  } catch (e) {
+    // Cichy fallback w przypadku braku uprawnień audio
+  }
+};
+
 const ChatPage = () => {
   const { t } = useTranslation();
-  const { workerMessages, setWorkerMessages, handleSend } = useChatContext();
+  const { workerMessages, setWorkerMessages, sendCommand, isProcessing } = useChatContext();
 
   const [inputMessage, setInputMessage] = useState('');
   const [modelIdx, setModelIdx] = useState(0);
-  const [showModelMenu, setShowModelMenu] = useState(false);
-  const [isMicListening, setIsMicListening] = useState(false);
   const [toolsList, setToolsList] = useState(DEFAULT_TOOLS);
   const [threads, setThreads] = useState(DEFAULT_THREADS);
   const [activeThreadId, setActiveThreadId] = useState('th1');
@@ -40,14 +77,34 @@ const ChatPage = () => {
   const [showClearToast, setShowClearToast] = useState(false);
   const [copyToast, setCopyToast] = useState(false);
 
+  // Live Continuous Voice Conversation States
+  const [isLiveMode, setIsLiveMode] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isProcessingSpeech, setIsProcessingSpeech] = useState(false);
+  const [liveTranscript, setLiveTranscript] = useState('');
+
+  // Refs do sterowania bezkolizyjną pętlą mowy
+  const isLiveModeRef = useRef(false);
+  const isSpeakingRef = useRef(false);
+  const isListeningRef = useRef(false);
+  const isProcessingSpeechRef = useRef(false);
+  const isAcousticCooldownRef = useRef(false);
+  const lastAiResponseTextRef = useRef('');
+  const aiSpeechEndTimeRef = useRef(0);
+  const liveTranscriptRef = useRef('');
+  const lastSpeechSentRef = useRef('');
+  const liveRecognitionRef = useRef(null);
+  const restartTimeoutRef = useRef(null);
+  const vadTimeoutRef = useRef(null);
   const dialogueBoxRef = useRef(null);
 
-  // Auto-scroll to bottom on messages change
+  // Auto-scroll do dołu przy nowych wiadomościach
   useEffect(() => {
     if (dialogueBoxRef.current) {
       dialogueBoxRef.current.scrollTop = dialogueBoxRef.current.scrollHeight;
     }
-  }, [workerMessages]);
+  }, [workerMessages, liveTranscript]);
 
   const toggleTool = (id) => {
     setToolsList(prev => prev.map(tool => 
@@ -66,16 +123,19 @@ const ChatPage = () => {
   };
 
   const handleExportLog = () => {
-    const exportContent = workerMessages.map(m => `[${m.role.toUpperCase()}] ${m.content}`).join('\n\n');
+    const exportContent = workerMessages.map(m => `[${(m.role || 'SYS').toUpperCase()}] ${m.content}`).join('\n\n');
     const blob = new Blob([exportContent || 'OmniDash Chat Log'], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `Omni-Log-${new Date().toISOString().slice(0, 10)}.md`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
+  // Wysłanie wiadomości tekstowej przez input
   const onSendMessage = async (e) => {
     if (e) e.preventDefault();
     const text = inputMessage.trim();
@@ -88,10 +148,460 @@ const ChatPage = () => {
       cost: `$${(parseFloat(prev.cost.replace('$', '')) + 0.0001).toFixed(4)}`
     }));
 
-    if (handleSend) {
-      await handleSend(text);
+    if (sendCommand) {
+      await sendCommand(text);
     }
   };
+
+  // -------------------------------------------------------------
+  // CONTINUOUS LIVE VOICE ENGINE (PĘTLA MOWY I TRANSKRYPCJI LIVE)
+  // -------------------------------------------------------------
+
+  const stopLiveMode = (sayGoodbye = false) => {
+    if (vadTimeoutRef.current) {
+      clearTimeout(vadTimeoutRef.current);
+      vadTimeoutRef.current = null;
+    }
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
+    }
+    if (liveRecognitionRef.current) {
+      try {
+        liveRecognitionRef.current.onstart = null;
+        liveRecognitionRef.current.onresult = null;
+        liveRecognitionRef.current.onerror = null;
+        liveRecognitionRef.current.onend = null;
+        liveRecognitionRef.current.abort();
+      } catch {}
+      liveRecognitionRef.current = null;
+    }
+    ttsService.stop();
+    wakeWordService.setAiSpeaking(false);
+    wakeWordService.setLiveModeActive(false);
+
+    isLiveModeRef.current = false;
+    isSpeakingRef.current = false;
+    isListeningRef.current = false;
+    isProcessingSpeechRef.current = false;
+    isAcousticCooldownRef.current = false;
+    lastAiResponseTextRef.current = '';
+    aiSpeechEndTimeRef.current = 0;
+
+    setIsLiveMode(false);
+    setIsSpeaking(false);
+    setIsListening(false);
+    setIsProcessingSpeech(false);
+    setLiveTranscript('');
+    liveTranscriptRef.current = '';
+
+    if (sayGoodbye) {
+      ttsService.speak('Do usłyszenia!', {
+        onEnd: () => wakeWordService.start(),
+        onError: () => wakeWordService.start()
+      });
+    } else {
+      wakeWordService.start();
+    }
+  };
+
+  const startLiveListeningLoop = () => {
+    // Blokada: nie uruchamiaj mikrofonu jeśli AI mówi, przetwarza zapytanie lub trwa wygaszanie echa
+    if (
+      !isLiveModeRef.current ||
+      isSpeakingRef.current ||
+      isProcessingSpeechRef.current ||
+      isAcousticCooldownRef.current ||
+      ttsService.isSpeaking()
+    ) {
+      return;
+    }
+    if (typeof window === 'undefined' || !('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+      console.warn('[Chat LiveVoice] SpeechRecognition nie jest wspierane w tej przeglądarce.');
+      return;
+    }
+
+    if (liveRecognitionRef.current) {
+      try {
+        liveRecognitionRef.current.onstart = null;
+        liveRecognitionRef.current.onresult = null;
+        liveRecognitionRef.current.onerror = null;
+        liveRecognitionRef.current.onend = null;
+        liveRecognitionRef.current.abort();
+      } catch {}
+      liveRecognitionRef.current = null;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'pl-PL';
+    recognition.continuous = false; // Pojedyncza tura z automatycznym restartem gwarantuje 100% stabilność w Chrome/Edge
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 5;
+
+    recognition.onstart = () => {
+      if (
+        !isLiveModeRef.current ||
+        isSpeakingRef.current ||
+        isProcessingSpeechRef.current ||
+        isAcousticCooldownRef.current ||
+        ttsService.isSpeaking()
+      ) {
+        try { recognition.abort(); } catch {}
+        isListeningRef.current = false;
+        setIsListening(false);
+        return;
+      }
+      isListeningRef.current = true;
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event) => {
+      if (
+        !isLiveModeRef.current ||
+        isSpeakingRef.current ||
+        isProcessingSpeechRef.current ||
+        isAcousticCooldownRef.current ||
+        ttsService.isSpeaking()
+      ) {
+        try { recognition.abort(); } catch {}
+        isListeningRef.current = false;
+        setIsListening(false);
+        setLiveTranscript('');
+        liveTranscriptRef.current = '';
+        return;
+      }
+
+      let interim = '';
+      let final = '';
+      for (let i = 0; i < event.results.length; i++) {
+        const text = event.results[i][0]?.transcript || '';
+        if (event.results[i].isFinal) {
+          final += text;
+        } else {
+          interim += text;
+        }
+      }
+      const currentSpeech = (final || interim).trim();
+
+      // Filtr echa akustycznego (zapobieganie odpowiedzi na własne głośniki)
+      if (
+        lastAiResponseTextRef.current &&
+        (Date.now() - aiSpeechEndTimeRef.current < 5000) &&
+        isAcousticEcho(currentSpeech, lastAiResponseTextRef.current)
+      ) {
+        console.warn('[Chat LiveVoice Echo Guard] Odrzucono echo wypowiedzi AI:', currentSpeech);
+        setLiveTranscript('');
+        liveTranscriptRef.current = '';
+        return;
+      }
+
+      liveTranscriptRef.current = currentSpeech;
+      setLiveTranscript(currentSpeech);
+
+      // 1. Otrzymano ostateczny wynik mowy (isFinal = true)
+      if (final.trim()) {
+        if (vadTimeoutRef.current) {
+          clearTimeout(vadTimeoutRef.current);
+          vadTimeoutRef.current = null;
+        }
+        try { recognition.abort(); } catch {}
+        isListeningRef.current = false;
+        setIsListening(false);
+        lastSpeechSentRef.current = final.trim();
+        handleLiveUserSpeech(final.trim());
+        return;
+      }
+
+      // 2. VAD: Detekcja pauzy w mowie (650ms ciszy zatwierdza wypowiedź)
+      if (currentSpeech.length >= 2) {
+        if (vadTimeoutRef.current) clearTimeout(vadTimeoutRef.current);
+        vadTimeoutRef.current = setTimeout(() => {
+          const speechToSend = liveTranscriptRef.current ? liveTranscriptRef.current.trim() : '';
+          if (
+            speechToSend &&
+            speechToSend !== lastSpeechSentRef.current &&
+            isLiveModeRef.current &&
+            !isSpeakingRef.current &&
+            !isProcessingSpeechRef.current &&
+            !isAcousticCooldownRef.current &&
+            !ttsService.isSpeaking()
+          ) {
+            if (vadTimeoutRef.current) clearTimeout(vadTimeoutRef.current);
+            try { recognition.abort(); } catch {}
+            isListeningRef.current = false;
+            setIsListening(false);
+            lastSpeechSentRef.current = speechToSend;
+            handleLiveUserSpeech(speechToSend);
+          }
+        }, 650);
+      }
+    };
+
+    recognition.onerror = (e) => {
+      isListeningRef.current = false;
+      setIsListening(false);
+      if (
+        isLiveModeRef.current &&
+        e.error !== 'aborted' &&
+        !isSpeakingRef.current &&
+        !isProcessingSpeechRef.current &&
+        !isAcousticCooldownRef.current &&
+        !ttsService.isSpeaking()
+      ) {
+        if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+        restartTimeoutRef.current = setTimeout(() => {
+          if (
+            isLiveModeRef.current &&
+            !isSpeakingRef.current &&
+            !isProcessingSpeechRef.current &&
+            !isAcousticCooldownRef.current &&
+            !ttsService.isSpeaking()
+          ) {
+            startLiveListeningLoop();
+          }
+        }, 500);
+      }
+    };
+
+    recognition.onend = () => {
+      isListeningRef.current = false;
+      setIsListening(false);
+
+      if (
+        !isLiveModeRef.current ||
+        isSpeakingRef.current ||
+        isProcessingSpeechRef.current ||
+        isAcousticCooldownRef.current ||
+        ttsService.isSpeaking()
+      ) {
+        return;
+      }
+
+      // Jeśli w buforze została wypowiedź, która nie została wysłana
+      const pendingSpeech = liveTranscriptRef.current ? liveTranscriptRef.current.trim() : '';
+      if (
+        pendingSpeech &&
+        pendingSpeech !== lastSpeechSentRef.current &&
+        !isAcousticEcho(pendingSpeech, lastAiResponseTextRef.current)
+      ) {
+        lastSpeechSentRef.current = pendingSpeech;
+        liveTranscriptRef.current = '';
+        setLiveTranscript('');
+        handleLiveUserSpeech(pendingSpeech);
+        return;
+      }
+
+      // W przeciwnym razie kontynuuj pętlę nasłuchu
+      if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = setTimeout(() => {
+        if (
+          isLiveModeRef.current &&
+          !isSpeakingRef.current &&
+          !isProcessingSpeechRef.current &&
+          !isAcousticCooldownRef.current &&
+          !ttsService.isSpeaking()
+        ) {
+          startLiveListeningLoop();
+        }
+      }, 200);
+    };
+
+    liveRecognitionRef.current = recognition;
+    try {
+      recognition.start();
+    } catch (err) {
+      console.warn('[Chat LiveVoice] Błąd startu SpeechRecognition:', err.message);
+    }
+  };
+
+  const handleLiveUserSpeech = async (userText) => {
+    if (!userText || !userText.trim()) return;
+
+    // Natychmiastowe zatrzymanie mikrofonu i czyszczenie buforów
+    if (vadTimeoutRef.current) {
+      clearTimeout(vadTimeoutRef.current);
+      vadTimeoutRef.current = null;
+    }
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
+    }
+    if (liveRecognitionRef.current) {
+      try {
+        liveRecognitionRef.current.onstart = null;
+        liveRecognitionRef.current.onresult = null;
+        liveRecognitionRef.current.onerror = null;
+        liveRecognitionRef.current.onend = null;
+        liveRecognitionRef.current.abort();
+      } catch {}
+      liveRecognitionRef.current = null;
+    }
+    isListeningRef.current = false;
+    setIsListening(false);
+    setLiveTranscript('');
+    liveTranscriptRef.current = '';
+
+    // Sprawdzenie słów wyjścia z pętli mowy
+    const lower = userText.toLowerCase().trim();
+    const isExit = EXIT_PHRASES.some(phrase => lower === phrase || lower.startsWith(phrase + ' '));
+    if (isExit) {
+      stopLiveMode(true);
+      return;
+    }
+
+    // Stan przetwarzania zapytania AI
+    isProcessingSpeechRef.current = true;
+    setIsProcessingSpeech(true);
+    wakeWordService.setAiSpeaking(true);
+
+    try {
+      let responseObj = null;
+      if (sendCommand) {
+        responseObj = await sendCommand(userText);
+      }
+      const rawText = typeof responseObj === 'string' ? responseObj : (responseObj?.content || '');
+
+      lastAiResponseTextRef.current = rawText;
+      isProcessingSpeechRef.current = false;
+      setIsProcessingSpeech(false);
+
+      // Odtwarzanie odpowiedzi głosowej przez wybrany silnik TTS
+      isSpeakingRef.current = true;
+      setIsSpeaking(true);
+      wakeWordService.setAiSpeaking(true);
+
+      const speechClean = cleanTextForSpeech(rawText);
+
+      ttsService.speak(speechClean, {
+        onStart: () => {
+          isSpeakingRef.current = true;
+          setIsSpeaking(true);
+          wakeWordService.setAiSpeaking(true);
+        },
+        onEnd: () => {
+          aiSpeechEndTimeRef.current = Date.now();
+          isSpeakingRef.current = false;
+          setIsSpeaking(false);
+          isAcousticCooldownRef.current = true;
+          wakeWordService.setAiSpeaking(false);
+          setLiveTranscript('');
+          liveTranscriptRef.current = '';
+
+          // Ochrona przed echem: odczekanie 600ms po mowie z głośnika, po czym automatyczne wznowienie pętli!
+          if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+          restartTimeoutRef.current = setTimeout(() => {
+            isAcousticCooldownRef.current = false;
+            if (isLiveModeRef.current && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
+              startLiveListeningLoop(); // AUTOMATYCZNY START KOLEJNEJ TURY ROZMOWY!
+            }
+          }, 600);
+        },
+        onError: () => {
+          aiSpeechEndTimeRef.current = Date.now();
+          isSpeakingRef.current = false;
+          setIsSpeaking(false);
+          isAcousticCooldownRef.current = false;
+          wakeWordService.setAiSpeaking(false);
+          if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+          restartTimeoutRef.current = setTimeout(() => {
+            if (isLiveModeRef.current && !isSpeakingRef.current && !isProcessingSpeechRef.current) {
+              startLiveListeningLoop();
+            }
+          }, 400);
+        }
+      });
+    } catch (err) {
+      console.error('[Chat LiveVoice] Błąd zapytania mowy:', err);
+      isProcessingSpeechRef.current = false;
+      setIsProcessingSpeech(false);
+      isSpeakingRef.current = true;
+      setIsSpeaking(true);
+      ttsService.speak('Wystąpił problem podczas przetwarzania zapytania.', {
+        onEnd: () => {
+          aiSpeechEndTimeRef.current = Date.now();
+          isSpeakingRef.current = false;
+          setIsSpeaking(false);
+          wakeWordService.setAiSpeaking(false);
+          if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+          restartTimeoutRef.current = setTimeout(() => {
+            if (isLiveModeRef.current) startLiveListeningLoop();
+          }, 500);
+        },
+        onError: () => {
+          isSpeakingRef.current = false;
+          setIsSpeaking(false);
+          wakeWordService.setAiSpeaking(false);
+          if (isLiveModeRef.current) startLiveListeningLoop();
+        }
+      });
+    }
+  };
+
+  const enterLiveMode = (initialPayload = '') => {
+    wakeWordService.setLiveModeActive(true);
+    wakeWordService.stop();
+    setIsLiveMode(true);
+    isLiveModeRef.current = true;
+
+    if (initialPayload && initialPayload.trim()) {
+      handleLiveUserSpeech(initialPayload.trim());
+    } else {
+      playChime();
+      startLiveListeningLoop();
+    }
+  };
+
+  const toggleLiveVoiceMode = () => {
+    if (isLiveMode) {
+      stopLiveMode(false);
+    } else {
+      enterLiveMode('');
+    }
+  };
+
+  // Rejestracja nasłuchu zdarzeń z GlobalEventListener i skrótów klawiaturowych
+  useEffect(() => {
+    // 1. Sprawdź czy po przekierowaniu z innej strony czeka zapytanie w sessionStorage
+    try {
+      const pending = sessionStorage.getItem('pending_voice_payload');
+      if (pending !== null) {
+        sessionStorage.removeItem('pending_voice_payload');
+        const actualPayload = pending === '__EMPTY__' ? '' : pending;
+        enterLiveMode(actualPayload);
+      }
+    } catch {}
+
+    // 2. Obsłuż zdarzenie startContinuousLiveVoice rozsyłane globalnie
+    const handleStartContinuous = (e) => {
+      const payload = e.detail?.payload || '';
+      enterLiveMode(payload);
+    };
+
+    // 3. Obsłuż bezpośrednie wybudzenie jeśli użytkownik jest już na /chat
+    const handleDirectWakeWord = (e) => {
+      const payload = e.detail?.payload || '';
+      enterLiveMode(payload);
+    };
+
+    // 4. Klawisz Escape natychmiastowo zamyka tryb mowy
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isLiveModeRef.current) {
+        stopLiveMode(false);
+      }
+    };
+
+    window.addEventListener('startContinuousLiveVoice', handleStartContinuous);
+    window.addEventListener('wakeWordDetected', handleDirectWakeWord);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('startContinuousLiveVoice', handleStartContinuous);
+      window.removeEventListener('wakeWordDetected', handleDirectWakeWord);
+      window.removeEventListener('keydown', handleKeyDown);
+      stopLiveMode(false);
+    };
+  }, []);
 
   const handleQuickAction = (action) => {
     if (action === 'copy') {
@@ -111,10 +621,10 @@ const ChatPage = () => {
   }, [toolsList]);
 
   return (
-    <div className="flex flex-col w-full h-full gap-space-md custom-scrollbar pb-24 md:pb-6">
+    <div className="flex flex-col w-full h-full gap-space-md custom-scrollbar pb-24 md:pb-6 font-body-md text-on-surface">
       
       {/* Dynamic Atmospheric Glow Accent */}
-      <div className="relative w-full overflow-hidden rounded-xl bg-surface-container-lowest p-space-md shadow-sm border border-white/[0.04]">
+      <div className="relative w-full overflow-hidden rounded-xl bg-surface-container-lowest p-space-md shadow-sm border border-outline-variant/30">
         <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl pointer-events-none"></div>
         <div className="absolute -left-12 -bottom-12 h-48 w-48 rounded-full bg-secondary-container/20 blur-2xl pointer-events-none"></div>
         
@@ -125,13 +635,13 @@ const ChatPage = () => {
               <span className="font-headline-lg text-headline-lg text-on-surface font-semibold tracking-tight">
                 Omni Chat AI • Groq LPU Engine
               </span>
-              <span className="px-space-sm py-0.5 rounded-full bg-surface-container-high text-primary font-code-mono text-code-mono text-xs flex items-center gap-1.5 border border-white/[0.06]">
+              <span className="px-space-sm py-0.5 rounded-full bg-surface-container-high text-primary font-code-mono text-code-mono text-xs flex items-center gap-1.5 border border-outline-variant/40">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
                 GPT-OSS-120B
               </span>
             </div>
             <p className="font-body-md text-body-md text-on-surface-variant max-w-2xl">
-              Autonomiczne wywoływanie narzędzi (Tool Calling) • Ciągły nasłuch w tle „Hej Omni” • Przetwarzanie brzegowe w czasie rzeczywistym
+              Autonomiczne wywoływanie narzędzi (Tool Calling) • Ciągła konwersacja głosowa Live Voice • Wykrywanie słowa „Hej Omni”
             </p>
           </div>
 
@@ -139,7 +649,7 @@ const ChatPage = () => {
           <div className="flex items-center gap-space-xs flex-wrap">
             <button 
               onClick={handleClearContext}
-              className="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md transition-colors shadow-sm active:scale-95" 
+              className="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md transition-colors shadow-sm active:scale-95 border border-outline-variant/30" 
               type="button"
             >
               <span className="material-symbols-outlined text-[16px] text-outline">history_toggle_off</span>
@@ -149,7 +659,7 @@ const ChatPage = () => {
             <div className="relative inline-block text-left">
               <button 
                 onClick={handleNextModel}
-                className="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md transition-colors shadow-sm active:scale-95" 
+                className="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md transition-colors shadow-sm active:scale-95 border border-outline-variant/30" 
                 type="button"
               >
                 <span className="material-symbols-outlined text-[16px] text-primary">memory</span>
@@ -160,7 +670,7 @@ const ChatPage = () => {
 
             <button 
               onClick={handleExportLog}
-              className="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-primary text-on-primary hover:bg-primary-fixed-dim text-label-md font-label-md transition-colors shadow-sm font-semibold active:scale-95"
+              className="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-primary text-on-primary hover:opacity-90 text-label-md font-label-md transition-colors shadow-sm font-semibold active:scale-95"
               type="button"
             >
               <span className="material-symbols-outlined text-[16px]">file_upload</span>
@@ -170,22 +680,22 @@ const ChatPage = () => {
         </div>
 
         {/* Badges Row */}
-        <div className="relative z-10 mt-space-md pt-space-sm flex items-center gap-space-xs flex-wrap border-t border-white/[0.04]">
-          <div className="flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface font-code-mono text-code-mono text-xs">
+        <div className="relative z-10 mt-space-md pt-space-sm flex items-center gap-space-xs flex-wrap border-t border-outline-variant/20">
+          <div className="flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface font-code-mono text-code-mono text-xs border border-outline-variant/30">
             <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
             <span className="text-outline">Engine:</span>
             <span className="font-semibold text-primary">{AVAILABLE_MODELS[modelIdx]} (Active)</span>
           </div>
-          <div className="flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface font-code-mono text-code-mono text-xs">
+          <div className="flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface font-code-mono text-code-mono text-xs border border-outline-variant/30">
             <span className="material-symbols-outlined text-[13px] text-outline">speed</span>
             <span className="text-outline">Latency:</span>
             <span className="text-on-surface font-semibold">14ms</span>
           </div>
-          <div className="flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface font-code-mono text-code-mono text-xs">
+          <div className="flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface font-code-mono text-code-mono text-xs border border-outline-variant/30">
             <span className="material-symbols-outlined text-[13px] text-secondary">record_voice_over</span>
-            <span className="text-on-surface-variant">Fish Audio / Edge TTS Ready</span>
+            <span className="text-on-surface-variant">TTS Engine Active</span>
           </div>
-          <div className="flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface font-code-mono text-code-mono text-xs">
+          <div className="flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface font-code-mono text-code-mono text-xs border border-outline-variant/30">
             <span className="material-symbols-outlined text-[13px] text-tertiary">database</span>
             <span className="text-outline">Pamięć Sesji:</span>
             <span className="text-tertiary font-semibold">34 fakty</span>
@@ -200,47 +710,82 @@ const ChatPage = () => {
         <div className="lg:col-span-4 xl:col-span-3 flex flex-col gap-space-md">
           
           {/* Live Voice HUD Card */}
-          <div className="p-space-md rounded-xl bg-surface-container-low shadow-sm flex flex-col gap-space-sm border border-white/[0.04]">
+          <div className={`p-space-md rounded-xl bg-surface-container-low shadow-sm flex flex-col gap-space-sm border transition-all ${
+            isLiveMode ? 'border-primary ring-2 ring-primary/20 bg-surface-container' : 'border-outline-variant/30'
+          }`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-space-xs">
-                <span className="w-2 h-2 rounded-full bg-primary animate-ping"></span>
-                <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold">Voice Inspector HUD</span>
+                <span className={`w-2 h-2 rounded-full ${
+                  isListening ? 'bg-primary animate-ping' : isSpeaking ? 'bg-secondary animate-pulse' : 'bg-outline'
+                }`}></span>
+                <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold">
+                  Voice Inspector HUD
+                </span>
               </div>
               <span className="font-code-mono text-code-mono text-primary text-xs">96.4 kHz</span>
             </div>
 
             <div className="flex flex-col gap-space-xs py-space-xs">
-              {/* Animated Audio Waveform (15 dynamic bars) */}
-              <div className="flex items-end justify-between h-9 px-space-sm bg-surface-container-lowest rounded-lg overflow-hidden">
-                <span className="w-1 bg-primary/70 rounded-full animate-[pulse_0.7s_infinite_alternate]" style={{ height: '35%' }}></span>
-                <span className="w-1 bg-primary rounded-full animate-[pulse_0.4s_infinite_alternate]" style={{ height: '75%' }}></span>
-                <span className="w-1 bg-primary/80 rounded-full animate-[pulse_0.9s_infinite_alternate]" style={{ height: '50%' }}></span>
-                <span className="w-1 bg-primary rounded-full animate-[pulse_0.3s_infinite_alternate]" style={{ height: '90%' }}></span>
-                <span className="w-1 bg-primary/60 rounded-full animate-[pulse_0.6s_infinite_alternate]" style={{ height: '30%' }}></span>
-                <span className="w-1 bg-primary rounded-full animate-[pulse_0.45s_infinite_alternate]" style={{ height: '80%' }}></span>
-                <span className="w-1 bg-primary/80 rounded-full animate-[pulse_0.8s_infinite_alternate]" style={{ height: '60%' }}></span>
-                <span className="w-1 bg-primary rounded-full animate-[pulse_0.35s_infinite_alternate]" style={{ height: '95%' }}></span>
-                <span className="w-1 bg-primary/70 rounded-full animate-[pulse_0.55s_infinite_alternate]" style={{ height: '40%' }}></span>
-                <span className="w-1 bg-primary rounded-full animate-[pulse_0.65s_infinite_alternate]" style={{ height: '70%' }}></span>
-                <span className="w-1 bg-primary/50 rounded-full animate-[pulse_0.9s_infinite_alternate]" style={{ height: '25%' }}></span>
-                <span className="w-1 bg-primary rounded-full animate-[pulse_0.3s_infinite_alternate]" style={{ height: '85%' }}></span>
-                <span className="w-1 bg-primary/90 rounded-full animate-[pulse_0.75s_infinite_alternate]" style={{ height: '65%' }}></span>
-                <span className="w-1 bg-primary rounded-full animate-[pulse_0.5s_infinite_alternate]" style={{ height: '45%' }}></span>
-                <span className="w-1 bg-primary/40 rounded-full animate-[pulse_1.1s_infinite_alternate]" style={{ height: '20%' }}></span>
+              {/* Dynamic 15-Bar Waveform reacting to Voice States */}
+              <div className="flex items-end justify-between h-9 px-space-sm bg-surface-container-lowest rounded-lg overflow-hidden border border-outline-variant/20">
+                {[
+                  isListening ? '35%' : isSpeaking ? '55%' : '15%',
+                  isListening ? '85%' : isSpeaking ? '90%' : '20%',
+                  isListening ? '50%' : isSpeaking ? '40%' : '12%',
+                  isListening ? '95%' : isSpeaking ? '85%' : '25%',
+                  isListening ? '40%' : isSpeaking ? '60%' : '15%',
+                  isListening ? '90%' : isSpeaking ? '75%' : '30%',
+                  isListening ? '65%' : isSpeaking ? '95%' : '18%',
+                  isListening ? '100%' : isSpeaking ? '80%' : '35%',
+                  isListening ? '45%' : isSpeaking ? '50%' : '15%',
+                  isListening ? '80%' : isSpeaking ? '70%' : '22%',
+                  isListening ? '30%' : isSpeaking ? '40%' : '12%',
+                  isListening ? '90%' : isSpeaking ? '85%' : '28%',
+                  isListening ? '70%' : isSpeaking ? '60%' : '18%',
+                  isListening ? '55%' : isSpeaking ? '75%' : '15%',
+                  isListening ? '25%' : isSpeaking ? '30%' : '10%'
+                ].map((h, i) => (
+                  <span
+                    key={i}
+                    className={`w-1 rounded-full transition-all duration-150 ${
+                      isListening
+                        ? 'bg-primary'
+                        : isSpeaking
+                        ? 'bg-secondary'
+                        : 'bg-outline/30'
+                    }`}
+                    style={{ height: h }}
+                  />
+                ))}
               </div>
 
+              {/* Status opisu głosu */}
               <div className="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm pt-space-xs">
-                <span className="flex items-center gap-1.5 text-on-surface font-medium">
-                  <span className="material-symbols-outlined text-[15px] text-primary">mic</span>
-                  Nasłuch aktywny ("Hej Omni")
+                <span className="flex items-center gap-1.5 font-medium">
+                  <span className={`material-symbols-outlined text-[15px] ${
+                    isListening ? 'text-primary animate-pulse' : isSpeaking ? 'text-secondary animate-bounce' : 'text-outline'
+                  }`}>
+                    {isListening ? 'mic' : isSpeaking ? 'volume_up' : 'mic_none'}
+                  </span>
+                  <span className={isListening ? 'text-primary font-bold' : isSpeaking ? 'text-secondary font-bold' : 'text-on-surface'}>
+                    {isListening
+                      ? 'Omni słucha... Mów teraz!'
+                      : isProcessingSpeech
+                      ? 'Analizuję zapytanie...'
+                      : isSpeaking
+                      ? 'Omni odpowiada na głos...'
+                      : 'Nasłuch w tle ("Hej Omni")'}
+                  </span>
                 </span>
-                <span className="font-code-mono text-outline">WakeWord OK</span>
+                <span className="font-code-mono text-[10px] text-outline">
+                  {isLiveMode ? '[LIVE ACTIVE]' : 'WakeWord OK'}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Active Tools Inspector */}
-          <div className="p-space-md rounded-xl bg-surface-container-low shadow-sm flex flex-col gap-space-sm border border-white/[0.04]">
+          <div className="p-space-md rounded-xl bg-surface-container-low shadow-sm flex flex-col gap-space-sm border border-outline-variant/30">
             <div className="flex items-center justify-between">
               <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold">Tool Calling Registry</span>
               <span className="px-space-xs py-0.5 rounded bg-surface-container text-primary font-code-mono text-code-mono text-xs">
@@ -253,7 +798,7 @@ const ChatPage = () => {
                 <label 
                   key={tool.id}
                   onClick={() => toggleTool(tool.id)}
-                  className="flex items-center justify-between p-space-xs px-space-sm rounded-lg bg-surface-container-lowest hover:bg-surface-container cursor-pointer transition-colors"
+                  className="flex items-center justify-between p-space-xs px-space-sm rounded-lg bg-surface-container-lowest hover:bg-surface-container cursor-pointer transition-colors border border-outline-variant/20"
                 >
                   <div className="flex items-center gap-space-xs">
                     <input 
@@ -271,7 +816,7 @@ const ChatPage = () => {
           </div>
 
           {/* Recent Sessions / Threads */}
-          <div className="p-space-md rounded-xl bg-surface-container-low shadow-sm flex flex-col gap-space-sm border border-white/[0.04]">
+          <div className="p-space-md rounded-xl bg-surface-container-low shadow-sm flex flex-col gap-space-sm border border-outline-variant/30">
             <div className="flex items-center justify-between">
               <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold">Ostatnie Wątki</span>
               <button 
@@ -299,8 +844,8 @@ const ChatPage = () => {
                       setActiveThreadId(th.id);
                       setThreads(prev => prev.map(t => ({ ...t, active: t.id === th.id })));
                     }}
-                    className={`p-space-sm rounded-lg text-on-surface flex flex-col gap-0.5 cursor-pointer transition-colors ${
-                      isActive ? 'bg-surface-container-high' : 'bg-surface-container-lowest hover:bg-surface-container text-on-surface-variant'
+                    className={`p-space-sm rounded-lg text-on-surface flex flex-col gap-0.5 cursor-pointer transition-colors border ${
+                      isActive ? 'bg-surface-container-high border-primary/30' : 'bg-surface-container-lowest hover:bg-surface-container text-on-surface-variant border-transparent'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -315,7 +860,7 @@ const ChatPage = () => {
           </div>
 
           {/* Quick Session Telemetry Pin */}
-          <div className="p-space-sm rounded-lg bg-surface-container-lowest flex items-center justify-between text-outline font-code-mono text-code-mono text-xs border border-white/[0.04]">
+          <div className="p-space-sm rounded-lg bg-surface-container-lowest flex items-center justify-between text-outline font-code-mono text-code-mono text-xs border border-outline-variant/30">
             <span>Tokens IN: {tokensMeta.in.toLocaleString()}</span>
             <span>OUT: {tokensMeta.out.toLocaleString()}</span>
             <span className="text-primary font-semibold">{tokensMeta.cost}</span>
@@ -328,7 +873,7 @@ const ChatPage = () => {
           {/* Dialogue Container */}
           <div 
             ref={dialogueBoxRef}
-            className="flex flex-col gap-space-lg p-space-lg rounded-xl bg-surface-container-low min-h-[580px] max-h-[70vh] overflow-y-auto custom-scrollbar shadow-sm border border-white/[0.04]"
+            className="flex flex-col gap-space-lg p-space-lg rounded-xl bg-surface-container-low min-h-[580px] max-h-[70vh] overflow-y-auto custom-scrollbar shadow-sm border border-outline-variant/30 relative"
           >
             {/* System Marker */}
             <div className="flex items-center justify-center gap-space-sm text-outline font-code-mono text-code-mono text-xs">
@@ -339,7 +884,7 @@ const ChatPage = () => {
 
             {/* Clear toast notice */}
             {showClearToast && (
-              <div className="p-space-sm rounded-lg bg-surface-container-lowest text-outline text-center font-code-mono text-xs">
+              <div className="p-space-sm rounded-lg bg-surface-container-lowest text-outline text-center font-code-mono text-xs border border-outline-variant/20">
                 Kontekst rozmowy i pamięć krótkoterminowa zostały zresetowane.
               </div>
             )}
@@ -351,7 +896,7 @@ const ChatPage = () => {
                   <span className="font-label-sm text-label-sm text-outline">12:14:02</span>
                   <span className="font-label-md text-label-md text-on-surface font-semibold">Operator K.</span>
                 </div>
-                <div className="p-space-md rounded-2xl rounded-tr-xs bg-surface-container-high text-on-surface font-body-md text-body-md shadow-sm">
+                <div className="p-space-md rounded-2xl rounded-tr-xs bg-surface-container-high text-on-surface font-body-md text-body-md shadow-sm border border-outline-variant/20">
                   Omni, przygotuj mi plan na dzisiejszy trening na strychu i sprawdź czy w Librusie nie ma odwołanych lekcji lub okienek.
                 </div>
                 <div className="flex items-center gap-space-xs text-outline font-code-mono text-[11px]">
@@ -373,21 +918,21 @@ const ChatPage = () => {
               <div className="flex flex-col items-start gap-space-sm max-w-3xl w-full">
                 <div className="flex items-center gap-space-xs">
                   <span className="font-label-md text-label-md text-primary font-semibold">Omni AI Assistant</span>
-                  <span className="font-code-mono text-code-mono text-[11px] px-space-xs py-0.2 rounded bg-surface-container-highest text-on-surface-variant">LPU 120B</span>
+                  <span className="font-code-mono text-code-mono text-[11px] px-space-xs py-0.2 rounded bg-surface-container-highest text-on-surface-variant border border-outline-variant/30">LPU 120B</span>
                   <span className="font-label-sm text-label-sm text-outline ml-space-xs">12:14:04 • 1.8s</span>
                 </div>
 
                 {/* Tool Invocation Cards Stack */}
                 <div className="w-full flex flex-col gap-space-xs">
                   {/* Tool 1: Librus Sync */}
-                  <div className="p-space-sm rounded-lg bg-surface-container-lowest flex flex-col gap-1 shadow-sm border border-white/[0.04]">
+                  <div className="p-space-sm rounded-lg bg-surface-container-lowest flex flex-col gap-1 shadow-sm border border-outline-variant/30">
                     <div className="flex items-center justify-between flex-wrap gap-1">
                       <div className="flex items-center gap-space-xs">
                         <span className="material-symbols-outlined text-primary text-[15px]">terminal</span>
                         <span className="font-code-mono text-code-mono text-xs text-primary font-semibold">librus_sync.get_timetable(date="today")</span>
                       </div>
                       <div className="flex items-center gap-space-xs font-code-mono text-code-mono text-xs">
-                        <span className="px-space-xs py-0.2 rounded bg-surface-container-high text-primary">HTTP 200 OK</span>
+                        <span className="px-space-xs py-0.2 rounded bg-surface-container-high text-primary border border-primary/20">HTTP 200 OK</span>
                         <span className="text-outline">48ms</span>
                       </div>
                     </div>
@@ -397,14 +942,14 @@ const ChatPage = () => {
                   </div>
 
                   {/* Tool 2: Workout Routine */}
-                  <div className="p-space-sm rounded-lg bg-surface-container-lowest flex flex-col gap-1 shadow-sm border border-white/[0.04]">
+                  <div className="p-space-sm rounded-lg bg-surface-container-lowest flex flex-col gap-1 shadow-sm border border-outline-variant/30">
                     <div className="flex items-center justify-between flex-wrap gap-1">
                       <div className="flex items-center gap-space-xs">
                         <span className="material-symbols-outlined text-secondary text-[15px]">terminal</span>
                         <span className="font-code-mono text-code-mono text-xs text-secondary font-semibold">workouts.get_fbw_routine(day="Wednesday", location="strych")</span>
                       </div>
                       <div className="flex items-center gap-space-xs font-code-mono text-code-mono text-xs">
-                        <span className="px-space-xs py-0.2 rounded bg-surface-container-high text-secondary">Local SQLite Sync</span>
+                        <span className="px-space-xs py-0.2 rounded bg-surface-container-high text-secondary border border-secondary/20">Local SQLite Sync</span>
                         <span className="text-outline">6ms</span>
                       </div>
                     </div>
@@ -415,13 +960,13 @@ const ChatPage = () => {
                 </div>
 
                 {/* Natural Language Answer Body */}
-                <div className="p-space-md rounded-2xl rounded-tl-xs bg-surface-container text-on-surface font-body-md text-body-md shadow-sm w-full space-y-space-sm leading-relaxed border border-white/[0.04]">
+                <div className="p-space-md rounded-2xl rounded-tl-xs bg-surface-container text-on-surface font-body-md text-body-md shadow-sm w-full space-y-space-sm leading-relaxed border border-outline-variant/30">
                   <p>
                     Sprawdziłem Twój dzisiejszy harmonogram. O <strong>12:45 masz okienko</strong> (odwołana lekcja fizyki), co daje idealny bufor czasowy na krótką regenerację przed blokiem popołudniowym.
                   </p>
 
                   {/* Workout Structure Card Inside Speech */}
-                  <div className="p-space-md rounded-xl bg-surface-container-high flex flex-col gap-space-xs border border-white/[0.06]">
+                  <div className="p-space-md rounded-xl bg-surface-container-high flex flex-col gap-space-xs border border-outline-variant/30">
                     <div className="flex items-center justify-between">
                       <span className="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-space-xs">
                         <span className="material-symbols-outlined text-[16px] text-primary">fitness_center</span>
@@ -431,19 +976,19 @@ const ChatPage = () => {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-space-xs pt-space-xs font-body-md text-body-md">
-                      <div className="p-space-xs px-2.5 rounded bg-surface-container-lowest flex items-center justify-between">
+                      <div className="p-space-xs px-2.5 rounded bg-surface-container-lowest flex items-center justify-between border border-outline-variant/20">
                         <span>1. Podciąganie na drążku</span>
                         <span className="font-code-mono text-code-mono text-primary font-semibold">2 serie (czarna guma)</span>
                       </div>
-                      <div className="p-space-xs px-2.5 rounded bg-surface-container-lowest flex items-center justify-between">
+                      <div className="p-space-xs px-2.5 rounded bg-surface-container-lowest flex items-center justify-between border border-outline-variant/20">
                         <span>2. Dipy na poręczach</span>
                         <span className="font-code-mono text-code-mono text-primary font-semibold">2 serie (masa ciała)</span>
                       </div>
-                      <div className="p-space-xs px-2.5 rounded bg-surface-container-lowest flex items-center justify-between">
+                      <div className="p-space-xs px-2.5 rounded bg-surface-container-lowest flex items-center justify-between border border-outline-variant/20">
                         <span>3. Wiosłowanie hantlem</span>
                         <span className="font-code-mono text-code-mono text-primary font-semibold">3 serie • 22.5 kg</span>
                       </div>
-                      <div className="p-space-xs px-2.5 rounded bg-surface-container-lowest flex items-center justify-between">
+                      <div className="p-space-xs px-2.5 rounded bg-surface-container-lowest flex items-center justify-between border border-outline-variant/20">
                         <span>4. OHP hantlami</span>
                         <span className="font-code-mono text-code-mono text-primary font-semibold">3 serie • 14 kg</span>
                       </div>
@@ -459,21 +1004,21 @@ const ChatPage = () => {
                 <div className="flex items-center gap-space-xs flex-wrap pt-space-xs">
                   <button 
                     onClick={() => handleQuickAction('timer')}
-                    className="px-space-md py-space-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md flex items-center gap-1.5 transition-colors active:scale-95 border border-white/[0.04]"
+                    className="px-space-md py-space-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md flex items-center gap-1.5 transition-colors active:scale-95 border border-outline-variant/30" 
                   >
                     <span className="material-symbols-outlined text-[15px] text-primary">play_arrow</span>
                     <span>Uruchom stoper sesji</span>
                   </button>
                   <button 
                     onClick={() => handleQuickAction('pushbullet')}
-                    className="px-space-md py-space-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md flex items-center gap-1.5 transition-colors active:scale-95 border border-white/[0.04]"
+                    className="px-space-md py-space-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md flex items-center gap-1.5 transition-colors active:scale-95 border border-outline-variant/30" 
                   >
                     <span className="material-symbols-outlined text-[15px] text-secondary">notifications_active</span>
                     <span>Wyślij plan na Pushbullet</span>
                   </button>
                   <button 
                     onClick={() => handleQuickAction('copy')}
-                    className="px-space-md py-space-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md flex items-center gap-1.5 transition-colors active:scale-95 border border-white/[0.04]"
+                    className="px-space-md py-space-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md flex items-center gap-1.5 transition-colors active:scale-95 border border-outline-variant/30" 
                   >
                     <span className="material-symbols-outlined text-[15px] text-outline">content_copy</span>
                     <span>{copyToast ? 'Skopiowano!' : 'Kopiuj'}</span>
@@ -482,18 +1027,20 @@ const ChatPage = () => {
               </div>
             </div>
 
-            {/* Dynamic Conversation Stream from Context */}
+            {/* Dynamic Conversation Stream from ChatContext */}
             {workerMessages && workerMessages.map((msg, idx) => {
               const isUser = msg.role === 'user';
               if (isUser) {
                 return (
-                  <div key={idx} className="flex items-start justify-end gap-space-md pl-8 animate-fade-in">
+                  <div key={msg.id || idx} className="flex items-start justify-end gap-space-md pl-8 animate-fade-in">
                     <div className="flex flex-col items-end gap-space-xs max-w-2xl">
                       <div className="flex items-center gap-space-xs">
-                        <span className="font-label-sm text-label-sm text-outline">Teraz</span>
+                        <span className="font-label-sm text-label-sm text-outline">
+                          {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }) : 'Teraz'}
+                        </span>
                         <span className="font-label-md text-label-md text-on-surface font-semibold">Operator K.</span>
                       </div>
-                      <div className="p-space-md rounded-2xl rounded-tr-xs bg-surface-container-high text-on-surface font-body-md text-body-md shadow-sm border border-white/[0.04]">
+                      <div className="p-space-md rounded-2xl rounded-tr-xs bg-surface-container-high text-on-surface font-body-md text-body-md shadow-sm border border-outline-variant/30">
                         {msg.content}
                       </div>
                       <div className="flex items-center gap-space-xs text-outline font-code-mono text-[11px]">
@@ -508,17 +1055,19 @@ const ChatPage = () => {
                 );
               } else {
                 return (
-                  <div key={idx} className="flex items-start gap-space-md pr-8 animate-fade-in">
+                  <div key={msg.id || idx} className="flex items-start gap-space-md pr-8 animate-fade-in">
                     <div className="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-semibold shrink-0 shadow-[0_0_12px_rgba(77,142,255,0.3)]">
                       <span className="material-symbols-outlined text-[18px]">smart_toy</span>
                     </div>
                     <div className="flex flex-col items-start gap-space-sm max-w-3xl w-full">
                       <div className="flex items-center gap-space-xs">
                         <span className="font-label-md text-label-md text-primary font-semibold">Omni AI Assistant</span>
-                        <span className="font-code-mono text-code-mono text-[11px] px-space-xs py-0.2 rounded bg-surface-container-highest text-on-surface-variant">LPU 120B</span>
-                        <span className="font-label-sm text-label-sm text-outline ml-space-xs">Teraz • 0.3s</span>
+                        <span className="font-code-mono text-code-mono text-[11px] px-space-xs py-0.2 rounded bg-surface-container-highest text-on-surface-variant border border-outline-variant/30">LPU 120B</span>
+                        <span className="font-label-sm text-label-sm text-outline ml-space-xs">
+                          {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }) : 'Teraz'}
+                        </span>
                       </div>
-                      <div className="p-space-md rounded-2xl rounded-tl-xs bg-surface-container text-on-surface font-body-md text-body-md shadow-sm w-full leading-relaxed border border-white/[0.04]">
+                      <div className="p-space-md rounded-2xl rounded-tl-xs bg-surface-container text-on-surface font-body-md text-body-md shadow-sm w-full leading-relaxed border border-outline-variant/30">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </div>
                     </div>
@@ -527,17 +1076,53 @@ const ChatPage = () => {
               }
             })}
 
+            {/* Floating Live Transcription / Voice Activity Banner */}
+            {isLiveMode && (
+              <div className="sticky bottom-0 z-20 flex items-center justify-between p-3.5 rounded-xl bg-surface-container-highest/95 border border-primary/40 backdrop-blur-md shadow-2xl font-mono text-xs animate-in slide-in-from-bottom-2 duration-150">
+                <div className="flex items-center gap-3">
+                  <span className={`w-3 h-3 rounded-full ${
+                    isListening ? 'bg-primary animate-ping' : isProcessingSpeech ? 'bg-secondary animate-spin' : 'bg-tertiary animate-pulse'
+                  }`} />
+                  <div className="flex flex-col">
+                    <span className="text-on-surface font-bold">
+                      {isListening
+                        ? (liveTranscript || 'Słucham... Mów teraz do mikrofonu')
+                        : isProcessingSpeech
+                        ? 'Generowanie odpowiedzi LPU...'
+                        : isSpeaking
+                        ? 'Omni odpowiada na głos...'
+                        : 'Oczekiwanie na wypowiedź...'}
+                    </span>
+                    <span className="text-[10px] text-outline">
+                      {isListening ? 'Transkrypcja Web Speech API w czasie rzeczywistym' : 'Powiedz "stop" lub "dzięki", aby zakończyć sesję'}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => stopLiveMode(false)}
+                  className="px-3 py-1.5 rounded-lg bg-error/20 hover:bg-error/30 text-error font-bold text-xs font-mono transition-colors"
+                >
+                  Zakończ
+                </button>
+              </div>
+            )}
+
           </div>
 
           {/* Bottom Interactive Glass Input Console (Sticky bottom-4) */}
-          <div className="p-space-md rounded-2xl bg-surface-container-low/95 backdrop-blur-xl shadow-lg flex flex-col gap-space-sm sticky bottom-4 border border-white/[0.08]">
+          <div className="p-space-md rounded-2xl bg-surface-container-low/95 backdrop-blur-xl shadow-lg flex flex-col gap-space-sm sticky bottom-4 border border-outline-variant/40">
             
             {/* Input Textarea Bar */}
             <form onSubmit={onSendMessage} className="relative flex items-center">
               <input 
-                className="w-full bg-surface-container-lowest text-on-surface placeholder:text-outline text-body-md font-body-md rounded-xl pl-space-md pr-32 py-space-md focus:outline-none focus:ring-1 focus:ring-primary shadow-inner border border-white/[0.04]" 
+                className="w-full bg-surface-container-lowest text-on-surface placeholder:text-outline text-body-md font-body-md rounded-xl pl-space-md pr-32 py-space-md focus:outline-none focus:ring-1 focus:ring-primary shadow-inner border border-outline-variant/30" 
                 id="user-chat-input" 
-                placeholder="Wydaj polecenie Omni ('Sprawdź oceny', 'Zaplanuj jutrzejszy dzień', 'Wyślij ping')..." 
+                placeholder={
+                  isLiveMode
+                    ? 'Tryb mowy Live aktywny... Mów do mikrofonu lub wpisz tekst...'
+                    : "Wydaj polecenie Omni ('Sprawdź oceny', 'Zaplanuj jutrzejszy dzień', 'Wyślij ping')..."
+                }
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
@@ -546,23 +1131,26 @@ const ChatPage = () => {
               {/* Internal Right Controls inside bar */}
               <div className="absolute right-2 flex items-center gap-space-xs">
                 <button 
-                  onClick={() => setIsMicListening(!isMicListening)}
-                  className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors shadow-sm active:scale-95 ${
-                    isMicListening 
-                      ? 'bg-primary text-on-primary animate-pulse' 
+                  onClick={toggleLiveVoiceMode}
+                  className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all shadow-sm active:scale-95 ${
+                    isLiveMode 
+                      ? 'bg-error text-on-error animate-pulse ring-2 ring-error/50' 
                       : 'bg-surface-container hover:bg-surface-container-high text-primary'
                   }`}
                   id="voice-mic-trigger" 
-                  title="Ciągły nasłuch 'Hej Omni'" 
+                  title={isLiveMode ? 'Zatrzymaj tryb mowy Live' : "Uruchom ciągłą rozmowę głosową ('Hej Omni')"} 
                   type="button"
                 >
-                  <span className="material-symbols-outlined text-[20px]">mic</span>
+                  <span className="material-symbols-outlined text-[20px]">
+                    {isLiveMode ? 'mic_off' : 'mic'}
+                  </span>
                 </button>
                 <button 
-                  className="w-9 h-9 rounded-lg bg-primary hover:bg-primary-fixed-dim text-on-primary flex items-center justify-center transition-colors shadow-sm active:scale-95" 
+                  className="w-9 h-9 rounded-lg bg-primary hover:opacity-90 text-on-primary flex items-center justify-center transition-colors shadow-sm active:scale-95 disabled:opacity-50" 
                   id="send-message-btn" 
                   title="Wyślij prompt" 
                   type="submit"
+                  disabled={isProcessing || isProcessingSpeech}
                 >
                   <span className="material-symbols-outlined text-[20px]">send</span>
                 </button>
@@ -575,25 +1163,31 @@ const ChatPage = () => {
                 {/* Tool selection pill */}
                 <button 
                   onClick={() => alert(`Narzędzia autonomiczne: ${toolsList.filter(t => t.active).map(t => t.name).join(', ')}`)}
-                  className="flex items-center gap-1 px-space-sm py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-sm font-label-sm transition-colors border border-white/[0.04]"
+                  className="flex items-center gap-1 px-space-sm py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-sm font-label-sm transition-colors border border-outline-variant/30"
                 >
                   <span className="material-symbols-outlined text-[14px] text-primary">extension</span>
                   <span>Narzędzia: Aktywne ({activeToolsCount})</span>
                 </button>
                 
-                {/* Attachment pill */}
+                {/* Voice Status Pill */}
                 <button 
-                  onClick={() => alert('Wybierz plik do dołączenia do kontekstu sesji.')}
-                  className="flex items-center gap-1 px-space-sm py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-sm font-label-sm transition-colors border border-white/[0.04]"
+                  onClick={toggleLiveVoiceMode}
+                  className={`flex items-center gap-1 px-space-sm py-1 rounded-full text-label-sm font-label-sm transition-colors border ${
+                    isLiveMode
+                      ? 'bg-primary/20 text-primary border-primary/40 font-bold'
+                      : 'bg-surface-container hover:bg-surface-container-high text-on-surface-variant border-outline-variant/30'
+                  }`}
                 >
-                  <span className="material-symbols-outlined text-[14px] text-outline">attach_file</span>
-                  <span>Dołącz plik / Log</span>
+                  <span className="material-symbols-outlined text-[14px] text-secondary">
+                    {isLiveMode ? 'record_voice_over' : 'mic'}
+                  </span>
+                  <span>{isLiveMode ? 'Głos: Live Loop [ON]' : 'Głos: Nasłuch Hej Omni'}</span>
                 </button>
 
                 {/* Memory Mode */}
                 <button 
                   onClick={() => alert('Pamięć trwała: Połączono z Firestore i SQLite.')}
-                  className="flex items-center gap-1 px-space-sm py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-sm font-label-sm transition-colors border border-white/[0.04]"
+                  className="flex items-center gap-1 px-space-sm py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-sm font-label-sm transition-colors border border-outline-variant/30"
                 >
                   <span className="material-symbols-outlined text-[14px] text-tertiary">neurology</span>
                   <span>Pamięć trwała: Włączona</span>

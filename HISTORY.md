@@ -1,5 +1,16 @@
 ## Wersja Bieżąca
-**v3.1.2**
+**v3.1.3**
+
+## v 3.1.3 — 2026-10-20
+**Typ:** PATCH  
+**Zakres:** Naprawa Ciągłej Pętli Mowy Live Voice, Aktywacja Transkrypcji w Czasie Rzeczywistym i Pełna Pętla Dialogowa po Wykryciu Słowa Wybudzającego "Hej Omni":
+- [+] Dodano: `modules/pages/ChatPage.jsx` – implementacja pełnego silnika Live Voice Engine: natychmiastowy start SpeechRecognition po wybudzeniu `Hej Omni` lub kliknięciu mikrofonu, transkrypcja mowy na żywo w pływającym banerze dialogowym, automatyczne zatwierdzanie po pauzie VAD (650ms), wysyłanie polecenia przez `sendCommand`, odczytywanie odpowiedzi przez silnik TTS z blokadą echa i automatyczne wznawianie nasłuchu po 600ms od zakończenia mowy AI dla kolejnych pytań w pętli.
+- [*] Zmodyfikowano: `modules/components/GlobalEventListener.jsx` – eliminacja wyścigu zdarzeń poprzez zapis `pending_voice_payload` w `sessionStorage` przed przekierowaniem do `/chat` oraz dyspozycję zdarzenia `startContinuousLiveVoice`.
+- [+] Dodano: Raport wydania `docs/versions/v3.1.3.md`.
+- [*] Zmodyfikowano: `package.json` – inkrementacja wersji do `3.1.3`.
+- [*] Weryfikacja: 264/264 PASS w 22 zestawach testowych Vitest (100%), kompilacja produkcyjna Vite w 15.58s bez błędów.
+
+---
 
 ## v 3.1.2 — 2026-10-20
 **Typ:** MINOR  
