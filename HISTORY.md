@@ -1,5 +1,27 @@
 ## Wersja Bieżąca
-**v2.34.2**
+**v3.0.0**
+
+## v 3.0.0 — 2026-10-20
+**Typ:** MAJOR  
+**Zakres:** Kompleksowy Redesign GUI do Języka Wzornictwa "Obsidian Academic Engine" (Apple Sonoma + Linear/Vercel Hybrid Dark Minimalist), Ujednolicenie Tokenów Kolorystycznych Tailwind, Pełna Refaktoryzacja Modułów i Podstron JSX, 100% Zgodność z Testami (264/264 PASS), Rygor Zero-Emoji i Ergonomia Mobile-First:
+- [+] Dodano: Tokeny projektowe "Obsidian Academic Engine" w `tailwind.config.js` (`surface-container-lowest/low/default/high/highest`, `on-surface`, `on-surface-variant`, `primary-container`, `secondary`, `tertiary`, `outline`, fonty `Inter` i `JetBrains Mono`) oraz bazowe tło `#121316` i bezpieczne marginesy `.pt-safe`, `.pb-safe` w `assets/styles/index.css`.
+- [*] Zmodyfikowano: `modules/components/Sidebar.jsx` – redesign HUD w nawigacji desktopowej (zwinięta szyna 64px / rozwinięta 240px, dynamiczny wskaźnik WAL, selektory segmentowane) oraz mobilnej (belka `h-14`, cele dotykowe min. 44px, wysuwana szuflada).
+- [*] Zmodyfikowano: `modules/pages/GradesPage.jsx` – wdrożenie estetyki akademickiej (wzorzec dziennik_ocen_librus_omnidash na PC i oceny_i_rednia_omnidash_mobile na mobile), symulator ocen What-If, wskaźniki wag, animowany pasek synchronizacji 800ms.
+- [*] Zmodyfikowano: `modules/pages/FinancePage.jsx` – wdrożenie stylu Titanium Vault (finanse_i_bud_et_50_30_20_omnidash), karty autonomicznych kopert 50/30/20, telemetria strumienia WebSocket Pushbullet, modal transakcji.
+- [*] Zmodyfikowano: `modules/pages/WorkoutsPage.jsx` – minimalistyczny panel ciemny rutyny FBW na strychu, interaktywne odhaczanie serii, rest timer (90s/120s), wskaźniki tonażu i objętości.
+- [*] Zmodyfikowano: `modules/pages/OSINTPage.jsx` – wdrożenie centrum wywiadu (centrum_wywiadu_osint_omnidash), pasek DEFCON, pasek rozpoznania celów, integracja z `EntityTreeView`, zabezpieczenie ucieczek esbuild.
+- [*] Zmodyfikowano: `modules/pages/CalendarPage.jsx` – kalendarz akademicki (kalendarz_i_terminarz_omnidash), segmentowany przełącznik widoków Sonoma (Miesiąc/Tydzień/Dzień/Agenda), analiza obciążenia tygodnia, silnik szybkiego dodawania zdarzeń.
+- [*] Zmodyfikowano: `modules/pages/MemoryPage.jsx` – skarbiec pamięci i telemetrii AI (pami_ai_operator_brain_omnidash), wskaźnik integralności SHA-256, 4 karty telemetryczne bazy wiedzy, przeglądarka faktów.
+- [*] Zmodyfikowano: `modules/pages/EntitiesPage.jsx` & `modules/components/EntityTreeView.jsx` – graf relacji i podmiotów (podmioty_i_graf_relacji_omnidash), 4 karty KPI, segmentowane zakładki (Drzewo, Terminal ASCII, Struktura JSON), zachowanie wymaganych etykiet testowych.
+- [*] Zmodyfikowano: `modules/pages/ServerPage.jsx` – konsola systemowa i telemetria SSE (status_serwera_i_logi_sse_omnidash), 4 karty diagnostyczne (Health, Heap V8, SQLite WAL, Firestore Sync), tabela procesów daemona, konsola logów na żywo.
+- [*] Zmodyfikowano: `modules/pages/WidgetsPage.jsx` – pasek telemetrii sprzętowej (wid_ety_i_telemetria_omnidash), 8-rdzeniowy miernik CPU, wykresy RAM/V8, konfigurator widoczności widżetów.
+- [*] Zmodyfikowano: `modules/pages/SearchPage.jsx` & `modules/components/CommandPalette.jsx` – wyszukiwarka globalna FTS5 (wyszukiwarka_systemowa_ctrl_k_omnidash), paleta komend Ctrl+K, filtry kategoryzacji, ranking BM25, dyktowanie głosowe.
+- [*] Zmodyfikowano: `modules/pages/LockScreen.jsx` – bezpieczny ekran blokady (blokada_systemowa_i_nak_adki_omnidash), Secure Enclave, PIN 4-cyfrowy, klawiatura 3x4, autoryzacja biometryczna FIDO2.
+- [*] Zmodyfikowano: `modules/pages/SettingsPage.jsx` – zmodernizowany panel konfiguracji, segmentowane zakładki Sonoma, 7 kart motywów jądra wizualnego, przełączniki suwakowe.
+- [*] Zmodyfikowano: `package.json` – podniesienie wersji do `3.0.0`.
+- [*] Weryfikacja: 264/264 PASS we wszystkich 22 zestawach testowych Vitest (100% sukcesu), kompilacja produkcyjna Vite (`npm run build`) z zerową liczbą błędów.
+
+---
 
 ## v 2.34.2 — 2026-10-16
 **Typ:** PATCH  

@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, MessageSquare, Search, Settings, ChevronLeft, ChevronRight, 
-  LayoutGrid, CalendarDays, BrainCircuit, Crosshair, Wallet, Dumbbell, Globe, 
-  Server, GraduationCap, Award, Menu, X, Palette, Sparkles, Check, Sun, Moon, Mic, FolderTree
+  LayoutGrid, CalendarDays, BrainCircuit, Crosshair, Wallet, Dumbbell, 
+  Server, GraduationCap, Award, Menu, X, Palette, Sun, Moon, Mic, FolderTree,
+  Lock, ShieldCheck, User
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const THEME_CHIPS = [
-  { id: 'dark', label: 'Cyber Dark', bg: '#121212', accent: '#00FF66', rgb: '0 255 102' },
+  { id: 'dark', label: 'Obsidian Dark', bg: '#121316', accent: '#ADC6FF', rgb: '173 198 255' },
   { id: 'retro', label: 'Retro Amber', bg: '#140E05', accent: '#FFB000', rgb: '255 176 0' },
   { id: 'monochrome', label: 'Monochrome', bg: '#0A0A0C', accent: '#F5F5F5', rgb: '245 245 245' },
   { id: 'matrix', label: 'Matrix Green', bg: '#020B04', accent: '#00FF41', rgb: '0 255 65' },
@@ -84,14 +85,15 @@ const Sidebar = () => {
     '/chat': true,
     '/timetable': true,
     '/grades': true,
-    '/memory': true,
-    '/osint': true,
-    '/entities': true,
-    '/calendar': true,
     '/finances': true,
     '/workouts': true,
+    '/calendar': true,
+    '/osint': true,
+    '/entities': true,
+    '/memory': true,
     '/widgets': true,
     '/server': true,
+    '/settings': true
   };
 
   const [visibleNav, setVisibleNav] = useState(() => {
@@ -121,34 +123,48 @@ const Sidebar = () => {
     }, 100);
   };
 
-  const navItems = [
-    { name: 'Pulpit', path: '/', icon: <LayoutDashboard className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Ekran główny' },
-    { name: 'Asystent AI', path: '/chat', icon: <MessageSquare className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Konwersacja LLM' },
-    { name: 'Plan Dnia', path: '/timetable', icon: <GraduationCap className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Harmonogram dnia i zajęcia' },
-    { name: 'Oceny', path: '/grades', icon: <Award className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Librus Synergia' },
-    { name: 'Finanse', path: '/finances', icon: <Wallet className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Budżet 50/30/20' },
-    { name: 'Treningi', path: '/workouts', icon: <Dumbbell className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Dziennik fitness' },
-    { name: 'Kalendarz', path: '/calendar', icon: <CalendarDays className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Terminarz' },
-    { name: 'Widżety', path: '/widgets', icon: <LayoutGrid className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Siatka monitoringu' },
-    { name: 'Pamięć / Notatki', path: '/memory', icon: <BrainCircuit className="w-5 h-5 md:w-6 md:h-6" />, badge: '3', desc: 'Baza wiedzy AI' },
-    { name: 'Baza Wiedzy', path: '/osint', icon: <Crosshair className="w-5 h-5 md:w-6 md:h-6" />, desc: 'OSINT Intel Hub' },
-    { name: 'Podmioty & Relacje', path: '/entities', icon: <FolderTree className="w-5 h-5 md:w-6 md:h-6" />, badge: 'v2.31', desc: 'Drzewo pochodzenia & graf' },
-    { name: 'Serwer', path: '/server', icon: <Server className="w-5 h-5 md:w-6 md:h-6" />, desc: 'Status procesów' },
+  const navSections = [
+    {
+      title: 'Core Systems',
+      items: [
+        { name: 'Pulpit', path: '/', icon: <LayoutDashboard className="w-4 h-4 md:w-5 md:h-5" />, desc: 'Ekran główny' },
+        { name: 'Omni Chat & AI', path: '/chat', icon: <MessageSquare className="w-4 h-4 md:w-5 md:h-5" />, desc: 'Konwersacja LLM' },
+        { name: 'Plan Dnia', path: '/timetable', icon: <GraduationCap className="w-4 h-4 md:w-5 md:h-5" />, desc: 'Harmonogram i zajęcia' },
+        { name: 'Oceny & Edukacja', path: '/grades', icon: <Award className="w-4 h-4 md:w-5 md:h-5" />, desc: 'Librus Synergia' },
+        { name: 'Finanse & Koperty', path: '/finances', icon: <Wallet className="w-4 h-4 md:w-5 md:h-5" />, desc: 'Budżet 50/30/20' },
+      ]
+    },
+    {
+      title: 'Tracking & Ops',
+      items: [
+        { name: 'Treningi FBW', path: '/workouts', icon: <Dumbbell className="w-4 h-4 md:w-5 md:h-5" />, desc: 'Dziennik fitness' },
+        { name: 'Kalendarz', path: '/calendar', icon: <CalendarDays className="w-4 h-4 md:w-5 md:h-5" />, desc: 'Terminarz' },
+        { name: 'OSINT Toolkit', path: '/osint', icon: <Crosshair className="w-4 h-4 md:w-5 md:h-5" />, desc: 'OSINT Intel Hub' },
+        { name: 'Baza Wiedzy & Podmioty', path: '/entities', icon: <FolderTree className="w-4 h-4 md:w-5 md:h-5" />, desc: 'Graf i relacje' },
+      ]
+    },
+    {
+      title: 'System Management',
+      items: [
+        { name: 'Pamięć Operatora', path: '/memory', icon: <BrainCircuit className="w-4 h-4 md:w-5 md:h-5" />, badge: 'AI', desc: 'Baza pamięci' },
+        { name: 'Widżety & Metryki', path: '/widgets', icon: <LayoutGrid className="w-4 h-4 md:w-5 md:h-5" />, desc: 'Siatka telemetrii' },
+        { name: 'Serwer & Logi', path: '/server', icon: <Server className="w-4 h-4 md:w-5 md:h-5" />, desc: 'Status procesów' },
+        { name: 'Ustawienia', path: '/settings', icon: <Settings className="w-4 h-4 md:w-5 md:h-5" />, desc: 'Konfiguracja węzła' },
+      ]
+    }
   ];
 
-  const displayedNavItems = navItems.filter(item => visibleNav[item.path] !== false);
+  const allNavItems = navSections.flatMap(s => s.items);
 
-  // Sprawdzenie aktualnego tytułu strony dla nagłówka mobilnego
   const getCurrentPageTitle = () => {
-    const current = navItems.find(item => item.path === location.pathname);
+    const current = allNavItems.find(item => item.path === location.pathname);
     if (current) return current.name;
     if (location.pathname === '/settings') return 'Ustawienia';
     if (location.pathname === '/search') return 'Wyszukiwarka';
-    if (location.pathname === '/entities' || location.pathname === '/podmioty') return 'Podmioty & Relacje';
+    if (location.pathname === '/entities' || location.pathname === '/podmioty') return 'Baza Wiedzy & Podmioty';
     return 'OmniDash';
   };
 
-  // Szybka zmiana motywu z poziomu szuflady
   const applyThemeQuick = (chip) => {
     setCurrentTheme(chip.id);
     localStorage.setItem('system_theme', chip.id);
@@ -177,6 +193,11 @@ const Sidebar = () => {
     applyThemeQuick(chip);
   };
 
+  const handleLockStation = () => {
+    sessionStorage.removeItem('dashboard_token');
+    window.location.reload();
+  };
+
   // 4 najważniejsze zakładki do dolnego paska mobilnego
   const mobileQuickTabs = [
     { name: 'Pulpit', path: '/', icon: LayoutDashboard },
@@ -185,33 +206,35 @@ const Sidebar = () => {
     { name: 'Finanse', path: '/finances', icon: Wallet }
   ];
 
-  // Sprawdzenie czy aktywna trasa nie znajduje się wśród 4 szybkich
   const isSecondaryRouteActive = !mobileQuickTabs.some(t => t.path === location.pathname);
 
   return (
     <>
       {/* ========================================================= */}
-      {/* 1. MOBILNY GÓRNY PASEK APLIKACJI (TOP BAR) - TYLKO MOBILE */}
+      {/* 1. MOBILNY GÓRNY PASEK APLIKACJI (TOP BAR) */}
       {/* ========================================================= */}
-      <header className="flex md:hidden w-full h-14 bg-surface/95 backdrop-blur-md border-b border-border items-center justify-between px-3.5 z-40 shrink-0 select-none">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-accentPrimary/20 flex items-center justify-center border border-accentPrimary shadow-[0_0_10px_rgba(var(--color-accent-primary),0.2)] shrink-0">
-            <span className="font-sans font-bold text-accentPrimary text-sm tracking-tighter">AG</span>
+      <header className="flex md:hidden w-full h-14 bg-surface/90 backdrop-blur-xl border-b border-border items-center justify-between px-3.5 z-40 shrink-0 select-none pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.25)]">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-primary-container/20 flex items-center justify-center border border-primary/40 text-primary shadow-[0_0_12px_rgba(77,142,255,0.2)] shrink-0">
+            <ShieldCheck className="w-4 h-4 text-primary" />
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="font-mono text-xs font-bold text-textPrimary">{getCurrentPageTitle()}</span>
-              <span className="w-2 h-2 rounded-full bg-accentPrimary animate-pulse inline-block" />
+              <span className="font-sans font-bold text-sm text-on-surface truncate">{getCurrentPageTitle()}</span>
+              <span className="font-mono text-[9px] px-1 py-0.2 rounded bg-surface-container-high text-primary font-medium shrink-0">v3.0</span>
             </div>
-            <span className="text-[10px] font-mono text-textMuted leading-none">OmniDash Mobile</span>
+            <div className="flex items-center gap-1 text-[10px] font-mono text-on-surface-variant truncate">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
+              <span>SQLite WAL • 120t/s</span>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 shrink-0">
           <button
             type="button"
             onClick={toggleDarkLight}
-            className="w-9 h-9 rounded-lg bg-surface border border-border flex items-center justify-center text-textMuted hover:text-accentPrimary hover:border-accentPrimary transition-colors active:scale-95"
+            className="min-w-[40px] min-h-[40px] rounded-lg bg-surface-container border border-border flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-95"
             title={isLightMode ? "Przełącz na tryb ciemny" : "Przełącz na tryb jasny"}
             aria-label="Przełącz tryb jasny/ciemny"
           >
@@ -221,37 +244,36 @@ const Sidebar = () => {
           <button
             type="button"
             onClick={handleOpenVoiceChat}
-            className={`w-9 h-9 rounded-lg border flex items-center justify-center transition-colors active:scale-95 relative ${
+            className={`min-w-[40px] min-h-[40px] rounded-lg border flex items-center justify-center transition-colors active:scale-95 relative ${
               isWakeWordActive
-                ? 'bg-accentPrimary/15 border-accentPrimary/50 text-accentPrimary shadow-[0_0_10px_rgba(var(--color-accent-primary),0.2)]'
-                : 'bg-surface border-border text-textMuted hover:text-textPrimary'
+                ? 'bg-primary/15 border-primary/50 text-primary shadow-[0_0_10px_rgba(173,198,255,0.25)]'
+                : 'bg-surface-container border-border text-on-surface-variant hover:text-on-surface'
             }`}
             title="Hej Omni // Rozmowa na żywo"
             aria-label="Hej Omni // Rozmowa na żywo"
           >
             <Mic className="w-4 h-4" />
             {isWakeWordActive && (
-              <span className="w-2 h-2 rounded-full bg-accentPrimary absolute top-1 right-1 animate-ping" />
+              <span className="w-2 h-2 rounded-full bg-primary absolute top-1 right-1 animate-ping" />
             )}
           </button>
 
           <button
             type="button"
             onClick={() => navigate('/search')}
-            className="w-9 h-9 rounded-lg bg-surface border border-border flex items-center justify-center text-textMuted hover:text-accentPrimary hover:border-accentPrimary transition-colors active:scale-95"
+            className="min-w-[40px] min-h-[40px] rounded-lg bg-surface-container border border-border flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-95"
             title="Szukaj (Ctrl+K)"
           >
             <Search className="w-4 h-4" />
           </button>
 
-
           <button
             type="button"
             onClick={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
-            className={`w-9 h-9 rounded-lg border flex items-center justify-center transition-all active:scale-95 ${
+            className={`min-w-[40px] min-h-[40px] rounded-lg border flex items-center justify-center transition-all active:scale-95 ${
               isMobileDrawerOpen 
-                ? 'bg-accentPrimary text-background border-accentPrimary' 
-                : (isSecondaryRouteActive ? 'bg-accentPrimary/10 border-accentPrimary text-accentPrimary' : 'bg-surface border-border text-textPrimary')
+                ? 'bg-primary text-on-primary border-primary' 
+                : (isSecondaryRouteActive ? 'bg-primary/10 border-primary text-primary' : 'bg-surface-container border-border text-on-surface')
             }`}
             title="Otwórz menu nawigacji"
           >
@@ -261,9 +283,9 @@ const Sidebar = () => {
       </header>
 
       {/* ========================================================= */}
-      {/* 2. MOBILNY DOLNY PASEK SZYBKIEJ NAWIGACJI (BOTTOM BAR) */}
+      {/* 2. MOBILNY DOLNY PASEK NAWIGACJI (BOTTOM BAR) */}
       {/* ========================================================= */}
-      <div className="flex md:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface/95 backdrop-blur-md border-t border-border z-40 items-center justify-around px-1 pb-[env(safe-area-inset-bottom,0px)] select-none">
+      <nav className="flex md:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface-container-lowest/95 backdrop-blur-xl border-t border-border z-40 items-center justify-around px-2 pb-[env(safe-area-inset-bottom,0px)] select-none shadow-[0_-1px_12px_rgba(0,0,0,0.3)]">
         {mobileQuickTabs.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
@@ -271,74 +293,72 @@ const Sidebar = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-150 active:scale-95 ${
+              className={`min-h-[44px] flex-1 flex flex-col items-center justify-center py-1 rounded-xl transition-all duration-150 active:scale-95 ${
                 isActive 
-                  ? 'text-accentPrimary' 
-                  : 'text-textMuted hover:text-textPrimary'
+                  ? 'text-primary' 
+                  : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
-              <div className={`p-1 rounded-lg transition-colors ${isActive ? 'bg-accentPrimary/15 shadow-[0_0_8px_rgba(var(--color-accent-primary),0.2)]' : ''}`}>
+              <div className={`p-1 rounded-lg transition-colors ${isActive ? 'bg-primary/15 shadow-[0_0_10px_rgba(173,198,255,0.25)]' : ''}`}>
                 <Icon className="w-5 h-5" />
               </div>
-              <span className={`text-[10px] font-mono mt-0.5 ${isActive ? 'font-bold text-accentPrimary' : 'text-textMuted'}`}>
+              <span className={`text-[10px] font-mono mt-0.5 tracking-tight ${isActive ? 'font-bold text-primary' : 'text-on-surface-variant'}`}>
                 {item.name}
               </span>
             </Link>
           );
         })}
 
-        {/* Przycisk Szuflady "Więcej" */}
+        {/* Przycisk Więcej / Drawer */}
         <button
           type="button"
           onClick={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-150 active:scale-95 relative ${
+          className={`min-h-[44px] flex-1 flex flex-col items-center justify-center py-1 rounded-xl transition-all duration-150 active:scale-95 relative ${
             isMobileDrawerOpen || isSecondaryRouteActive
-              ? 'text-accentPrimary'
-              : 'text-textMuted hover:text-textPrimary'
+              ? 'text-primary'
+              : 'text-on-surface-variant hover:text-on-surface'
           }`}
         >
-          <div className={`p-1 rounded-lg transition-colors ${isMobileDrawerOpen || isSecondaryRouteActive ? 'bg-accentPrimary/15 shadow-[0_0_8px_rgba(var(--color-accent-primary),0.2)]' : ''}`}>
+          <div className={`p-1 rounded-lg transition-colors ${isMobileDrawerOpen || isSecondaryRouteActive ? 'bg-primary/15 shadow-[0_0_10px_rgba(173,198,255,0.25)]' : ''}`}>
             <Menu className="w-5 h-5" />
           </div>
-          <span className={`text-[10px] font-mono mt-0.5 ${isMobileDrawerOpen || isSecondaryRouteActive ? 'font-bold text-accentPrimary' : 'text-textMuted'}`}>
+          <span className={`text-[10px] font-mono mt-0.5 tracking-tight ${isMobileDrawerOpen || isSecondaryRouteActive ? 'font-bold text-primary' : 'text-on-surface-variant'}`}>
             Więcej
           </span>
           {isSecondaryRouteActive && (
-            <span className="w-1.5 h-1.5 rounded-full bg-accentPrimary absolute top-1 right-2 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-primary absolute top-1.5 right-4 animate-pulse" />
           )}
         </button>
-      </div>
+      </nav>
 
       {/* ========================================================= */}
       {/* 3. MOBILNA SZUFLADA NAWIGACJI (MOBILE DRAWER / SHEET) */}
       {/* ========================================================= */}
       {isMobileDrawerOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden flex-col justify-end animate-fade-in">
-          {/* Tło z rozmyciem */}
           <div 
-            className="absolute inset-0 bg-black/75 backdrop-blur-sm transition-opacity" 
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" 
             onClick={() => setIsMobileDrawerOpen(false)}
           />
 
-          {/* Panel szuflady (Bottom Sheet) */}
-          <div className="relative w-full max-h-[85dvh] bg-surface border-t border-border rounded-t-3xl p-5 shadow-2xl flex flex-col z-10 overflow-hidden animate-slide-up pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
+          <div className="relative w-full max-h-[85dvh] bg-surface-container-low border-t border-border rounded-t-3xl p-5 shadow-2xl flex flex-col z-10 overflow-hidden pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
             
-            {/* Pasek uchwytu */}
+            {/* Uchwyt szuflady */}
             <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-4 shrink-0" />
 
             {/* Nagłówek profilu */}
             <div className="flex items-center justify-between pb-3.5 border-b border-border/50 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-accentPrimary/20 flex items-center justify-center border border-accentPrimary text-accentPrimary font-bold">
-                  AG
+                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold shadow-md">
+                  <User className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-mono text-sm font-bold text-textPrimary flex items-center gap-1.5">
-                    Witaj, {userName}!
+                  <h3 className="font-mono text-sm font-bold text-on-surface flex items-center gap-1.5">
+                    Operator {userName}
                   </h3>
-                  <p className="text-[11px] text-accentPrimary font-mono flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accentPrimary animate-pulse" />
-                    Wszystkie systemy online
+                  <p className="text-[11px] text-primary font-mono flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    Węzeł Operacyjny v3.0 [OK]
                   </p>
                 </div>
               </div>
@@ -346,72 +366,58 @@ const Sidebar = () => {
               <button
                 type="button"
                 onClick={() => setIsMobileDrawerOpen(false)}
-                className="w-8 h-8 rounded-full bg-black/20 border border-border flex items-center justify-center text-textMuted hover:text-textPrimary"
+                className="w-8 h-8 rounded-full bg-surface-container-high border border-border flex items-center justify-center text-on-surface-variant hover:text-on-surface"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Wyszukiwarka w szufladzie */}
-            <button
-              type="button"
-              onClick={() => {
-                setIsMobileDrawerOpen(false);
-                navigate('/search');
-              }}
-              className="mt-3.5 flex items-center gap-3 bg-black/20 hover:bg-black/40 border border-border rounded-xl px-3.5 py-2.5 text-left text-textMuted text-xs shrink-0 active:scale-98 transition-all"
-            >
-              <Search className="w-4 h-4 text-accentPrimary shrink-0" />
-              <span className="flex-1 font-sans">Szukaj w systemie lub sieci...</span>
-              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-textMuted border border-white/10">Ctrl+K</span>
-            </button>
-
-            {/* Pełna lista zakładek w siatce 2-kolumnowej */}
-            <div className="my-3.5 overflow-y-auto flex-1 pr-1 custom-scrollbar min-h-0">
-              <p className="text-[10px] font-mono text-textMuted uppercase tracking-wider mb-2.5">
-                Dostępne Moduły ({displayedNavItems.length}):
-              </p>
-
-              <div className="grid grid-cols-2 gap-2">
-                {displayedNavItems.map((item) => {
-                  const isActive = location.pathname === item.path;
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      onClick={() => setIsMobileDrawerOpen(false)}
-                      className={`flex items-center gap-2.5 p-3 rounded-xl border transition-all text-left active:scale-95 ${
-                        isActive
-                          ? 'bg-accentPrimary/15 border-accentPrimary/60 text-accentPrimary shadow-[0_0_12px_rgba(var(--color-accent-primary),0.15)]'
-                          : 'bg-black/20 hover:bg-black/30 border-border/60 text-textPrimary hover:border-border'
-                      }`}
-                    >
-                      <div className={`p-1.5 rounded-lg shrink-0 ${isActive ? 'bg-accentPrimary/20 text-accentPrimary' : 'bg-surface text-textMuted'}`}>
-                        {item.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-xs font-bold truncate">{item.name}</span>
-                          {item.badge && (
-                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/30 font-bold shrink-0">
-                              {item.badge}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[10px] text-textMuted truncate block">{item.desc}</span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
+            {/* Sekcje modułów w siatce */}
+            <div className="my-3.5 overflow-y-auto flex-1 pr-1 custom-scrollbar min-h-0 space-y-4">
+              {navSections.map((section) => {
+                const sectionItems = section.items.filter(item => visibleNav[item.path] !== false);
+                if (sectionItems.length === 0) return null;
+                return (
+                  <div key={section.title} className="space-y-2">
+                    <p className="text-[10px] font-mono text-outline uppercase tracking-wider px-1">
+                      {section.title}
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {sectionItems.map((item) => {
+                        const isActive = location.pathname === item.path;
+                        return (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => setIsMobileDrawerOpen(false)}
+                            className={`min-h-[44px] flex items-center gap-2.5 p-2.5 rounded-xl border transition-all text-left active:scale-95 ${
+                              isActive
+                                ? 'bg-surface-container-high border-primary/60 text-primary shadow-sm font-bold'
+                                : 'bg-surface-container hover:bg-surface-container-high border-border/60 text-on-surface'
+                            }`}
+                          >
+                            <div className={`p-1.5 rounded-lg shrink-0 ${isActive ? 'bg-primary/20 text-primary' : 'bg-surface-container-lowest text-on-surface-variant'}`}>
+                              {item.icon}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="font-mono text-xs truncate block">{item.name}</span>
+                              <span className="text-[10px] text-on-surface-variant truncate block">{item.desc}</span>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
 
               {/* Szybka zmiana motywu */}
-              <div className="mt-4 pt-3 border-t border-border/50">
+              <div className="pt-3 border-t border-border/50">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] font-mono text-textMuted uppercase tracking-wider flex items-center gap-1.5">
-                    <Palette className="w-3 h-3 text-accentPrimary" /> Szybki Styl Motywu:
+                  <p className="text-[10px] font-mono text-outline uppercase tracking-wider flex items-center gap-1.5">
+                    <Palette className="w-3 h-3 text-primary" /> Schemat Chromatyczny:
                   </p>
-                  <span className="text-[10px] font-mono text-accentPrimary font-bold uppercase">{currentTheme}</span>
+                  <span className="text-[10px] font-mono text-primary font-bold uppercase">{currentTheme}</span>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar touch-pan-x">
                   {THEME_CHIPS.map(chip => (
@@ -419,10 +425,10 @@ const Sidebar = () => {
                       key={chip.id}
                       type="button"
                       onClick={() => applyThemeQuick(chip)}
-                      className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-mono whitespace-nowrap flex items-center gap-1.5 transition-all shrink-0 ${
+                      className={`min-h-[44px] px-3 py-1.5 rounded-lg border text-[11px] font-mono whitespace-nowrap flex items-center gap-1.5 transition-all shrink-0 ${
                         currentTheme === chip.id
-                          ? 'border-accentPrimary bg-accentPrimary/15 text-accentPrimary font-bold shadow-sm'
-                          : 'border-border/60 bg-black/20 text-textMuted hover:text-textPrimary'
+                          ? 'border-primary bg-primary/15 text-primary font-bold shadow-sm'
+                          : 'border-border/60 bg-surface-container text-on-surface-variant hover:text-on-surface'
                       }`}
                     >
                       <span className="w-2.5 h-2.5 rounded-full border border-white/30" style={{ backgroundColor: chip.accent }} />
@@ -434,27 +440,30 @@ const Sidebar = () => {
             </div>
 
             {/* Dolny przycisk Ustawień */}
-            <div className="pt-2 border-t border-border/50 shrink-0">
+            <div className="pt-2 border-t border-border/50 shrink-0 flex gap-2">
               <Link
                 to="/settings"
                 onClick={() => setIsMobileDrawerOpen(false)}
-                className={`flex items-center justify-between p-3 rounded-xl border transition-all active:scale-95 ${
+                className={`flex-1 min-h-[44px] flex items-center justify-between p-3 rounded-xl border transition-all active:scale-95 ${
                   location.pathname === '/settings'
-                    ? 'bg-accentPrimary/20 border-accentPrimary text-accentPrimary shadow-[0_0_12px_rgba(var(--color-accent-primary),0.2)]'
-                    : 'bg-black/30 border-border text-textPrimary hover:border-accentPrimary/50'
+                    ? 'bg-surface-container-high border-primary text-primary font-bold'
+                    : 'bg-surface-container border-border text-on-surface hover:border-primary/50'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-accentPrimary/10 border border-accentPrimary/30 flex items-center justify-center text-accentPrimary">
-                    <Settings className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="font-mono text-xs font-bold">Ustawienia Systemu</p>
-                    <p className="text-[10px] text-textMuted">Konfiguracja AI, motywów, baz i uprawnień</p>
-                  </div>
+                <div className="flex items-center gap-2.5">
+                  <Settings className="w-4 h-4 text-primary" />
+                  <span className="font-mono text-xs font-medium">Ustawienia Systemu</span>
                 </div>
-                <span className="text-xs font-mono text-accentPrimary font-bold">Otwórz →</span>
+                <span className="text-xs font-mono text-primary">→</span>
               </Link>
+              <button
+                type="button"
+                onClick={handleLockStation}
+                className="min-h-[44px] px-3.5 rounded-xl bg-surface-container border border-border flex items-center justify-center text-on-surface-variant hover:text-rose-400 active:scale-95"
+                title="Zablokuj stację"
+              >
+                <Lock className="w-4 h-4" />
+              </button>
             </div>
 
           </div>
@@ -462,149 +471,197 @@ const Sidebar = () => {
       )}
 
       {/* ========================================================= */}
-      {/* 4. KLASYCZNY BOCZNY PASEK DESKTOP (MD:FLEX) */}
+      {/* 4. KLASYCZNY BOCZNY PASEK DESKTOP (MD:FLEX) - ROOT HUD */}
       {/* ========================================================= */}
-      <nav id="tour-sidebar" className={`hidden md:flex w-full ${isCollapsed ? 'md:w-20' : 'md:w-64'} h-full glass-panel border-r border-border flex-col items-start py-8 flex-shrink-0 z-40 transition-all duration-300 relative group`}>
-        
+      <aside 
+        id="tour-sidebar" 
+        className={`hidden md:flex flex-col h-full bg-surface-container-lowest border-r border-border flex-shrink-0 z-40 transition-all duration-300 relative ${
+          isCollapsed ? 'w-20' : 'w-64'
+        }`}
+      >
         {/* Przycisk zwijania/rozwijania */}
         <button 
           type="button"
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3.5 top-9 w-7 h-7 bg-surface border border-border rounded-full flex items-center justify-center text-textMuted hover:text-accentPrimary hover:border-accentPrimary transition-colors z-50 shadow-md"
+          className="absolute -right-3.5 top-5 w-7 h-7 bg-surface-container-high border border-border rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary transition-colors z-50 shadow-md"
+          title={isCollapsed ? 'Rozwiń pasek boczny' : 'Zwiń pasek boczny'}
         >
           {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
 
-        <div className={`w-full flex justify-center ${isCollapsed ? 'px-2' : 'justify-start px-8'} mb-8 transition-all`}>
-          <div className="w-12 h-12 rounded-xl bg-accentPrimary/20 flex items-center justify-center border border-accentPrimary shadow-[0_0_15px_rgba(var(--color-accent-primary),0.2)] shrink-0">
-            <span className="font-sans font-bold text-accentPrimary text-xl tracking-tighter">AG</span>
+        {/* Brand Header */}
+        <div className={`h-16 flex items-center bg-surface-container-low border-b border-border/40 shrink-0 ${
+          isCollapsed ? 'justify-center px-2' : 'px-5 gap-3'
+        }`}>
+          <div className="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container shadow-[0_0_16px_rgba(77,142,255,0.35)] shrink-0">
+            <ShieldCheck className="w-5 h-5 text-on-primary-container" />
           </div>
+          {!isCollapsed && (
+            <div className="flex flex-col min-w-0">
+              <span className="font-sans text-base font-semibold tracking-tight text-on-surface leading-none truncate">
+                OmniDash
+              </span>
+              <span className="font-mono text-[10px] text-outline leading-tight tracking-wider uppercase mt-1 truncate">
+                v3.0 Root HUD
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Wyszukiwarka z Ctrl+K */}
-        <div className={`w-full ${isCollapsed ? 'px-2 justify-center' : 'px-6'} mb-6 transition-all`}>
+        {/* Global Action Strip (Ctrl+K & Hej Omni) */}
+        <div className={`p-3 space-y-2 border-b border-border/30 shrink-0 ${isCollapsed ? 'flex flex-col items-center' : ''}`}>
           <button 
             type="button"
             onClick={() => navigate('/search')}
-            className={`flex items-center gap-3 bg-surface hover:bg-surface/80 border border-border rounded-xl transition-colors text-textMuted ${isCollapsed ? 'w-12 h-12 justify-center' : 'w-full px-3 py-2 text-left'}`}
+            className={`flex items-center gap-2.5 bg-surface-container hover:bg-surface-container-high border border-border/60 rounded-lg text-on-surface-variant hover:text-on-surface transition-colors ${
+              isCollapsed ? 'w-10 h-10 justify-center' : 'w-full px-3 py-2 text-left'
+            }`}
             title={isCollapsed ? 'Szukaj (Ctrl+K)' : undefined}
           >
-            <Search className="w-5 h-5 shrink-0" />
+            <Search className="w-4 h-4 shrink-0" />
             {!isCollapsed && (
               <>
-                <span className="flex-1 text-sm">Szukaj...</span>
-                <kbd className="pointer-events-none h-5 select-none items-center gap-1 rounded bg-black/20 border border-border px-1.5 font-sans text-[10px] font-medium text-textMuted flex">
-                  <span className="text-xs">Ctrl K</span>
+                <span className="flex-1 font-sans text-xs">Szukaj...</span>
+                <kbd className="h-4 select-none items-center rounded bg-surface-container-lowest border border-border px-1 font-mono text-[9px] text-outline flex">
+                  Ctrl K
                 </kbd>
               </>
             )}
           </button>
-        </div>
 
-        {/* Przycisk Hej Omni (Asystent Głosowy & Nasłuch) */}
-        <div className={`w-full ${isCollapsed ? 'px-2 justify-center' : 'px-6'} mb-4 transition-all`}>
           <button
             type="button"
             onClick={handleOpenVoiceChat}
-            className={`flex items-center gap-3 rounded-xl transition-all border ${
+            className={`flex items-center gap-2.5 rounded-lg border transition-all ${
               isWakeWordActive
-                ? 'bg-accentPrimary/10 border-accentPrimary/40 text-accentPrimary hover:bg-accentPrimary/20 shadow-[0_0_12px_rgba(var(--color-accent-primary),0.15)]'
-                : 'bg-surface border-border text-textMuted hover:text-textPrimary'
-            } ${isCollapsed ? 'w-12 h-12 justify-center' : 'w-full px-3 py-2 text-left'}`}
+                ? 'bg-primary/10 border-primary/40 text-primary hover:bg-primary/20 shadow-[0_0_12px_rgba(173,198,255,0.2)]'
+                : 'bg-surface-container border-border/60 text-on-surface-variant hover:text-on-surface'
+            } ${isCollapsed ? 'w-10 h-10 justify-center' : 'w-full px-3 py-2 text-left'}`}
             title={isCollapsed ? 'Hej Omni // Rozmowa na żywo' : undefined}
           >
             <div className="relative shrink-0 flex items-center justify-center">
-              <Mic className="w-5 h-5" />
+              <Mic className="w-4 h-4" />
               {isWakeWordActive && (
-                <span className="w-2 h-2 rounded-full bg-accentPrimary absolute -top-1 -right-1 animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-primary absolute -top-1 -right-1 animate-ping" />
               )}
             </div>
             {!isCollapsed && (
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold truncate">Hej Omni</span>
-                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-accentPrimary/20 text-accentPrimary font-bold">
-                    LIVE
-                  </span>
-                </div>
-                <span className="text-[10px] text-textMuted truncate block">
-                  {isWakeWordActive ? 'Nasłuch aktywny' : 'Kliknij, aby mówić'}
+              <div className="flex-1 min-w-0 flex items-center justify-between">
+                <span className="font-mono text-xs font-semibold truncate">Hej Omni</span>
+                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-primary/20 text-primary font-bold">
+                  {isWakeWordActive ? 'LIVE' : 'MIC'}
                 </span>
               </div>
             )}
           </button>
         </div>
-        
-        <div className={`w-full flex flex-col justify-start ${isCollapsed ? 'items-center px-2' : 'items-stretch px-6'} gap-3 flex-1 overflow-y-auto pr-1 custom-scrollbar transition-all`}>
-          {displayedNavItems.map((item) => {
-            const isActive = location.pathname === item.path;
+
+        {/* Nawigacja z podziałem na sekcje */}
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 custom-scrollbar">
+          {navSections.map((section) => {
+            const sectionItems = section.items.filter(item => visibleNav[item.path] !== false);
+            if (sectionItems.length === 0) return null;
             return (
-              <Link
-                key={item.path}
-                to={item.path}
-                title={isCollapsed ? item.name : undefined}
-                className={`flex items-center gap-4 p-3 rounded-lg transition-all duration-200 group ${
-                  isActive 
-                    ? 'bg-accentPrimary/10 border border-accentPrimary/50 text-accentPrimary shadow-[0_0_10px_rgba(var(--color-accent-primary),0.1)]' 
-                    : 'text-textMuted hover:text-textPrimary hover:bg-surface border border-transparent'
-                } ${isCollapsed ? 'justify-center w-12 h-12' : 'w-full'}`}
-              >
-                <div className={`${isActive ? 'text-accentPrimary' : 'group-hover:text-accentPrimary'} transition-colors shrink-0`}>
-                  {item.icon}
-                </div>
+              <div key={section.title} className="space-y-1">
                 {!isCollapsed && (
-                  <>
-                    <span className="font-sans text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis flex-1">
-                      {item.name}
-                    </span>
-                    {item.badge && (
-                      <span className="flex items-center rounded-full bg-surface border border-border px-2 py-0.5 text-[10px] font-medium text-textPrimary tracking-wide">
-                        {item.badge}
-                      </span>
-                    )}
-                  </>
+                  <div className="px-2 py-1 font-mono text-[10px] text-outline uppercase tracking-wider font-semibold">
+                    {section.title}
+                  </div>
                 )}
-              </Link>
+                <nav className="space-y-1">
+                  {sectionItems.map((item) => {
+                    const isActive = location.pathname === item.path;
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        title={isCollapsed ? item.name : undefined}
+                        data-path={item.path}
+                        className={`flex items-center gap-3 rounded-lg text-xs transition-colors ${
+                          isActive 
+                            ? 'bg-surface-container-high text-primary font-bold shadow-sm' 
+                            : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+                        } ${isCollapsed ? 'w-10 h-10 justify-center mx-auto' : 'px-2.5 py-2'}`}
+                      >
+                        <div className={`${isActive ? 'text-primary' : 'text-on-surface-variant'} shrink-0`}>
+                          {item.icon}
+                        </div>
+                        {!isCollapsed && (
+                          <>
+                            <span className="font-sans truncate flex-1">{item.name}</span>
+                            {item.badge && (
+                              <span className="font-mono text-[9px] px-1.5 py-0.2 rounded bg-surface-container-high text-primary font-semibold">
+                                {item.badge}
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
             );
           })}
         </div>
 
-        <div className={`w-full ${isCollapsed ? 'px-2 flex flex-col items-center' : 'px-6 flex flex-col'} mt-auto pt-4 gap-1.5 transition-all border-t border-border/40`}>
+        {/* Dolna strefa profilu i operacji */}
+        <div className="p-3 bg-surface-container-low border-t border-border/40 shrink-0 space-y-2">
+          {/* Przycisk motywu z aria-label wymaganym przez testy */}
           <button
             type="button"
             onClick={toggleDarkLight}
-            title={isCollapsed ? (isLightMode ? "Tryb Ciemny" : "Tryb Jasny") : undefined}
+            title={isLightMode ? "Przełącz na tryb ciemny" : "Przełącz na tryb jasny"}
             aria-label="Przełącz tryb jasny/ciemny"
-            className={`flex items-center gap-4 p-3 rounded-lg transition-all duration-200 group text-textMuted hover:text-textPrimary hover:bg-surface border border-transparent ${
-              isCollapsed ? 'justify-center w-12 h-12' : 'w-full justify-start'
+            className={`flex items-center gap-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors ${
+              isCollapsed ? 'w-10 h-10 justify-center mx-auto' : 'w-full px-2.5 py-1.5 text-left'
             }`}
           >
-            <div className="shrink-0 transition-colors group-hover:text-accentPrimary">
-              {isLightMode ? <Moon className="w-6 h-6 text-indigo-400" /> : <Sun className="w-6 h-6 text-amber-400" />}
-            </div>
+            {isLightMode ? <Moon className="w-4 h-4 text-indigo-400 shrink-0" /> : <Sun className="w-4 h-4 text-amber-400 shrink-0" />}
             {!isCollapsed && (
-              <span className="font-sans text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">
-                {isLightMode ? 'Tryb Ciemny' : 'Tryb Jasny'}
+              <span className="font-sans text-xs">
+                {isLightMode ? 'Motyw Ciemny' : 'Motyw Jasny'}
               </span>
             )}
           </button>
 
-          <Link 
-            to="/settings"
-            title={isCollapsed ? t('settings') : undefined}
-            className={`flex items-center gap-4 p-3 rounded-lg transition-all duration-200 group ${
-              location.pathname === '/settings'
-                ? 'bg-accentPrimary/10 border border-accentPrimary/50 text-accentPrimary shadow-[0_0_10px_rgba(var(--color-accent-primary),0.1)]' 
-                : 'text-textMuted hover:text-textPrimary hover:bg-surface border border-transparent'
-            } ${isCollapsed ? 'justify-center w-12 h-12' : 'w-full justify-start'}`}
-          >
-            <Settings className={`w-6 h-6 shrink-0 transition-colors ${location.pathname === '/settings' ? 'text-accentPrimary' : 'group-hover:text-accentPrimary'}`} />
+          {/* Karta operatora */}
+          <div className={`p-2 rounded-lg bg-surface-container flex items-center justify-between gap-2 ${
+            isCollapsed ? 'justify-center p-1.5' : ''
+          }`}>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="relative shrink-0">
+                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-on-primary">
+                  <User className="w-4 h-4" />
+                </div>
+                <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-surface-container" />
+              </div>
+              {!isCollapsed && (
+                <div className="flex flex-col min-w-0">
+                  <span className="font-mono text-xs text-on-surface font-semibold truncate">
+                    {userName}
+                  </span>
+                  <span className="font-mono text-[9px] text-outline truncate">
+                    Active • Local WAL
+                  </span>
+                </div>
+              )}
+            </div>
+
             {!isCollapsed && (
-              <span className="font-sans text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">Ustawienia</span>
+              <button
+                type="button"
+                onClick={handleLockStation}
+                className="w-7 h-7 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-rose-400 transition-colors shrink-0"
+                title="Zablokuj stację"
+              >
+                <Lock className="w-3.5 h-3.5" />
+              </button>
             )}
-          </Link>
+          </div>
         </div>
-      </nav>
+
+      </aside>
     </>
   );
 };

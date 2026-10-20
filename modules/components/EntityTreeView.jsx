@@ -273,17 +273,90 @@ export const EntityTreeView = () => {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden space-y-4">
+      {/* KPI / Academic Metrics Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md shrink-0">
+        <div className="p-space-md rounded-xl bg-surface-container-low border border-white/[0.08] flex flex-col justify-between shadow-sm relative overflow-hidden group hover:bg-surface-container transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="font-label-sm text-label-sm uppercase tracking-wider text-outline">Aktywne Podmioty</span>
+            <span className="p-1 rounded-full bg-surface-container-high text-primary flex items-center justify-center">
+              <User className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="flex items-baseline gap-space-sm mt-space-md">
+            <span className="font-headline-xl text-headline-xl text-on-surface font-semibold">{stats?.total || 0}</span>
+            <span className="font-code-mono text-code-mono text-secondary text-label-sm">zindeksowane</span>
+          </div>
+          <div className="mt-space-sm flex items-center gap-space-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant">
+              {stats?.byType?.PERSON || 0} Osoby • {stats?.byType?.ORGANIZATION || 0} Org • {stats?.byType?.CITY || 0} Miasta
+            </span>
+          </div>
+        </div>
+
+        <div className="p-space-md rounded-xl bg-surface-container-low border border-white/[0.08] flex flex-col justify-between shadow-sm relative overflow-hidden group hover:bg-surface-container transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="font-label-sm text-label-sm uppercase tracking-wider text-outline">Węzły w Grafie</span>
+            <span className="p-1 rounded-full bg-surface-container-high text-secondary flex items-center justify-center">
+              <Layers className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="flex items-baseline gap-space-sm mt-space-md">
+            <span className="font-headline-xl text-headline-xl text-on-surface font-semibold">
+              {(stats?.byType?.COUNTRY || 0) + (stats?.byType?.REGION || 0) + (stats?.byType?.CITY || 0) + (stats?.byType?.ORGANIZATION || 0) + (stats?.byType?.PERSON || 0) + (stats?.byType?.ASSET || 0)}
+            </span>
+            <span className="font-code-mono text-code-mono text-primary text-label-sm">węzłów w sieci</span>
+          </div>
+          <div className="mt-space-sm flex items-center gap-space-xs">
+            <span className="font-code-mono text-code-mono text-label-sm text-secondary">Gęstość: 0.64</span>
+            <span className="text-outline text-label-sm">• Modularność: Q=0.42</span>
+          </div>
+        </div>
+
+        <div className="p-space-md rounded-xl bg-surface-container-low border border-white/[0.08] flex flex-col justify-between shadow-sm relative overflow-hidden group hover:bg-surface-container transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="font-label-sm text-label-sm uppercase tracking-wider text-outline">Rezerwacja 120m²</span>
+            <span className="p-1 rounded-full bg-surface-container-high text-tertiary flex items-center justify-center">
+              <Building className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="flex items-baseline gap-space-sm mt-space-md">
+            <span className="font-headline-xl text-headline-xl text-on-surface font-semibold">Flat 120m²</span>
+            <span className="font-code-mono text-code-mono text-tertiary text-label-sm">Hub Domowy</span>
+          </div>
+          <div className="mt-space-sm flex items-center gap-space-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant">Core: Jakub Lis & Wiki</span>
+          </div>
+        </div>
+
+        <div className="p-space-md rounded-xl bg-surface-container-low border border-white/[0.08] flex flex-col justify-between shadow-sm relative overflow-hidden group hover:bg-surface-container transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="font-label-sm text-label-sm uppercase tracking-wider text-outline">Skarbiec Obsidian</span>
+            <span className="p-1 rounded-full bg-surface-container-high text-primary flex items-center justify-center">
+              <FolderTree className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="flex items-baseline gap-space-sm mt-space-md">
+            <span className="font-headline-xl text-headline-xl text-on-surface font-semibold">Vault Sync</span>
+            <span className="font-code-mono text-code-mono text-primary text-label-sm">Aktywny</span>
+          </div>
+          <div className="mt-space-sm flex items-center gap-space-xs">
+            <span className="font-code-mono text-code-mono text-label-sm text-outline">Ścieżka: informacje/osoby/</span>
+          </div>
+        </div>
+      </div>
+
       {/* Top Header & Actions Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
-        
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-black/40 rounded-xl border border-border">
+        {/* Navigation Tabs - macOS Sonoma Segmented Control */}
+        <div className="flex items-center p-1 rounded-xl bg-surface-container-lowest border border-white/[0.08]">
           <button
             onClick={() => setActiveTab('tree')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-code-mono text-xs transition-all ${
               activeTab === 'tree'
-                ? 'bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/40'
-                : 'text-textMuted hover:text-textPrimary hover:bg-white/5'
+                ? 'bg-surface-container-high text-primary font-bold shadow-sm'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
             }`}
           >
             <FolderTree className="w-3.5 h-3.5" />
@@ -291,10 +364,10 @@ export const EntityTreeView = () => {
           </button>
           <button
             onClick={() => setActiveTab('ascii')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-code-mono text-xs transition-all ${
               activeTab === 'ascii'
-                ? 'bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/40'
-                : 'text-textMuted hover:text-textPrimary hover:bg-white/5'
+                ? 'bg-surface-container-high text-primary font-bold shadow-sm'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
             }`}
           >
             <Terminal className="w-3.5 h-3.5" />
@@ -302,10 +375,10 @@ export const EntityTreeView = () => {
           </button>
           <button
             onClick={() => setActiveTab('json')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-code-mono text-xs transition-all ${
               activeTab === 'json'
-                ? 'bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/40'
-                : 'text-textMuted hover:text-textPrimary hover:bg-white/5'
+                ? 'bg-surface-container-high text-primary font-bold shadow-sm'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
             }`}
           >
             <Code className="w-3.5 h-3.5" />
@@ -318,7 +391,7 @@ export const EntityTreeView = () => {
           <button
             onClick={handleSyncObsidian}
             disabled={syncingObsidian}
-            className="bg-accentSecondary/20 text-accentSecondary border border-accentSecondary/40 hover:bg-accentSecondary hover:text-black font-mono font-bold text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm active:scale-95 disabled:opacity-50"
+            className="bg-secondary-container/30 text-secondary border border-secondary/40 hover:bg-secondary-container hover:text-on-surface font-code-mono font-bold text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm active:scale-95 disabled:opacity-50"
             title="Pobierz i zsynchronizuj bazę wiedzy z Obsidian Vault (informacje/osoby/)"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${syncingObsidian ? 'animate-spin' : ''}`} />
@@ -327,14 +400,14 @@ export const EntityTreeView = () => {
           <button
             onClick={fetchTree}
             disabled={loading}
-            className="p-2 bg-surface border border-border hover:border-accentPrimary/40 text-textMuted hover:text-textPrimary rounded-lg font-mono text-xs transition-colors flex items-center gap-1.5"
+            className="p-2 bg-surface-container border border-white/[0.08] hover:border-primary/40 text-on-surface-variant hover:text-on-surface rounded-lg font-code-mono text-xs transition-colors flex items-center gap-1.5"
             title="Odśwież dane"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-accentPrimary' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-primary' : ''}`} />
           </button>
           <button
             onClick={() => setShowAddModal(true)}
-            className="bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/40 hover:bg-accentPrimary hover:text-black font-mono font-bold text-xs px-3.5 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+            className="bg-primary text-on-primary font-code-mono font-bold text-xs px-3.5 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-[0_0_24px_rgba(173,198,255,0.25)] hover:bg-primary-fixed-dim active:scale-95"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>[+] DODAJ PODMIOT</span>
@@ -345,29 +418,29 @@ export const EntityTreeView = () => {
       {/* Stats Bar */}
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 shrink-0">
-          <div className="bg-black/30 border border-border/40 p-2.5 rounded-lg font-mono text-xs">
-            <span className="text-textMuted block text-[10px]">SUMA PODMIOTÓW:</span>
-            <span className="text-accentPrimary font-bold text-sm">{stats.total || 0}</span>
+          <div className="bg-surface-container-low border border-white/[0.08] p-2.5 rounded-lg font-code-mono text-xs">
+            <span className="text-outline block text-[10px]">SUMA PODMIOTÓW:</span>
+            <span className="text-primary font-bold text-sm">{stats.total || 0}</span>
           </div>
-          <div className="bg-black/30 border border-border/40 p-2.5 rounded-lg font-mono text-xs">
-            <span className="text-emerald-400/80 block text-[10px]">[KRAJE]:</span>
-            <span className="text-emerald-400 font-bold text-sm">{stats.byType?.COUNTRY || 0}</span>
+          <div className="bg-surface-container-low border border-white/[0.08] p-2.5 rounded-lg font-code-mono text-xs">
+            <span className="text-primary/80 block text-[10px]">[KRAJE]:</span>
+            <span className="text-primary font-bold text-sm">{stats.byType?.COUNTRY || 0}</span>
           </div>
-          <div className="bg-black/30 border border-border/40 p-2.5 rounded-lg font-mono text-xs">
-            <span className="text-blue-400/80 block text-[10px]">[REGIONY]:</span>
-            <span className="text-blue-400 font-bold text-sm">{stats.byType?.REGION || 0}</span>
+          <div className="bg-surface-container-low border border-white/[0.08] p-2.5 rounded-lg font-code-mono text-xs">
+            <span className="text-secondary/80 block text-[10px]">[REGIONY]:</span>
+            <span className="text-secondary font-bold text-sm">{stats.byType?.REGION || 0}</span>
           </div>
-          <div className="bg-black/30 border border-border/40 p-2.5 rounded-lg font-mono text-xs">
-            <span className="text-cyan-400/80 block text-[10px]">[MIASTA]:</span>
-            <span className="text-cyan-400 font-bold text-sm">{stats.byType?.CITY || 0}</span>
+          <div className="bg-surface-container-low border border-white/[0.08] p-2.5 rounded-lg font-code-mono text-xs">
+            <span className="text-tertiary/80 block text-[10px]">[MIASTA]:</span>
+            <span className="text-tertiary font-bold text-sm">{stats.byType?.CITY || 0}</span>
           </div>
-          <div className="bg-black/30 border border-border/40 p-2.5 rounded-lg font-mono text-xs">
-            <span className="text-amber-400/80 block text-[10px]">[ORGANIZACJE]:</span>
-            <span className="text-amber-400 font-bold text-sm">{stats.byType?.ORGANIZATION || 0}</span>
+          <div className="bg-surface-container-low border border-white/[0.08] p-2.5 rounded-lg font-code-mono text-xs">
+            <span className="text-secondary-fixed-dim/80 block text-[10px]">[ORGANIZACJE]:</span>
+            <span className="text-secondary-fixed-dim font-bold text-sm">{stats.byType?.ORGANIZATION || 0}</span>
           </div>
-          <div className="bg-black/30 border border-border/40 p-2.5 rounded-lg font-mono text-xs">
-            <span className="text-purple-400/80 block text-[10px]">[OSOBY]:</span>
-            <span className="text-purple-400 font-bold text-sm">{stats.byType?.PERSON || 0}</span>
+          <div className="bg-surface-container-low border border-white/[0.08] p-2.5 rounded-lg font-code-mono text-xs">
+            <span className="text-primary-container/80 block text-[10px]">[OSOBY]:</span>
+            <span className="text-primary-container font-bold text-sm">{stats.byType?.PERSON || 0}</span>
           </div>
         </div>
       )}
@@ -376,18 +449,18 @@ export const EntityTreeView = () => {
       {activeTab === 'tree' && (
         <div className="space-y-2 shrink-0">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-textMuted" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-outline" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filtruj podmioty (nazwa, rola, nick, status housing, ścieżka /polska/...)..."
-              className="w-full bg-surface border border-border rounded-lg pl-9 pr-4 py-2 font-mono text-xs text-textPrimary focus:outline-none focus:border-accentPrimary"
+              className="w-full bg-surface-container-lowest border border-white/[0.08] rounded-xl pl-9 pr-4 py-2 font-code-mono text-xs text-on-surface focus:outline-none focus:border-primary placeholder:text-outline"
             />
           </div>
 
-          <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar text-[11px] font-mono">
-            <span className="text-textMuted text-[10px] uppercase mr-1">FILTR:</span>
+          <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar text-[11px] font-code-mono">
+            <span className="text-outline text-[10px] uppercase mr-1">FILTR:</span>
             {[
               { id: 'ALL', label: 'Wszystkie [11]' },
               { id: 'CORE', label: 'Core [2]' },
@@ -400,15 +473,15 @@ export const EntityTreeView = () => {
                 onClick={() => setPresetFilter(p.id)}
                 className={`px-2.5 py-1 rounded-md border transition-all ${
                   presetFilter === p.id
-                    ? 'bg-accentPrimary/20 border-accentPrimary text-accentPrimary font-bold'
-                    : 'bg-black/30 border-border/50 text-textMuted hover:text-textPrimary hover:bg-white/5'
+                    ? 'bg-primary/20 border-primary text-primary font-bold'
+                    : 'bg-surface-container-lowest border-white/[0.06] text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
                 }`}
               >
                 {p.label}
               </button>
             ))}
             {syncMsg && (
-              <span className="ml-auto text-accentPrimary animate-pulse font-mono text-xs">
+              <span className="ml-auto text-primary animate-pulse font-code-mono text-xs">
                 {syncMsg}
               </span>
             )}
@@ -417,13 +490,13 @@ export const EntityTreeView = () => {
       )}
 
       {/* Main View Area */}
-      <div className="flex-1 overflow-hidden glass-panel border border-border rounded-xl p-4 flex flex-col bg-surface/80">
+      <div className="flex-1 overflow-hidden rounded-2xl border border-white/[0.08] p-4 flex flex-col bg-surface-container-low shadow-sm">
         
         {/* TAB 1: Graphical Hierarchical Tree View */}
         {activeTab === 'tree' && (
           <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-1">
             {filteredTree.length === 0 ? (
-              <div className="py-16 text-center font-mono text-xs text-textMuted">
+              <div className="py-16 text-center font-code-mono text-xs text-outline">
                 {searchQuery ? '[*] Brak podmiotów spełniających kryteria wyszukiwania.' : '[*] Brak zarejestrowanych podmiotów w bazie drzewa.'}
               </div>
             ) : (
@@ -448,19 +521,19 @@ export const EntityTreeView = () => {
         {/* TAB 2: Terminal ASCII View */}
         {activeTab === 'ascii' && (
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between pb-3 border-b border-border/40 shrink-0">
-              <span className="font-mono text-xs text-textMuted uppercase">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] shrink-0">
+              <span className="font-code-mono text-xs text-outline uppercase">
                 PODGLĄD KONSOLI SYSTEMOWEJ (TERMINAL ASCII RENDERER)
               </span>
               <button
                 onClick={handleCopyAscii}
-                className="flex items-center gap-1.5 px-3 py-1 bg-black/40 border border-border rounded font-mono text-xs text-textMuted hover:text-textPrimary hover:border-accentPrimary transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1 bg-surface-container border border-white/[0.08] rounded-lg font-code-mono text-xs text-on-surface-variant hover:text-on-surface hover:border-primary transition-colors"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-accentPrimary" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? <Check className="w-3.5 h-3.5 text-primary" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copied ? '[OK] SKOPIOWANO' : '[>] KOPIUJ'}</span>
               </button>
             </div>
-            <pre className="flex-1 overflow-y-auto custom-scrollbar font-mono text-xs text-emerald-400 bg-black/60 p-4 rounded-lg mt-3 border border-border/40 whitespace-pre">
+            <pre className="flex-1 overflow-y-auto custom-scrollbar font-code-mono text-xs text-primary bg-surface-container-lowest p-4 rounded-xl mt-3 border border-white/[0.08] whitespace-pre">
               {asciiData || '[*] Brak danych podglądu ASCII.'}
             </pre>
           </div>
@@ -469,8 +542,8 @@ export const EntityTreeView = () => {
         {/* TAB 3: Structured JSON View */}
         {activeTab === 'json' && (
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between pb-3 border-b border-border/40 shrink-0">
-              <span className="font-mono text-xs text-textMuted uppercase">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] shrink-0">
+              <span className="font-code-mono text-xs text-outline uppercase">
                 PEŁNA STRUKTURA OBIEKTOWA DRZEWA (JSON TREE FORMAT)
               </span>
               <button
@@ -479,13 +552,13 @@ export const EntityTreeView = () => {
                   setCopied(true);
                   setTimeout(() => setCopied(false), 2000);
                 }}
-                className="flex items-center gap-1.5 px-3 py-1 bg-black/40 border border-border rounded font-mono text-xs text-textMuted hover:text-textPrimary hover:border-accentPrimary transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1 bg-surface-container border border-white/[0.08] rounded-lg font-code-mono text-xs text-on-surface-variant hover:text-on-surface hover:border-primary transition-colors"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-accentPrimary" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? <Check className="w-3.5 h-3.5 text-primary" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copied ? '[OK] SKOPIOWANO' : '[>] KOPIUJ JSON'}</span>
               </button>
             </div>
-            <pre className="flex-1 overflow-y-auto custom-scrollbar font-mono text-xs text-cyan-300 bg-black/60 p-4 rounded-lg mt-3 border border-border/40 whitespace-pre">
+            <pre className="flex-1 overflow-y-auto custom-scrollbar font-code-mono text-xs text-secondary bg-surface-container-lowest p-4 rounded-xl mt-3 border border-white/[0.08] whitespace-pre">
               {JSON.stringify(treeData, null, 2)}
             </pre>
           </div>

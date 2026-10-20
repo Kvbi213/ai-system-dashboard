@@ -181,14 +181,14 @@ const CommandPalette = () => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-start justify-center pt-24 px-4 animate-fade-in">
+    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-start justify-center pt-24 px-4 animate-fade-in">
       <div 
-        className="w-full max-w-xl bg-[#0e1015]/95 border border-white/15 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col animate-scale-in"
+        className="w-full max-w-xl bg-surface-container-low/95 border border-white/[0.08] rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col animate-scale-in"
         onClick={e => e.stopPropagation()}
       >
         {/* Input Bar */}
-        <div className="flex items-center gap-3 p-4 border-b border-white/10 bg-white/[0.02]">
-          <Search className="w-5 h-5 text-accentPrimary shrink-0" />
+        <div className="flex items-center gap-3 p-4 border-b border-white/[0.08] bg-surface-container-lowest/80">
+          <Search className="w-5 h-5 text-primary shrink-0" />
           
           {subMode ? (
             <form onSubmit={handleSubSubmit} className="flex-1 flex items-center">
@@ -198,7 +198,7 @@ const CommandPalette = () => {
                 value={subInput}
                 onChange={e => setSubInput(e.target.value)}
                 placeholder={subMode === 'quick_task' ? 'Wpisz treść zadania do zapisania...' : 'Wpisz treść szybkiej notatki...'}
-                className="w-full bg-transparent text-textPrimary text-sm font-mono outline-none placeholder:text-textMuted"
+                className="w-full bg-transparent text-on-surface text-sm font-code-mono outline-none placeholder:text-outline"
                 autoFocus
               />
             </form>
@@ -210,7 +210,7 @@ const CommandPalette = () => {
               onChange={e => { setQuery(e.target.value); setSelectedIndex(0); }}
               onKeyDown={handleKeyDown}
               placeholder="Wpisz polecenie lub szukaj modułu... (np. finanse, zadanie, motyw)"
-              className="w-full bg-transparent text-textPrimary text-sm font-mono outline-none placeholder:text-textMuted"
+              className="w-full bg-transparent text-on-surface text-sm font-code-mono outline-none placeholder:text-outline"
               autoFocus
             />
           )}
@@ -219,12 +219,12 @@ const CommandPalette = () => {
             {subMode && (
               <button 
                 onClick={() => setSubMode(null)} 
-                className="px-2 py-0.5 bg-white/10 hover:bg-white/20 text-textMuted hover:text-white rounded text-[11px] font-mono transition-colors"
+                className="px-2 py-0.5 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface rounded text-[11px] font-code-mono transition-colors"
               >
                 Cofnij
               </button>
             )}
-            <kbd className="px-1.5 py-0.5 bg-white/10 border border-white/10 text-[10px] font-mono text-textMuted rounded">
+            <kbd className="px-2 py-0.5 bg-surface-container-high border border-white/[0.08] text-[10px] font-code-mono text-outline rounded">
               ESC
             </kbd>
           </div>
@@ -232,17 +232,17 @@ const CommandPalette = () => {
 
         {/* Action List / Submode View */}
         {subMode ? (
-          <div className="p-5 text-xs font-mono text-textMuted flex flex-col gap-3">
-            <div className="flex items-center gap-2 text-accentPrimary font-semibold">
+          <div className="p-5 text-xs font-code-mono text-on-surface-variant flex flex-col gap-3">
+            <div className="flex items-center gap-2 text-primary font-semibold">
               <Plus className="w-4 h-4" />
               <span>{subMode === 'quick_task' ? 'Dodawanie zadania do synchronizacji chmurowej' : 'Tworzenie nowej notatki w chmurze'}</span>
             </div>
-            <p>Naciśnij <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-textPrimary">Enter</kbd>, aby zatwierdzić i natychmiast zsynchronizować wpis z bazą Firestore.</p>
+            <p>Naciśnij <kbd className="px-1.5 py-0.5 bg-surface-container-high border border-white/[0.08] rounded text-on-surface">Enter</kbd>, aby zatwierdzić i natychmiast zsynchronizować wpis z bazą Firestore.</p>
           </div>
         ) : (
           <div className="max-h-80 overflow-y-auto p-2 space-y-1 custom-scrollbar">
             {filtered.length === 0 ? (
-              <div className="text-center py-8 text-xs font-mono text-textMuted">
+              <div className="text-center py-8 text-xs font-code-mono text-outline">
                 Nie znaleziono pasujących poleceń.
               </div>
             ) : (
@@ -256,25 +256,25 @@ const CommandPalette = () => {
                     onMouseEnter={() => setSelectedIndex(idx)}
                     className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-all ${
                       isSelected 
-                        ? 'bg-accentPrimary/15 border border-accentPrimary/30 text-accentPrimary shadow-[0_0_15px_rgba(0,229,255,0.1)]' 
-                        : 'text-textPrimary hover:bg-white/5 border border-transparent'
+                        ? 'bg-surface-container-high border border-primary/40 text-primary shadow-sm' 
+                        : 'text-on-surface hover:bg-surface-container border border-transparent'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-lg border ${
-                        isSelected ? 'bg-accentPrimary/20 border-accentPrimary/40 text-accentPrimary' : 'bg-white/5 border-white/10 text-textMuted'
+                        isSelected ? 'bg-primary/20 border-primary/40 text-primary' : 'bg-surface-container border-white/[0.06] text-outline'
                       }`}>
                         <Icon className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="font-mono text-xs font-medium text-textPrimary">{action.label}</p>
-                        <span className="text-[10px] font-mono text-textMuted uppercase tracking-wider">{action.category}</span>
+                        <p className="font-code-mono text-xs font-medium text-on-surface">{action.label}</p>
+                        <span className="text-[10px] font-code-mono text-outline uppercase tracking-wider">{action.category}</span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
                       {isSelected && (
-                        <span className="text-[10px] font-mono flex items-center gap-1 text-accentPrimary">
+                        <span className="text-[10px] font-code-mono flex items-center gap-1 text-primary">
                           Wykonaj <CornerDownLeft className="w-3 h-3" />
                         </span>
                       )}
@@ -287,13 +287,13 @@ const CommandPalette = () => {
         )}
 
         {/* Footer */}
-        <div className="p-2.5 border-t border-white/10 bg-black/40 flex items-center justify-between text-[10px] font-mono text-textMuted px-4">
+        <div className="p-2.5 border-t border-white/[0.08] bg-surface-container-lowest flex items-center justify-between text-[10px] font-code-mono text-outline px-4">
           <div className="flex items-center gap-3">
-            <span>Nawigacja: <kbd className="px-1 bg-white/10 rounded">↑</kbd> <kbd className="px-1 bg-white/10 rounded">↓</kbd></span>
-            <span>Wybór: <kbd className="px-1 bg-white/10 rounded">Enter</kbd></span>
-            <span>Zamknij: <kbd className="px-1 bg-white/10 rounded">Esc</kbd></span>
+            <span>Nawigacja: <kbd className="px-1 bg-surface-container rounded">↑</kbd> <kbd className="px-1 bg-surface-container rounded">↓</kbd></span>
+            <span>Wybór: <kbd className="px-1 bg-surface-container rounded">Enter</kbd></span>
+            <span>Zamknij: <kbd className="px-1 bg-surface-container rounded">Esc</kbd></span>
           </div>
-          <span className="text-accentPrimary/70">OmniDash Engine v2.3.0</span>
+          <span className="text-primary font-medium">OmniDash Engine v3.0.0</span>
         </div>
       </div>
     </div>

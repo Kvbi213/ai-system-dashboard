@@ -22,7 +22,7 @@ const Toggle = ({ value, onChange }) => (
   <button
     type="button"
     onClick={() => onChange(!value)}
-    className={`w-14 h-8 rounded-full p-1 transition-colors flex items-center flex-shrink-0 ${value ? 'bg-accentPrimary' : 'bg-surface border border-border'}`}
+    className={`w-14 h-8 rounded-full p-1 transition-colors flex items-center flex-shrink-0 ${value ? 'bg-primary' : 'bg-surface-container-high border border-white/[0.08]'}`}
   >
     <div className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform ${value ? 'translate-x-6' : 'translate-x-0'}`} />
   </button>
@@ -1096,23 +1096,51 @@ const SettingsPage = () => {
   );
 
   return (
-    <div id="tour-settings" className="flex flex-col h-full gap-4 sm:gap-5 pb-20 md:pb-0">
-      <header className="glass-panel p-4 sm:p-5 rounded-xl border border-border flex items-center gap-3 sm:gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
-        <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
-          <Settings className="w-5 h-5 text-textPrimary" />
-        </div>
-        <div className="flex flex-col">
-          <nav aria-label="breadcrumb" className="flex items-center space-x-2 text-sm text-textMuted mb-0.5">
-            <span className="flex items-center text-base sm:text-lg font-medium text-textMuted/70">OmniDash</span>
-            <span className="shrink-0 text-base sm:text-lg font-medium text-textMuted/70">/</span>
-            <span className="flex items-center text-base sm:text-lg font-medium text-textPrimary">Ustawienia</span>
+    <div id="tour-settings" className="flex flex-col h-full overflow-y-auto p-2 sm:p-4 lg:p-6 pb-20 md:pb-6 space-y-space-md text-on-surface">
+      {/* Top Control Bar / Ambient Header */}
+      <section className="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md pb-space-sm border-b border-white/[0.08]">
+        <div className="space-y-space-xs">
+          <nav aria-label="breadcrumb" className="flex items-center gap-space-xs font-code-mono text-label-sm text-outline">
+            <span className="hover:text-primary transition-colors cursor-pointer">OmniDash</span>
+            <span className="text-outline-variant">/</span>
+            <span>System Management</span>
+            <span className="text-outline-variant">/</span>
+            <span className="text-primary font-medium">Ustawienia</span>
+            <span className="ml-2 px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-code-mono text-[10px] tracking-wide border border-white/[0.06]">
+              CONFIG v3.0.4
+            </span>
           </nav>
-          <p className="font-sans text-xs text-textMuted mt-0.5">Zaawansowana konfiguracja środowiska, motywów i nawigacji</p>
+          <h1 className="font-headline-xl text-headline-xl text-on-surface tracking-tight font-semibold">
+            Ustawienia i Konfiguracja Środowiskowa
+          </h1>
+          <p className="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+            Zarządzanie stanem jądra systemu, relacyjnymi tokenami dostępowymi, politykami izolacji węzłów oraz wizualną specyfikacją interfejsu.
+          </p>
         </div>
-      </header>
 
-      {/* TABS NAVIGATION */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 flex-shrink-0 touch-pan-x custom-scrollbar">
+        {/* Global Actions */}
+        <div className="flex items-center gap-space-sm shrink-0">
+          <button 
+            type="button"
+            onClick={resetToDefaults}
+            className="px-3.5 py-1.5 rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-xs border border-white/[0.08] flex items-center gap-1.5"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Resetuj do Domyślnych</span>
+          </button>
+          <button 
+            type="button"
+            onClick={saveSettings}
+            className="px-4 py-1.5 rounded-lg bg-primary text-on-primary font-label-md text-xs font-semibold flex items-center gap-1.5 shadow-[0_0_24px_rgba(173,198,255,0.25)] hover:bg-primary-fixed-dim transition-all"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Zapisz Konfigurację</span>
+          </button>
+        </div>
+      </section>
+
+      {/* TABS NAVIGATION - macOS Sonoma Segmented Control */}
+      <div className="flex items-center p-1 rounded-xl bg-surface-container-lowest border border-white/[0.08] overflow-x-auto custom-scrollbar shrink-0">
         {TABS.map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -1120,14 +1148,14 @@ const SettingsPage = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-mono text-xs font-bold transition-all border whitespace-nowrap active:scale-95 ${
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-code-mono text-xs transition-all whitespace-nowrap ${
                 isActive 
-                  ? 'bg-accentPrimary/10 border-accentPrimary text-accentPrimary shadow-[0_0_10px_rgba(var(--color-accent-primary),0.2)]' 
-                  : 'bg-surface border-border text-textMuted hover:text-textPrimary hover:border-border/80'
+                  ? 'bg-surface-container-high text-primary font-bold shadow-sm' 
+                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
               }`}
             >
-              <Icon className="w-4 h-4" />
-              {tab.label}
+              <Icon className="w-3.5 h-3.5" />
+              <span>{tab.label}</span>
             </button>
           );
         })}
@@ -1142,13 +1170,13 @@ const SettingsPage = () => {
           <div className="space-y-4 animate-soft-enter" style={{ animationDelay: '100ms' }}>
             
             {/* --- MOTYWY WIZUALNE (AESTHETIC PRESETS) --- */}
-            <section className="glass-panel p-5 rounded-xl border border-border">
-              <SectionHeader icon={Palette} title="Gotowe Motywy Wizualne (Stylistyka & Barwy)" />
-              <p className="text-xs text-textMuted mb-4 -mt-2">
-                Wybierz pełny preset estetyczny zmieniający kolory tła, obramowań, paneli oraz akcentów świetlnych w całym systemie:
+            <section className="rounded-2xl bg-surface-container-low border border-white/[0.08] p-space-md sm:p-space-lg shadow-sm">
+              <SectionHeader icon={Palette} title="Selektor Motywów Systemowych (Visual Kernel)" />
+              <p className="text-xs text-on-surface-variant mb-4 -mt-2 font-body-md">
+                Wybierz pełny preset estetyczny zmieniający kolory tła, obramowań, paneli oraz akcentów świetlnych w całym systemie (7 wariantów renderera UI):
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-space-md mb-5">
                 {THEME_PRESETS.map((preset) => {
                   const isCurrent = theme === preset.id;
                   return (
@@ -1156,37 +1184,43 @@ const SettingsPage = () => {
                       key={preset.id}
                       type="button"
                       onClick={() => applyThemePreset(preset)}
-                      className={`p-4 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between group ${
+                      className={`p-space-md rounded-xl text-left transition-all relative overflow-hidden flex flex-col justify-between group ${
                         isCurrent 
-                          ? 'border-accentPrimary shadow-[0_0_15px_rgba(var(--color-accent-primary),0.2)] bg-surface' 
-                          : 'border-border/60 hover:border-border bg-black/20 hover:bg-black/30'
+                          ? 'border border-primary/40 shadow-[0_0_24px_rgba(77,142,255,0.12)] bg-surface-container ring-1 ring-primary/40' 
+                          : 'border border-white/[0.08] hover:border-white/[0.2] bg-surface-container-low hover:bg-surface-container'
                       }`}
                     >
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-mono text-xs font-bold text-textPrimary flex items-center gap-1.5">
+                          <span className="font-headline-md text-sm font-semibold text-on-surface flex items-center gap-1.5">
                             {preset.name}
                           </span>
                           {isCurrent && (
-                            <span className="flex items-center gap-1 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-accentPrimary/20 text-accentPrimary border border-accentPrimary/30">
+                            <span className="flex items-center gap-1 text-[10px] font-code-mono font-bold px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30">
                               <Check className="w-3 h-3" /> AKTYWNY
                             </span>
                           )}
                         </div>
-                        <span className="text-[10px] font-mono text-accentPrimary block mb-1.5">{preset.tag}</span>
-                        <p className="text-[11px] text-textMuted leading-relaxed line-clamp-2 mb-4">{preset.desc}</p>
+                        <span className="text-[10px] font-code-mono text-primary block mb-1.5">{preset.tag}</span>
+                        <p className="text-[11px] text-on-surface-variant font-body-md leading-relaxed line-clamp-2 mb-4">{preset.desc}</p>
                       </div>
 
-                      {/* Swatch preview bar */}
-                      <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                      {/* Swatch preview frame */}
+                      <div className="w-full h-16 rounded-lg bg-surface-container-lowest p-2 flex flex-col justify-between mb-2 overflow-hidden border border-white/[0.04]">
                         <div className="flex items-center gap-1.5">
-                          <div className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: preset.bgPreview }} title="Tło" />
-                          <div className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: preset.surfacePreview }} title="Panele" />
-                          <div className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: preset.accentPreview }} title="Akcent" />
+                          <span className="w-2.5 h-2.5 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: preset.bgPreview }} title="Tło" />
+                          <span className="w-2.5 h-2.5 rounded-full border border-white/20" style={{ backgroundColor: preset.surfacePreview }} title="Panele" />
+                          <span className="w-2.5 h-2.5 rounded-full border border-white/20" style={{ backgroundColor: preset.accentPreview }} title="Akcent" />
                         </div>
-                        <span className="text-[10px] font-mono text-textMuted group-hover:text-textPrimary transition-colors">
-                          Wybierz →
-                        </span>
+                        <div className="flex items-end justify-between font-code-mono text-[9px] text-on-surface-variant">
+                          <span className="text-outline">{preset.id}</span>
+                          <span className="text-primary font-medium">{preset.accentHex}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-white/[0.06] text-outline font-code-mono text-[11px]">
+                        <span>Font: JetBrains Mono</span>
+                        <span className="text-primary group-hover:underline">Wybierz →</span>
                       </div>
                     </button>
                   );

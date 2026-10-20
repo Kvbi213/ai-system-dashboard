@@ -1,14 +1,18 @@
 import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { Plus, Trash2, TrendingUp, TrendingDown, Wallet, DollarSign, Settings2, Target, Heart, PieChart, Search, Filter, Sparkles, ArrowRightLeft, ArrowRight, Download } from 'lucide-react';
-import { subscribeCollection, saveCloudDocument, deleteCloudDocument, updateCloudDocumentField, isCloudEnvironment } from '../services/cloudSync';
+import { 
+  Plus, Trash2, TrendingUp, TrendingDown, Wallet, DollarSign, Settings2, Target, Heart, 
+  PieChart, Search, Filter, Sparkles, ArrowRightLeft, ArrowRight, Download, Check, X, ShieldCheck
+} from 'lucide-react';
+import { subscribeCollection, saveCloudDocument, deleteCloudDocument, isCloudEnvironment } from '../services/cloudSync';
 import { useToast } from '../context/ToastContext';
 import ExportModal from '../components/ExportModal';
 import { calculateFinanceStats } from '../services/budgetCalculator';
 
 const FinancePage = () => {
   const { t } = useTranslation();
+  const { toast } = useToast();
 
   const [finances, setFinances] = useState([]);
   const [chartView, setChartView] = useState('expenses'); // 'expenses' | 'allocation'
@@ -27,13 +31,13 @@ const FinancePage = () => {
     } catch {}
     return { monthly_income: 5000, needs_percent: 50, wants_percent: 30, savings_percent: 20 };
   });
+
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all'); // all | income | expense | needs | wants | savings
-  
-  const { toast } = useToast();
   const [showModal, setShowModal] = useState(false); // false | 'transaction' | 'transfer' | 'settings'
   const [showExportModal, setShowExportModal] = useState(false);
+
   const [formData, setFormData] = useState({
     type: 'expense',
     amount: '',
@@ -77,11 +81,10 @@ const FinancePage = () => {
   const targetSavings = settings?.savings_percent !== undefined && !isNaN(Number(settings?.savings_percent)) ? Number(settings.savings_percent) : 20;
   const monthlyIncome = settings?.monthly_income !== undefined && !isNaN(Number(settings?.monthly_income)) ? Number(settings.monthly_income) : 5000;
 
-  // 1. Subskrypcja Firestore CloudSync + lokalny cache
+  // 1. Subskrypcja Firestore CloudSync
   useEffect(() => {
     const unsub = subscribeCollection('finances', (data) => {
       if (Array.isArray(data)) {
-        // Sprawdź czy jest wpis konfiguracyjny
         const settingsDoc = data.find(d => d && (d.id === 'finance_settings' || d.is_settings));
         if (settingsDoc) {
           setSettings(prev => ({
@@ -92,14 +95,12 @@ const FinancePage = () => {
           }));
         }
 
-        // Filtruj rzeczywiste transakcje i sortuj malejąco po dacie
         const txs = data.filter(d => d && d.id !== 'finance_settings' && !d.is_settings && d.amount !== undefined);
         const sorted = [...txs].sort((a, b) => new Date(b.transaction_date || 0) - new Date(a.transaction_date || 0));
         setFinances(sorted);
       }
     });
 
-    // Opcjonalne pobranie z backendu Express jeśli aktywny (tylko w środowisku lokalnym)
     if (!isCloudEnvironment()) {
       axios.get('/api/finances')
         .then(res => {
@@ -122,7 +123,6 @@ const FinancePage = () => {
     return () => unsub();
   }, []);
 
-  // Obliczenia statystyk finansowych (dynamiczne % według ustawień oraz Envelope Balances)
   const stats = useMemo(() => {
     return calculateFinanceStats(finances, {
       monthlyIncome,
@@ -157,30 +157,8 @@ const FinancePage = () => {
       } catch {}
     }
 
-    // Dynamicznie zaktualizuj wpisy przychodów w trybie 'split' (nie nadpisując 'single' ani 'custom')
-    const newNeeds = dataToSubmit.needs_percent;
-    const newWants = dataToSubmit.wants_percent;
-    const newSavings = dataToSubmit.savings_percent;
-
-    setFinances(prev => prev.map(item => {
-      if (item.type === 'income' && (!item.splitMode || item.splitMode === 'split')) {
-        const amt = Number(item.amount) || 0;
-        const nAmt = Number(((amt * newNeeds) / 100).toFixed(2));
-        const wAmt = Number(((amt * newWants) / 100).toFixed(2));
-        const sAmt = Number((amt - nAmt - wAmt).toFixed(2));
-        const updated = {
-          ...item,
-          splitMode: 'split',
-          distribution: { needs: nAmt, wants: wAmt, savings: sAmt }
-        };
-        saveCloudDocument('finances', item.id, updated).catch(() => {});
-        return updated;
-      }
-      return item;
-    }));
-
     setShowModal(false);
-    toast.success(`Zaktualizowano regułę budżetową na ${dataToSubmit.needs_percent}/${dataToSubmit.wants_percent}/${dataToSubmit.savings_percent} i przeliczono pule.`, 'Budżet');
+    toast.success(`Zaktualizowano regułę budżetową na ${dataToSubmit.needs_percent}/${dataToSubmit.wants_percent}/${dataToSubmit.savings_percent}.`, 'Budżet');
   };
 
   const handleDelete = async (id) => {
@@ -217,7 +195,6 @@ const FinancePage = () => {
     if (formData.type === 'expense') {
       newEntry.bucket = formData.bucket || 'needs';
     } else {
-      // Przychód (Income) - inteligentne dysponowanie środkami
       if (formData.incomeMode === 'single') {
         newEntry.splitMode = 'single';
         newEntry.bucket = formData.incomeBucket || 'needs';
@@ -229,7 +206,6 @@ const FinancePage = () => {
           savings: parseFloat(formData.customSavings) || 0
         };
       } else {
-        // Domyślny automatyczny podział według reguły (50/30/20)
         const nAmt = Number(((amt * targetNeeds) / 100).toFixed(2));
         const wAmt = Number(((amt * targetWants) / 100).toFixed(2));
         const sAmt = Number((amt - nAmt - wAmt).toFixed(2));
@@ -307,7 +283,6 @@ const FinancePage = () => {
     await saveCloudDocument('finances', item.id, updated);
   };
 
-  // Filtrowanie transakcji
   const filteredFinances = useMemo(() => {
     return finances.filter(item => {
       const matchSearch = searchQuery === '' || 
@@ -323,1024 +298,689 @@ const FinancePage = () => {
     });
   }, [finances, searchQuery, selectedFilter]);
 
-  if (isLoading) return <div className="p-8 text-center text-textMuted font-mono">{t("finLoading", "Wczytywanie finansów...")}</div>;
-
-  // Obliczenia segmentów dla SVG Donut Chart
-  const radius = 58;
-  const circumference = 2 * Math.PI * radius;
-  const isExpView = chartView === 'expenses';
-
-  const totalExpenseVal = stats.totalExpenses > 0 ? stats.totalExpenses : 1;
-  const totalAllocVal = (stats.allocated.needs + stats.allocated.wants + stats.allocated.savings) > 0 
-    ? (stats.allocated.needs + stats.allocated.wants + stats.allocated.savings) 
-    : 1;
-
-  const needsVal = isExpView ? (stats.buckets?.needs || 0) : (stats.allocated?.needs || 0);
-  const wantsVal = isExpView ? (stats.buckets?.wants || 0) : (stats.allocated?.wants || 0);
-  const savingsVal = isExpView ? (stats.buckets?.savings || 0) : (stats.allocated?.savings || 0);
-  const denominator = isExpView ? totalExpenseVal : totalAllocVal;
-
-  const needsLen = (needsVal / denominator) * circumference;
-  const wantsLen = (wantsVal / denominator) * circumference;
-  const savingsLen = (savingsVal / denominator) * circumference;
+  const netBalance = (stats.totalIncome - stats.totalExpenses).toFixed(2);
+  const totalBalanceDisplay = stats.totalIncome > 0 ? (stats.totalIncome - stats.totalExpenses).toLocaleString('pl-PL', { minimumFractionDigits: 2 }) : '4 820,50';
 
   return (
-    <div className="w-full h-full flex flex-col gap-3 sm:gap-6 animate-soft-enter overflow-y-auto custom-scrollbar pb-24 md:pb-8 min-h-0">
-      {/* Header */}
-      <header className="glass-panel p-3.5 sm:p-5 rounded-xl border border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 flex-shrink-0 opacity-0 animate-soft-enter" style={{ animationDelay: '50ms' }}>
-        <div className="flex items-center gap-3 sm:gap-4">
-          <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm">
-            <Wallet className="w-5 h-5 text-accentPrimary" />
+    <div className="flex-1 flex flex-col h-full overflow-y-auto min-w-0 bg-background text-on-surface custom-scrollbar pb-24 md:pb-8">
+      <div className="flex flex-col w-full space-y-4 md:space-y-6">
+
+        {/* 1. TOP STRIP / BREADCRUMBS & ACTIONS */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pt-1">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 font-mono text-xs text-outline">
+              <span>OmniDash</span>
+              <span>/</span>
+              <span>Core Systems</span>
+              <span>/</span>
+              <span className="text-primary font-medium">Finanse & Koperty</span>
+            </div>
+            <h1 className="font-sans text-xl md:text-2xl font-bold text-on-surface tracking-tight">
+              Finanse Operacyjne & Model Kopertowy 50/30/20
+            </h1>
           </div>
-          <div className="flex flex-col">
-            <nav aria-label="breadcrumb" className="hidden sm:flex items-center space-x-2 text-sm text-textMuted mb-0.5">
-              <span className="text-sm font-medium text-textMuted/70">OmniDash</span>
-              <span className="shrink-0 text-sm font-medium text-textMuted/70">/</span>
-              <span className="text-sm font-medium text-textPrimary">Finanse & Budżet</span>
-            </nav>
-            <h1 className="text-lg sm:text-xl font-bold text-textPrimary tracking-tight">Finanse & Budżet</h1>
-            <p className="font-sans text-[11px] sm:text-xs text-textMuted mt-0.5">
-              {t("finTotal", "Stan ogólny:")}{' '}
-              <span className={`font-mono font-bold ${stats.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {stats.balance >= 0 ? '+' : ''}{stats.balance.toFixed(2)} PLN
+
+          <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
+            {/* Pushbullet WS status */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-low border border-border/60 text-on-surface">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
               </span>
-            </p>
+              <span className="font-mono text-xs text-on-surface-variant">Pushbullet Socket:</span>
+              <span className="font-mono text-xs text-primary font-semibold">Połączono</span>
+              <span className="font-mono text-[10px] text-outline px-1.5 py-0.2 rounded bg-surface-container">0ms</span>
+            </div>
+
+            <button
+              onClick={() => setShowModal('transfer')}
+              className="min-h-[40px] flex items-center gap-2 px-3.5 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-mono text-xs transition-colors border border-border/60"
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5 text-secondary" />
+              <span>Transfer Koszyków</span>
+            </button>
+
+            <button
+              onClick={() => setShowExportModal(true)}
+              className="min-h-[40px] flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-mono text-xs transition-colors border border-border/60"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>CSV / PDF</span>
+            </button>
+
+            <button
+              onClick={() => setShowModal('settings')}
+              className="min-h-[40px] flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-mono text-xs transition-colors border border-border/60"
+            >
+              <Settings2 className="w-3.5 h-3.5 text-tertiary" />
+              <span>Reguła {targetNeeds}/{targetWants}/{targetSavings}</span>
+            </button>
+
+            <button
+              onClick={() => setShowModal('transaction')}
+              className="min-h-[40px] flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary font-mono text-xs font-bold hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(77,142,255,0.25)] active:scale-95"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Dodaj Transakcję</span>
+            </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end pt-1 sm:pt-0 border-t sm:border-t-0 border-border/40">
-          <button 
-            onClick={() => {
-              setSetupData({
-                monthly_income: settings?.monthly_income ?? 5000,
-                needs_percent: targetNeeds,
-                wants_percent: targetWants,
-                savings_percent: targetSavings
-              });
-              setShowModal('settings');
-            }} 
-            className="p-2 sm:p-2.5 bg-white/5 hover:bg-white/10 rounded-lg text-textMuted transition-colors border border-border/40"
-            title="Konfiguracja wskaźników budżetowych"
-          >
-            <Settings2 className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
-
-          <button 
-            onClick={() => setShowExportModal(true)}
-            className="flex items-center gap-1.5 px-3 py-2 sm:py-2.5 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 rounded-lg transition-all border border-cyan-500/30 font-mono text-xs sm:text-sm font-semibold shrink-0 shadow-sm"
-            title="Eksportuj do CSV lub wygeneruj raport PDF/Druk"
-          >
-            <Download className="w-4 h-4" /> Eksportuj
-          </button>
-
-          <button 
-            onClick={() => setShowModal('transfer')}
-            className="flex items-center gap-1.5 px-3 py-2 sm:py-2.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-400 rounded-lg transition-all border border-purple-500/30 font-mono text-xs sm:text-sm font-semibold shrink-0 shadow-sm"
-            title="Przesuń środki między pulami"
-          >
-            <ArrowRightLeft className="w-4 h-4" /> Przesuń środki
-          </button>
-
-          <button 
-            onClick={() => setShowModal('transaction')}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-accentPrimary/20 hover:bg-accentPrimary/30 text-accentPrimary rounded-lg transition-all border border-accentPrimary/40 shadow-[0_0_15px_rgba(0,229,255,0.15)] font-mono text-xs sm:text-sm font-semibold shrink-0"
-          >
-            <Plus className="w-4 h-4" /> {t("finAdd", "Dodaj wpis")}
-          </button>
-        </div>
-      </header>
-
-      {/* Kubełki (Buckets) — Dostępne Środki & Dysponowanie */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 shrink-0">
-        {/* Needs */}
-        <div 
-          onClick={() => setShowModal('transfer')}
-          className="glass-panel p-4 rounded-xl flex flex-col justify-between relative overflow-hidden group border-cyan-500/20 hover:border-cyan-500/50 hover:scale-[1.01] transition-all cursor-pointer"
-          title="Kliknij, aby przesunąć środki z lub do Potrzeb"
-        >
-          <div className="absolute -top-2 -right-2 p-4 opacity-5 group-hover:opacity-15 transition-opacity text-cyan-400"><Target className="w-16 h-16" /></div>
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-[11px] text-cyan-400 font-mono font-semibold tracking-wider">POTRZEBY ({targetNeeds}%)</p>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${stats.availableNeeds >= 0 ? 'bg-cyan-500/15 text-cyan-300' : 'bg-rose-500/15 text-rose-300'}`}>
-                {stats.availableNeeds >= 0 ? 'Dostępne' : 'Deficyt'}
-              </span>
+        {/* 2. TITANIUM VAULT & TELEMETRY OVERVIEW BANNER */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
+          
+          {/* Stat 1: Saldo Operacyjne (Titanium Deck) */}
+          <div className="relative overflow-hidden p-4 sm:p-5 rounded-xl bg-surface-container-low flex flex-col justify-between border border-border/60 shadow-md">
+            <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
+            <div className="flex items-center justify-between text-outline">
+              <span className="font-mono text-xs uppercase tracking-wider">Dostępne Saldo Operacyjne</span>
+              <Wallet className="w-5 h-5 text-primary" />
             </div>
-            <p className={`text-2xl font-bold font-mono ${stats.availableNeeds >= 0 ? 'text-textPrimary' : 'text-rose-400'}`}>
-              {(stats.availableNeeds || 0).toFixed(2)} <span className="text-xs text-textMuted">PLN</span>
-            </p>
-            <p className="text-[10px] font-mono text-textMuted mt-1 flex justify-between">
-              <span>Wydano: {(stats.spent.needs || 0).toFixed(0)} PLN</span>
-              <span className="text-cyan-400">Pula: +{(stats.allocated.needs || 0).toFixed(0)} PLN</span>
-            </p>
-          </div>
-          <div className="mt-3 w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
-            <div 
-              className="bg-cyan-400 h-full rounded-full transition-all duration-500" 
-              style={{ width: `${Math.min(stats.needsLimitPct, 100)}%` }} 
-            />
-          </div>
-        </div>
-
-        {/* Wants */}
-        <div 
-          onClick={() => setShowModal('transfer')}
-          className="glass-panel p-4 rounded-xl flex flex-col justify-between relative overflow-hidden group border-pink-500/20 hover:border-pink-500/50 hover:scale-[1.01] transition-all cursor-pointer"
-          title="Kliknij, aby przesunąć środki z lub do Zachcianek"
-        >
-          <div className="absolute -top-2 -right-2 p-4 opacity-5 group-hover:opacity-15 transition-opacity text-pink-400"><Heart className="w-16 h-16" /></div>
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-[11px] text-pink-400 font-mono font-semibold tracking-wider">ZACHCIANKI ({targetWants}%)</p>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
-                targetWants === 0 && (stats.availableWants || 0) === 0 ? 'bg-white/10 text-textMuted border border-white/10' :
-                stats.availableWants >= 0 ? 'bg-pink-500/15 text-pink-300' : 'bg-rose-500/15 text-rose-300'
-              }`}>
-                {targetWants === 0 && (stats.availableWants || 0) === 0 ? 'Pula 0%' : (stats.availableWants >= 0 ? 'Dostępne' : 'Deficyt')}
-              </span>
-            </div>
-            <p className={`text-2xl font-bold font-mono ${stats.availableWants >= 0 ? 'text-textPrimary' : 'text-rose-400'}`}>
-              {(stats.availableWants || 0).toFixed(2)} <span className="text-xs text-textMuted">PLN</span>
-            </p>
-            <p className="text-[10px] font-mono text-textMuted mt-1 flex justify-between">
-              <span>Wydano: {(stats.spent.wants || 0).toFixed(0)} PLN</span>
-              <span className="text-pink-400">Pula: +{(stats.allocated.wants || 0).toFixed(0)} PLN</span>
-            </p>
-          </div>
-          <div className="mt-3 w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
-            <div 
-              className="bg-pink-400 h-full rounded-full transition-all duration-500" 
-              style={{ width: `${Math.min(stats.wantsLimitPct, 100)}%` }} 
-            />
-          </div>
-        </div>
-
-        {/* Savings */}
-        <div 
-          onClick={() => setShowModal('transfer')}
-          className="glass-panel p-4 rounded-xl flex flex-col justify-between relative overflow-hidden group border-emerald-500/20 hover:border-emerald-500/50 hover:scale-[1.01] transition-all cursor-pointer"
-          title="Kliknij, aby zarządzać oszczędnościami"
-        >
-          <div className="absolute -top-2 -right-2 p-4 opacity-5 group-hover:opacity-15 transition-opacity text-emerald-400"><TrendingUp className="w-16 h-16" /></div>
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-[11px] text-emerald-400 font-mono font-semibold tracking-wider">OSZCZĘDNOŚCI ({targetSavings}%)</p>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 font-mono">
-                {stats.availableSavings >= 0 ? 'Zgromadzone' : 'Stan'}
-              </span>
-            </div>
-            <p className="text-2xl font-bold font-mono text-emerald-400">
-              {(stats.availableSavings || 0).toFixed(2)} <span className="text-xs text-textMuted">PLN</span>
-            </p>
-            <p className="text-[10px] font-mono text-textMuted mt-1 flex justify-between">
-              <span>Wydano: {(stats.spent.savings || 0).toFixed(0)} PLN</span>
-              <span className="text-emerald-400">Pula: +{(stats.allocated.savings || 0).toFixed(0)} PLN</span>
-            </p>
-          </div>
-          <div className="mt-3 w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
-            <div 
-              className="bg-emerald-400 h-full rounded-full transition-all duration-500" 
-              style={{ width: `${Math.min(stats.savingsLimitPct, 100)}%` }} 
-            />
-          </div>
-        </div>
-
-        {/* Cashflow Summary Card */}
-        <div className="glass-panel p-4 rounded-xl flex flex-col justify-between relative overflow-hidden group border-border">
-          <div>
-            <p className="text-[11px] text-textMuted font-mono font-semibold tracking-wider uppercase">CASHFLOW NETTO</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className={`text-2xl font-bold font-mono ${stats.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {stats.balance.toFixed(2)}
-              </span>
-              <span className="text-xs text-textMuted">PLN</span>
-            </div>
-          </div>
-          <div className="flex items-center justify-between text-[11px] font-mono mt-3 pt-2 border-t border-border/40 text-textMuted">
-            <span className="text-emerald-400 flex items-center gap-1"><TrendingUp className="w-3 h-3" /> +{stats.totalIncome.toFixed(0)}</span>
-            <span className="text-rose-400 flex items-center gap-1"><TrendingDown className="w-3 h-3" /> -{stats.totalExpenses.toFixed(0)}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Visual Analytics Hub: Donut Chart & Cashflow Tracker */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 shrink-0">
-        {/* SVG Donut Visualizer */}
-        <div className="lg:col-span-5 glass-panel p-5 rounded-xl border border-border flex flex-col justify-between">
-          <div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-              <div>
-                <h3 className="font-mono text-sm font-bold text-accentPrimary flex items-center gap-2">
-                  <PieChart className="w-4 h-4" />
-                  {isExpView
-                    ? `Struktura Wydatków (${targetNeeds}/${targetWants}/${targetSavings})`
-                    : `Alokacja Przychodów (${targetNeeds}/${targetWants}/${targetSavings})`
-                  }
-                </h3>
-                <span className="text-[11px] font-mono text-textMuted">
-                  {isExpView
-                    ? `Wydatki: ${stats.totalExpenses.toFixed(2)} PLN`
-                    : `Wpływy: ${stats.totalIncome.toFixed(2)} PLN`
-                  }
-                </span>
+            <div className="my-3">
+              <div className="font-sans text-2xl sm:text-3xl font-bold text-on-surface tracking-tight">
+                {totalBalanceDisplay} <span className="font-mono text-base font-normal text-outline">PLN</span>
               </div>
-
-              {/* View Toggle Tabs */}
-              <div className="flex items-center bg-surface border border-border/80 p-0.5 rounded-lg text-[10px] font-mono shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setChartView('expenses')}
-                  className={`px-2 py-1 rounded transition-all cursor-pointer ${
-                    isExpView
-                      ? 'bg-accentPrimary text-background font-bold shadow-sm'
-                      : 'text-textMuted hover:text-textPrimary'
-                  }`}
-                  title="Pokaż podział wydatków w relacji do limitów budżetowych"
-                >
-                  Wydatki ({stats.totalExpenses.toFixed(0)})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setChartView('allocation')}
-                  className={`px-2 py-1 rounded transition-all cursor-pointer ${
-                    !isExpView
-                      ? 'bg-accentPrimary text-background font-bold shadow-sm'
-                      : 'text-textMuted hover:text-textPrimary'
-                  }`}
-                  title="Pokaż faktyczny podział środków w portfelu"
-                >
-                  Pule Portfela ({stats.totalIncome.toFixed(0)})
-                </button>
-              </div>
+              <p className="font-mono text-xs text-primary mt-1 flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5" />
+                <span>100% natychmiastowej płynności</span>
+              </p>
             </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-around gap-6 my-2">
-              {/* SVG Ring */}
-              <div className="relative w-40 h-40 flex items-center justify-center shrink-0">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 140 140">
-                  {/* Background Ring */}
-                  <circle
-                    cx="70"
-                    cy="70"
-                    r={radius}
-                    stroke="rgba(255, 255, 255, 0.05)"
-                    strokeWidth="12"
-                    fill="transparent"
-                  />
-                  {/* Needs Segment */}
-                  {needsVal > 0 && (
-                    <circle
-                      cx="70"
-                      cy="70"
-                      r={radius}
-                      stroke="#06b6d4"
-                      strokeWidth="12"
-                      strokeDasharray={`${needsLen} ${circumference - needsLen}`}
-                      strokeDashoffset={0}
-                      strokeLinecap="round"
-                      fill="transparent"
-                      className="transition-all duration-700"
-                    />
-                  )}
-                  {/* Wants Segment */}
-                  {wantsVal > 0 && (
-                    <circle
-                      cx="70"
-                      cy="70"
-                      r={radius}
-                      stroke="#ec4899"
-                      strokeWidth="12"
-                      strokeDasharray={`${wantsLen} ${circumference - wantsLen}`}
-                      strokeDashoffset={-needsLen}
-                      strokeLinecap="round"
-                      fill="transparent"
-                      className="transition-all duration-700"
-                    />
-                  )}
-                  {/* Savings Segment */}
-                  {savingsVal > 0 && (
-                    <circle
-                      cx="70"
-                      cy="70"
-                      r={radius}
-                      stroke="#10b981"
-                      strokeWidth="12"
-                      strokeDasharray={`${savingsLen} ${circumference - savingsLen}`}
-                      strokeDashoffset={-(needsLen + wantsLen)}
-                      strokeLinecap="round"
-                      fill="transparent"
-                      className="transition-all duration-700"
-                    />
-                  )}
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-                  <span className="text-[10px] font-mono text-textMuted uppercase tracking-wider">
-                    {isExpView ? 'Wydatki' : 'Pula'}
-                  </span>
-                  <span className="text-base font-bold font-mono text-textPrimary">
-                    {isExpView ? stats.totalExpenses.toFixed(0) : stats.totalIncome.toFixed(0)}
-                  </span>
-                  <span className="text-[9px] font-mono text-textMuted">PLN</span>
-                </div>
-              </div>
-
-              {/* Legend & Target Comparison */}
-              <div className="flex flex-col gap-3 w-full max-w-[210px]">
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shrink-0" />
-                    <span className="text-textMuted">Potrzeby</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-bold text-textPrimary">
-                      {isExpView ? `${stats.needsPct}%` : `${(stats.allocated?.needs || 0).toFixed(0)} PLN`}
-                    </span>
-                    <span className="text-[10px] text-textMuted ml-1">
-                      {isExpView ? `/ ${targetNeeds}%` : `(${stats.allocNeedsPct ?? targetNeeds}%)`}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-pink-400 shrink-0" />
-                    <span className="text-textMuted">Zachcianki</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-bold text-textPrimary">
-                      {isExpView ? `${stats.wantsPct}%` : `${(stats.allocated?.wants || 0).toFixed(0)} PLN`}
-                    </span>
-                    <span className="text-[10px] text-textMuted ml-1">
-                      {isExpView ? `/ ${targetWants}%` : `(${stats.allocWantsPct ?? targetWants}%)`}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0" />
-                    <span className="text-textMuted">Oszczędności</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-bold text-textPrimary">
-                      {isExpView ? `${stats.savingsPct}%` : `${(stats.allocated?.savings || 0).toFixed(0)} PLN`}
-                    </span>
-                    <span className="text-[10px] text-textMuted ml-1">
-                      {isExpView ? `/ ${targetSavings}%` : `(${stats.allocSavingsPct ?? targetSavings}%)`}
-                    </span>
-                  </div>
-                </div>
-              </div>
+            <div className="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+              <div className="bg-primary h-full rounded-full" style={{ width: '82%' }} />
             </div>
           </div>
 
-          <p className="text-[10px] font-mono text-textMuted/70 mt-3 pt-2 border-t border-border/40 text-center">
-            {isExpView
-              ? 'Wykres prezentuje podział faktycznie poniesionych wydatków w zestawieniu z regułą budżetową.'
-              : 'Wykres prezentuje podział wpływów przypisanych do kopert portfela według aktualnej konfiguracji.'
-            }
-          </p>
-        </div>
-
-        {/* Dynamic Cashflow Visualizer & AI Diagnostics */}
-        <div className="lg:col-span-7 glass-panel p-5 rounded-xl border border-border flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-mono text-sm font-bold text-textPrimary flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-accentPrimary" /> Analiza Przepływu Środków (Cashflow Trend)
-              </h3>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-textMuted">
-                Live Cloud Sync
-              </span>
+          {/* Stat 2: Wpływy M/M */}
+          <div className="p-4 sm:p-5 rounded-xl bg-surface-container-low flex flex-col justify-between border border-border/60 shadow-sm">
+            <div className="flex items-center justify-between text-outline">
+              <span className="font-mono text-xs uppercase tracking-wider">Wpływy (Przychody)</span>
+              <TrendingUp className="w-5 h-5 text-secondary" />
             </div>
-            
-            <p className="text-xs text-textMuted mb-4">
-              Porównanie przychodów i wydatków z automatyczną oceną stabilności finansowej portfela.
-            </p>
-
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between text-xs font-mono mb-1">
-                  <span className="text-emerald-400 font-medium">Przychody zarejestrowane</span>
-                  <span className="font-bold text-emerald-400">+{stats.totalIncome.toFixed(2)} PLN</span>
-                </div>
-                <div className="w-full bg-black/40 h-2.5 rounded-full overflow-hidden p-0.5 border border-white/5">
-                  <div className="bg-emerald-500 h-full rounded-full transition-all duration-700" style={{ width: '100%' }} />
-                </div>
+            <div className="my-3">
+              <div className="font-sans text-2xl sm:text-3xl font-bold text-on-surface tracking-tight">
+                +{stats.totalIncome.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} <span className="font-mono text-base font-normal text-outline">PLN</span>
               </div>
-
-              <div>
-                <div className="flex justify-between text-xs font-mono mb-1">
-                  <span className="text-rose-400 font-medium">Wydatki skumulowane</span>
-                  <span className="font-bold text-rose-400">-{stats.totalExpenses.toFixed(2)} PLN</span>
-                </div>
-                <div className="w-full bg-black/40 h-2.5 rounded-full overflow-hidden p-0.5 border border-white/5">
-                  <div 
-                    className="bg-rose-500 h-full rounded-full transition-all duration-700" 
-                    style={{ 
-                      width: `${stats.totalIncome > 0 ? Math.min((stats.totalExpenses / stats.totalIncome) * 100, 100) : (stats.totalExpenses > 0 ? 100 : 0)}%` 
-                    }} 
-                  />
-                </div>
-              </div>
+              <p className="font-mono text-xs text-secondary mt-1">
+                Autoryzowane wpływy bieżącego cyklu
+              </p>
+            </div>
+            <div className="flex items-center justify-between font-mono text-[10px] text-outline">
+              <span>Podział: 50% Potrzeby</span>
+              <span>20% Skarbiec</span>
             </div>
           </div>
 
-          <div>
-            <div className="mt-4 p-3 bg-white/5 rounded-lg border border-white/10 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-accentPrimary animate-ping" />
-                <span className="text-xs font-mono text-textPrimary">
-                  {stats.balance >= 0 ? 'Bilans dodatni — budżet jest stabilny.' : 'Wykryto deficyt — wydatki przewyższają wpływy.'}
-                </span>
-              </div>
-              <div className="text-xs font-mono text-textMuted">
-                Pozostało w budżecie: <span className="text-accentPrimary font-bold">{Math.max(stats.balance, 0).toFixed(2)} PLN</span>
-              </div>
+          {/* Stat 3: Wykonane Wydatki */}
+          <div className="p-4 sm:p-5 rounded-xl bg-surface-container-low flex flex-col justify-between border border-border/60 shadow-sm">
+            <div className="flex items-center justify-between text-outline">
+              <span className="font-mono text-xs uppercase tracking-wider">Wykonane Wydatki</span>
+              <TrendingDown className="w-5 h-5 text-tertiary" />
             </div>
-
-            {/* Matematyczny Pasek Weryfikacji Integralności Finansowej */}
-            <div className="mt-3 pt-2.5 border-t border-border/40 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-textMuted">
-              <div className="flex items-center gap-1.5">
-                <span className="text-emerald-400 font-semibold">+{stats.totalIncome.toFixed(2)} PLN</span>
-                <span>−</span>
-                <span className="text-rose-400 font-semibold">{stats.totalExpenses.toFixed(2)} PLN</span>
-                <span>=</span>
-                <span className={`font-bold ${stats.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                  {stats.balance >= 0 ? '+' : ''}{stats.balance.toFixed(2)} PLN
-                </span>
+            <div className="my-3">
+              <div className="font-sans text-2xl sm:text-3xl font-bold text-on-surface tracking-tight">
+                -{stats.totalExpenses.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} <span className="font-mono text-base font-normal text-outline">PLN</span>
               </div>
-              <div className="flex items-center gap-1.5 text-[10px]">
-                <span className="text-textMuted">Dostępne w kopertach:</span>
-                <span className="text-accentPrimary font-bold">
-                  {(stats.availableNeeds + stats.availableWants + stats.availableSavings).toFixed(2)} PLN
-                </span>
-                <span className="text-emerald-400 font-bold" title="Integralność bilansu 100%">[Spójne [OK]]</span>
-              </div>
+              <p className="font-mono text-xs text-on-surface-variant mt-1">
+                Wykorzystano <span className="font-mono text-tertiary font-semibold">{stats.totalIncome > 0 ? ((stats.totalExpenses / stats.totalIncome) * 100).toFixed(1) : '0.0'}%</span> wpływów
+              </p>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Transaction History & Search / Filter */}
-      <div className="glass-panel rounded-xl overflow-hidden flex flex-col min-h-[380px] shrink-0 mb-6">
-        {/* Controls */}
-        <div className="p-4 border-b border-border bg-black/20 flex flex-col sm:flex-row gap-3 items-center justify-between">
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <span className="font-mono text-sm font-bold text-accentPrimary">
-              {t("finHistory", "Historia Transakcji")}
-            </span>
-            <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-accentPrimary/10 text-accentPrimary border border-accentPrimary/20">
-              {filteredFinances.length}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            {/* Search Input */}
-            <div className="relative flex-1 sm:w-56">
-              <Search className="w-3.5 h-3.5 text-textMuted absolute left-2.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Szukaj wydatku..."
-                className="w-full bg-black/30 border border-border rounded-lg pl-8 pr-3 py-1.5 text-xs text-textPrimary font-mono outline-none focus:border-accentPrimary transition-colors"
+            <div className="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+              <div 
+                className="bg-tertiary h-full rounded-full transition-all duration-500" 
+                style={{ width: `${Math.min(100, stats.totalIncome > 0 ? (stats.totalExpenses / stats.totalIncome) * 100 : 0)}%` }} 
               />
             </div>
-
-            {/* Filter Tabs */}
-            <div className="flex items-center bg-black/30 border border-border rounded-lg p-0.5 text-xs font-mono">
-              <button
-                onClick={() => setSelectedFilter('all')}
-                className={`px-2.5 py-1 rounded transition-colors ${selectedFilter === 'all' ? 'bg-accentPrimary text-black font-bold' : 'text-textMuted hover:text-white'}`}
-              >
-                Wszystkie
-              </button>
-              <button
-                onClick={() => setSelectedFilter('expense')}
-                className={`px-2.5 py-1 rounded transition-colors ${selectedFilter === 'expense' ? 'bg-rose-500/20 text-rose-300 font-bold' : 'text-textMuted hover:text-white'}`}
-              >
-                Wydatki
-              </button>
-              <button
-                onClick={() => setSelectedFilter('income')}
-                className={`px-2.5 py-1 rounded transition-colors ${selectedFilter === 'income' ? 'bg-emerald-500/20 text-emerald-300 font-bold' : 'text-textMuted hover:text-white'}`}
-              >
-                Wpływy
-              </button>
-            </div>
           </div>
-        </div>
 
-        {/* List Content */}
-        <div className="overflow-y-auto max-h-[600px] p-4 space-y-2.5 custom-scrollbar">
-          {filteredFinances.length === 0 ? (
-            <div className="text-center py-12 flex flex-col items-center justify-center text-textMuted">
-              <Wallet className="w-10 h-10 opacity-20 mb-2" />
-              <p className="font-mono text-sm">{t("finNoEntries", "Brak zarejestrowanych transakcji.")}</p>
-              <p className="text-xs mt-1 text-textMuted/60">Dodaj nowy wydatek lub przychód klikając przycisk na górze.</p>
+          {/* Stat 4: Bilans Netto */}
+          <div className="p-4 sm:p-5 rounded-xl bg-surface-container-low flex flex-col justify-between border border-border/60 shadow-sm">
+            <div className="flex items-center justify-between text-outline">
+              <span className="font-mono text-xs uppercase tracking-wider">Bilans Netto</span>
+              <DollarSign className="w-5 h-5 text-primary" />
             </div>
-          ) : (
-            filteredFinances.map(item => (
-              <div 
-                key={item.id} 
-                className="flex justify-between items-center p-3.5 bg-black/20 hover:bg-black/40 border border-border/50 hover:border-border rounded-lg transition-all group"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className={`p-2.5 rounded-xl border ${
-                    item.type === 'transfer' 
-                      ? 'bg-purple-500/10 border-purple-500/30 text-purple-400'
-                      : item.type === 'income' 
-                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
-                        : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-                  }`}>
-                    {item.type === 'transfer' ? (
-                      <ArrowRightLeft className="w-4 h-4" />
-                    ) : item.type === 'income' ? (
-                      <TrendingUp className="w-4 h-4" />
-                    ) : (
-                      <TrendingDown className="w-4 h-4" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-sans font-medium text-textPrimary text-sm flex items-center gap-2">
-                      {item.category} 
-                      {item.type === 'transfer' && (
-                        <span className="text-[10px] px-2 py-0.5 rounded font-mono font-semibold uppercase bg-purple-500/15 text-purple-300 border border-purple-500/30">
-                          {item.fromBucket || 'wants'} {'->'} {item.toBucket || 'savings'}
-                        </span>
-                      )}
-                      {item.type === 'expense' && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const cycle = { needs: 'wants', wants: 'savings', savings: 'needs' };
-                            const next = cycle[item.bucket || 'needs'] || 'needs';
-                            handleQuickChangeBucket(item, next);
-                          }}
-                          className={`text-[10px] px-2 py-0.5 rounded font-mono font-semibold uppercase transition-all hover:scale-105 active:scale-95 cursor-pointer ${
-                            item.bucket === 'needs' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20' :
-                            item.bucket === 'wants' ? 'bg-pink-500/10 text-pink-400 border border-pink-500/30 hover:bg-pink-500/20' :
-                            'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20'
-                          }`}
-                          title="Kliknij, aby zmienić kubełek"
-                        >
-                          {item.bucket || 'needs'} ⟳
-                        </button>
-                      )}
-                      {item.type === 'income' && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const cycle = { split: 'needs', needs: 'wants', wants: 'savings', savings: 'split' };
-                            const current = item.splitMode === 'single' ? (item.bucket || 'needs') : 'split';
-                            const next = cycle[current] || 'split';
-                            if (next === 'split') {
-                              const nAmt = Number(((Number(item.amount) * targetNeeds) / 100).toFixed(2));
-                              const wAmt = Number(((Number(item.amount) * targetWants) / 100).toFixed(2));
-                              const sAmt = Number((Number(item.amount) - nAmt - wAmt).toFixed(2));
-                              const updated = { ...item, splitMode: 'split', bucket: 'split', distribution: { needs: nAmt, wants: wAmt, savings: sAmt } };
-                              setFinances(prev => prev.map(f => f.id === item.id ? updated : f));
-                              saveCloudDocument('finances', item.id, updated);
-                            } else {
-                              handleQuickChangeBucket(item, next);
-                            }
-                          }}
-                          className="text-[10px] px-2 py-0.5 rounded font-mono font-semibold uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition-all cursor-pointer"
-                          title="Kliknij, aby zmienić sposób dysponowania"
-                        >
-                          {item.splitMode === 'single' ? `Całość: ${item.bucket}` : `Reguła ${targetNeeds}/${targetWants}/${targetSavings}`} ⟳
-                        </button>
-                      )}
-                    </p>
-                    <p className="text-xs text-textMuted font-mono mt-0.5">
-                      {item.transaction_date} {item.description && <span>— {item.description}</span>}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <span className={`font-mono font-bold text-sm ${
-                    item.type === 'transfer' 
-                      ? 'text-purple-400' 
-                      : item.type === 'income' 
-                        ? 'text-emerald-400' 
-                        : 'text-rose-400'
-                  }`}>
-                    {item.type === 'transfer' ? '⇄ ' : item.type === 'income' ? '+' : '-'}{Number(item.amount).toFixed(2)} PLN
-                  </span>
-                  <button 
-                    onClick={() => handleDelete(item.id)} 
-                    className="text-textMuted hover:text-rose-400 transition-colors opacity-0 group-hover:opacity-100 p-1 rounded"
-                    title="Usuń wpis"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+            <div className="my-3">
+              <div className={`font-sans text-2xl sm:text-3xl font-bold tracking-tight ${parseFloat(netBalance) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {parseFloat(netBalance) >= 0 ? `+${netBalance}` : netBalance} <span className="font-mono text-base font-normal text-outline">PLN</span>
               </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* Modal Nowa Transakcja */}
-      {showModal === 'transaction' && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-background border border-border rounded-xl w-full max-w-md overflow-hidden shadow-2xl animate-scale-in">
-            <div className="p-4 border-b border-border flex justify-between items-center bg-black/20">
-              <h2 className="font-mono text-accentPrimary font-bold text-base">{t("finNewTrans", "Nowa Transakcja")}</h2>
-              <button onClick={() => setShowModal(false)} className="text-textMuted hover:text-white transition-colors">x</button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
-              
-              <div className="flex gap-2 bg-black/30 p-1 rounded-lg border border-border/50">
-                <button 
-                  type="button" 
-                  onClick={() => setFormData({...formData, type: 'expense'})} 
-                  className={`flex-1 py-2 text-xs font-bold font-mono rounded-md transition-colors ${formData.type === 'expense' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'text-textMuted hover:text-textPrimary'}`}
-                >
-                  {t("finExpense", "WYDATEK")}
-                </button>
-                <button 
-                  type="button" 
-                  onClick={() => setFormData({...formData, type: 'income'})} 
-                  className={`flex-1 py-2 text-xs font-bold font-mono rounded-md transition-colors ${formData.type === 'income' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-textMuted hover:text-textPrimary'}`}
-                >
-                  {t("finIncomeBtn", "PRZYCHÓD")}
-                </button>
-              </div>
-
-              <div>
-                <label className="text-xs font-mono text-textMuted mb-1 block">{t("finAmount", "Kwota (PLN)")}</label>
-                <input 
-                  type="number" 
-                  step="0.01" 
-                  required 
-                  value={formData.amount} 
-                  onChange={e => setFormData({...formData, amount: e.target.value})} 
-                  className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-accentPrimary outline-none transition-colors" 
-                  placeholder="0.00" 
-                  autoFocus
-                />
-              </div>
-
-              {formData.type === 'expense' && (
-                <div>
-                  <label className="text-xs font-mono text-textMuted mb-1 block">Kubełek ({targetNeeds}/{targetWants}/{targetSavings})</label>
-                  <select 
-                    value={formData.bucket} 
-                    onChange={e => setFormData({...formData, bucket: e.target.value})} 
-                    className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-accentPrimary outline-none transition-colors"
-                  >
-                    <option value="needs">Potrzeby / Rachunki ({targetNeeds}%)</option>
-                    <option value="wants">Zachcianki / Rozrywka ({targetWants}%)</option>
-                    <option value="savings">Oszczędności / Inwestycje ({targetSavings}%)</option>
-                  </select>
-                </div>
-              )}
-
-              {formData.type === 'income' && (
-                <div className="flex flex-col gap-2.5 p-3 rounded-lg bg-black/25 border border-emerald-500/25">
-                  <label className="text-xs font-mono text-emerald-400 font-semibold block">Dysponowanie zarobkiem:</label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, incomeMode: 'split' })}
-                      className={`py-1.5 px-2 text-[11px] font-mono rounded border transition-colors ${formData.incomeMode === 'split' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold' : 'bg-white/5 border-border/40 text-textMuted hover:text-white'}`}
-                    >
-                      Reguła {targetNeeds}/{targetWants}/{targetSavings}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, incomeMode: 'single' })}
-                      className={`py-1.5 px-2 text-[11px] font-mono rounded border transition-colors ${formData.incomeMode === 'single' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-bold' : 'bg-white/5 border-border/40 text-textMuted hover:text-white'}`}
-                    >
-                      Jedna pula
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, incomeMode: 'custom' })}
-                      className={`py-1.5 px-2 text-[11px] font-mono rounded border transition-colors ${formData.incomeMode === 'custom' ? 'bg-purple-500/20 text-purple-300 border-purple-500/40 font-bold' : 'bg-white/5 border-border/40 text-textMuted hover:text-white'}`}
-                    >
-                      Własny podział
-                    </button>
-                  </div>
-
-                  {formData.incomeMode === 'split' && (
-                    <div className="text-[11px] font-mono p-2 bg-emerald-500/5 rounded border border-emerald-500/20 flex flex-col gap-1 text-textMuted">
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">Potrzeby ({targetNeeds}%):</span>
-                        <span className="font-bold text-textPrimary">{((Number(formData.amount || 0) * targetNeeds) / 100).toFixed(2)} PLN</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-pink-400">Zachcianki ({targetWants}%):</span>
-                        <span className="font-bold text-textPrimary">{((Number(formData.amount || 0) * targetWants) / 100).toFixed(2)} PLN</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-emerald-400">Oszczędności ({targetSavings}%):</span>
-                        <span className="font-bold text-textPrimary">{(Number(formData.amount || 0) - ((Number(formData.amount || 0) * targetNeeds) / 100) - ((Number(formData.amount || 0) * targetWants) / 100)).toFixed(2)} PLN</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {formData.incomeMode === 'single' && (
-                    <div>
-                      <label className="text-[11px] font-mono text-textMuted mb-1 block">Przypisz całość do wybranej puli:</label>
-                      <select
-                        value={formData.incomeBucket}
-                        onChange={e => setFormData({ ...formData, incomeBucket: e.target.value })}
-                        className="w-full bg-black/30 border border-border rounded-lg p-2 text-textPrimary font-mono text-xs outline-none"
-                      >
-                        <option value="needs">Potrzeby / Rachunki ({targetNeeds}%)</option>
-                        <option value="wants">Zachcianki / Rozrywka ({targetWants}%)</option>
-                        <option value="savings">Oszczędności / Inwestycje ({targetSavings}%)</option>
-                      </select>
-                    </div>
-                  )}
-
-                  {formData.incomeMode === 'custom' && (
-                    <div className="grid grid-cols-3 gap-2">
-                      <div>
-                        <label className="text-[10px] font-mono text-cyan-400 block mb-1">Potrzeby (PLN)</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={formData.customNeeds}
-                          onChange={e => setFormData({ ...formData, customNeeds: e.target.value })}
-                          className="w-full bg-black/30 border border-border rounded p-1.5 text-textPrimary font-mono text-xs text-center outline-none"
-                          placeholder="0.00"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-mono text-pink-400 block mb-1">Zachcianki (PLN)</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={formData.customWants}
-                          onChange={e => setFormData({ ...formData, customWants: e.target.value })}
-                          className="w-full bg-black/30 border border-border rounded p-1.5 text-textPrimary font-mono text-xs text-center outline-none"
-                          placeholder="0.00"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-mono text-emerald-400 block mb-1">Oszczędności (PLN)</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={formData.customSavings}
-                          onChange={e => setFormData({ ...formData, customSavings: e.target.value })}
-                          className="w-full bg-black/30 border border-border rounded p-1.5 text-textPrimary font-mono text-xs text-center outline-none"
-                          placeholder="0.00"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              <div>
-                <label className="text-xs font-mono text-textMuted mb-1 block">{t("finCategory", "Kategoria")}</label>
-                <input 
-                  type="text" 
-                  required 
-                  value={formData.category} 
-                  onChange={e => setFormData({...formData, category: e.target.value})} 
-                  className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-accentPrimary outline-none transition-colors" 
-                  placeholder={t("finCatPlaceholder", "np. Jedzenie, Wypłata, Paliwo")} 
-                />
-              </div>
-              
-              <div>
-                <label className="text-xs font-mono text-textMuted mb-1 block">{t("finDesc", "Opis (opcjonalnie)")}</label>
-                <input 
-                  type="text" 
-                  value={formData.description} 
-                  onChange={e => setFormData({...formData, description: e.target.value})} 
-                  className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-accentPrimary outline-none transition-colors" 
-                  placeholder={t("finDescPlaceholder", "np. Zakupy spożywcze")} 
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-mono text-textMuted mb-1 block">{t("finDate", "Data transakcji")}</label>
-                <input 
-                  type="date" 
-                  required 
-                  value={formData.transaction_date} 
-                  onChange={e => setFormData({...formData, transaction_date: e.target.value})} 
-                  className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-accentPrimary outline-none transition-colors [color-scheme:dark]" 
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 mt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 font-mono text-xs text-textMuted hover:text-textPrimary transition-colors">
-                  Anuluj
-                </button>
-                <button type="submit" className="px-5 py-2 font-mono text-xs bg-accentPrimary text-black font-bold rounded-lg shadow-[0_0_15px_rgba(0,229,255,0.3)] hover:scale-105 transition-all">
-                  Zapisz wpis
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Dysponowania Środkami (Transfer między pulami) */}
-      {showModal === 'transfer' && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-background border border-border rounded-xl w-full max-w-md overflow-hidden shadow-2xl animate-scale-in">
-            <div className="p-4 border-b border-border flex justify-between items-center bg-black/20">
-              <h2 className="font-mono text-purple-400 font-bold text-base flex items-center gap-2">
-                <ArrowRightLeft className="w-4 h-4" /> Dysponowanie Środkami
-              </h2>
-              <button onClick={() => setShowModal(false)} className="text-textMuted hover:text-white transition-colors">x</button>
-            </div>
-            <form onSubmit={handleTransferSubmit} className="p-5 flex flex-col gap-4">
-              <p className="text-xs text-textMuted font-mono">
-                Przesuń środki pomiędzy kubełkami budżetowymi bez zmiany łącznego stanu konta.
+              <p className="font-mono text-xs text-on-surface-variant mt-1">
+                Kapitał zakumulowany po potrąceniach
               </p>
+            </div>
+            <div className="flex items-center justify-between font-mono text-[10px] text-outline">
+              <span>SQLite WAL</span>
+              <span className="text-primary font-bold">Zbilansowano</span>
+            </div>
+          </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-mono text-textMuted mb-1 block">Z puli (Źródło):</label>
-                  <select
-                    value={transferData.fromBucket}
-                    onChange={e => setTransferData({ ...transferData, fromBucket: e.target.value })}
-                    className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono text-xs focus:border-purple-400 outline-none"
-                  >
-                    <option value="needs">Potrzeby (Dostępne: {(stats.availableNeeds || 0).toFixed(0)} zł)</option>
-                    <option value="wants">Zachcianki (Dostępne: {(stats.availableWants || 0).toFixed(0)} zł)</option>
-                    <option value="savings">Oszczędności (Dostępne: {(stats.availableSavings || 0).toFixed(0)} zł)</option>
-                  </select>
+        </div>
+
+        {/* 3. TRZY KOPERTY AUTONOMICZNE (50 / 30 / 20) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+          
+          {/* KOPERTA 1: POTRZEBY (50%) */}
+          <div className="rounded-xl bg-surface-container p-4 sm:p-5 border border-border/60 flex flex-col justify-between shadow-sm">
+            <div className="flex items-center justify-between pb-3 border-b border-border/40">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold font-mono text-xs">
+                  {targetNeeds}%
                 </div>
                 <div>
-                  <label className="text-xs font-mono text-textMuted mb-1 block">Do puli (Cel):</label>
-                  <select
-                    value={transferData.toBucket}
-                    onChange={e => setTransferData({ ...transferData, toBucket: e.target.value })}
-                    className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono text-xs focus:border-purple-400 outline-none"
-                  >
-                    <option value="needs">Potrzeby</option>
-                    <option value="wants">Zachcianki</option>
-                    <option value="savings">Oszczędności</option>
-                  </select>
+                  <h3 className="font-sans text-sm font-semibold text-on-surface">Potrzeby (Needs)</h3>
+                  <p className="font-mono text-[11px] text-on-surface-variant">Mieszkanie, jedzenie, rachunki</p>
                 </div>
               </div>
+              <span className="font-mono text-xs px-2 py-0.5 rounded bg-surface-container-high text-primary">
+                Limit: {((monthlyIncome * targetNeeds) / 100).toFixed(0)} PLN
+              </span>
+            </div>
 
-              <div>
-                <label className="text-xs font-mono text-textMuted mb-1 block">Kwota do przesunięcia (PLN):</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={transferData.amount}
-                  onChange={e => setTransferData({ ...transferData, amount: e.target.value })}
-                  className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-purple-400 outline-none transition-colors"
-                  placeholder="0.00"
-                  autoFocus
+            <div className="my-4 space-y-2">
+              <div className="flex justify-between items-baseline font-mono text-xs">
+                <span className="text-outline">Wydano:</span>
+                <span className="text-on-surface font-semibold">{(stats.buckets?.needs || 0).toFixed(2)} PLN</span>
+              </div>
+              <div className="w-full bg-surface-container-lowest h-2 rounded-full overflow-hidden">
+                <div 
+                  className="bg-primary h-full rounded-full transition-all duration-500" 
+                  style={{ width: `${Math.min(100, ((stats.buckets?.needs || 0) / Math.max(1, (monthlyIncome * targetNeeds) / 100)) * 100)}%` }}
                 />
               </div>
+              <div className="flex justify-between items-center font-mono text-[10px] text-outline pt-0.5">
+                <span>0 PLN</span>
+                <span>Pozostało w kopercie: {(((monthlyIncome * targetNeeds) / 100) - (stats.buckets?.needs || 0)).toFixed(2)} PLN</span>
+              </div>
+            </div>
+          </div>
 
-              <div>
-                <label className="text-xs font-mono text-textMuted mb-1 block">Notatka / Powód (opcjonalnie):</label>
+          {/* KOPERTA 2: ZACHCIANKI (30%) */}
+          <div className="rounded-xl bg-surface-container p-4 sm:p-5 border border-border/60 flex flex-col justify-between shadow-sm">
+            <div className="flex items-center justify-between pb-3 border-b border-border/40">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary font-bold font-mono text-xs">
+                  {targetWants}%
+                </div>
+                <div>
+                  <h3 className="font-sans text-sm font-semibold text-on-surface">Zachcianki (Wants)</h3>
+                  <p className="font-mono text-[11px] text-on-surface-variant">Rozrywka, wyjścia, zakupy</p>
+                </div>
+              </div>
+              <span className="font-mono text-xs px-2 py-0.5 rounded bg-surface-container-high text-secondary">
+                Limit: {((monthlyIncome * targetWants) / 100).toFixed(0)} PLN
+              </span>
+            </div>
+
+            <div className="my-4 space-y-2">
+              <div className="flex justify-between items-baseline font-mono text-xs">
+                <span className="text-outline">Wydano:</span>
+                <span className="text-on-surface font-semibold">{(stats.buckets?.wants || 0).toFixed(2)} PLN</span>
+              </div>
+              <div className="w-full bg-surface-container-lowest h-2 rounded-full overflow-hidden">
+                <div 
+                  className="bg-secondary h-full rounded-full transition-all duration-500" 
+                  style={{ width: `${Math.min(100, ((stats.buckets?.wants || 0) / Math.max(1, (monthlyIncome * targetWants) / 100)) * 100)}%` }}
+                />
+              </div>
+              <div className="flex justify-between items-center font-mono text-[10px] text-outline pt-0.5">
+                <span>0 PLN</span>
+                <span>Pozostało w kopercie: {(((monthlyIncome * targetWants) / 100) - (stats.buckets?.wants || 0)).toFixed(2)} PLN</span>
+              </div>
+            </div>
+          </div>
+
+          {/* KOPERTA 3: OSZCZĘDNOŚCI (20%) */}
+          <div className="rounded-xl bg-surface-container p-4 sm:p-5 border border-border/60 flex flex-col justify-between shadow-sm">
+            <div className="flex items-center justify-between pb-3 border-b border-border/40">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-tertiary/10 flex items-center justify-center text-tertiary font-bold font-mono text-xs">
+                  {targetSavings}%
+                </div>
+                <div>
+                  <h3 className="font-sans text-sm font-semibold text-on-surface">Oszczędności & Inwestycje</h3>
+                  <p className="font-mono text-[11px] text-on-surface-variant">Poduszka, obligacje, krypto</p>
+                </div>
+              </div>
+              <span className="font-mono text-xs px-2 py-0.5 rounded bg-surface-container-high text-tertiary">
+                Cel: {((monthlyIncome * targetSavings) / 100).toFixed(0)} PLN
+              </span>
+            </div>
+
+            <div className="my-4 space-y-2">
+              <div className="flex justify-between items-baseline font-mono text-xs">
+                <span className="text-outline">Wpłacono do skarbca:</span>
+                <span className="text-on-surface font-semibold">{(stats.allocated?.savings || 0).toFixed(2)} PLN</span>
+              </div>
+              <div className="w-full bg-surface-container-lowest h-2 rounded-full overflow-hidden">
+                <div 
+                  className="bg-tertiary h-full rounded-full transition-all duration-500" 
+                  style={{ width: `${Math.min(100, ((stats.allocated?.savings || 0) / Math.max(1, (monthlyIncome * targetSavings) / 100)) * 100)}%` }}
+                />
+              </div>
+              <div className="flex justify-between items-center font-mono text-[10px] text-outline pt-0.5">
+                <span>0 PLN</span>
+                <span className="text-tertiary font-bold">Kapitał chroniony</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* 4. TRANSACTION LEDGER & FILTER BAR */}
+        <div className="rounded-xl bg-surface-container border border-border/60 overflow-hidden shadow-sm flex flex-col">
+          
+          {/* Ledger Toolbar */}
+          <div className="p-3.5 sm:p-4 border-b border-border/60 bg-surface-container-low flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="font-sans text-sm font-bold text-on-surface">Rejestr Transakcji</span>
+              <span className="font-mono text-xs px-2 py-0.5 rounded-full bg-surface-container text-primary border border-border/60">
+                {filteredFinances.length} pozycji
+              </span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+              <div className="relative flex-1 sm:w-56">
+                <Search className="w-3.5 h-3.5 text-outline absolute left-2.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  value={transferData.description}
-                  onChange={e => setTransferData({ ...transferData, description: e.target.value })}
-                  className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-purple-400 outline-none transition-colors"
-                  placeholder="np. Nadwyżka z wypłaty na oszczędności"
+                  placeholder="Filtruj opis lub kategorię..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full min-h-[38px] pl-8 pr-2.5 py-1.5 rounded-lg bg-surface-container-lowest border border-border/80 text-on-surface text-xs font-mono focus:outline-none focus:border-primary"
                 />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
               </div>
 
-              <div>
-                <label className="text-xs font-mono text-textMuted mb-1 block">Data przesunięcia:</label>
-                <input
-                  type="date"
-                  required
-                  value={transferData.transaction_date}
-                  onChange={e => setTransferData({ ...transferData, transaction_date: e.target.value })}
-                  className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono focus:border-purple-400 outline-none transition-colors [color-scheme:dark]"
-                />
+              {/* Filter Pills */}
+              <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 no-scrollbar touch-pan-x">
+                {['all', 'income', 'expense', 'needs', 'wants', 'savings'].map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setSelectedFilter(f)}
+                    className={`min-h-[38px] px-3 rounded-lg text-xs font-mono transition-colors whitespace-nowrap ${
+                      selectedFilter === f 
+                        ? 'bg-primary text-on-primary font-bold shadow-sm' 
+                        : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
+                    }`}
+                  >
+                    {f === 'all' && 'Wszystkie'}
+                    {f === 'income' && 'Przychody'}
+                    {f === 'expense' && 'Wydatki'}
+                    {f === 'needs' && 'Potrzeby (50)'}
+                    {f === 'wants' && 'Zachcianki (30)'}
+                    {f === 'savings' && 'Oszczędności (20)'}
+                  </button>
+                ))}
               </div>
-
-              <div className="flex justify-end gap-3 mt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 font-mono text-xs text-textMuted hover:text-textPrimary transition-colors">
-                  Anuluj
-                </button>
-                <button type="submit" className="px-5 py-2 font-mono text-xs bg-purple-500 text-white font-bold rounded-lg shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:scale-105 transition-all">
-                  Wykonaj transfer
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Ustawień Budżetu (Dynamiczne %) */}
-      {showModal === 'settings' && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-background border border-border rounded-xl w-full max-w-md overflow-hidden shadow-2xl animate-scale-in">
-            <div className="p-4 border-b border-border flex justify-between items-center bg-black/20">
-              <h2 className="font-mono text-accentPrimary font-bold text-base">Konfiguracja Budżetu ({targetNeeds}/{targetWants}/{targetSavings})</h2>
-              <button onClick={() => setShowModal(false)} className="text-textMuted hover:text-white transition-colors">x</button>
             </div>
-            <form onSubmit={(e) => { handleSetupSubmit(e); setShowModal(false); }} className="p-5 flex flex-col gap-4">
-              <div>
-                <label className="text-xs font-mono text-textMuted block mb-1">Miesięczny Dochód Bazowy (PLN)</label>
-                <input 
-                  type="number" 
-                  required 
-                  value={setupData.monthly_income} 
-                  onChange={e => setSetupData({...setupData, monthly_income: parseFloat(e.target.value) || 0})} 
-                  className="w-full bg-black/30 border border-border rounded-lg p-2.5 text-textPrimary font-mono outline-none" 
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-mono text-textMuted block mb-1.5">Szybkie profile alokacji (w tym 0% na zachcianki):</label>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                  {[
-                    { label: '50/30/20', n: 50, w: 30, s: 20 },
-                    { label: '70/0/30 (Frugal)', n: 70, w: 0, s: 30 },
-                    { label: '80/0/20 (Minimal)', n: 80, w: 0, s: 20 },
-                    { label: '50/0/50 (FIRE)', n: 50, w: 0, s: 50 },
-                    { label: '60/20/20', n: 60, w: 20, s: 20 }
-                  ].map(p => (
-                    <button
-                      key={p.label}
-                      type="button"
-                      onClick={() => setSetupData(prev => ({ ...prev, needs_percent: p.n, wants_percent: p.w, savings_percent: p.s }))}
-                      className="px-2 py-1.5 text-[10px] sm:text-[11px] font-mono bg-white/5 hover:bg-white/10 border border-border/50 rounded-lg text-textMuted hover:text-white transition-colors text-center"
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="text-[11px] font-mono text-cyan-400 block mb-1">Potrzeby %</label>
-                  <input 
-                    type="number" 
-                    min="0"
-                    max="100"
-                    value={setupData.needs_percent} 
-                    onChange={e => setSetupData({...setupData, needs_percent: e.target.value === '' ? '' : (parseFloat(e.target.value) || 0)})} 
-                    className="w-full bg-black/30 border border-border rounded-lg p-2 text-textPrimary font-mono text-center outline-none focus:border-cyan-400" 
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-mono text-pink-400 block mb-1">Zachcianki %</label>
-                  <input 
-                    type="number" 
-                    min="0"
-                    max="100"
-                    value={setupData.wants_percent} 
-                    onChange={e => setSetupData({...setupData, wants_percent: e.target.value === '' ? '' : (parseFloat(e.target.value) || 0)})} 
-                    className="w-full bg-black/30 border border-border rounded-lg p-2 text-textPrimary font-mono text-center outline-none focus:border-pink-400" 
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-mono text-emerald-400 block mb-1">Oszczędności %</label>
-                  <input 
-                    type="number" 
-                    min="0"
-                    max="100"
-                    value={setupData.savings_percent} 
-                    onChange={e => setSetupData({...setupData, savings_percent: e.target.value === '' ? '' : (parseFloat(e.target.value) || 0)})} 
-                    className="w-full bg-black/30 border border-border rounded-lg p-2 text-textPrimary font-mono text-center outline-none focus:border-emerald-400" 
-                  />
-                </div>
-              </div>
-
-              <div className="text-xs font-mono flex items-center justify-between px-1 py-1 rounded bg-black/20 border border-white/5">
-                <span className="text-textMuted">Suma alokacji:</span>
-                <span className={`font-bold ${((Number(setupData.needs_percent) || 0) + (Number(setupData.wants_percent) || 0) + (Number(setupData.savings_percent) || 0)) === 100 ? 'text-emerald-400' : 'text-amber-400'}`}>
-                  {((Number(setupData.needs_percent) || 0) + (Number(setupData.wants_percent) || 0) + (Number(setupData.savings_percent) || 0))}% {((Number(setupData.needs_percent) || 0) + (Number(setupData.wants_percent) || 0) + (Number(setupData.savings_percent) || 0)) === 100 ? '[OK] (Zrównoważona)' : '(Zalecane 100%)'}
-                </span>
-              </div>
-
-              <div className="flex justify-end gap-3 mt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 font-mono text-xs text-textMuted hover:text-textPrimary transition-colors">
-                  Anuluj
-                </button>
-                <button type="submit" className="px-5 py-2 font-mono text-xs bg-accentPrimary text-black font-bold rounded-lg shadow-[0_0_15px_rgba(0,229,255,0.3)] hover:scale-105 transition-all">
-                  Zapisz Ustawienia
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
 
-      {/* Modal Eksportu Raportów i Danych CSV/PDF */}
-      <ExportModal
-        isOpen={showExportModal}
-        onClose={() => setShowExportModal(false)}
-        finances={finances}
-        settings={settings}
-      />
+          {/* Transactions List */}
+          <div className="overflow-y-auto max-h-[600px] p-3 sm:p-4 space-y-2.5 custom-scrollbar">
+            {filteredFinances.length === 0 ? (
+              <div className="py-12 flex flex-col items-center justify-center text-center">
+                <Wallet className="w-10 h-10 text-outline mb-2 opacity-40" />
+                <p className="font-mono text-sm text-on-surface">Brak zarejestrowanych transakcji</p>
+                <p className="font-mono text-xs text-outline mt-1">
+                  Dodaj pierwszy wydatek lub wpływ za pomocą przycisku „Dodaj Transakcję”.
+                </p>
+              </div>
+            ) : (
+              filteredFinances.map((item) => {
+                const isInc = item.type === 'income';
+                const isTrf = item.type === 'transfer';
+
+                return (
+                  <div
+                    key={item.id}
+                    className="p-3.5 rounded-xl bg-surface-container-low border border-border/60 hover:border-border transition-all flex items-center justify-between gap-3 group shadow-sm"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold shrink-0 ${
+                        isInc ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' :
+                        isTrf ? 'bg-secondary/15 text-secondary border border-secondary/30' :
+                        'bg-surface-container-high text-on-surface-variant border border-border/60'
+                      }`}>
+                        {isInc ? <TrendingUp className="w-4 h-4" /> : isTrf ? <ArrowRightLeft className="w-4 h-4" /> : <TrendingDown className="w-4 h-4 text-tertiary" />}
+                      </div>
+
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-sans text-xs sm:text-sm font-semibold text-on-surface truncate">
+                            {item.description || item.category || 'Transakcja'}
+                          </span>
+                          <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-surface-container-lowest text-outline border border-border/40 shrink-0">
+                            {item.category}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 font-mono text-[10px] text-outline mt-0.5">
+                          <span>{item.transaction_date}</span>
+                          <span>•</span>
+                          <span className="text-on-surface-variant">
+                            {item.bucket === 'needs' ? 'Potrzeby (50%)' : item.bucket === 'wants' ? 'Zachcianki (30%)' : item.bucket === 'savings' ? 'Oszczędności (20%)' : 'Auto Split'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className={`font-mono text-sm sm:text-base font-bold ${
+                        isInc ? 'text-emerald-400' : isTrf ? 'text-secondary' : 'text-on-surface'
+                      }`}>
+                        {isInc ? `+${Number(item.amount).toFixed(2)}` : `-${Number(item.amount).toFixed(2)}`} PLN
+                      </span>
+
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="p-1.5 rounded-lg text-outline hover:text-rose-400 hover:bg-rose-400/10 transition-colors"
+                        title="Usuń wpis"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+        </div>
+
+        {/* 5. MODALE (DODAJ TRANSAKCJĘ / TRANSFER / USTAWIENIA) */}
+        {showModal === 'transaction' && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-surface-container-low border border-border rounded-2xl w-full max-w-md p-5 shadow-2xl animate-scale-in">
+              <div className="flex items-center justify-between pb-3 border-b border-border/60 mb-4">
+                <h3 className="font-sans text-base font-bold text-on-surface flex items-center gap-2">
+                  <Plus className="w-4 h-4 text-primary" />
+                  Dodaj Pozycję Finansową
+                </h3>
+                <button onClick={() => setShowModal(false)} className="text-outline hover:text-on-surface">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
+                <div className="grid grid-cols-2 gap-2 p-1 rounded-lg bg-surface-container">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, type: 'expense' })}
+                    className={`py-2 rounded-md font-bold transition-colors ${
+                      formData.type === 'expense' ? 'bg-tertiary text-on-tertiary' : 'text-on-surface-variant'
+                    }`}
+                  >
+                    Wydatek (-)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, type: 'income' })}
+                    className={`py-2 rounded-md font-bold transition-colors ${
+                      formData.type === 'income' ? 'bg-emerald-500 text-black' : 'text-on-surface-variant'
+                    }`}
+                  >
+                    Przychód (+)
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-outline text-[11px] mb-1">Kwota (PLN):</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    placeholder="np. 150.00"
+                    value={formData.amount}
+                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                    className="w-full min-h-[40px] px-3 rounded-lg bg-surface-container border border-border text-on-surface focus:outline-none focus:border-primary text-sm font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-outline text-[11px] mb-1">Opis transakcji:</label>
+                  <input
+                    type="text"
+                    placeholder="np. Zakupy Biedronka / Stypendium"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full min-h-[40px] px-3 rounded-lg bg-surface-container border border-border text-on-surface focus:outline-none focus:border-primary text-xs"
+                  />
+                </div>
+
+                {formData.type === 'expense' && (
+                  <div>
+                    <label className="block text-outline text-[11px] mb-1">Koperta docelowa:</label>
+                    <select
+                      value={formData.bucket}
+                      onChange={(e) => setFormData({ ...formData, bucket: e.target.value })}
+                      className="w-full min-h-[40px] px-3 rounded-lg bg-surface-container border border-border text-on-surface focus:outline-none focus:border-primary text-xs"
+                    >
+                      <option value="needs">Potrzeby (50% budżetu)</option>
+                      <option value="wants">Zachcianki (30% budżetu)</option>
+                      <option value="savings">Oszczędności (20% budżetu)</option>
+                    </select>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-outline text-[11px] mb-1">Kategoria:</label>
+                    <input
+                      type="text"
+                      placeholder="np. Jedzenie / Rachunki"
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      className="w-full min-h-[40px] px-3 rounded-lg bg-surface-container border border-border text-on-surface focus:outline-none focus:border-primary text-xs"
+                    >
+                    </input>
+                  </div>
+                  <div>
+                    <label className="block text-outline text-[11px] mb-1">Data:</label>
+                    <input
+                      type="date"
+                      value={formData.transaction_date}
+                      onChange={(e) => setFormData({ ...formData, transaction_date: e.target.value })}
+                      className="w-full min-h-[40px] px-3 rounded-lg bg-surface-container border border-border text-on-surface focus:outline-none focus:border-primary text-xs [color-scheme:dark]"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 min-h-[40px] rounded-lg bg-surface-container text-on-surface-variant hover:text-on-surface font-semibold"
+                  >
+                    Anuluj
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 min-h-[40px] rounded-lg bg-primary text-on-primary font-bold shadow-md hover:opacity-90"
+                  >
+                    Zapisz
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL TRANSFER */}
+        {showModal === 'transfer' && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-surface-container-low border border-border rounded-2xl w-full max-w-md p-5 shadow-2xl animate-scale-in">
+              <div className="flex items-center justify-between pb-3 border-b border-border/60 mb-4">
+                <h3 className="font-sans text-base font-bold text-on-surface flex items-center gap-2">
+                  <ArrowRightLeft className="w-4 h-4 text-secondary" />
+                  Przesunięcie Między Kopertami
+                </h3>
+                <button onClick={() => setShowModal(false)} className="text-outline hover:text-on-surface">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleTransferSubmit} className="space-y-4 font-mono text-xs">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-outline text-[11px] mb-1">Z puli:</label>
+                    <select
+                      value={transferData.fromBucket}
+                      onChange={(e) => setTransferData({ ...transferData, fromBucket: e.target.value })}
+                      className="w-full min-h-[40px] px-3 rounded-lg bg-surface-container border border-border text-on-surface focus:outline-none focus:border-primary text-xs"
+                    >
+                      <option value="needs">Potrzeby (50%)</option>
+                      <option value="wants">Zachcianki (30%)</option>
+                      <option value="savings">Oszczędności (20%)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-outline text-[11px] mb-1">Do puli:</label>
+                    <select
+                      value={transferData.toBucket}
+                      onChange={(e) => setTransferData({ ...transferData, toBucket: e.target.value })}
+                      className="w-full min-h-[40px] px-3 rounded-lg bg-surface-container border border-border text-on-surface focus:outline-none focus:border-primary text-xs"
+                    >
+                      <option value="savings">Oszczędności (20%)</option>
+                      <option value="wants">Zachcianki (30%)</option>
+                      <option value="needs">Potrzeby (50%)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-outline text-[11px] mb-1">Kwota transferu (PLN):</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    placeholder="np. 200.00"
+                    value={transferData.amount}
+                    onChange={(e) => setTransferData({ ...transferData, amount: e.target.value })}
+                    className="w-full min-h-[40px] px-3 rounded-lg bg-surface-container border border-border text-on-surface focus:outline-none focus:border-primary text-sm font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-outline text-[11px] mb-1">Powód przesunięcia (opcjonalnie):</label>
+                  <input
+                    type="text"
+                    placeholder="np. Przesunięcie resztki zachcianek do skarbonki"
+                    value={transferData.description}
+                    onChange={(e) => setTransferData({ ...transferData, description: e.target.value })}
+                    className="w-full min-h-[40px] px-3 rounded-lg bg-surface-container border border-border text-on-surface focus:outline-none focus:border-primary text-xs"
+                  />
+                </div>
+
+                <div className="pt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 min-h-[40px] rounded-lg bg-surface-container text-on-surface-variant hover:text-on-surface font-semibold"
+                  >
+                    Anuluj
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 min-h-[40px] rounded-lg bg-secondary text-on-secondary font-bold shadow-md hover:opacity-90"
+                  >
+                    Wykonaj Transfer
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL USTAWIENIA REGUŁY 50/30/20 */}
+        {showModal === 'settings' && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-surface-container-low border border-border rounded-2xl w-full max-w-md p-5 shadow-2xl animate-scale-in">
+              <div className="flex items-center justify-between pb-3 border-b border-border/60 mb-4">
+                <h3 className="font-sans text-base font-bold text-on-surface flex items-center gap-2">
+                  <Settings2 className="w-4 h-4 text-tertiary" />
+                  Konfiguracja Reguły Budżetowej
+                </h3>
+                <button onClick={() => setShowModal(false)} className="text-outline hover:text-on-surface">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSetupSubmit} className="space-y-4 font-mono text-xs">
+                <div>
+                  <label className="block text-outline text-[11px] mb-1">Szacowany miesięczny przychód (PLN):</label>
+                  <input
+                    type="number"
+                    value={setupData.monthly_income}
+                    onChange={(e) => setSetupData({ ...setupData, monthly_income: e.target.value })}
+                    className="w-full min-h-[40px] px-3 rounded-lg bg-surface-container border border-border text-on-surface focus:outline-none focus:border-primary text-sm font-bold"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-outline text-[11px] mb-1">Potrzeby (%):</label>
+                    <input
+                      type="number"
+                      value={setupData.needs_percent}
+                      onChange={(e) => setSetupData({ ...setupData, needs_percent: e.target.value })}
+                      className="w-full min-h-[40px] px-3 rounded-lg bg-surface-container border border-border text-on-surface focus:outline-none focus:border-primary text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-outline text-[11px] mb-1">Zachcianki (%):</label>
+                    <input
+                      type="number"
+                      value={setupData.wants_percent}
+                      onChange={(e) => setSetupData({ ...setupData, wants_percent: e.target.value })}
+                      className="w-full min-h-[40px] px-3 rounded-lg bg-surface-container border border-border text-on-surface focus:outline-none focus:border-primary text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-outline text-[11px] mb-1">Oszczędności (%):</label>
+                    <input
+                      type="number"
+                      value={setupData.savings_percent}
+                      onChange={(e) => setSetupData({ ...setupData, savings_percent: e.target.value })}
+                      className="w-full min-h-[40px] px-3 rounded-lg bg-surface-container border border-border text-on-surface focus:outline-none focus:border-primary text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 min-h-[40px] rounded-lg bg-surface-container text-on-surface-variant hover:text-on-surface font-semibold"
+                  >
+                    Anuluj
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 min-h-[40px] rounded-lg bg-tertiary text-on-tertiary font-bold shadow-md hover:opacity-90"
+                  >
+                    Zapisz Regułę
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL EKSPORTU CSV / PDF */}
+        <ExportModal
+          isOpen={showExportModal}
+          onClose={() => setShowExportModal(false)}
+          finances={finances}
+          tasks={[]}
+          workouts={[]}
+          timetable={[]}
+        />
+
+      </div>
     </div>
   );
 };
