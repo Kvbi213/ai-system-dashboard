@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { 
   Palette, 
   LayoutGrid, 
@@ -103,6 +104,13 @@ const SetupWizard = ({ onComplete }) => {
     if (isLibrusActive) {
       if (librusLogin) localStorage.setItem('system_librus_login', librusLogin);
       if (librusPass) localStorage.setItem('system_librus_pass', librusPass);
+      if (librusLogin && librusPass) {
+        axios.post('/api/librus/credentials', {
+          login: librusLogin,
+          password: librusPass,
+          syncNow: true
+        }).catch(() => {});
+      }
     }
 
     localStorage.setItem('system_ai_engine', aiEngine);

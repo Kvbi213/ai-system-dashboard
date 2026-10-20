@@ -11,8 +11,8 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const login = process.env.LIBRUS_LOGIN;
-  const password = process.env.LIBRUS_PASSWORD;
+  const login = (req.headers['x-librus-login'] || req.body?.login || req.query?.login || process.env.LIBRUS_LOGIN || '').toString().trim();
+  const password = (req.headers['x-librus-password'] || req.body?.password || req.query?.password || process.env.LIBRUS_PASSWORD || '').toString().trim();
 
   if (req.method === 'GET') {
     const subpath = req.query.path || '';
@@ -63,6 +63,54 @@ export default async function handler(req, res) {
     }
 
     if (subpath === 'timetable' || req.url.includes('/timetable')) {
+      if (login && password && req.query.demo !== 'true') {
+        try {
+          const Librus = (await import('librus-api')).default;
+          const client = new Librus();
+          await client.authorize(login, password);
+          const rawTt = await client.calendar.getTimetable();
+          if (rawTt && rawTt.table) {
+            const lessons = [];
+            const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            for (const day of dayNames) {
+              const dayLessons = rawTt.table[day] || [];
+              dayLessons.forEach((l, idx) => {
+                if (l && l.subject) {
+                  const isCancelled = Boolean(l.isCancelled || (l.notes && l.notes.includes('odwołan')));
+                  lessons.push({
+                    id: `librus_${day}_${idx}`,
+                    day,
+                    subject: l.subject,
+                    time_start: l.time_from || (rawTt.hours && rawTt.hours[idx] ? rawTt.hours[idx].split(' - ')[0] : '08:00'),
+                    time_end: l.time_to || (rawTt.hours && rawTt.hours[idx] ? rawTt.hours[idx].split(' - ')[1] : '08:45'),
+                    room: l.room || '',
+                    teacher: l.teacher || '',
+                    type: isCancelled ? 'Odwołana' : 'Lekcja',
+                    color: isCancelled ? 'rose' : 'indigo',
+                    notes: l.notes || '',
+                    isCancelled,
+                    status: isCancelled ? 'cancelled' : 'active'
+                  });
+                }
+              });
+            }
+            if (lessons.length > 0) {
+              return res.status(200).json({
+                success: true,
+                isConfigured: true,
+                isDemo: false,
+                lastSync: new Date().toISOString(),
+                hours: rawTt.hours || [],
+                lessons,
+                substitutions: []
+              });
+            }
+          }
+        } catch (scrapeErr) {
+          console.warn('[!] ALERT :: Vercel timetable fetch fallback:', scrapeErr.message);
+        }
+      }
+
       return res.status(200).json({
         success: true,
         isConfigured: !!(login && password),
@@ -272,8 +320,18 @@ export default async function handler(req, res) {
     }
   }
 
-  // Obsługa metody POST (np. /api/librus/refresh)
+  // Obsługa metody POST (np. /api/librus/refresh, /api/librus/credentials)
   if (req.method === 'POST') {
+    if (subpath === 'credentials' || req.url.includes('/credentials')) {
+      const { login: bodyLogin, password: bodyPassword } = req.body || {};
+      if (bodyLogin) process.env.LIBRUS_LOGIN = bodyLogin;
+      if (bodyPassword) process.env.LIBRUS_PASSWORD = bodyPassword;
+      return res.status(200).json({
+        success: true,
+        message: 'Poświadczenia Librus Synergia zostały zaktualizowane w sesji.'
+      });
+    }
+
     if (!login || !password) {
       return res.status(200).json({
         success: true,

@@ -81,7 +81,7 @@ const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
       {/* Top Section */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Brand Header */}
-        <div className="h-16 flex items-center px-space-lg gap-space-sm bg-surface-container-low border-b border-white/[0.04]">
+        <div className="h-16 flex items-center px-space-lg gap-space-sm bg-surface-container-low border-b border-outline-variant/30">
           <div className="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container shadow-[0_0_16px_rgba(77,142,255,0.35)]">
             <span className="material-symbols-outlined text-[20px]">deployed_code</span>
           </div>
@@ -134,7 +134,7 @@ const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
       </div>
 
       {/* Footer Profile & Lock */}
-      <div className="p-space-md bg-surface-container-low border-t border-white/[0.04]">
+      <div className="p-space-md bg-surface-container-low border-t border-outline-variant/30">
         <div className="p-space-sm rounded-lg bg-surface-container flex items-center justify-between gap-space-sm">
           <div className="flex items-center gap-space-sm min-w-0">
             <div className="relative">

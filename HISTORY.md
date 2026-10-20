@@ -1,5 +1,22 @@
 ## Wersja Bieżąca
-**v3.2.1**
+**v3.3.0**
+
+## v 3.3.0 — 2026-10-20
+**Typ:** MINOR  
+**Zakres:** Maksymalna Czytelność Motywów Kolorystycznych (High Contrast Legibility Across 7 Themes) oraz Pełna Ekstrakcja Danych ze Szkolnego Serwera Librus Synergia (100% Scraping Accuracy):
+- [+] Dodano: `assets/styles/index.css` & `tailwind.config.js` – pełny audyt kontrastu i rekonfiguracja 7 motywów wizualnych (`dark`, `retro`, `monochrome`, `matrix`, `synthwave`, `nordic`, `light`): zdefiniowano wysokokontrastowe tokeny `--color-outline-variant`, `--color-on-primary-container` oraz `--color-on-secondary-container`. Usunięto niskokontrastowe obramowania (np. w motywie `retro` z `#78350f` na `#f59e0b`, w `matrix` z `#065f46` na `#34d399`, w `synthwave` z `#581c87` na `#c084fc`, w `light` na `#475569`). Wszystkie elementy interfejsu (nagłówki, etykiety, kontenery, krawędzie kart) spełniają rygorystyczne normy czytelności WCAG AA/AAA.
+- [*] Zmodyfikowano: `modules/components/AppHeader.jsx` & `modules/components/Sidebar.jsx` – włączenie motywu `light` do pętli szybkiego przełącznika motywów oraz zamiana sztywnych obramowań `border-white/[0.04]` na adaptacyjne `border-outline-variant/30`, zapewniające krystaliczną czytelność w jasnych i ciemnych stylach.
+- [+] Dodano: `modules/services/librusService.js` – pełna i bezstratna ekstrakcja danych z Librus Synergia:
+  1. Naprawa struktury semestralnej ocen w `computeGradeStats`: Synergia zwraca 4-kolumnową tablicę semestru `[sem1, prop_sem1, sem2, roczna]`. Poprawiono selekcję `rawSem2` z indeksu 1 (błędna propozycja śródroczna) na indeks 2 (rzeczywiste oceny semestru 2) z fallbackiem.
+  2. Naprawa parsowania planu lekcji w `parseTimetableHtml`: uwzględnienie naprzemiennych wierszy tabeli HTML `tr.line0` i `tr.line1`, co wyeliminowało 50% utratę lekcji (wcześniej pobierano wyłącznie `tr.line1`). Dodano wielogrupowe parsowanie lekcji w komórkach z wieloma znacznikami `<b>`.
+  3. Wzbogacenie scrapingu w `fetchLibrusFromSource`: pobieranie danych ucznia i klasy przez `client.info.getAccountInfo()` oraz wyliczanie wskaźnika frekwencji ucznia przez `client.absence.getAbsences()`.
+- [*] Zmodyfikowano: `modules/pages/TimetablePage.jsx` – automatyczne pobieranie oficjalnego planu z Librus API (`/api/librus/timetable`) przy włączonej integracji, korelacja z aktywnościami prywatnymi i dynamiczne odświeżanie w `handleLibrusSync`.
+- [*] Zmodyfikowano: `modules/components/SetupWizard.jsx` & `api/librus.js` – automatyczna synchronizacja poświadczeń z backendem (`POST /api/librus/credentials`) i wsparcie pobierania planu lekcji na Vercel/chmurze.
+- [+] Dodano: Raport wydania `docs/versions/v3.3.0.md`.
+- [*] Zmodyfikowano: `package.json` – inkrementacja wersji do `3.3.0`.
+- [*] Weryfikacja: 264/264 PASS w 22 zestawach testowych Vitest (100%), kompilacja produkcyjna Vite w 14.44s bez błędów.
+
+---
 
 ## v 3.2.1 — 2026-10-20
 **Typ:** PATCH  

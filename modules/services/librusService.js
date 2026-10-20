@@ -168,7 +168,11 @@ export function computeGradeStats(subjects = []) {
 
   const enrichedSubjects = (subjects || []).map(subj => {
     const rawSem1 = subj.semester?.[0];
-    const rawSem2 = subj.semester?.[1];
+    // librus-api zwraca tablicę 4-elementową: [sem1_oceny, srodroczna, sem2_oceny, roczna].
+    // Jeśli indeks 2 istnieje i zawiera oceny, traktujemy go jako pełny Semestr 2; w przeciwnym razie fallback do indeksu 1.
+    const rawSem2 = (subj.semester && subj.semester[2] && (subj.semester[2].grades || typeof subj.semester[2] === 'object'))
+      ? subj.semester[2]
+      : subj.semester?.[1];
 
     const sem1Grades = extractGradesList(rawSem1).map(g => {
       const details = parseGradeInfo(g.info);
@@ -285,6 +289,37 @@ export async function fetchLibrusFromSource(login, password) {
     console.warn(`[!] ALERT :: LIBRUS :: Nie udało się pobrać szczęśliwego numerka: ${err.message}`);
   }
 
+  // Pobierz dane konta ucznia (imię, nazwisko, klasa, numer z dziennika)
+  let studentInfo = null;
+  try {
+    const acc = await client.info.getAccountInfo();
+    if (acc?.student) {
+      studentInfo = {
+        name: acc.student.nameSurname || '',
+        class: acc.student.class || '',
+        index: acc.student.index || '',
+        educator: acc.student.educator || ''
+      };
+    }
+  } catch (accErr) {
+    console.debug(`[!] ALERT :: LIBRUS :: Pominięto dane ucznia: ${accErr.message}`);
+  }
+
+  // Pobierz statystyki frekwencji i nieobecności
+  let attendanceRate = null;
+  try {
+    if (client.absence && typeof client.absence.getAbsences === 'function') {
+      const absences = await client.absence.getAbsences();
+      if (Array.isArray(absences) && absences.length > 0) {
+        const total = absences.length;
+        const present = absences.filter(a => a.type === 'obecnosc' || a.presence).length;
+        attendanceRate = parseFloat(((present / total) * 100).toFixed(1));
+      }
+    }
+  } catch (absErr) {
+    console.debug(`[!] ALERT :: LIBRUS :: Pominięto kalkulację frekwencji: ${absErr.message}`);
+  }
+
   // Przetwórz i wzbogać statystykami
   const stats = computeGradeStats(rawGrades || []);
 
@@ -298,6 +333,8 @@ export async function fetchLibrusFromSource(login, password) {
     highestAverage: stats.highestAverage,
     lowestAverage: stats.lowestAverage,
     luckyNumber: luckyNumber ? parseInt(luckyNumber, 10) || null : null,
+    studentInfo,
+    attendanceRate,
     lastSync: new Date().toISOString()
   };
 
@@ -978,15 +1015,18 @@ export function parseTimetableHtml($, from, to) {
     return 'Wykład';
   };
 
-  let rows = $("table.decorated.plan-lekcji tbody tr.line1");
+  // W Synergii wiersze planu lekcji posiadają naprzemiennie klasy .line0 oraz .line1
+  let rows = $("table.decorated.plan-lekcji tbody tr").filter((_, tr) => $(tr).find("th").length > 0 && $(tr).find("td").length > 0);
+  if (rows.length === 0) {
+    rows = $("tr.line0, tr.line1").filter((_, tr) => $(tr).find("th").length > 0);
+  }
   if (rows.length === 0) {
     rows = $("tr.line1");
   }
 
   rows.each((rowIndex, row) => {
-    if ($(row).hasClass("line0")) return;
     const hour = $(row).find("th").text().trim();
-    if (hour) hours.push(hour);
+    if (hour && !hours.includes(hour)) hours.push(hour);
 
     const allTds = $(row).find("td");
     let lessonCells = allTds;
@@ -1083,33 +1123,37 @@ export function parseTimetableHtml($, from, to) {
 
       // 2. Sprawdź czy jest aktywna lekcja (b lub tekst niebędący w s)
       const activeB = $cell.find("b").filter((_, el) => $(el).closest("s").length === 0);
-      let activeLesson = null;
 
       if (activeB.length > 0) {
-        const activeSubj = activeB.first().text().trim();
-        const textDiv = activeB.first().closest(".text");
-        let activeTR = '';
-        if (textDiv.length > 0) {
-          const parts = (textDiv.html() || '').split(/<br\s*\/?>/i);
-          if (parts.length > 1) {
-            const tempDiv = $('<div>').html(parts.slice(1).join('<br>'));
-            tempDiv.find("s, .plan-lekcji-info").remove();
-            activeTR = tempDiv.text().trim();
+        activeB.each((bIdx, bEl) => {
+          const activeSubj = $(bEl).text().trim();
+          const textDiv = $(bEl).closest(".text");
+          let activeTR = '';
+          if (textDiv.length > 0) {
+            const parts = (textDiv.html() || '').split(/<br\s*\/?>/i);
+            if (parts.length > 1) {
+              const tempDiv = $('<div>').html(parts.slice(1).join('<br>'));
+              tempDiv.find("s, .plan-lekcji-info").remove();
+              activeTR = tempDiv.text().trim();
+            }
           }
-        }
-        activeLesson = parseCellDetails(activeSubj, activeTR, false);
+          const lesson = parseCellDetails(activeSubj, activeTR, false);
+          if (lesson && !table[dayId].some(ex => ex.id === lesson.id && ex.subject === lesson.subject)) {
+            table[dayId].push(lesson);
+            allLessons.push(lesson);
+          }
+        });
       } else if (!hasStrike && !isCancelledByInfo) {
         const textDiv = $cell.find(".text").first();
         const fullHtml = textDiv.length > 0 ? textDiv.html() : $cell.html();
         const parts = (fullHtml || '').split(/<br\s*\/?>/i);
         const subj = parts[0] ? parts[0].replace(/<[^>]*>/g, '').trim() : '';
         const tr = parts[1] ? parts[1].replace(/<[^>]*>/g, '').trim() : '';
-        activeLesson = parseCellDetails(subj, tr, false);
-      }
-
-      if (activeLesson) {
-        table[dayId].push(activeLesson);
-        allLessons.push(activeLesson);
+        const fallbackLesson = parseCellDetails(subj, tr, false);
+        if (fallbackLesson && !table[dayId].some(ex => ex.id === fallbackLesson.id && ex.subject === fallbackLesson.subject)) {
+          table[dayId].push(fallbackLesson);
+          allLessons.push(fallbackLesson);
+        }
       }
     });
   });

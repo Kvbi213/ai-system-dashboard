@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
 import { 
   subscribeCollection, 
   saveCloudDocument, 
-  CLOUD_COLLECTIONS 
+  CLOUD_COLLECTIONS,
+  isCloudEnvironment
 } from '../services/cloudSync.js';
 
 const DAYS_DATA = [
@@ -589,16 +591,79 @@ export const TimetablePage = () => {
     });
   }, [categoryFiltered]);
 
-  // Run Librus Sync
-  const handleLibrusSync = () => {
+  const fetchLibrusSchedule = async (isManualRefresh = false) => {
     setIsSyncing(true);
-    setTimeout(() => {
-      setIsSyncing(false);
-      setLastVerifyText('Przed chwilą (0 s)');
-      if (!isLibrusEnabled) {
-        alert('[*] Tryb autonomiczny: Plan dnia zaktualizowany z bazy lokalnej (bez Librus API).');
+    try {
+      const isCloud = isCloudEnvironment();
+      const endpoint = isCloud ? '/api/librus?path=timetable' : '/api/librus/timetable';
+      const refreshQuery = isManualRefresh ? (isCloud ? '&refresh=true' : '?refresh=true') : '';
+      const url = `${endpoint}${refreshQuery}`;
+
+      const res = await axios.get(url, { timeout: 15000 });
+      if (res.data?.success && Array.isArray(res.data.lessons)) {
+        const dayMap = {
+          monday: 'mon', mon: 'mon', poniedziałek: 'mon',
+          tuesday: 'tue', tue: 'tue', wtorek: 'tue',
+          wednesday: 'wed', wed: 'wed', środa: 'wed',
+          thursday: 'thu', thu: 'thu', czwartek: 'thu',
+          friday: 'fri', fri: 'fri', piątek: 'fri',
+          saturday: 'sat', sat: 'sat', sobota: 'sat',
+          sunday: 'sun', sun: 'sun', niedziela: 'sun'
+        };
+
+        const parsedLessons = res.data.lessons.map(l => {
+          const mappedDay = dayMap[(l.day || '').toLowerCase()] || 'wed';
+          const isCancelled = Boolean(l.isCancelled || l.status === 'cancelled' || (l.notes && l.notes.includes('ODWOŁANA')));
+          return {
+            id: l.id || `librus_${Math.random()}`,
+            day: mappedDay,
+            timeStart: l.time_start || l.timeStart || '08:00',
+            timeEnd: l.time_end || l.timeEnd || '08:45',
+            duration: l.duration || '45 min',
+            category: 'librus',
+            categoryLabel: 'Szkolne • Librus',
+            room: l.room || '',
+            teacher: l.cleanTeacher || l.teacher || '',
+            indicatorColor: isCancelled ? 'bg-error' : (l.color ? `bg-${l.color}` : 'bg-primary'),
+            title: l.subject || l.title || 'Lekcja',
+            description: l.notes || l.description || '',
+            isCancelled,
+            statusText: isCancelled ? '[!] Odwołana' : (l.statusText || 'Zajęcia w planie'),
+            librusSyncTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+        });
+
+        setScheduleItems(prev => {
+          const personalItems = prev.filter(item => item.category === 'personal');
+          return [...parsedLessons, ...personalItems];
+        });
+        setLastVerifyText('Przed chwilą (0 s)');
       }
-    }, 800);
+    } catch (err) {
+      console.warn('[!] ALERT :: Timetable Librus fetch warning:', err.message);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isLibrusEnabled) {
+      fetchLibrusSchedule(false);
+    }
+  }, [isLibrusEnabled]);
+
+  // Run Librus Sync
+  const handleLibrusSync = async () => {
+    setIsSyncing(true);
+    if (isLibrusEnabled) {
+      await fetchLibrusSchedule(true);
+    } else {
+      setTimeout(() => {
+        setIsSyncing(false);
+        setLastVerifyText('Przed chwilą (0 s)');
+        alert('[*] Tryb autonomiczny: Plan dnia zaktualizowany z bazy lokalnej (bez Librus API).');
+      }, 800);
+    }
   };
 
   // Handle Quick Exception Submit

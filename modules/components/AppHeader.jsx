@@ -73,7 +73,7 @@ const AppHeader = ({ onToggleMobileMenu, isMobileMenuOpen, onLockScreen }) => {
   };
 
   const handleToggleTheme = () => {
-    const themes = ['dark', 'retro', 'monochrome', 'matrix', 'synthwave', 'nordic'];
+    const themes = ['dark', 'retro', 'monochrome', 'matrix', 'synthwave', 'nordic', 'light'];
     const current = localStorage.getItem('system_theme') || 'dark';
     const nextIdx = (themes.indexOf(current) + 1) % themes.length;
     const nextTheme = themes[nextIdx];
@@ -82,7 +82,7 @@ const AppHeader = ({ onToggleMobileMenu, isMobileMenuOpen, onLockScreen }) => {
   };
 
   return (
-    <header className="fixed top-0 left-0 md:left-64 right-0 h-16 bg-surface/85 backdrop-blur-xl z-40 px-3 sm:px-space-md md:px-space-lg flex items-center justify-between border-b border-white/[0.04] shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <header className="fixed top-0 left-0 md:left-64 right-0 h-16 bg-surface/85 backdrop-blur-xl z-40 px-3 sm:px-space-md md:px-space-lg flex items-center justify-between border-b border-outline-variant/30 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
       {/* Lewa strefa: Mobilny przycisk menu + Wskaźniki Stanu */}
       <div className="flex items-center gap-2 sm:gap-space-sm md:gap-space-md">
         {/* Mobile menu button (min 44px touch target) */}
