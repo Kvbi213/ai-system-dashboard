@@ -1,5 +1,16 @@
 ## Wersja Bieżąca
-**v3.2.0**
+**v3.2.1**
+
+## v 3.2.1 — 2026-10-20
+**Typ:** PATCH  
+**Zakres:** Eliminacja defektu krytycznego naruszenia zasad hooków React (Rules of Hooks) w `core.client.jsx`:
+- [!] Naprawiono: `core.client.jsx` – przeniesiono hook `useEffect` nasłuchujący zdarzenia `openSetupWizard` przed blok warunkowego powrotu `if (isVerifying)`, eliminując asynchroniczny błąd `Rendered more hooks than during the previous render` wyzwalany po zakończeniu weryfikacji tożsamości/kluczy.
+- [+] Dodano: Raport błędu `docs/errors/ERROR_DIFF_2026-10-20_rendered_more_hooks.md`.
+- [+] Dodano: Raport wydania `docs/versions/v3.2.1.md`.
+- [*] Zmodyfikowano: `package.json` – inkrementacja wersji do `3.2.1`.
+- [*] Weryfikacja: 264/264 PASS w 22 zestawach testowych Vitest (100%), kompilacja produkcyjna Vite bez błędów.
+
+---
 
 ## v 3.2.0 — 2026-10-20
 **Typ:** MINOR  

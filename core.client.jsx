@@ -278,6 +278,12 @@ const App = () => {
     return () => window.removeEventListener('wakeWordDetected', handleWakeOnLock);
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    const handleOpenWizard = () => setShowSetupModal(true);
+    window.addEventListener('openSetupWizard', handleOpenWizard);
+    return () => window.removeEventListener('openSetupWizard', handleOpenWizard);
+  }, []);
+
   if (isVerifying) {
     return (
       <div className="h-[100dvh] w-full flex flex-col items-center justify-center bg-[#0A0B0E] text-textPrimary font-mono">
@@ -286,12 +292,6 @@ const App = () => {
       </div>
     );
   }
-
-  useEffect(() => {
-    const handleOpenWizard = () => setShowSetupModal(true);
-    window.addEventListener('openSetupWizard', handleOpenWizard);
-    return () => window.removeEventListener('openSetupWizard', handleOpenWizard);
-  }, []);
 
   const handleUnlock = async () => {
     setIsAuthenticated(true);
