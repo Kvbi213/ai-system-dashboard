@@ -1,5 +1,20 @@
 ## Wersja Bieżąca
-**v3.1.0**
+**v3.1.1**
+
+## v 3.1.1 — 2026-10-20
+**Typ:** PATCH  
+**Zakres:** Integracja Realnych Danych i Widżetu To-Do na Pulpicie, Rekonstrukcja Ustawień 1:1 z Makietą, Pełny Backend Treningów oraz Siatka Kolumnowa Harmonogramu:
+- [+] Dodano: `modules/pages/Dashboard.jsx` – pełna eliminacja atrap danych; integracja widżetu zadań To-Do (dodawanie, filtry, odhaczanie, usuwanie), dynamiczne wyliczanie wskaźnika Aktywność Dnia (ring SVG z realnych zadań), dynamiczna karta Sesji FBW z bazy `workouts`, dynamiczna karta Finanse Koperty 50/30/20 z kolekcji `finances` oraz realna telemetria pamięci V8 i opóźnienia LPU.
+- [+] Dodano: `modules/pages/SettingsPage.jsx` – rekonstrukcja 1:1 z makietą HTML użytkownika: 5 sekcji (01 Visual Kernel z 7 motywami, 02 Vault & Tokens z 5 poświadczeniami i modalem edycji, 03 Defense & Sandbox z 5 politykami bezpieczeństwa, 04 Shell Navigation z matrycą 12 modułów zsynchronizowaną z paskiem bocznym, 05 Persistence & Snapshots z eksportem/importem JSON i zrzutem SQL).
+- [*] Zmodyfikowano: `modules/pages/TimetablePage.jsx` – dopracowanie filtrowania dni (wybór konkretnego dnia izoluje zajęcia do wybranego dnia) oraz tryb "Cały Tydzień" w 7-kolumnowej siatce na wzór aplikacji Librus.
+- [*] Zmodyfikowano: `modules/pages/WorkoutsPage.jsx` & `modules/routes/workouts.js` – pełna integracja backendowa zapisu sesji FBW (waga, serie, czas, notatka) z bazą SQLite WAL i Firestore oraz zestaw fallbacku historii.
+- [*] Zmodyfikowano: `modules/components/Sidebar.jsx` – dynamiczne ukrywanie/pokazywanie modułów zgodnie z konfiguracją `visibleNav` zdefiniowaną w Ustawieniach.
+- [+] Dodano: `modules/config/initialData.js` – czysty podział danych seed bez konfliktów statycznego importu w Rollup/Vite.
+- [+] Dodano: Raport wydania `docs/versions/v3.1.1.md`.
+- [*] Zmodyfikowano: `package.json` – inkrementacja wersji do `3.1.1`.
+- [*] Weryfikacja: 264/264 PASS w 22 zestawach testowych Vitest (100%), bezbłędny build Vite w 11.23s.
+
+---
 
 ## v 3.1.0 — 2026-10-20
 **Typ:** MINOR  

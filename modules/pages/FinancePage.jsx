@@ -5,6 +5,7 @@ import { subscribeCollection, saveCloudDocument, deleteCloudDocument, isCloudEnv
 import { useToast } from '../context/ToastContext';
 import ExportModal from '../components/ExportModal';
 import { calculateFinanceStats } from '../services/budgetCalculator';
+import { INITIAL_FINANCE_TRANSACTIONS } from '../config/initialData';
 
 const FinancePage = () => {
   const { t } = useTranslation();
@@ -90,10 +91,11 @@ const FinancePage = () => {
         }
 
         const txs = data.filter(d => d && d.id !== 'finance_settings' && !d.is_settings && d.amount !== undefined);
-        const sorted = [...txs].sort((a, b) => new Date(b.transaction_date || 0) - new Date(a.transaction_date || 0));
+        const listToUse = txs.length > 0 ? txs : INITIAL_FINANCE_TRANSACTIONS;
+        const sorted = [...listToUse].sort((a, b) => new Date(b.transaction_date || 0) - new Date(a.transaction_date || 0));
         setFinances(sorted);
       }
-    });
+    }, INITIAL_FINANCE_TRANSACTIONS);
 
     if (!isCloudEnvironment()) {
       axios.get('/api/finances')

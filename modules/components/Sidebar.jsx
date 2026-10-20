@@ -5,29 +5,29 @@ const NAV_SECTIONS = [
   {
     title: 'Core Systems',
     items: [
-      { path: '/', label: 'Pulpit', icon: 'dashboard' },
-      { path: '/chat', label: 'Omni Chat & AI', icon: 'smart_toy' },
-      { path: '/timetable', label: 'Plan Dnia', icon: 'schedule' },
-      { path: '/grades', label: 'Oceny & Edukacja', icon: 'school' },
-      { path: '/finances', label: 'Finanse & Koperty', icon: 'account_balance_wallet' },
+      { id: 'pulpit', path: '/', label: 'Pulpit', icon: 'dashboard' },
+      { id: 'omni-chat-ai', path: '/chat', label: 'Omni Chat & AI', icon: 'smart_toy' },
+      { id: 'plan-dnia-harmonogram', path: '/timetable', label: 'Plan Dnia', icon: 'schedule' },
+      { id: 'oceny-edukacja', path: '/grades', label: 'Oceny & Edukacja', icon: 'school' },
+      { id: 'finanse-koperty', path: '/finances', label: 'Finanse & Koperty', icon: 'account_balance_wallet' },
     ]
   },
   {
     title: 'Tracking & Ops',
     items: [
-      { path: '/workouts', label: 'Treningi FBW', icon: 'fitness_center' },
-      { path: '/calendar', label: 'Kalendarz', icon: 'calendar_month' },
-      { path: '/osint', label: 'OSINT Toolkit', icon: 'radar' },
-      { path: '/entities', label: 'Baza Wiedzy', icon: 'hub' },
+      { id: 'treningi-fbw', path: '/workouts', label: 'Treningi FBW', icon: 'fitness_center' },
+      { id: 'kalendarz', path: '/calendar', label: 'Kalendarz', icon: 'calendar_month' },
+      { id: 'osint-toolkit', path: '/osint', label: 'OSINT Toolkit', icon: 'radar' },
+      { id: 'baza-wiedzy-encje', path: '/entities', label: 'Baza Wiedzy', icon: 'hub' },
     ]
   },
   {
     title: 'System Management',
     items: [
-      { path: '/memory', label: 'Pamięć Operatora', icon: 'memory' },
-      { path: '/widgets', label: 'Widżety & Metryki', icon: 'monitoring' },
-      { path: '/server', label: 'Serwer & Logi', icon: 'terminal' },
-      { path: '/settings', label: 'Ustawienia', icon: 'settings' },
+      { id: 'pamiec-operatora', path: '/memory', label: 'Pamięć Operatora', icon: 'memory' },
+      { id: 'widzety-metryki', path: '/widgets', label: 'Widżety & Metryki', icon: 'monitoring' },
+      { id: 'serwer-logi', path: '/server-logs', label: 'Serwer & Logi', icon: 'terminal' },
+      { id: 'ustawienia-systemu', path: '/settings', label: 'Ustawienia', icon: 'settings' },
     ]
   }
 ];
@@ -36,15 +36,26 @@ const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
   const location = useLocation();
   const [userName, setUserName] = useState(() => localStorage.getItem('system_user_name') || 'Jakub Lis');
   const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('system_theme') || 'dark');
+  const [visibleNav, setVisibleNav] = useState(() => {
+    try {
+      const saved = localStorage.getItem('system_visible_nav');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return null;
+  });
 
   useEffect(() => {
     const handleNameChange = (e) => setUserName(e.detail || 'Jakub Lis');
     const handleThemeChange = (e) => setCurrentTheme(e.detail || 'dark');
+    const handleNavChange = (e) => setVisibleNav(e.detail);
+
     window.addEventListener('userNameChanged', handleNameChange);
     window.addEventListener('themeChanged', handleThemeChange);
+    window.addEventListener('visibleNavChanged', handleNavChange);
     return () => {
       window.removeEventListener('userNameChanged', handleNameChange);
       window.removeEventListener('themeChanged', handleThemeChange);
+      window.removeEventListener('visibleNavChanged', handleNavChange);
     };
   }, []);
 
@@ -86,35 +97,39 @@ const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
 
         {/* Navigation Categories */}
         <div className="flex-1 overflow-y-auto px-space-md py-space-md space-y-space-lg">
-          {NAV_SECTIONS.map((section) => (
-            <div key={section.title} className="space-y-space-xs">
-              <div className="px-space-sm py-space-xs font-label-sm text-label-sm text-outline uppercase tracking-wider">
-                {section.title}
+          {NAV_SECTIONS.map((section) => {
+            const visibleItems = section.items.filter(item => !visibleNav || visibleNav[item.id] !== false);
+            if (visibleItems.length === 0) return null;
+            return (
+              <div key={section.title} className="space-y-space-xs">
+                <div className="px-space-sm py-space-xs font-label-sm text-label-sm text-outline uppercase tracking-wider">
+                  {section.title}
+                </div>
+                <nav className="space-y-space-xs">
+                  {visibleItems.map((item) => {
+                    const active = isItemActive(item.path);
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={onCloseMobile}
+                        className={`flex items-center gap-space-md px-space-sm py-space-xs rounded-lg transition-colors font-body-md text-body-md apple-press ${
+                          active
+                            ? 'bg-surface-container-high text-primary font-bold shadow-sm'
+                            : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-[18px]">
+                          {item.icon}
+                        </span>
+                        <span>{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </nav>
               </div>
-              <nav className="space-y-space-xs">
-                {section.items.map((item) => {
-                  const active = isItemActive(item.path);
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      onClick={onCloseMobile}
-                      className={`flex items-center gap-space-md px-space-sm py-space-xs rounded-lg transition-colors font-body-md text-body-md apple-press ${
-                        active
-                          ? 'bg-surface-container-high text-primary font-bold shadow-sm'
-                          : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-[18px]">
-                        {item.icon}
-                      </span>
-                      <span>{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

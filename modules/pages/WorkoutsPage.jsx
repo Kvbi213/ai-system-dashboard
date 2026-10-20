@@ -7,6 +7,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import { subscribeCollection, saveCloudDocument, deleteCloudDocument, isCloudEnvironment } from '../services/cloudSync';
+import { DEFAULT_WORKOUT_HISTORY } from '../config/initialData';
 
 const INITIAL_FBW_SETS = {
   // Exercise 1: Podciąganie na drążku
@@ -213,10 +214,11 @@ const WorkoutsPage = () => {
   useEffect(() => {
     const unsub = subscribeCollection('workouts', (data) => {
       if (Array.isArray(data)) {
-        const sorted = [...data].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        const listToUse = data.length > 0 ? data : DEFAULT_WORKOUT_HISTORY;
+        const sorted = [...listToUse].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
         setWorkouts(sorted);
       }
-    });
+    }, DEFAULT_WORKOUT_HISTORY);
 
     if (!isCloudEnvironment()) {
       axios.get('/api/workouts')
