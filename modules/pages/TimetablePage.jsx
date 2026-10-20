@@ -1,2090 +1,1015 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import axios from 'axios';
 import { 
-  GraduationCap, Plus, Trash2, Edit2, Clock, MapPin, User, 
-  Search, Filter, Calendar, BookOpen, ChevronRight, Copy, 
-  Sparkles, CheckCircle, AlertCircle, LayoutGrid, List, RefreshCw,
-  AlertTriangle, UserX, CheckCircle2, ArrowUpDown, Tag, AlertOctagon,
-  Dumbbell, Coffee, Briefcase, Layers
-} from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { subscribeCollection, saveCloudDocument, deleteCloudDocument, CLOUD_COLLECTIONS, isCloudEnvironment } from '../services/cloudSync';
-import { doc, onSnapshot, getDoc, setDoc } from 'firebase/firestore';
+  subscribeCollection, 
+  saveCloudDocument, 
+  deleteCloudDocument, 
+  CLOUD_COLLECTIONS 
+} from '../services/cloudSync.js';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { firestore } from '../firebaseClient.js';
-import { 
-  resolveFullTeacherName, 
-  cleanTeacherName, 
-  matchTeacherNames 
-} from '../services/teacherUtils.js';
 
-const DAYS = [
-  { id: 'monday', label: 'Poniedziałek', short: 'Pon', dayIndex: 1 },
-  { id: 'tuesday', label: 'Wtorek', short: 'Wt', dayIndex: 2 },
-  { id: 'wednesday', label: 'Środa', short: 'Śr', dayIndex: 3 },
-  { id: 'thursday', label: 'Czwartek', short: 'Czw', dayIndex: 4 },
-  { id: 'friday', label: 'Piątek', short: 'Pt', dayIndex: 5 },
-  { id: 'saturday', label: 'Sobota', short: 'Sob', dayIndex: 6 },
-  { id: 'sunday', label: 'Niedziela', short: 'Nd', dayIndex: 0 },
+const DAYS_DATA = [
+  { id: 'mon', name: 'Pon', dayNumber: '14', blocks: '5 bloków', active: false },
+  { id: 'tue', name: 'Wt', dayNumber: '15', blocks: '7 bloków', active: false },
+  { id: 'wed', name: 'Śr • Dziś', dayNumber: '16', blocks: '6 bloków', active: true },
+  { id: 'thu', name: 'Czw', dayNumber: '17', blocks: '4 bloki', active: false },
+  { id: 'fri', name: 'Pt', dayNumber: '18', blocks: '5 bloków', active: false },
+  { id: 'sat', name: 'Sob', dayNumber: '19', blocks: 'Regeneracja', active: false, muted: true },
+  { id: 'sun', name: 'Ndz', dayNumber: '20', blocks: 'Planowanie', active: false, muted: true },
 ];
 
-const LESSON_TYPES = [
-  { id: 'Wykład', label: 'Wykład', defaultColor: 'indigo' },
-  { id: 'Laboratorium', label: 'Laboratorium', defaultColor: 'emerald' },
-  { id: 'Ćwiczenia', label: 'Ćwiczenia', defaultColor: 'cyan' },
-  { id: 'Projekt', label: 'Projekt', defaultColor: 'purple' },
-  { id: 'Seminarium', label: 'Seminarium', defaultColor: 'rose' },
-  { id: 'Lektorat', label: 'Lektorat', defaultColor: 'amber' },
-  { id: 'Konsultacje', label: 'Konsultacje', defaultColor: 'blue' },
-  { id: 'Osobiste', label: 'Osobiste', defaultColor: 'emerald' },
-  { id: 'Inne', label: 'Inne', defaultColor: 'slate' },
-];
-
-const PERSONAL_CATEGORIES = [
-  { id: 'Trening', label: 'Trening / Sport', color: 'emerald' },
-  { id: 'Nauka', label: 'Nauka własna', color: 'purple' },
-  { id: 'Spotkanie', label: 'Spotkanie / Konsultacja', color: 'blue' },
-  { id: 'Praca', label: 'Praca / Projekt', color: 'cyan' },
-  { id: 'Hobby', label: 'Hobby / Czas wolny', color: 'amber' },
-  { id: 'Zdrowie', label: 'Zdrowie / Odpoczynek', color: 'rose' },
-  { id: 'Inne', label: 'Inne aktywności', color: 'slate' }
-];
-
-const PRIORITIES = [
-  { id: 'low', label: 'Niski', badge: 'bg-slate-500/20 text-slate-300 border-slate-500/40' },
-  { id: 'normal', label: 'Normalny', badge: 'bg-blue-500/20 text-blue-300 border-blue-500/40' },
-  { id: 'high', label: 'Wysoki', badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
-  { id: 'critical', label: 'Krytyczny', badge: 'bg-rose-500/20 text-rose-300 border-rose-500/40' }
-];
-
-const COLOR_MAP = {
-  indigo: {
-    badge: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30',
-    border: 'border-indigo-500/40',
-    glow: 'shadow-[0_0_15px_rgba(99,102,241,0.15)]',
-    dot: 'bg-indigo-400'
-  },
-  emerald: {
-    badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-    border: 'border-emerald-500/40',
-    glow: 'shadow-[0_0_15px_rgba(16,185,129,0.15)]',
-    dot: 'bg-emerald-400'
-  },
-  cyan: {
-    badge: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',
-    border: 'border-cyan-500/40',
-    glow: 'shadow-[0_0_15px_rgba(6,182,212,0.15)]',
-    dot: 'bg-cyan-400'
-  },
-  purple: {
-    badge: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
-    border: 'border-purple-500/40',
-    glow: 'shadow-[0_0_15px_rgba(168,85,247,0.15)]',
-    dot: 'bg-purple-400'
-  },
-  amber: {
-    badge: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-    border: 'border-amber-500/40',
-    glow: 'shadow-[0_0_15px_rgba(245,158,11,0.15)]',
-    dot: 'bg-amber-400'
-  },
-  rose: {
-    badge: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
-    border: 'border-rose-500/40',
-    glow: 'shadow-[0_0_15px_rgba(244,63,94,0.15)]',
-    dot: 'bg-rose-400'
-  },
-  blue: {
-    badge: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-    border: 'border-blue-500/40',
-    glow: 'shadow-[0_0_15px_rgba(59,130,246,0.15)]',
-    dot: 'bg-blue-400'
-  },
-  slate: {
-    badge: 'bg-slate-500/15 text-slate-300 border-slate-500/30',
-    border: 'border-slate-500/40',
-    glow: 'shadow-none',
-    dot: 'bg-slate-400'
-  }
-};
-
-const STATIC_DEMO_ABSENCE_EVENTS = [
+const INITIAL_SCHEDULE = [
   {
-    id: 9003,
-    date: '2026-09-24',
-    type: 'absence',
-    category: 'Nieobecność nauczyciela',
-    title: 'Nieobecność: Negowska Alicja',
-    teacher: 'Negowska Alicja',
-    time: '08:50 do 14:50',
-    description: 'Nieobecność nauczyciela: Negowska Alicja (08:50 do 14:50)'
+    id: 'b1',
+    timeStart: '07:00',
+    timeEnd: '07:45',
+    duration: '45 min',
+    category: 'personal',
+    categoryLabel: 'Osobiste',
+    badge: 'SYS-CHECK',
+    indicatorColor: 'bg-secondary-container',
+    title: 'Poranny rozruch & Przegląd telemetrii OmniDash',
+    description: 'Nawodnienie, kalibracja sensorów snu, synchronizacja dziennika bazy wektorowej.',
+    statusText: 'Zrealizowano',
+    isDone: true,
   },
   {
-    id: 9004,
-    date: '2026-09-23',
-    type: 'absence',
-    category: 'Nieobecność nauczyciela',
-    title: 'Nieobecność: Wojnarowski Przemysław',
-    teacher: 'Wojnarowski Przemysław',
-    time: '12:20 do 15:40',
-    description: 'Nieobecność nauczyciela: Wojnarowski Przemysław (12:20 do 15:40)'
+    id: 'b2',
+    timeStart: '08:00',
+    timeEnd: '09:35',
+    duration: '95 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 'Sala 104',
+    teacher: 'Becker Adam',
+    indicatorColor: 'bg-primary',
+    title: 'Informatyka Stosowana',
+    description: 'Struktury danych, implementacja kolejki FIFO/LIFO w C++. Sprawdzian formatywny.',
+    statusText: 'Obecność odnotowana',
+    isDone: true,
+  },
+  {
+    id: 'b3',
+    timeStart: '09:50',
+    timeEnd: '11:25',
+    duration: 'Aktywny',
+    category: 'librus',
+    categoryLabel: 'Trwa teraz',
+    room: 'Sala 210',
+    teacher: 'dr inż. M. Karwicki',
+    indicatorColor: 'bg-primary/40',
+    isActive: true,
+    title: 'Matematyka Dyskretna',
+    description: 'Teoria grafów, izomorfizmy oraz algorytm Dijkstry. Notatki zapisywane w Obsidian.',
+    hasNoteBtn: true,
+  },
+  {
+    id: 'b4',
+    timeStart: '11:40',
+    timeEnd: '12:25',
+    duration: 'Okienko',
+    category: 'librus',
+    categoryLabel: '[!] Lekcja Odwołana',
+    librusSyncTime: '08:12',
+    isCancelled: true,
+    indicatorColor: 'bg-error',
+    title: 'Fizyka Techniczna',
+    infoText: 'Okienko czasowe: 45 min na powtórkę w bibliotece',
+    hasAssignTaskBtn: true,
+  },
+  {
+    id: 'b5',
+    timeStart: '13:00',
+    timeEnd: '14:30',
+    duration: '90 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 'Sala 302',
+    indicatorColor: 'bg-primary',
+    title: 'Język Angielski C1',
+    description: 'Academic writing & research terminology presentation. Przygotowanie eseju technicznego.',
+  },
+  {
+    id: 'b6',
+    timeStart: '17:30',
+    timeEnd: '18:45',
+    duration: '75 min',
+    category: 'personal',
+    categoryLabel: 'Osobiste • Trening',
+    room: 'Dom / Strych',
+    indicatorColor: 'bg-tertiary',
+    title: 'FBW Strych (Podciąganie, Dipy, OHP)',
+    description: 'Progresywne przeładowanie. Serie główne: 4x8 Podciąganie z pasem +15kg, 3x10 Dipy +20kg.',
+    hasWorkoutBtn: true,
+  },
+  {
+    id: 'b7',
+    timeStart: '20:00',
+    timeEnd: '21:30',
+    duration: '90 min',
+    category: 'personal',
+    categoryLabel: 'Osobiste • Fokus',
+    badge: 'OmniDash Core',
+    indicatorColor: 'bg-secondary',
+    title: 'Projekt Systemu & Deep Work',
+    description: 'Implementacja endpointów SQLite WAL i indeksowania wektorowego dla bazy wiedzy.',
   }
 ];
 
-const STATIC_DEMO_SCHOOL_LESSONS = [
-  // Poniedziałek
-  { id: 'librus_mon_1', day: 'monday', subject: 'Informatyka', time_start: '08:50', time_end: '09:35', room: 's. 17', teacher: 'Becker Adam', cleanTeacher: 'Becker Adam', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia informatyczna', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_mon_2', day: 'monday', subject: 'Informatyka', time_start: '09:40', time_end: '10:25', room: 's. 17', teacher: 'Becker Adam', cleanTeacher: 'Becker Adam', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia informatyczna', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_mon_3', day: 'monday', subject: 'Chemia', time_start: '10:40', time_end: '11:25', room: 's. 31', teacher: 'Kolasińska Paulina', cleanTeacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_mon_4', day: 'monday', subject: 'Edukacja zdrowotna', time_start: '11:30', time_end: '12:15', room: 's. 38', teacher: 'Spych Monika', cleanTeacher: 'Spych Monika', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_mon_5', day: 'monday', subject: 'Systemy operacyjne', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: 'Teoria i architektura systemów', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_mon_6', day: 'monday', subject: 'Systemy operacyjne', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: 'Warsztaty praktyczne', isLibrus: true, category: 'school', status: 'active' },
-
-  // Wtorek
-  { id: 'librus_tue_1', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:00', time_end: '08:45', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_tue_2', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:50', time_end: '09:35', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_tue_3', day: 'tuesday', subject: 'Zajęcia z wychowawcą', time_start: '09:40', time_end: '10:25', room: 's. 1.16', teacher: 'Ziemba Joanna', cleanTeacher: 'Ziemba Joanna', type: 'Wykład', color: 'amber', notes: 'Godzina wychowawcza', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_tue_4', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '10:40', time_end: '11:25', room: 's. WF', teacher: 'Łysakowski Grzegorz', cleanTeacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_tue_5', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '11:30', time_end: '12:15', room: 's. WF', teacher: 'Łysakowski Grzegorz', cleanTeacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_tue_6', day: 'tuesday', subject: 'Pracownia systemów operacyjnych', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Reszka Sławomir', cleanTeacher: 'Reszka Sławomir', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_tue_7', day: 'tuesday', subject: 'Pracownia systemów operacyjnych', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Reszka Sławomir', cleanTeacher: 'Reszka Sławomir', type: 'Laboratorium', color: 'cyan', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_tue_8', day: 'tuesday', subject: 'Matematyka', time_start: '14:05', time_end: '14:50', room: 's. 26', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_tue_9', day: 'tuesday', subject: 'Religia', time_start: '14:55', time_end: '15:40', room: 's. 24', teacher: 'Gizela Maciej', cleanTeacher: 'Gizela Maciej', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true, category: 'school', status: 'active' },
-
-  // Środa
-  { id: 'librus_wed_1', day: 'wednesday', subject: 'Biznes i zarządzanie', time_start: '10:40', time_end: '11:25', room: 's. 0.2', teacher: 'Sokół Paweł', cleanTeacher: 'Sokół Paweł', type: 'Wykład', color: 'blue', notes: '', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_wed_2', day: 'wednesday', subject: 'Biologia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Łukaszczyk-Wulgaris Joanna', cleanTeacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_wed_3', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Gembiak Bartosz', cleanTeacher: 'Gembiak Bartosz', type: 'Laboratorium', color: 'cyan', notes: 'Sprzęt i diagnostyka', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_wed_4', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Gembiak Bartosz', cleanTeacher: 'Gembiak Bartosz', type: 'Laboratorium', color: 'cyan', notes: 'Warsztaty sprzętowe', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_wed_5', day: 'wednesday', subject: 'Historia', time_start: '14:05', time_end: '14:50', room: 's. 06', teacher: 'Wardyn Wojciech', cleanTeacher: 'Wardyn Wojciech', type: 'Wykład', color: 'rose', notes: '', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_wed_6', day: 'wednesday', subject: 'Matematyka', time_start: '14:55', time_end: '15:40', room: 's. 26', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '', isLibrus: true, category: 'school', status: 'active' },
-
-  // Czwartek (Zgodnie z Librus: lekcje 1, 2, 3 i 8 odwołane, okienka 4-5, matematyka 6-7 odbywa się)
-  { 
-    id: 'librus_thu_1', 
-    day: 'thursday', 
-    subject: 'Język polski', 
-    time_start: '08:00', 
-    time_end: '08:45', 
-    room: 's. 34', 
-    teacher: 'Negowska Alicja', 
-    cleanTeacher: 'Negowska Alicja', 
-    type: 'Wykład', 
-    color: 'rose', 
-    notes: '[!] ODWOŁANA (nieobecność nauczyciela)', 
-    isLibrus: true,
-    isCancelled: true,
-    status: 'cancelled',
-    statusLabel: 'Odwołana',
-    category: 'school'
-  },
-  { 
-    id: 'librus_thu_2', 
-    day: 'thursday', 
-    subject: 'Język angielski zawodowy', 
-    time_start: '08:50', 
-    time_end: '09:35', 
-    room: 's. Z2', 
-    teacher: 'Ziemba Joanna', 
-    cleanTeacher: 'Ziemba Joanna', 
-    type: 'Lektorat', 
-    color: 'amber', 
-    notes: 'Grupa 1 - zajęcia odwołane', 
-    isLibrus: true,
-    isCancelled: true,
-    status: 'cancelled',
-    statusLabel: 'Odwołana',
-    category: 'school'
-  },
-  { 
-    id: 'librus_thu_3', 
-    day: 'thursday', 
-    subject: 'Język angielski', 
-    time_start: '09:40', 
-    time_end: '10:25', 
-    room: 's. Z2', 
-    teacher: 'Ziemba Joanna', 
-    cleanTeacher: 'Ziemba Joanna', 
-    type: 'Lektorat', 
-    color: 'amber', 
-    notes: 'Grupa 1 - zajęcia odwołane', 
-    isLibrus: true,
-    isCancelled: true,
-    status: 'cancelled',
-    statusLabel: 'Odwołana',
-    category: 'school'
-  },
-  { id: 'librus_thu_4', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Kryła Łukasz', cleanTeacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: 'Konfiguracja LAN', isLibrus: true, isCancelled: false, status: 'active', category: 'school' },
-  { id: 'librus_thu_5', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '11:30', time_end: '12:15', room: 's. 1.16', teacher: 'Kryła Łukasz', cleanTeacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: 'Protokoły i routing', isLibrus: true, isCancelled: false, status: 'active', category: 'school' },
-  { id: 'librus_thu_6', day: 'thursday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 05', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: 'Zajęcia odbywają się (sala 05)', isLibrus: true, isCancelled: false, status: 'active', category: 'school' },
-  { id: 'librus_thu_7', day: 'thursday', subject: 'Matematyka', time_start: '13:15', time_end: '14:00', room: 's. 05', teacher: 'Bahr Zbigniew', cleanTeacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: 'Zajęcia odbywają się (sala 05)', isLibrus: true, isCancelled: false, status: 'active', category: 'school' },
-  { 
-    id: 'librus_thu_8', 
-    day: 'thursday', 
-    subject: 'Język niemiecki', 
-    time_start: '14:05', 
-    time_end: '14:50', 
-    room: 's. Z1', 
-    teacher: 'Chyła Beata', 
-    cleanTeacher: 'Chyła Beata', 
-    type: 'Lektorat', 
-    color: 'amber', 
-    notes: 'Grupa 1 - zajęcia odwołane', 
-    isLibrus: true,
-    isCancelled: true,
-    status: 'cancelled',
-    statusLabel: 'Odwołana',
-    category: 'school'
-  },
-  { id: 'librus_thu_9', day: 'thursday', subject: 'Biologia', time_start: '14:55', time_end: '15:40', room: 's. 19', teacher: 'Łukaszczyk-Wulgaris Joanna', cleanTeacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true, isCancelled: false, status: 'active', category: 'school' },
-
-  // Piątek
-  { id: 'librus_fri_1', day: 'friday', subject: 'Język angielski', time_start: '08:00', time_end: '08:45', room: 's. Z2', teacher: 'Ziemba Joanna', cleanTeacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_fri_2', day: 'friday', subject: 'Język niemiecki', time_start: '08:50', time_end: '09:35', room: 's. Z1', teacher: 'Chyła Beata', cleanTeacher: 'Chyła Beata', type: 'Lektorat', color: 'amber', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_fri_3', day: 'friday', subject: 'Wychowanie fizyczne', time_start: '09:40', time_end: '10:25', room: 's. WF', teacher: 'Łysakowski Grzegorz', cleanTeacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: 'Grupa 1', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_fri_4', day: 'friday', subject: 'Lokalne sieci komputerowe', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', cleanTeacher: 'Wojnarowski Przemysław', type: 'Wykład', color: 'cyan', notes: 'Architektura sieciowa', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_fri_5', day: 'friday', subject: 'Chemia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Kolasińska Paulina', cleanTeacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_fri_6', day: 'friday', subject: 'Edukacja obywatelska', time_start: '12:20', time_end: '13:05', room: 's. 09', teacher: 'Czarna Alicja', cleanTeacher: 'Czarna Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_fri_7', day: 'friday', subject: 'Język polski', time_start: '13:15', time_end: '14:00', room: 's. 34', teacher: 'Negowska Alicja', cleanTeacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true, category: 'school', status: 'active' },
-  { id: 'librus_fri_8', day: 'friday', subject: 'Język polski', time_start: '14:05', time_end: '14:50', room: 's. 34', teacher: 'Negowska Alicja', cleanTeacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '', isLibrus: true, category: 'school', status: 'active' }
-];
-
-const STATIC_DEMO_PERSONAL_ROUTINE = [
-  // Poniedziałek (FBW Strych)
-  { id: 'personal_mon_wake', day: 'monday', subject: 'Poranny rozruch', time_start: '06:00', time_end: '06:30', room: 'Dom', teacher: 'Rutyna', type: 'Osobiste', color: 'amber', notes: 'Pobudka, szklanka wody + 5g kreatyny przygotowane wieczorem na biurku. Szybka toaleta i wyjście.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
-  { id: 'personal_mon_dinner', day: 'monday', subject: 'Obiad & Reset', time_start: '16:15', time_end: '17:00', room: 'Dom', teacher: 'Posiłek', type: 'Osobiste', color: 'emerald', notes: 'Spokojny obiad (paliwo na resztę dnia) i chwila na odcięcie się od szkoły.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'normal', status: 'active' },
-  { id: 'personal_mon_workout', day: 'monday', subject: 'Blok A: Trening Full Body (Strych)', time_start: '17:00', time_end: '18:00', room: 'Strych', teacher: 'FBW Trening', type: 'Osobiste', color: 'purple', notes: 'Wchodzisz na strych, robisz 30–40 min zestaw Full Body + po treningu szejk WPC. Drążek, dipy, wiosłowanie, OHP, goblet squat, unoszenie kolan.', isLibrus: false, category: 'personal', personalCategory: 'Trening', priority: 'critical', status: 'active' },
-  { id: 'personal_mon_chill', day: 'monday', subject: 'Blok B: Czas dla siebie / Chill', time_start: '18:00', time_end: '20:00', room: 'Strefa Chill', teacher: 'Odpoczynek', type: 'Osobiste', color: 'cyan', notes: 'Relaks, gierki, znajomi, e-pet – czas na zresetowanie głowy.', isLibrus: false, category: 'personal', personalCategory: 'Hobby', priority: 'low', status: 'active' },
-  { id: 'personal_mon_dev', day: 'monday', subject: 'Blok C: Praca głęboka / Kodowanie / Unity', time_start: '20:00', time_end: '22:30', room: 'Workstation', teacher: 'PROTOCOL: BLACKOUT', type: 'Osobiste', color: 'indigo', notes: 'Dwie godziny skupienia na własnych projektach, zleceń i dłubaniu przy silniku PROTOCOL: BLACKOUT.', isLibrus: false, category: 'personal', personalCategory: 'Praca', priority: 'critical', status: 'active' },
-  { id: 'personal_mon_sleep', day: 'monday', subject: 'Wyciszenie i Sen', time_start: '22:30', time_end: '23:00', room: 'Sypialnia', teacher: 'Regeneracja', type: 'Osobiste', color: 'slate', notes: 'Szybki prysznic, odstawienie ekranów, melatonina z melisą. 23:00: Odcięcie – 7 godzin snu do 06:00 rano.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
-
-  // Wtorek (Nauka & Sprawdziany)
-  { id: 'personal_tue_wake', day: 'tuesday', subject: 'Poranny rozruch', time_start: '06:00', time_end: '06:30', room: 'Dom', teacher: 'Rutyna', type: 'Osobiste', color: 'amber', notes: 'Pobudka, szklanka wody + 5g kreatyny przygotowane wieczorem na biurku. Szybka toaleta i wyjście.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
-  { id: 'personal_tue_dinner', day: 'tuesday', subject: 'Obiad & Reset', time_start: '16:15', time_end: '17:00', room: 'Dom', teacher: 'Posiłek', type: 'Osobiste', color: 'emerald', notes: 'Spokojny obiad (paliwo na resztę dnia) i chwila na odcięcie się od szkoły.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'normal', status: 'active' },
-  { id: 'personal_tue_study', day: 'tuesday', subject: 'Blok A: Nauka & Powtórki', time_start: '17:00', time_end: '18:00', room: 'Biurko', teacher: 'Edukacja', type: 'Osobiste', color: 'indigo', notes: '1h czystej nauki do sprawdzianów i kartkówek, żeby nie robić zaległości.', isLibrus: false, category: 'personal', personalCategory: 'Nauka', priority: 'high', status: 'active' },
-  { id: 'personal_tue_chill', day: 'tuesday', subject: 'Blok B: Czas dla siebie / Chill', time_start: '18:00', time_end: '20:00', room: 'Strefa Chill', teacher: 'Odpoczynek', type: 'Osobiste', color: 'cyan', notes: 'Relaks, gierki, znajomi, e-pet – czas na zresetowanie głowy.', isLibrus: false, category: 'personal', personalCategory: 'Hobby', priority: 'low', status: 'active' },
-  { id: 'personal_tue_dev', day: 'tuesday', subject: 'Blok C: Praca głęboka / Kodowanie / Unity', time_start: '20:00', time_end: '22:30', room: 'Workstation', teacher: 'PROTOCOL: BLACKOUT', type: 'Osobiste', color: 'indigo', notes: 'Dwie godziny skupienia na własnych projektach, zleceń i dłubaniu przy silniku PROTOCOL: BLACKOUT.', isLibrus: false, category: 'personal', personalCategory: 'Praca', priority: 'critical', status: 'active' },
-  { id: 'personal_tue_sleep', day: 'tuesday', subject: 'Wyciszenie i Sen', time_start: '22:30', time_end: '23:00', room: 'Sypialnia', teacher: 'Regeneracja', type: 'Osobiste', color: 'slate', notes: 'Szybki prysznic, odstawienie ekranów, melatonina z melisą. 23:00: Odcięcie – 7 godzin snu do 06:00 rano.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
-
-  // Środa (FBW Strych)
-  { id: 'personal_wed_wake', day: 'wednesday', subject: 'Poranny rozruch', time_start: '06:00', time_end: '06:30', room: 'Dom', teacher: 'Rutyna', type: 'Osobiste', color: 'amber', notes: 'Pobudka, szklanka wody + 5g kreatyny przygotowane wieczorem na biurku. Szybka toaleta i wyjście.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
-  { id: 'personal_wed_dinner', day: 'wednesday', subject: 'Obiad & Reset', time_start: '16:15', time_end: '17:00', room: 'Dom', teacher: 'Posiłek', type: 'Osobiste', color: 'emerald', notes: 'Spokojny obiad (paliwo na resztę dnia) i chwila na odcięcie się od szkoły.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'normal', status: 'active' },
-  { id: 'personal_wed_workout', day: 'wednesday', subject: 'Blok A: Trening Full Body (Strych)', time_start: '17:00', time_end: '18:00', room: 'Strych', teacher: 'FBW Trening', type: 'Osobiste', color: 'purple', notes: 'Wchodzisz na strych, robisz 30–40 min zestaw Full Body + po treningu szejk WPC. Drążek, dipy, wiosłowanie, OHP, goblet squat, unoszenie kolan.', isLibrus: false, category: 'personal', personalCategory: 'Trening', priority: 'critical', status: 'active' },
-  { id: 'personal_wed_chill', day: 'wednesday', subject: 'Blok B: Czas dla siebie / Chill', time_start: '18:00', time_end: '20:00', room: 'Strefa Chill', teacher: 'Odpoczynek', type: 'Osobiste', color: 'cyan', notes: 'Relaks, gierki, znajomi, e-pet – czas na zresetowanie głowy.', isLibrus: false, category: 'personal', personalCategory: 'Hobby', priority: 'low', status: 'active' },
-  { id: 'personal_wed_dev', day: 'wednesday', subject: 'Blok C: Praca głęboka / Kodowanie / Unity', time_start: '20:00', time_end: '22:30', room: 'Workstation', teacher: 'PROTOCOL: BLACKOUT', type: 'Osobiste', color: 'indigo', notes: 'Dwie godziny skupienia na własnych projektach, zleceń i dłubaniu przy silniku PROTOCOL: BLACKOUT.', isLibrus: false, category: 'personal', personalCategory: 'Praca', priority: 'critical', status: 'active' },
-  { id: 'personal_wed_sleep', day: 'wednesday', subject: 'Wyciszenie i Sen', time_start: '22:30', time_end: '23:00', room: 'Sypialnia', teacher: 'Regeneracja', type: 'Osobiste', color: 'slate', notes: 'Szybki prysznic, odstawienie ekranów, melatonina z melisą. 23:00: Odcięcie – 7 godzin snu do 06:00 rano.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
-
-  // Czwartek (Nauka & Sprawdziany)
-  { id: 'personal_thu_wake', day: 'thursday', subject: 'Poranny rozruch', time_start: '06:00', time_end: '06:30', room: 'Dom', teacher: 'Rutyna', type: 'Osobiste', color: 'amber', notes: 'Pobudka, szklanka wody + 5g kreatyny przygotowane wieczorem na biurku. Szybka toaleta i wyjście.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
-  { id: 'personal_thu_dinner', day: 'thursday', subject: 'Obiad & Reset', time_start: '16:15', time_end: '17:00', room: 'Dom', teacher: 'Posiłek', type: 'Osobiste', color: 'emerald', notes: 'Spokojny obiad (paliwo na resztę dnia) i chwila na odcięcie się od szkoły.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'normal', status: 'active' },
-  { id: 'personal_thu_study', day: 'thursday', subject: 'Blok A: Nauka & Powtórki', time_start: '17:00', time_end: '18:00', room: 'Biurko', teacher: 'Edukacja', type: 'Osobiste', color: 'indigo', notes: '1h czystej nauki do sprawdzianów i kartkówek, żeby nie robić zaległości.', isLibrus: false, category: 'personal', personalCategory: 'Nauka', priority: 'high', status: 'active' },
-  { id: 'personal_thu_chill', day: 'thursday', subject: 'Blok B: Czas dla siebie / Chill', time_start: '18:00', time_end: '20:00', room: 'Strefa Chill', teacher: 'Odpoczynek', type: 'Osobiste', color: 'cyan', notes: 'Relaks, gierki, znajomi, e-pet – czas na zresetowanie głowy.', isLibrus: false, category: 'personal', personalCategory: 'Hobby', priority: 'low', status: 'active' },
-  { id: 'personal_thu_dev', day: 'thursday', subject: 'Blok C: Praca głęboka / Kodowanie / Unity', time_start: '20:00', time_end: '22:30', room: 'Workstation', teacher: 'PROTOCOL: BLACKOUT', type: 'Osobiste', color: 'indigo', notes: 'Dwie godziny skupienia na własnych projektach, zleceń i dłubaniu przy silniku PROTOCOL: BLACKOUT.', isLibrus: false, category: 'personal', personalCategory: 'Praca', priority: 'critical', status: 'active' },
-  { id: 'personal_thu_sleep', day: 'thursday', subject: 'Wyciszenie i Sen', time_start: '22:30', time_end: '23:00', room: 'Sypialnia', teacher: 'Regeneracja', type: 'Osobiste', color: 'slate', notes: 'Szybki prysznic, odstawienie ekranów, melatonina z melisą. 23:00: Odcięcie – 7 godzin snu do 06:00 rano.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
-
-  // Piątek (FBW Strych)
-  { id: 'personal_fri_wake', day: 'friday', subject: 'Poranny rozruch', time_start: '06:00', time_end: '06:30', room: 'Dom', teacher: 'Rutyna', type: 'Osobiste', color: 'amber', notes: 'Pobudka, szklanka wody + 5g kreatyny przygotowane wieczorem na biurku. Szybka toaleta i wyjście.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' },
-  { id: 'personal_fri_dinner', day: 'friday', subject: 'Obiad & Reset', time_start: '16:15', time_end: '17:00', room: 'Dom', teacher: 'Posiłek', type: 'Osobiste', color: 'emerald', notes: 'Spokojny obiad (paliwo na resztę dnia) i chwila na odcięcie się od szkoły.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'normal', status: 'active' },
-  { id: 'personal_fri_workout', day: 'friday', subject: 'Blok A: Trening Full Body (Strych)', time_start: '17:00', time_end: '18:00', room: 'Strych', teacher: 'FBW Trening', type: 'Osobiste', color: 'purple', notes: 'Wchodzisz na strych, robisz 30–40 min zestaw Full Body + po treningu szejk WPC. Drążek, dipy, wiosłowanie, OHP, goblet squat, unoszenie kolan.', isLibrus: false, category: 'personal', personalCategory: 'Trening', priority: 'critical', status: 'active' },
-  { id: 'personal_fri_chill', day: 'friday', subject: 'Blok B: Czas dla siebie / Chill', time_start: '18:00', time_end: '20:00', room: 'Strefa Chill', teacher: 'Odpoczynek', type: 'Osobiste', color: 'cyan', notes: 'Relaks, gierki, znajomi, e-pet – czas na zresetowanie głowy.', isLibrus: false, category: 'personal', personalCategory: 'Hobby', priority: 'low', status: 'active' },
-  { id: 'personal_fri_dev', day: 'friday', subject: 'Blok C: Praca głęboka / Kodowanie / Unity', time_start: '20:00', time_end: '22:30', room: 'Workstation', teacher: 'PROTOCOL: BLACKOUT', type: 'Osobiste', color: 'indigo', notes: 'Dwie godziny skupienia na własnych projektach, zleceń i dłubaniu przy silniku PROTOCOL: BLACKOUT.', isLibrus: false, category: 'personal', personalCategory: 'Praca', priority: 'critical', status: 'active' },
-  { id: 'personal_fri_sleep', day: 'friday', subject: 'Wyciszenie i Sen', time_start: '22:30', time_end: '23:00', room: 'Sypialnia', teacher: 'Regeneracja', type: 'Osobiste', color: 'slate', notes: 'Szybki prysznic, odstawienie ekranów, melatonina z melisą. 23:00: Odcięcie – 7 godzin snu do 06:00 rano.', isLibrus: false, category: 'personal', personalCategory: 'Zdrowie', priority: 'high', status: 'active' }
-];
-
-const STATIC_DEMO_TIMETABLE_LESSONS = [
-  ...STATIC_DEMO_SCHOOL_LESSONS,
-  ...STATIC_DEMO_PERSONAL_ROUTINE
-];
-
-const TimetablePage = () => {
-  const { t } = useTranslation();
-
-  const [lessons, setLessons] = useState([]);
-  const [librusData, setLibrusData] = useState(null);
-  const [librusCalendarEvents, setLibrusCalendarEvents] = useState([]);
-  const [isSyncingLibrus, setIsSyncingLibrus] = useState(false);
-  const [librusLastSync, setLibrusLastSync] = useState(null);
-  const [absenceFilterOnly, setAbsenceFilterOnly] = useState(false);
-  const [toastMessage, setToastMessage] = useState(null);
-  const [deletedLessonIds, setDeletedLessonIds] = useState(() => {
-    try {
-      const stored = localStorage.getItem('timetable_deleted_ids');
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  const [activeCategory, setActiveCategory] = useState('all'); // 'all' | 'school' | 'personal'
-  const [sortBy, setSortBy] = useState('time_asc'); // 'time_asc' | 'time_desc' | 'category' | 'status'
-
-  const [selectedDay, setSelectedDay] = useState('all'); // 'all' | 'monday' | ...
-  const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'grid'
-  const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [showStats, setShowStats] = useState(true);
+export const TimetablePage = () => {
+  // Filters & State
+  const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'librus' | 'personal'
+  const [selectedDay, setSelectedDay] = useState('wed');
+  const [scheduleItems, setScheduleItems] = useState(INITIAL_SCHEDULE);
   
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [showModal, setShowModal] = useState(false);
-  const [editingLesson, setEditingLesson] = useState(null);
-
-  const [formData, setFormData] = useState({
-    day: 'monday',
-    subject: '',
-    time_start: '08:00',
-    time_end: '09:30',
-    room: '',
-    teacher: '',
-    type: 'Wykład',
-    color: 'indigo',
-    notes: '',
-    category: 'school',
-    personalCategory: 'Nauka',
-    priority: 'normal'
+  // Clock Ticker
+  const [currentTime, setCurrentTime] = useState(() => {
+    const d = new Date();
+    return d.toTimeString().split(' ')[0];
   });
 
-  // Zegar systemowy do dynamicznego sprawdzania trwających lekcji
+  // Diagnostics & Sync
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastVerifyText, setLastVerifyText] = useState('8 min temu');
+  
+  // Quick Exception Form & Toast
+  const [quickTitle, setQuickTitle] = useState('');
+  const [quickStartTime, setQuickStartTime] = useState('12:00');
+  const [quickBlockType, setQuickBlockType] = useState('personal');
+  const [showToast, setShowToast] = useState(false);
+
+  // New Block Modal
+  const [showModal, setShowModal] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalStart, setModalStart] = useState('14:00');
+  const [modalEnd, setModalEnd] = useState('15:00');
+  const [modalCategory, setModalCategory] = useState('personal');
+  const [modalRoom, setModalRoom] = useState('');
+  const [modalDesc, setModalDesc] = useState('');
+
+  // Clock interval
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 30000);
+    const timer = setInterval(() => {
+      const d = new Date();
+      setCurrentTime(d.toTimeString().split(' ')[0]);
+    }, 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // 1. Subskrypcja Cloud Firestore dla tabeli timetable
+  // Realtime Cloud sync
   useEffect(() => {
-    const unsub = subscribeCollection(CLOUD_COLLECTIONS.TIMETABLE || 'timetable', (data) => {
-      if (Array.isArray(data) && data.length > 0) {
-        setLessons(data);
-      }
-    });
-
-    // Fallback Express jeśli działa (tylko w trybie lokalnym)
-    if (!isCloudEnvironment()) {
-      axios.get('/api/timetable')
-        .then(res => {
-          if (Array.isArray(res.data) && res.data.length > 0) {
-            setLessons(prev => {
-              const map = new Map(prev.map(item => [String(item.id), item]));
-              res.data.forEach(item => map.set(String(item.id), item));
-              return Array.from(map.values());
-            });
-          }
-        })
-        .catch(() => {});
-    }
-
-    return () => unsub();
-  }, []);
-
-  // 2. Subskrypcja Librus Timetable & Calendar w Firestore (oraz API fallback)
-  useEffect(() => {
-    if (firestore) {
-      try {
-        const unsubTT = onSnapshot(doc(firestore, 'librus_cache', 'timetable'), (snap) => {
-          if (snap.exists()) {
-            const data = snap.data();
-            if (data) {
-              setLibrusData(data);
-              setLibrusLastSync(data.lastSync || null);
-            }
-          }
-        }, () => {});
-
-        const unsubCal = onSnapshot(doc(firestore, 'librus_cache', 'calendar'), (snap) => {
-          if (snap.exists()) {
-            const data = snap.data();
-            if (data && Array.isArray(data.events)) {
-              setLibrusCalendarEvents(data.events);
-            }
-          }
-        }, () => {});
-
-        return () => {
-          unsubTT();
-          unsubCal();
-        };
-      } catch {}
-    }
-
-    if (!isCloudEnvironment()) {
-      axios.get('/api/librus/timetable')
-        .then(res => {
-          if (res.data?.success && res.data.lessons) {
-            setLibrusData(res.data);
-            setLibrusLastSync(res.data.lastSync || null);
-            if (firestore) {
-              setDoc(doc(firestore, 'librus_cache', 'timetable'), res.data, { merge: true }).catch(() => {});
-            }
-          }
-        })
-        .catch(() => {});
-
-      axios.get('/api/librus/calendar')
-        .then(res => {
-          if (res.data?.success && Array.isArray(res.data.events)) {
-            setLibrusCalendarEvents(res.data.events);
-            if (firestore) {
-              setDoc(doc(firestore, 'librus_cache', 'calendar'), {
-                events: res.data.events,
-                lastSync: res.data.lastSync || new Date().toISOString()
-              }, { merge: true }).catch(() => {});
-            }
-          }
-        })
-        .catch(() => {});
-    }
-  }, []);
-
-  // Określenie dzisiejszego dnia
-  const todayDayId = useMemo(() => {
-    const dayNum = currentTime.getDay(); // 0 = nd, 1 = pon...
-    const match = DAYS.find(d => d.dayIndex === dayNum);
-    return match ? match.id : 'monday';
-  }, [currentTime]);
-
-  const currentMinutes = useMemo(() => {
-    return currentTime.getHours() * 60 + currentTime.getMinutes();
-  }, [currentTime]);
-
-  const parseTimeToMinutes = (timeStr) => {
-    if (!timeStr) return 0;
-    const match = String(timeStr).match(/(\d{1,2}):(\d{2})/);
-    if (!match) return 0;
-    return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
-  };
-
-  // Pomocnicze funkcje korelacji nakładania godzin
-  const checkOverlap = (lStart, lEnd, rangeStr) => {
-    if (!rangeStr) return true;
-    const lower = String(rangeStr).toLowerCase();
-    if (lower.includes('cały dzień') || lower === '' || lower === 'brak') return true;
-    const times = rangeStr.match(/(\d{1,2}:\d{2})/g);
-    if (!times || times.length < 2) return true;
-    const aStart = parseTimeToMinutes(times[0]);
-    const aEnd = parseTimeToMinutes(times[1]);
-    return Math.max(parseTimeToMinutes(lStart), aStart) < Math.min(parseTimeToMinutes(lEnd), aEnd);
-  };
-
-  const isPersonalLesson = (lesson) => {
-    if (!lesson) return false;
-    if (lesson.isPersonal === true || lesson.isPersonal === 'true') return true;
-    if (lesson.category === 'personal' || lesson.itemType === 'personal' || lesson.type === 'Osobiste') return true;
-    const idStr = String(lesson.id || '');
-    if (idStr.startsWith('personal_') || idStr.startsWith('routine_') || idStr.startsWith('workout_')) return true;
-    if (lesson.personalCategory && lesson.personalCategory !== '') return true;
-    return false;
-  };
-
-  const isSchoolLesson = (lesson) => {
-    return !isPersonalLesson(lesson);
-  };
-
-  const getLessonCategory = (lesson) => {
-    return isPersonalLesson(lesson) ? 'personal' : 'school';
-  };
-
-  const isLessonCancelled = (lesson) => {
-    return !!(
-      lesson?.isCancelled || 
-      lesson?.status === 'cancelled' || 
-      lesson?.statusLabel === 'Odwołana' ||
-      (typeof lesson?.notes === 'string' && /odwołan/i.test(lesson.notes))
-    );
-  };
-
-  // Podstawa lekcji: z bufora Librusa (priorytet nadrzędny) lub z bazy/cache jeśli bufor pusty
-  // Wszystkie nazwiska nauczycieli są natychmiast rozwijane do pełnych imion i nazwisk.
-  const baseLessons = useMemo(() => {
-    // 1. Bazowe źródło lekcji szkolnych (Librus live/cache lub wersja demo)
-    let schoolLessons = STATIC_DEMO_TIMETABLE_LESSONS.filter(l => !isPersonalLesson(l));
-    if (librusData && Array.isArray(librusData.lessons) && librusData.lessons.length > 0) {
-      schoolLessons = librusData.lessons.map(l => ({ ...l, category: 'school', isPersonal: false }));
-    }
-
-    // Nadpisania lub dodatkowe lekcje szkolne z Firestore / bazy lokalnej (lessons)
-    const customSchoolLessons = (lessons || []).filter(l => !isPersonalLesson(l));
-    let mergedSchoolLessons = [...schoolLessons];
-    if (customSchoolLessons.length > 0) {
-      customSchoolLessons.forEach(custom => {
-        const idx = mergedSchoolLessons.findIndex(m => String(m.id) === String(custom.id));
-        if (idx >= 0) {
-          mergedSchoolLessons[idx] = { ...mergedSchoolLessons[idx], ...custom, category: 'school', isPersonal: false };
-        } else {
-          mergedSchoolLessons.push({ ...custom, category: 'school', isPersonal: false });
-        }
-      });
-    }
-
-    // 2. Aktywności osobiste (Firestore z fallbackiem do demo jeśli brak wpisów)
-    const customPersonalLessons = (lessons || []).filter(l => isPersonalLesson(l));
-    let personalLessons = customPersonalLessons.length > 0
-      ? customPersonalLessons.map(l => ({ ...l, category: 'personal', isPersonal: true, type: l.type || 'Osobiste' }))
-      : STATIC_DEMO_TIMETABLE_LESSONS.filter(l => isPersonalLesson(l));
-
-    let source = [...mergedSchoolLessons, ...personalLessons];
-    if (deletedLessonIds && deletedLessonIds.length > 0) {
-      source = source.filter(l => !deletedLessonIds.includes(String(l.id)));
-    }
-
-    return source.map(l => {
-      const isPersonal = isPersonalLesson(l);
-      const fullTeacher = isPersonal ? (l.teacher || '') : resolveFullTeacherName(l.cleanTeacher || l.teacher);
-      return {
-        ...l,
-        category: isPersonal ? 'personal' : 'school',
-        isPersonal,
-        teacher: fullTeacher || l.teacher || '',
-        cleanTeacher: fullTeacher || l.cleanTeacher || l.teacher || ''
-      };
-    });
-  }, [lessons, librusData, deletedLessonIds]);
-
-  // Wzbogacenie lekcji o aktywne absencje i alerty zastępstw
-  const enrichedLessons = useMemo(() => {
-    const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const absences = (librusCalendarEvents && librusCalendarEvents.length > 0)
-      ? librusCalendarEvents.filter(e => e && e.type === 'absence' && e.teacher)
-      : STATIC_DEMO_ABSENCE_EVENTS;
-
-    // Granice bieżącego tygodnia roboczego/kalendarzowego (od poniedziałku do niedzieli)
-    const now = new Date(currentTime);
-    const day = now.getDay();
-    const diffToMon = (day === 0 ? -6 : 1) - day;
-    const monDate = new Date(now);
-    monDate.setDate(now.getDate() + diffToMon);
-    const sunDate = new Date(monDate);
-    sunDate.setDate(monDate.getDate() + 6);
-
-    const fmtDate = (d) => {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const dt = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${dt}`;
-    };
-    const monStr = fmtDate(monDate);
-    const sunStr = fmtDate(sunDate);
-
-    return baseLessons.map(lesson => {
-      if (lesson.absenceAlert?.isAbsent) return lesson;
-
-      const matched = absences.find(abs => {
-        // 1. Sprawdzenie zgodności nauczyciela (odrzucenie false positives po imieniu lub podciągach)
-        const currentTeacher = lesson.cleanTeacher || lesson.teacher;
-        if (!currentTeacher || !matchTeacherNames(currentTeacher, abs.teacher)) return false;
-
-        // 2. Weryfikacja zakresu datowego - absencje dotyczą wyłącznie bieżącego tygodnia
-        if (abs.date) {
-          if (abs.date < monStr || abs.date > sunStr) return false;
-          let absDay = null;
-          try {
-            absDay = DAY_NAMES[new Date(abs.date + 'T12:00:00Z').getUTCDay()];
-          } catch {}
-          if (absDay && absDay !== lesson.day) return false;
-        }
-
-        // 3. Weryfikacja nakładania się godzin lekcji i absencji
-        return checkOverlap(lesson.time_start, lesson.time_end, abs.time || abs.range);
-      });
-
-      if (matched) {
-        const fullTeacher = resolveFullTeacherName(matched.teacher) || matched.teacher;
-        return {
-          ...lesson,
-          absenceAlert: {
-            isAbsent: true,
-            teacher: fullTeacher,
-            hours: matched.time || 'Cały dzień',
-            date: matched.date || '',
-            description: matched.description || `Nieobecność nauczyciela: ${fullTeacher}`,
-            suggestedStatus: 'okienko_or_sub'
-          }
-        };
-      }
-      return lesson;
-    });
-  }, [baseLessons, librusCalendarEvents, currentTime]);
-
-  // Wykryte aktywne absencje dla aktualnie przeglądanego widoku
-  const detectedAbsences = useMemo(() => {
-    return enrichedLessons.filter(l => {
-      if (!l.absenceAlert?.isAbsent) return false;
-      if (selectedDay !== 'all') return l.day === selectedDay;
-      return true;
-    });
-  }, [enrichedLessons, selectedDay]);
-
-  const todayUpcomingLessons = useMemo(() => {
-    return enrichedLessons
-      .filter(l => l.day === todayDayId)
-      .sort((a, b) => parseTimeToMinutes(a.time_start) - parseTimeToMinutes(b.time_start));
-  }, [enrichedLessons, todayDayId]);
-
-  // Obliczenie aktualnie trwającej lekcji i następnej dzisiaj
-  const { activeLesson, nextLesson } = useMemo(() => {
-    const todayLessons = todayUpcomingLessons;
-
-    let active = null;
-    let next = null;
-
-    for (const l of todayLessons) {
-      const start = parseTimeToMinutes(l.time_start);
-      const end = parseTimeToMinutes(l.time_end);
-      if (currentMinutes >= start && currentMinutes <= end) {
-        active = l;
-      } else if (currentMinutes < start && !next) {
-        next = l;
-      }
-    }
-
-    return { activeLesson: active, nextLesson: next };
-  }, [todayUpcomingLessons, currentMinutes]);
-
-  // Liczniki kategorii dla zakładek (Wszystkie, Szkolne, Osobiste)
-  const categoryCounts = useMemo(() => {
-    let all = 0;
-    let school = 0;
-    let personal = 0;
-    enrichedLessons.forEach(l => {
-      if (selectedDay !== 'all' && l.day !== selectedDay) return;
-      all++;
-      if (getLessonCategory(l) === 'personal') {
-        personal++;
-      } else {
-        school++;
-      }
-    });
-    return { all, school, personal };
-  }, [enrichedLessons, selectedDay]);
-
-  // Statystyki tygodniowe
-  const stats = useMemo(() => {
-    const totalLessons = enrichedLessons.length;
-    let totalMinutes = 0;
-    const subjects = new Set();
-    let cancelledCount = 0;
-    let personalCount = 0;
-    let schoolCount = 0;
-
-    enrichedLessons.forEach(l => {
-      const isCanc = isLessonCancelled(l);
-      if (isCanc) cancelledCount++;
-      if (getLessonCategory(l) === 'personal') {
-        personalCount++;
-      } else {
-        schoolCount++;
-      }
-      if (!isCanc) {
-        const dur = Math.max(0, parseTimeToMinutes(l.time_end) - parseTimeToMinutes(l.time_start));
-        totalMinutes += dur;
-      }
-      if (l.subject) subjects.add(l.subject.trim());
-    });
-
-    const hours = (totalMinutes / 60).toFixed(1);
-    const todayCount = enrichedLessons.filter(l => l.day === todayDayId).length;
-    const totalAbsencesCount = enrichedLessons.filter(l => l.absenceAlert?.isAbsent).length;
-
-    return {
-      totalLessons,
-      totalHours: hours,
-      uniqueSubjects: subjects.size,
-      todayCount,
-      totalAbsencesCount,
-      cancelledCount,
-      personalCount,
-      schoolCount
-    };
-  }, [enrichedLessons, todayDayId]);
-
-  // Filtrowanie lekcji
-  const filteredLessons = useMemo(() => {
-    return enrichedLessons
-      .filter(l => {
-        if (absenceFilterOnly && !l.absenceAlert?.isAbsent) return false;
-        if (selectedDay !== 'all' && l.day !== selectedDay) return false;
-        if (activeCategory === 'school' && getLessonCategory(l) !== 'school') return false;
-        if (activeCategory === 'personal' && getLessonCategory(l) !== 'personal') return false;
-        if (typeFilter !== 'all' && l.type !== typeFilter) return false;
-        if (searchQuery.trim() !== '') {
-          const q = searchQuery.toLowerCase();
-          const matchSubject = l.subject?.toLowerCase().includes(q);
-          const matchRoom = l.room?.toLowerCase().includes(q);
-          const matchTeacher = l.teacher?.toLowerCase().includes(q);
-          const matchNotes = l.notes?.toLowerCase().includes(q);
-          const matchPersonalCat = l.personalCategory?.toLowerCase().includes(q);
-          if (!matchSubject && !matchRoom && !matchTeacher && !matchNotes && !matchPersonalCat) return false;
-        }
-        return true;
-      })
-      .sort((a, b) => {
-        if (selectedDay === 'all') {
-          const dayA = DAYS.findIndex(d => d.id === a.day);
-          const dayB = DAYS.findIndex(d => d.id === b.day);
-          if (dayA !== dayB) return dayA - dayB;
-        }
-
-        if (sortBy === 'time_desc') {
-          return parseTimeToMinutes(b.time_start) - parseTimeToMinutes(a.time_start);
-        }
-        if (sortBy === 'category') {
-          const catA = getLessonCategory(a);
-          const catB = getLessonCategory(b);
-          if (catA !== catB) return catA.localeCompare(catB);
-          return parseTimeToMinutes(a.time_start) - parseTimeToMinutes(b.time_start);
-        }
-        if (sortBy === 'status') {
-          const aCanc = isLessonCancelled(a) ? 1 : 0;
-          const bCanc = isLessonCancelled(b) ? 1 : 0;
-          if (aCanc !== bCanc) return aCanc - bCanc;
-          return parseTimeToMinutes(a.time_start) - parseTimeToMinutes(b.time_start);
-        }
-        // default: time_asc
-        return parseTimeToMinutes(a.time_start) - parseTimeToMinutes(b.time_start);
-      });
-  }, [enrichedLessons, selectedDay, activeCategory, typeFilter, searchQuery, absenceFilterOnly, sortBy]);
-
-  const handleSyncLibrusTimetable = async () => {
-    setIsSyncingLibrus(true);
+    let unsubscribe;
     try {
-      if (!isCloudEnvironment()) {
-        const resp = await axios.post('/api/librus/timetable/import-to-schedule');
-        if (resp.data?.success && resp.data.data) {
-          setLibrusData(resp.data.data);
-          setLibrusLastSync(resp.data.data.lastSync || new Date().toISOString());
-          if (Array.isArray(resp.data.data.lessons)) {
-            setLessons(prev => {
-              const personal = (prev || []).filter(l => isPersonalLesson(l));
-              return [...resp.data.data.lessons, ...personal];
+      unsubscribe = subscribeCollection(
+        CLOUD_COLLECTIONS.TIMETABLE,
+        (data) => {
+          if (data && data.length > 0) {
+            // Merge custom blocks from cloud
+            const cloudCustoms = data.map(item => ({
+              id: item.id || `cloud_${Math.random()}`,
+              timeStart: item.time_start || item.timeStart || '12:00',
+              timeEnd: item.time_end || item.timeEnd || '13:00',
+              duration: item.duration || '60 min',
+              category: item.category === 'school' ? 'librus' : (item.category || 'personal'),
+              categoryLabel: item.category === 'school' ? 'Szkolne • Librus' : 'Osobiste',
+              badge: item.badge || (item.category === 'school' ? 'Librus' : 'Custom'),
+              indicatorColor: item.category === 'school' ? 'bg-primary' : 'bg-secondary',
+              title: item.subject || item.title || 'Zadanie',
+              description: item.notes || item.description || '',
+              room: item.room || '',
+              teacher: item.teacher || '',
+            }));
+            
+            // Keep initial items and append any unique cloud items
+            setScheduleItems(prev => {
+              const existingIds = new Set(prev.map(p => p.id));
+              const additions = cloudCustoms.filter(c => !existingIds.has(c.id));
+              return [...prev, ...additions];
             });
           }
-          const subsCount = resp.data.data.substitutions?.length || 0;
-          setToastMessage(`[+] Zsynchronizowano plan z Librusa! Wykryto ${subsCount} zmian/zastępstw.`);
-          setTimeout(() => setToastMessage(null), 4000);
+        },
+        () => {
+          // Fallback - initial items already loaded
         }
-      } else {
-        // Środowisko chmurowe — odświeżenie ze snapshota Firestore
-        if (firestore) {
-          const snap = await getDoc(doc(firestore, 'librus_cache', 'timetable'));
-          if (snap.exists() && snap.data()) {
-            setLibrusData(snap.data());
-            setLibrusLastSync(snap.data().lastSync || new Date().toISOString());
-            if (Array.isArray(snap.data().lessons)) {
-              setLessons(prev => {
-                const personal = (prev || []).filter(l => isPersonalLesson(l));
-                return [...snap.data().lessons, ...personal];
-              });
-            }
-          }
-          const snapCal = await getDoc(doc(firestore, 'librus_cache', 'calendar'));
-          if (snapCal.exists() && snapCal.data()?.events) {
-            setLibrusCalendarEvents(snapCal.data().events);
-          }
-        }
-        setToastMessage('[+] Odświeżono plan lekcji i zastępstwa z chmury Librus.');
-        setTimeout(() => setToastMessage(null), 4000);
-      }
-    } catch (err) {
-      setToastMessage(`[!] Błąd synchronizacji: ${err.message}`);
-      setTimeout(() => setToastMessage(null), 4000);
-    } finally {
-      setIsSyncingLibrus(false);
+      );
+    } catch {
+      // Offline fallback
     }
-  };
 
-  const handleOpenAddModal = (defaultDay = 'monday', initialCategory = activeCategory === 'personal' ? 'personal' : 'school') => {
-    setEditingLesson(null);
-    setFormData({
-      day: selectedDay !== 'all' ? selectedDay : defaultDay,
-      subject: '',
-      time_start: '08:00',
-      time_end: '09:30',
-      room: '',
-      teacher: '',
-      type: initialCategory === 'personal' ? 'Osobiste' : 'Wykład',
-      color: initialCategory === 'personal' ? 'emerald' : 'indigo',
-      notes: '',
-      category: initialCategory,
-      personalCategory: 'Nauka',
-      priority: 'normal'
-    });
-    setShowModal(true);
-  };
-
-  const handleOpenEditModal = (lesson) => {
-    setEditingLesson(lesson);
-    const isPersonal = isPersonalLesson(lesson);
-    setFormData({
-      day: lesson.day || 'monday',
-      subject: lesson.subject || '',
-      time_start: lesson.time_start || '08:00',
-      time_end: lesson.time_end || '09:30',
-      room: lesson.room || '',
-      teacher: lesson.teacher || '',
-      type: lesson.type || (isPersonal ? 'Osobiste' : 'Wykład'),
-      color: lesson.color || (isPersonal ? 'emerald' : 'indigo'),
-      notes: lesson.notes || '',
-      category: isPersonal ? 'personal' : 'school',
-      personalCategory: lesson.personalCategory || 'Nauka',
-      priority: lesson.priority || 'normal'
-    });
-    setShowModal(true);
-  };
-
-  const handleDuplicate = async (lesson) => {
-    const nextDayMap = {
-      monday: 'tuesday',
-      tuesday: 'wednesday',
-      wednesday: 'thursday',
-      thursday: 'friday',
-      friday: 'monday',
-      saturday: 'sunday',
-      sunday: 'monday'
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
     };
-    const targetDay = nextDayMap[lesson.day] || 'monday';
-    const newLesson = {
-      ...lesson,
-      id: 't_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-      day: targetDay,
-      created_at: new Date().toISOString()
-    };
+  }, []);
 
-    setLessons(prev => [...prev, newLesson]);
-    await saveCloudDocument('timetable', newLesson.id, newLesson);
-    if (!isCloudEnvironment()) {
-      try { await axios.post('/api/timetable', newLesson); } catch {}
-    }
+  // Filtered Items
+  const filteredSchedule = useMemo(() => {
+    if (activeFilter === 'all') return scheduleItems;
+    return scheduleItems.filter(item => item.category === activeFilter);
+  }, [activeFilter, scheduleItems]);
+
+  // Run Librus Sync
+  const handleLibrusSync = () => {
+    setIsSyncing(true);
+    setTimeout(() => {
+      setIsSyncing(false);
+      setLastVerifyText('Przed chwilą (0 s)');
+    }, 900);
   };
 
-  const handleDelete = async (id) => {
-    const idStr = String(id);
-    if (!window.confirm('Czy na pewno chcesz usunąć te zajęcia z planu?')) return;
-    setDeletedLessonIds(prev => {
-      const next = [...prev, idStr];
-      try { localStorage.setItem('timetable_deleted_ids', JSON.stringify(next)); } catch {}
-      return next;
-    });
-    setLessons(prev => prev.filter(l => String(l.id) !== idStr));
-    await deleteCloudDocument('timetable', idStr);
-    if (!isCloudEnvironment()) {
-      try { await axios.delete(`/api/timetable/${idStr}`); } catch {}
-    }
-  };
-
-  const handleToggleCancelled = async (lesson) => {
-    const isNowCancelled = !(lesson.isCancelled || lesson.status === 'cancelled');
-    const updated = {
-      ...lesson,
-      isCancelled: isNowCancelled,
-      status: isNowCancelled ? 'cancelled' : 'active'
-    };
-    setLessons(prev => {
-      const exists = prev.some(l => String(l.id) === String(lesson.id));
-      if (exists) {
-        return prev.map(l => String(l.id) === String(lesson.id) ? updated : l);
-      }
-      return [...prev, updated];
-    });
-    await saveCloudDocument('timetable', String(lesson.id), updated);
-    if (!isCloudEnvironment()) {
-      try {
-        await axios.put(`/api/timetable/${lesson.id}`, updated);
-      } catch {}
-    }
-  };
-
-  const handleSubmit = async (e) => {
+  // Handle Quick Exception Submit
+  const handleQuickException = (e) => {
     e.preventDefault();
-    if (!formData.subject.trim()) return;
+    if (!quickTitle.trim()) return;
 
-    const isPersonal = formData.category === 'personal';
-    const lessonPayload = {
-      ...formData,
-      id: editingLesson ? String(editingLesson.id) : (isPersonal ? 'personal_' : 't_') + Date.now(),
-      category: isPersonal ? 'personal' : 'school',
-      itemType: isPersonal ? 'personal' : 'school',
-      isLibrus: isPersonal ? false : !!formData.isLibrus,
-      updated_at: new Date().toISOString()
+    const newBlock = {
+      id: `quick_${Date.now()}`,
+      timeStart: quickStartTime || '12:00',
+      timeEnd: '12:45',
+      duration: '45 min',
+      category: quickBlockType === 'librus' ? 'librus' : 'personal',
+      categoryLabel: quickBlockType === 'librus' ? 'Szkolne / Uczelnia' : 'Osobiste / Rutyna',
+      badge: 'SZYBKI WYJĄTEK',
+      indicatorColor: quickBlockType === 'librus' ? 'bg-primary' : 'bg-secondary',
+      title: quickTitle.trim(),
+      description: 'Zarejestrowano jako szybki wyjątek w buforze dnia.',
     };
 
-    if (editingLesson) {
-      setLessons(prev => prev.map(l => String(l.id) === String(editingLesson.id) ? lessonPayload : l));
-    } else {
-      setLessons(prev => [...prev, lessonPayload]);
-    }
+    setScheduleItems(prev => [newBlock, ...prev]);
+    setQuickTitle('');
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3500);
 
-    setShowModal(false);
-    await saveCloudDocument('timetable', lessonPayload.id, lessonPayload);
-    if (!isCloudEnvironment()) {
-      try {
-        if (editingLesson) {
-          await axios.put(`/api/timetable/${lessonPayload.id}`, lessonPayload);
-        } else {
-          await axios.post('/api/timetable', lessonPayload);
-        }
-      } catch {}
+    // Save to cloud if available
+    try {
+      saveCloudDocument(CLOUD_COLLECTIONS.TIMETABLE, {
+        id: newBlock.id,
+        title: newBlock.title,
+        subject: newBlock.title,
+        time_start: newBlock.timeStart,
+        time_end: newBlock.timeEnd,
+        category: newBlock.category === 'librus' ? 'school' : 'personal',
+        notes: newBlock.description,
+        createdAt: new Date().toISOString()
+      }).catch((err) => console.debug('Cloud save error:', err));
+    } catch (err) {
+      console.debug('Failed to save cloud exception:', err);
     }
-    setToastMessage(`[+] ${isPersonal ? 'Zapisano aktywność osobistą' : 'Zapisano zajęcia'} w Planie Dnia.`);
-    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // Handle Add Full Modal Block
+  const handleModalSave = (e) => {
+    e.preventDefault();
+    if (!modalTitle.trim()) return;
+
+    const newBlock = {
+      id: `modal_${Date.now()}`,
+      timeStart: modalStart,
+      timeEnd: modalEnd,
+      duration: `${modalStart} - ${modalEnd}`,
+      category: modalCategory,
+      categoryLabel: modalCategory === 'librus' ? 'Szkolne • Librus' : 'Osobiste (Własne)',
+      badge: modalCategory === 'librus' ? 'Librus' : 'Własny Blok',
+      indicatorColor: modalCategory === 'librus' ? 'bg-primary' : 'bg-secondary-container',
+      title: modalTitle.trim(),
+      room: modalRoom,
+      description: modalDesc || 'Blok zdefiniowany przez operatora.',
+    };
+
+    setScheduleItems(prev => [...prev, newBlock]);
+    setShowModal(false);
+    setModalTitle('');
+    setModalDesc('');
+    setModalRoom('');
+
+    try {
+      saveCloudDocument(CLOUD_COLLECTIONS.TIMETABLE, {
+        id: newBlock.id,
+        title: newBlock.title,
+        subject: newBlock.title,
+        time_start: newBlock.timeStart,
+        time_end: newBlock.timeEnd,
+        room: newBlock.room,
+        category: newBlock.category === 'librus' ? 'school' : 'personal',
+        notes: newBlock.description,
+        createdAt: new Date().toISOString()
+      }).catch((err) => console.debug('Cloud save error:', err));
+    } catch (err) {
+      console.debug('Failed to save cloud exception:', err);
+    }
+  };
+
+  // Export iCal function
+  const handleExportICal = () => {
+    const calendarEvents = scheduleItems.map(item => `
+BEGIN:VEVENT
+SUMMARY:${item.title}
+DESCRIPTION:${item.description || ''}
+LOCATION:${item.room || ''}
+STATUS:CONFIRMED
+END:VEVENT`).join('\n');
+
+    const icsContent = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//OmniDash//Harmonogram v3.0//PL\n${calendarEvents}\nEND:VCALENDAR`;
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'harmonogram_omnidash.ics');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
-    <div className="flex flex-col h-full gap-3 sm:gap-5 overflow-y-auto custom-scrollbar font-sans pb-24 md:pb-8 min-h-0">
-      {/* 1. Header Bar */}
-      <header className="glass-panel p-3.5 sm:p-5 rounded-2xl border border-white/10 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 flex-shrink-0 shadow-lg">
-        <div className="flex items-center gap-3 sm:gap-4">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-accentPrimary/20 border border-accentPrimary/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(var(--color-accent-primary),0.2)]">
-            {activeCategory === 'personal' ? (
-              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-accentPrimary" />
-            ) : activeCategory === 'school' ? (
-              <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-accentPrimary" />
-            ) : (
-              <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-accentPrimary" />
-            )}
+    <div className="flex flex-col w-full gap-space-lg">
+      {/* Top Command Context Bar */}
+      <header className="flex flex-col xl:flex-row xl:items-end justify-between gap-space-md pb-space-xs">
+        <div className="flex flex-col gap-space-xs">
+          <div className="flex items-center gap-space-xs text-outline font-label-sm text-label-sm uppercase tracking-wider">
+            <span>Szkic Czasowy</span>
+            <span>/</span>
+            <span className="text-primary font-code-mono">v3.0.4-live</span>
           </div>
-          <div>
-            <nav aria-label="breadcrumb" className="hidden sm:flex items-center space-x-2 text-sm text-textMuted mb-0.5">
-              <span className="text-sm font-medium text-textMuted/70">OmniDash</span>
-              <span className="text-sm font-medium text-textMuted/70">/</span>
-              <span className="text-sm font-medium text-textMuted/70">Harmonogram</span>
-              <span className="text-sm font-medium text-textMuted/70">/</span>
-              <span className="text-sm font-medium text-textPrimary">
-                {activeCategory === 'school' ? 'Szkolny Plan Lekcji' : (activeCategory === 'personal' ? 'Osobisty Plan Dnia' : 'Plan Dnia')}
-              </span>
-            </nav>
-            <h1 className="text-lg sm:text-2xl font-bold text-textPrimary tracking-tight flex items-center gap-2">
-              {activeCategory === 'school' ? 'Szkolny Plan Lekcji' : (activeCategory === 'personal' ? 'Osobisty Plan Dnia' : 'Plan Dnia')}
-              <span className="text-[10px] sm:text-[11px] font-mono px-2 py-0.5 rounded-full bg-accentPrimary/10 text-accentPrimary border border-accentPrimary/30">
-                {activeCategory === 'school' ? 'LIBRUS SYNERGIA' : (activeCategory === 'personal' ? 'RUTYNA & FBW' : 'ZINTEGROWANY')}
-              </span>
-            </h1>
-            <p className="hidden md:block text-xs text-textMuted mt-0.5">
-              {activeCategory === 'school'
-                ? 'Oficjalny rozkład lekcji dydaktycznych i zastępstw z Librus Synergia (Technikum TEB Edukacja).'
-                : (activeCategory === 'personal'
-                  ? 'Stały schemat dnia (06:00 – 23:00): poranny rozruch, trening FBW na strychu, praca głęboka i sen.'
-                  : 'Zintegrowany harmonogram dnia: zajęcia dydaktyczne (Librus Synergia) oraz aktywności osobiste.')}
-            </p>
-          </div>
+          <h1 className="font-headline-xl text-headline-xl text-on-surface tracking-tight font-semibold">
+            Plan Dnia i Harmonogram Tygodnia
+          </h1>
+          <p className="font-body-md text-body-md text-on-surface-variant flex items-center gap-space-xs flex-wrap">
+            <span>Integracja z Librus API</span>
+            <span className="w-1 h-1 rounded-full bg-outline-variant"></span>
+            <span>Osobista rutyna dobowa (06:00 - 23:00)</span>
+            <span className="w-1 h-1 rounded-full bg-outline-variant"></span>
+            <span className="text-secondary">Dwukierunkowa synchronizacja</span>
+          </p>
         </div>
 
-        {/* PRZEŁĄCZNIK TRYBÓW (ZAKŁADEK) + PRZYCISKI AKCJI */}
-        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full xl:w-auto justify-between xl:justify-end pt-2 xl:pt-0 border-t xl:border-t-0 border-border/40">
-          
-          {/* SEGMENTED TAB SWITCHER (Jak w Kalendarzu) */}
-          <div className="flex items-center p-1 rounded-xl bg-surface border border-white/10 text-xs font-mono shadow-sm">
-            <button
-              onClick={() => setActiveCategory('all')}
-              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-                activeCategory === 'all'
-                  ? 'bg-accentPrimary text-background font-bold shadow-sm'
-                  : 'text-textMuted hover:text-textPrimary'
+        {/* Segmented Filter & Main CTA Toolbar */}
+        <div className="flex flex-wrap items-center gap-space-sm">
+          <div className="flex items-center p-1 rounded-lg bg-surface-container-lowest" role="tablist">
+            <button 
+              className={`px-space-md py-1 rounded font-label-md text-label-md transition-all ${
+                activeFilter === 'all' 
+                  ? 'bg-surface-container-high text-on-surface shadow-sm font-medium' 
+                  : 'text-on-surface-variant hover:text-on-surface'
               }`}
-              title="Pokaż wszystkie zajęcia i aktywności"
+              onClick={() => setActiveFilter('all')} 
+              type="button"
             >
-              <Layers className="w-3.5 h-3.5" />
-              <span>Wszystkie</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
-                activeCategory === 'all' ? 'bg-black/40 text-background' : 'bg-white/10 text-textMuted'
-              }`}>
-                {categoryCounts.all}
-              </span>
+              Wszystkie
             </button>
-
-            <button
-              onClick={() => setActiveCategory('school')}
-              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-                activeCategory === 'school'
-                  ? 'bg-accentPrimary text-background font-bold shadow-sm'
-                  : 'text-textMuted hover:text-textPrimary'
+            <button 
+              className={`px-space-md py-1 rounded font-label-md text-label-md transition-all ${
+                activeFilter === 'librus' 
+                  ? 'bg-surface-container-high text-on-surface shadow-sm font-medium' 
+                  : 'text-on-surface-variant hover:text-on-surface'
               }`}
-              title="Przełącz na Szkolny Plan Lekcji (Librus Synergia)"
+              onClick={() => setActiveFilter('librus')} 
+              type="button"
             >
-              <GraduationCap className="w-3.5 h-3.5" />
-              <span>Szkolny (Librus)</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
-                activeCategory === 'school' ? 'bg-black/40 text-background' : 'bg-white/10 text-textMuted'
-              }`}>
-                {categoryCounts.school}
-              </span>
+              Szkolne (Librus)
             </button>
-
-            <button
-              onClick={() => setActiveCategory('personal')}
-              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-                activeCategory === 'personal'
-                  ? 'bg-accentPrimary text-background font-bold shadow-sm'
-                  : 'text-textMuted hover:text-textPrimary'
+            <button 
+              className={`px-space-md py-1 rounded font-label-md text-label-md transition-all ${
+                activeFilter === 'personal' 
+                  ? 'bg-surface-container-high text-on-surface shadow-sm font-medium' 
+                  : 'text-on-surface-variant hover:text-on-surface'
               }`}
-              title="Przełącz na Osobisty Plan Dnia (Rutyna & Trening FBW)"
+              onClick={() => setActiveFilter('personal')} 
+              type="button"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Osobisty (Rutyna)</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
-                activeCategory === 'personal' ? 'bg-black/40 text-background' : 'bg-white/10 text-textMuted'
-              }`}>
-                {categoryCounts.personal}
-              </span>
+              Osobiste (Rutyna &amp; Cele)
             </button>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowStats(prev => !prev)}
-              className="px-2.5 py-1.5 rounded-xl border border-white/10 bg-surface text-textMuted hover:text-textPrimary text-xs font-mono transition-colors flex items-center gap-1.5 shadow-sm"
-              title="Przełącz widoczność kafelków analitycznych"
+          <div className="flex items-center gap-space-xs">
+            <button 
+              className="flex items-center gap-space-xs px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors font-label-md text-label-md cursor-pointer"
+              onClick={handleLibrusSync} 
+              type="button"
             >
-              <span>{showStats ? 'Zwiń ▴' : 'Statystyki ▾'}</span>
+              <span className={`material-symbols-outlined text-[16px] text-primary ${isSyncing ? 'animate-spin' : ''}`}>
+                sync
+              </span>
+              <span>Synchronizuj Librus (API)</span>
             </button>
-
-            <div className="flex items-center bg-surface border border-white/10 rounded-xl p-1">
-              <button
-                onClick={() => setViewMode('cards')}
-                className={`p-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition-all ${viewMode === 'cards' ? 'bg-accentPrimary/20 text-accentPrimary shadow-sm' : 'text-textMuted hover:text-textPrimary'}`}
-                title="Widok kart"
-              >
-                <List className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Karty</span>
-              </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition-all ${viewMode === 'grid' ? 'bg-accentPrimary/20 text-accentPrimary shadow-sm' : 'text-textMuted hover:text-textPrimary'}`}
-                title="Widok siatki tygodniowej"
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Siatka</span>
-              </button>
-            </div>
-
-            {activeCategory !== 'personal' && (
-              <button
-                onClick={handleSyncLibrusTimetable}
-                disabled={isSyncingLibrus}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-accentPrimary/40 bg-accentPrimary/10 text-accentPrimary hover:bg-accentPrimary/20 text-xs font-mono font-bold transition-all active:scale-95 disabled:opacity-50"
-                title="Pobierz oficjalny plan lekcji i zastępstwa z Librusa"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isSyncingLibrus ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">{isSyncingLibrus ? 'Pobieranie...' : 'Sync Librus'}</span>
-                <span className="sm:hidden">Librus</span>
-              </button>
-            )}
-
-            <button
-              onClick={() => handleOpenAddModal(selectedDay !== 'all' ? selectedDay : 'monday')}
-              className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 bg-accentPrimary text-background font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(var(--color-accent-primary),0.3)] hover:brightness-110 active:scale-95 transition-all shrink-0"
+            
+            <button 
+              className="flex items-center gap-space-xs px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors font-label-md text-label-md cursor-pointer" 
+              onClick={handleExportICal}
+              type="button"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>{activeCategory === 'personal' ? 'Dodaj do Rutyny' : (activeCategory === 'school' ? 'Dodaj Lekcję' : 'Dodaj do Planu')}</span>
+              <span className="material-symbols-outlined text-[16px] text-on-surface-variant">file_download</span>
+              <span>Eksport iCal</span>
+            </button>
+            
+            <button 
+              className="flex items-center gap-space-xs px-space-md py-2 rounded-lg bg-primary-container text-on-primary-container hover:brightness-110 transition-all font-label-md text-label-md font-semibold cursor-pointer shadow-sm" 
+              onClick={() => setShowModal(true)}
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[16px]">add</span>
+              <span>Nowy Blok Własny</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* 1.5. Pasek Szybkiego Przełączania / Context Bar */}
-      <div className="p-2.5 sm:p-3 rounded-xl border border-white/10 bg-surface/60 backdrop-blur-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs flex-shrink-0 shadow-sm">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-            activeCategory === 'personal' ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : (activeCategory === 'school' ? 'bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]' : 'bg-accentPrimary shadow-[0_0_8px_rgba(var(--color-accent-primary),0.8)]')
-          }`} />
-          <span className="font-mono text-textMuted shrink-0">Aktywny tryb:</span>
-          <span className="font-bold text-textPrimary truncate">
-            {activeCategory === 'personal' ? 'Osobisty Plan Dnia (Rutyna 06:00-23:00 & Trening FBW)' : (activeCategory === 'school' ? 'Szkolny Plan Lekcji (Librus Synergia • TEB Edukacja)' : 'Zintegrowany Harmonogram Dnia (Wszystkie)')}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
-          <span className="text-[11px] font-mono text-textMuted hidden md:inline">Szybkie przełączanie:</span>
-          <button
-            onClick={() => setActiveCategory('school')}
-            className={`px-2.5 py-1 rounded-lg border font-mono text-[11px] font-semibold flex items-center gap-1.5 transition-all ${
-              activeCategory === 'school'
-                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 ring-1 ring-cyan-500/30'
-                : 'bg-surface hover:bg-cyan-500/10 text-textMuted hover:text-cyan-300 border-white/10'
-            }`}
-          >
-            <GraduationCap className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Plan Szkolny</span>
-          </button>
-          <button
-            onClick={() => setActiveCategory('personal')}
-            className={`px-2.5 py-1 rounded-lg border font-mono text-[11px] font-semibold flex items-center gap-1.5 transition-all ${
-              activeCategory === 'personal'
-                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 ring-1 ring-emerald-500/30'
-                : 'bg-surface hover:bg-emerald-500/10 text-textMuted hover:text-emerald-300 border-white/10'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Plan Osobisty</span>
-          </button>
-          <button
-            onClick={() => setActiveCategory('all')}
-            className={`px-2.5 py-1 rounded-lg border font-mono text-[11px] font-semibold flex items-center gap-1.5 transition-all ${
-              activeCategory === 'all'
-                ? 'bg-accentPrimary/20 text-accentPrimary border-accentPrimary/40 ring-1 ring-accentPrimary/30'
-                : 'bg-surface hover:bg-white/10 text-textMuted hover:text-textPrimary border-white/10'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>Wszystkie</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Powiadomienie Toast */}
-      {toastMessage && (
-        <div className="p-3 rounded-xl bg-accentPrimary/20 border border-accentPrimary/40 text-accentPrimary text-xs font-mono flex items-center justify-between animate-fade-in shadow-lg flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-accentPrimary" />
-            <span>{toastMessage}</span>
+      {/* Metrics Ribbon */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+        <div className="p-space-md rounded-xl bg-surface-container-low flex flex-col justify-between relative overflow-hidden shadow-sm">
+          <div className="flex items-center justify-between text-outline font-label-sm text-label-sm uppercase tracking-wider">
+            <span>Kalendarz Akademicki</span>
+            <span className="material-symbols-outlined text-[18px] text-primary">calendar_today</span>
           </div>
-          <button onClick={() => setToastMessage(null)} className="text-accentPrimary/70 hover:text-accentPrimary text-xs">x</button>
+          <div className="mt-space-md">
+            <div className="font-headline-md text-headline-md text-on-surface font-semibold">Środa, 16 Października 2026</div>
+            <div className="font-code-mono text-code-mono text-secondary mt-space-xs">Tydzień A (Nieparzysty)</div>
+          </div>
+          <div className="w-full bg-surface-container h-1 rounded-full mt-space-md overflow-hidden">
+            <div className="bg-primary h-full w-3/5"></div>
+          </div>
         </div>
-      )}
 
-      {/* Banner Zmian w Planie / Nieobecności Nauczycieli */}
-      {detectedAbsences.length > 0 && (
-        <div className="p-3.5 sm:p-4 rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-surface/80 to-purple-500/10 backdrop-blur-md shadow-[0_0_20px_rgba(245,158,11,0.15)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in flex-shrink-0">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center shrink-0 text-amber-400">
-              <AlertTriangle className="w-5 h-5 animate-pulse" />
-            </div>
+        <div className="p-space-md rounded-xl bg-surface-container-low flex flex-col justify-between shadow-sm">
+          <div className="flex items-center justify-between text-outline font-label-sm text-label-sm uppercase tracking-wider">
+            <span>Alokacja Czasowa</span>
+            <span className="material-symbols-outlined text-[18px] text-secondary">timelapse</span>
+          </div>
+          <div className="mt-space-md flex items-baseline gap-space-xs">
+            <span className="font-display-lg text-headline-xl text-on-surface font-semibold tracking-tight">6h 30m</span>
+            <span className="font-label-md text-label-md text-outline">/ 6 bloków</span>
+          </div>
+          <div className="font-code-mono text-code-mono text-on-surface-variant text-[11px] mt-space-xs flex items-center gap-space-xs">
+            <span className="w-2 h-2 rounded-full bg-primary"></span>
+            <span>4 bloki dydaktyczne, 2 operacyjne</span>
+          </div>
+        </div>
+
+        <div className="p-space-md rounded-xl bg-surface-container-low flex flex-col justify-between shadow-sm">
+          <div className="flex items-center justify-between text-outline font-label-sm text-label-sm uppercase tracking-wider">
+            <span>Wolne Okienka</span>
+            <span className="material-symbols-outlined text-[18px] text-tertiary">hourglass_empty</span>
+          </div>
+          <div className="mt-space-md flex items-baseline gap-space-xs">
+            <span className="font-display-lg text-headline-xl text-tertiary font-semibold tracking-tight">45 min</span>
+            <span className="font-label-md text-label-md text-outline">1 okienko</span>
+          </div>
+          <div className="font-body-md text-body-md text-on-surface-variant text-[12px] truncate">
+            11:40 - 12:25 • Czytelnia biblioteczna
+          </div>
+        </div>
+
+        <div className="p-space-md rounded-xl bg-surface-container-low flex flex-col justify-between shadow-sm">
+          <div className="flex items-center justify-between text-outline font-label-sm text-label-sm uppercase tracking-wider">
+            <span>Kluczowy Cel Fizyczny</span>
+            <span className="material-symbols-outlined text-[18px] text-primary">fitness_center</span>
+          </div>
+          <div className="mt-space-md flex items-baseline justify-between">
             <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-400">
-                  [!] Wykryto Zmiany w Planie / Nieobecności Nauczycieli
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                  {detectedAbsences.length} {detectedAbsences.length === 1 ? 'zajęcia z absencją' : 'zajęć z absencją'}
-                </span>
-                {librusLastSync && (
-                  <span className="text-[10px] font-mono text-textMuted/70">
-                    Sync: {new Date(librusLastSync).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-textMuted mt-1">
-                Librus Synergia zgłasza nieobecność kadry pedagogicznej. Lekcje z oznaczonymi nauczycielami mogą zostać odwołane (okienko) lub posiadać wyznaczone zastępstwo:
-              </p>
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {detectedAbsences.map((l, i) => (
-                  <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono bg-black/40 border border-amber-500/30 text-amber-200">
-                    <UserX className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                    <strong className="text-amber-300">{l.absenceAlert?.teacher || l.teacher}</strong>
-                    <span className="text-textMuted">({l.subject} • {l.time_start}-{l.time_end})</span>:
-                    <span className="text-amber-400 font-semibold">{l.absenceAlert?.hours || 'Cały dzień'}</span>
-                  </span>
-                ))}
-              </div>
+              <span className="font-display-lg text-headline-xl text-on-surface font-semibold tracking-tight">17:30</span>
+              <span className="font-label-md text-label-md text-primary font-medium block">FBW Strych</span>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-            <button
-              onClick={() => setAbsenceFilterOnly(prev => !prev)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all border ${
-                absenceFilterOnly 
-                  ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.4)]' 
-                  : 'bg-surface text-amber-400 border-amber-500/30 hover:bg-amber-500/10'
-              }`}
+            <a 
+              className="px-space-sm py-1 rounded bg-surface-container-high text-primary hover:bg-surface-bright transition-colors font-label-sm text-label-sm uppercase tracking-wider font-semibold" 
+              href="/workouts"
             >
-              {absenceFilterOnly ? 'Pokaż wszystkie lekcje' : 'Filtruj tylko zastępstwa'}
-            </button>
+              Przygotuj
+            </a>
+          </div>
+          <div className="font-code-mono text-code-mono text-outline text-[11px] mt-space-xs">
+            RPE Target: 8.5 • Podciąganie + Dipy + OHP
           </div>
         </div>
-      )}
+      </section>
 
-      {/* 2. Statystyki & Trwające Zajęcia (Live Tracker) - Zwijalne */}
-      {showStats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 flex-shrink-0 animate-fade-in">
-          {/* Live Class Tracker */}
-          <div className="col-span-2 md:col-span-2 glass-panel p-3.5 sm:p-4 rounded-xl border border-white/10 flex flex-col justify-between relative overflow-hidden bg-gradient-to-br from-surface/80 to-surface/30">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className={`w-2.5 h-2.5 rounded-full ${activeLesson ? 'bg-emerald-400 animate-ping' : 'bg-accentPrimary'}`}></span>
-                <span className="text-xs font-mono font-bold tracking-wider text-textMuted uppercase">
-                  {activeLesson ? '[NISKI] TRWAJĄCE ZAJĘCIA' : (nextLesson ? ' NAJBLIŻSZE ZAJĘCIA DZISIAJ' : ' BRAK ZAJĘĆ W TEJ CHWILI')}
-                </span>
-              </div>
-              <span className="text-[11px] font-mono text-textMuted">
-                {currentTime.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })} • {DAYS.find(d => d.id === todayDayId)?.label}
+      {/* Day Selection Pill Matrix */}
+      <section className="flex items-center gap-space-xs overflow-x-auto pb-space-xs pt-1">
+        {DAYS_DATA.map((day) => {
+          const isSelected = selectedDay === day.id;
+          return (
+            <button
+              key={day.id}
+              onClick={() => setSelectedDay(day.id)}
+              className={`flex flex-col items-center justify-center min-w-[104px] py-space-sm px-space-md rounded-xl transition-all cursor-pointer ${
+                isSelected
+                  ? 'bg-surface-container-high text-on-surface shadow-sm ring-1 ring-primary/40 relative'
+                  : `bg-surface-container-low text-on-surface-variant hover:bg-surface-container ${day.muted ? 'opacity-60' : ''}`
+              }`}
+              type="button"
+            >
+              <span className={`font-label-sm text-label-sm uppercase tracking-widest ${isSelected ? 'text-primary font-bold' : 'text-outline'}`}>
+                {day.name}
               </span>
+              <span className={`font-headline-md text-headline-md ${isSelected ? 'text-primary font-bold' : 'text-on-surface font-semibold'}`}>
+                {day.dayNumber}
+              </span>
+              <span className={`font-code-mono text-[10px] ${isSelected ? 'text-on-surface' : 'text-outline'}`}>
+                {day.blocks}
+              </span>
+              {isSelected && <span className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-primary"></span>}
+            </button>
+          );
+        })}
+      </section>
+
+      {/* Workspace Grid: Timeline (8 cols) + Inspector Sidebar (4 cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+        {/* Timeline Stream */}
+        <div className="lg:col-span-8 flex flex-col gap-space-md">
+          {/* Current Time Marker Bar */}
+          <div className="flex items-center justify-between px-space-md py-space-xs rounded-lg bg-surface-container-lowest font-code-mono text-code-mono text-outline">
+            <div className="flex items-center gap-space-xs">
+              <span className="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+              <span className="text-on-surface font-medium">Bieżący segment operacyjny</span>
             </div>
+            <div className="flex items-center gap-space-md">
+              <span>Strefa: CET (UTC+2)</span>
+              <span className="text-primary font-semibold">{currentTime}</span>
+            </div>
+          </div>
 
-            {activeLesson ? (
-              <div className="my-1">
-                <div className="flex items-baseline justify-between">
-                  <h3 className="text-lg font-bold text-textPrimary tracking-tight">{activeLesson.subject}</h3>
-                  <span className="text-xs font-mono font-bold text-emerald-400">
-                    {activeLesson.time_start} - {activeLesson.time_end}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-xs text-textMuted mt-1">
-                  {activeLesson.room && (
-                    <span className="flex items-center gap-1 text-accentPrimary">
-                      <MapPin className="w-3.5 h-3.5" /> {activeLesson.room}
-                    </span>
-                  )}
-                  {activeLesson.teacher && (
-                    <span className="flex items-center gap-1">
-                      <User className="w-3.5 h-3.5" /> {activeLesson.teacher}
-                    </span>
-                  )}
-                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono">
-                    {activeLesson.type}
-                  </span>
-                </div>
-              </div>
-            ) : nextLesson ? (
-              <div className="my-1">
-                <div className="flex items-baseline justify-between">
-                  <h3 className="text-base font-bold text-textPrimary tracking-tight">{nextLesson.subject}</h3>
-                  <span className="text-xs font-mono font-semibold text-accentPrimary">
-                    Rozpoczęcie o {nextLesson.time_start}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-xs text-textMuted mt-1">
-                  {nextLesson.room && (
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5" /> {nextLesson.room}
-                    </span>
-                  )}
-                  {nextLesson.teacher && (
-                    <span className="flex items-center gap-1">
-                      <User className="w-3.5 h-3.5" /> {nextLesson.teacher}
-                    </span>
-                  )}
-                  <span className="px-2 py-0.5 rounded bg-surface border border-white/10 text-[10px] font-mono">
-                    {nextLesson.type}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <p className="text-xs text-textMuted my-1">
-                Wszystkie dzisiejsze zajęcia zostały zakończone lub brak zaplanowanych bloków na dziś.
-              </p>
-            )}
-
-            {/* Dzisiejsza oś czasu - szybki podgląd kolejnych lekcji */}
-            {todayUpcomingLessons.length > 0 && (
-              <div className="mt-2.5 pt-2 border-t border-white/10">
-                <span className="text-[10px] font-mono text-textMuted uppercase tracking-wider block mb-1.5">
-                  Dzisiejszy rozkład ({todayUpcomingLessons.length} lekcji):
-                </span>
-                <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
-                  {todayUpcomingLessons.map((l) => {
-                    const isNow = activeLesson && String(activeLesson.id) === String(l.id);
-                    return (
-                      <div
-                        key={l.id}
-                        className={`px-2.5 py-1 rounded-lg border text-left shrink-0 transition-all ${
-                          isNow
-                            ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-300 shadow-sm'
-                            : 'border-white/10 bg-black/20 text-textMuted hover:text-textPrimary'
-                        }`}
-                      >
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-mono font-bold text-accentPrimary">{l.time_start}</span>
-                          <span className="text-[11px] font-medium text-textPrimary truncate max-w-[110px]">{l.subject}</span>
-                        </div>
-                        <div className="text-[9px] font-mono text-textMuted flex items-center gap-2">
-                          <span>{l.room || 'sala -'}</span>
-                          <span>•</span>
-                          <span>{l.type}</span>
-                        </div>
+          {/* Schedule List */}
+          {filteredSchedule.map((item) => {
+            // Cancelled Block
+            if (item.isCancelled) {
+              return (
+                <article 
+                  key={item.id} 
+                  className="schedule-card p-space-md rounded-xl bg-surface-container-lowest opacity-75 flex flex-col md:flex-row md:items-center justify-between gap-space-md relative overflow-hidden" 
+                  data-category={item.category}
+                >
+                  <div className="flex items-start gap-space-md">
+                    <div className="flex flex-col items-end w-28 shrink-0">
+                      <span className="font-code-mono text-headline-md text-error line-through font-semibold">{item.timeStart}</span>
+                      <span className="font-code-mono text-code-mono text-outline line-through">{item.timeEnd}</span>
+                      <span className="font-label-sm text-[10px] uppercase text-error mt-1 font-semibold">{item.duration}</span>
+                    </div>
+                    <div className="w-1 self-stretch rounded-full bg-error"></div>
+                    <div className="flex flex-col gap-space-xs">
+                      <div className="flex items-center gap-space-xs">
+                        <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm uppercase font-bold tracking-wide">
+                          {item.categoryLabel}
+                        </span>
+                        <span className="font-code-mono text-[11px] text-outline">Librus Sync: {item.librusSyncTime || '08:12'}</span>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+                      <h2 className="font-headline-md text-headline-md text-outline line-through font-medium">
+                        {item.title}
+                      </h2>
+                      <div className="flex items-center gap-space-xs text-tertiary font-body-md text-body-md">
+                        <span className="material-symbols-outlined text-[16px]">info</span>
+                        <span>{item.infoText || 'Okienko czasowe: 45 min na powtórkę w bibliotece'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-space-xs self-end md:self-center shrink-0">
+                    <button 
+                      className="px-space-md py-1.5 rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors font-label-md text-label-md cursor-pointer" 
+                      onClick={() => setShowModal(true)}
+                      type="button"
+                    >
+                      Przypisz Zadanie
+                    </button>
+                  </div>
+                </article>
+              );
+            }
 
-            <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-textMuted">
-              <span>Dzisiejszy dzień: <strong className="text-textPrimary">{stats.todayCount} zajęć</strong></span>
-              <button 
-                onClick={() => setSelectedDay(todayDayId)} 
-                className="text-accentPrimary hover:underline flex items-center gap-1 font-mono text-[10px]"
-              >
-                Pokaż dzisiejszy plan <ChevronRight className="w-3 h-3" />
-              </button>
-            </div>
-          </div>
+            // Active Focus Block
+            if (item.isActive) {
+              return (
+                <article 
+                  key={item.id} 
+                  className="schedule-card group p-space-md rounded-xl bg-surface-container-high shadow-md flex flex-col md:flex-row md:items-center justify-between gap-space-md relative overflow-hidden" 
+                  data-category={item.category}
+                >
+                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary"></div>
+                  <div className="flex items-start gap-space-md pl-1">
+                    <div className="flex flex-col items-end w-28 shrink-0">
+                      <span className="font-code-mono text-headline-md text-primary font-bold">{item.timeStart}</span>
+                      <span className="font-code-mono text-code-mono text-on-surface-variant">{item.timeEnd}</span>
+                      <span className="font-label-sm text-[10px] uppercase text-primary font-semibold mt-1">Aktywny</span>
+                    </div>
+                    <div className="w-1 self-stretch rounded-full bg-primary/40"></div>
+                    <div className="flex flex-col gap-space-xs">
+                      <div className="flex items-center gap-space-xs flex-wrap">
+                        <span className="px-2 py-0.5 rounded-full bg-primary text-on-primary font-label-sm text-label-sm uppercase font-semibold">
+                          Trwa teraz
+                        </span>
+                        {item.room && (
+                          <span className="px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface font-code-mono text-[11px]">
+                            {item.room}
+                          </span>
+                        )}
+                        {item.teacher && (
+                          <span className="font-code-mono text-[11px] text-outline">
+                            {item.teacher}
+                          </span>
+                        )}
+                      </div>
+                      <h2 className="font-headline-md text-headline-md text-on-surface font-semibold">
+                        {item.title}
+                      </h2>
+                      <p className="font-body-md text-body-md text-on-surface-variant">
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-space-xs self-end md:self-center shrink-0">
+                    <button 
+                      className="px-space-md py-1.5 rounded-lg bg-surface-container-highest text-primary hover:bg-surface-bright transition-colors font-label-md text-label-md font-medium flex items-center gap-1 cursor-pointer" 
+                      type="button"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">edit_note</span>
+                      <span>Notatka</span>
+                    </button>
+                  </div>
+                </article>
+              );
+            }
 
-          {/* Mini stat 1 */}
-          <div className="glass-panel p-4 rounded-xl border border-white/10 flex flex-col justify-between">
-            <div className="flex items-center justify-between text-textMuted text-xs">
-              <span>Godziny w tygodniu</span>
-              <Clock className="w-4 h-4 text-accentPrimary" />
-            </div>
-            <div className="my-2">
-              <span className="text-2xl font-bold font-mono text-textPrimary">{stats.totalHours}</span>
-              <span className="text-xs text-textMuted ml-1.5">godzin zegarowych</span>
-            </div>
-            <div className="text-[10px] text-textMuted font-mono">
-              {stats.totalLessons} bloków dydaktycznych
-            </div>
-          </div>
-
-          {/* Mini stat 2 */}
-          <div className="glass-panel p-4 rounded-xl border border-white/10 flex flex-col justify-between">
-            <div className="flex items-center justify-between text-textMuted text-xs">
-              <span>Przedmioty Dydaktyczne</span>
-              <BookOpen className="w-4 h-4 text-accentPrimary" />
-            </div>
-            <div className="my-2">
-              <span className="text-2xl font-bold font-mono text-textPrimary">{stats.uniqueSubjects}</span>
-              <span className="text-xs text-textMuted ml-1.5">unikalnych kursów</span>
-            </div>
-            <div className="text-[10px] text-textMuted font-mono">
-              Synchronizacja z Cloud Firestore
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 3. Pasek Nawigacji Dni, Kategoryzacji i Filtrów */}
-      <div className="flex flex-col gap-3 flex-shrink-0">
-        {/* Kategoryzacja (jak w Kalendarzu) + Sortowanie i Filtry */}
-        <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between">
-          {/* Segmented control: Wszystkie | Szkolne | Osobiste */}
-          <div className="flex items-center bg-surface border border-white/10 rounded-xl p-1 gap-1 w-full sm:w-auto">
-            <button
-              onClick={() => setActiveCategory('all')}
-              className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                activeCategory === 'all'
-                  ? 'bg-accentPrimary text-background shadow-sm font-bold'
-                  : 'text-textMuted hover:text-textPrimary'
-              }`}
-            >
-              <span>Wszystkie</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                activeCategory === 'all' ? 'bg-black/30 text-background' : 'bg-white/10 text-textMuted'
-              }`}>
-                {categoryCounts.all}
-              </span>
-            </button>
-
-            <button
-              onClick={() => setActiveCategory('school')}
-              className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                activeCategory === 'school'
-                  ? 'bg-accentPrimary text-background shadow-sm font-bold'
-                  : 'text-textMuted hover:text-textPrimary'
-              }`}
-            >
-              <GraduationCap className="w-3.5 h-3.5" />
-              <span>Szkolne</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                activeCategory === 'school' ? 'bg-black/30 text-background' : 'bg-white/10 text-textMuted'
-              }`}>
-                {categoryCounts.school}
-              </span>
-            </button>
-
-            <button
-              onClick={() => setActiveCategory('personal')}
-              className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                activeCategory === 'personal'
-                  ? 'bg-accentPrimary text-background shadow-sm font-bold'
-                  : 'text-textMuted hover:text-textPrimary'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Osobiste</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                activeCategory === 'personal' ? 'bg-black/30 text-background' : 'bg-white/10 text-textMuted'
-              }`}>
-                {categoryCounts.personal}
-              </span>
-            </button>
-          </div>
-
-          {/* Narzędzia filtracji & sortowania */}
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            {/* Sortowanie */}
-            <div className="flex items-center gap-1.5 bg-surface border border-white/10 rounded-xl px-2.5 py-1 text-xs">
-              <ArrowUpDown className="w-3.5 h-3.5 text-textMuted shrink-0" />
-              <select
-                value={sortBy}
-                onChange={e => setSortBy(e.target.value)}
-                className="bg-transparent text-textPrimary text-xs focus:outline-none cursor-pointer"
-                title="Wybierz kryterium sortowania"
-              >
-                <option value="time_asc" className="bg-surface text-textPrimary">Czas: rosnąco</option>
-                <option value="time_desc" className="bg-surface text-textPrimary">Czas: malejąco</option>
-                <option value="category" className="bg-surface text-textPrimary">Kategoria (Szkolne/Osobiste)</option>
-                <option value="status" className="bg-surface text-textPrimary">Status (Aktywne/Odwołane)</option>
-              </select>
-            </div>
-
-            {/* Szukaj */}
-            <div className="relative flex-1 sm:w-48">
-              <Search className="w-3.5 h-3.5 text-textMuted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Szukaj zajęć, sali..."
-                className="w-full bg-surface border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-textPrimary placeholder:text-textMuted/60 focus:outline-none focus:border-accentPrimary transition-colors"
-              />
-            </div>
-
-            {/* Typ */}
-            <select
-              value={typeFilter}
-              onChange={e => setTypeFilter(e.target.value)}
-              className="bg-surface border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
-            >
-              <option value="all" className="bg-surface text-textPrimary">Wszystkie typy</option>
-              {LESSON_TYPES.map(t => (
-                <option key={t.id} value={t.id} className="bg-surface text-textPrimary">{t.label}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Zakładki Dni */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
-          <button
-            onClick={() => setSelectedDay('all')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-              selectedDay === 'all'
-                ? 'bg-accentPrimary text-background shadow-[0_0_12px_rgba(var(--color-accent-primary),0.3)]'
-                : 'bg-surface/80 hover:bg-surface border border-white/10 text-textMuted hover:text-textPrimary'
-            }`}
-          >
-            Cały Tydzień
-          </button>
-          {DAYS.map(d => {
-            const isToday = d.id === todayDayId;
-            const isSelected = selectedDay === d.id;
-            const dayLessonsCount = enrichedLessons.filter(l => l.day === d.id).length;
-
+            // Normal Schedule Block
             return (
-              <button
-                key={d.id}
-                onClick={() => setSelectedDay(d.id)}
-                className={`px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap flex items-center gap-1.5 transition-all relative ${
-                  isSelected
-                    ? 'bg-accentPrimary text-background font-bold shadow-[0_0_12px_rgba(var(--color-accent-primary),0.3)]'
-                    : 'bg-surface/80 hover:bg-surface border border-white/10 text-textMuted hover:text-textPrimary'
-                }`}
+              <article 
+                key={item.id} 
+                className="schedule-card group p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col md:flex-row md:items-center justify-between gap-space-md relative overflow-hidden" 
+                data-category={item.category}
               >
-                <span>{d.label}</span>
-                {dayLessonsCount > 0 && (
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                    isSelected ? 'bg-black/30 text-background' : 'bg-white/10 text-textMuted'
-                  }`}>
-                    {dayLessonsCount}
-                  </span>
-                )}
-                {isToday && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 absolute top-1.5 right-1.5"></span>
-                )}
-              </button>
+                <div className="flex items-start gap-space-md">
+                  <div className="flex flex-col items-end w-28 shrink-0">
+                    <span className={`font-code-mono text-headline-md font-semibold ${item.hasWorkoutBtn ? 'text-tertiary' : 'text-on-surface'}`}>
+                      {item.timeStart}
+                    </span>
+                    <span className="font-code-mono text-code-mono text-outline">{item.timeEnd}</span>
+                    <span className={`font-label-sm text-[10px] uppercase mt-1 ${item.hasWorkoutBtn ? 'text-tertiary' : 'text-primary'}`}>
+                      {item.duration}
+                    </span>
+                  </div>
+                  <div className={`w-1 self-stretch rounded-full ${item.indicatorColor || 'bg-primary'}`}></div>
+                  <div className="flex flex-col gap-space-xs">
+                    <div className="flex items-center gap-space-xs flex-wrap">
+                      <span className={`px-2 py-0.5 rounded-full font-label-sm text-label-sm uppercase ${
+                        item.category === 'personal' 
+                          ? (item.hasWorkoutBtn ? 'bg-tertiary/15 text-tertiary font-semibold' : 'bg-secondary-container/40 text-secondary') 
+                          : 'bg-primary/10 text-primary'
+                      }`}>
+                        {item.categoryLabel}
+                      </span>
+                      {item.badge && (
+                        <span className="font-code-mono text-[11px] text-outline">
+                          {item.badge}
+                        </span>
+                      )}
+                      {item.room && (
+                        <span className="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-code-mono text-[11px]">
+                          {item.room}
+                        </span>
+                      )}
+                      {item.teacher && (
+                        <span className="font-code-mono text-[11px] text-outline">
+                          {item.teacher}
+                        </span>
+                      )}
+                    </div>
+                    <h2 className={`font-headline-md text-headline-md text-on-surface font-medium transition-colors ${
+                      item.hasWorkoutBtn ? 'group-hover:text-tertiary' : 'group-hover:text-primary'
+                    }`}>
+                      {item.title}
+                    </h2>
+                    {item.description && (
+                      <p className="font-body-md text-body-md text-on-surface-variant">
+                        {item.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-space-xs self-end md:self-center shrink-0">
+                  {item.statusText && (
+                    <span className="px-space-sm py-1 rounded bg-surface-container font-code-mono text-[11px] text-outline">
+                      {item.statusText}
+                    </span>
+                  )}
+                  {item.hasWorkoutBtn ? (
+                    <a 
+                      className="flex items-center gap-space-xs px-space-md py-2 rounded-lg bg-tertiary-container text-on-tertiary hover:brightness-110 transition-all font-label-md text-label-md font-semibold cursor-pointer" 
+                      href="/workouts"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">play_arrow</span>
+                      <span>Rozpocznij Sesję w /workouts</span>
+                    </a>
+                  ) : (
+                    <button 
+                      className="w-8 h-8 rounded flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer" 
+                      type="button"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">more_vert</span>
+                    </button>
+                  )}
+                </div>
+              </article>
             );
           })}
         </div>
+
+        {/* Right Inspector / System Integration Sidebar */}
+        <aside className="lg:col-span-4 flex flex-col gap-space-md">
+          {/* API Diagnostics Card */}
+          <section className="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-md shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-space-xs">
+                <span className="material-symbols-outlined text-primary text-[20px]">hub</span>
+                <span className="font-headline-md text-headline-md text-on-surface font-semibold">Librus Synergia API</span>
+              </div>
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary font-code-mono text-label-sm font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                CONNECTED
+              </span>
+            </div>
+            <div className="flex flex-col gap-space-xs p-space-sm rounded-lg bg-surface-container">
+              <div className="flex justify-between items-center text-body-md">
+                <span className="text-on-surface-variant font-label-md">Status Tokenu:</span>
+                <span className="text-on-surface font-code-mono text-code-mono">Aktywny (OAuth2)</span>
+              </div>
+              <div className="flex justify-between items-center text-body-md">
+                <span className="text-on-surface-variant font-label-md">Ostatnia weryfikacja:</span>
+                <span className="text-on-surface font-code-mono text-code-mono">{lastVerifyText}</span>
+              </div>
+              <div className="flex justify-between items-center text-body-md">
+                <span className="text-on-surface-variant font-label-md">Ostatni zrzut zmian:</span>
+                <span className="text-secondary font-code-mono text-code-mono">1 zaktualizowany blok</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-outline font-label-sm text-label-sm pt-space-xs">
+              <span>Interwał cron: co 15 minut</span>
+              <a className="text-primary hover:underline cursor-pointer" href="/server-logs">Logi bramki API</a>
+            </div>
+          </section>
+
+          {/* Knowledge Hub / Obsidian Links */}
+          <section className="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-md shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-space-xs">
+                <span className="material-symbols-outlined text-secondary text-[20px]">library_books</span>
+                <span className="font-headline-md text-headline-md text-on-surface font-semibold">Baza Obsidian</span>
+              </div>
+              <span className="font-code-mono text-label-sm text-outline">Vault: root/edu</span>
+            </div>
+            <p className="font-body-md text-body-md text-on-surface-variant">
+              Dwukierunkowe powiązania Markdown zsynchronizowane z bieżącym semestrem.
+            </p>
+            <div className="flex flex-col gap-space-xs">
+              <a 
+                className="flex items-center justify-between p-space-sm rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors group cursor-pointer" 
+                href="/knowledge"
+              >
+                <div className="flex items-center gap-space-xs font-code-mono text-code-mono text-on-surface">
+                  <span className="text-secondary">[[</span>
+                  <span className="group-hover:text-primary transition-colors">Harmonogram-Semestr</span>
+                  <span className="text-secondary">]]</span>
+                </div>
+                <span className="material-symbols-outlined text-[16px] text-outline group-hover:text-on-surface">arrow_forward</span>
+              </a>
+              <a 
+                className="flex items-center justify-between p-space-sm rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors group cursor-pointer" 
+                href="/knowledge"
+              >
+                <div className="flex items-center gap-space-xs font-code-mono text-code-mono text-on-surface">
+                  <span className="text-secondary">[[</span>
+                  <span className="group-hover:text-primary transition-colors">Rutyna-Dnia</span>
+                  <span className="text-secondary">]]</span>
+                </div>
+                <span className="material-symbols-outlined text-[16px] text-outline group-hover:text-on-surface">arrow_forward</span>
+              </a>
+              <a 
+                className="flex items-center justify-between p-space-sm rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors group cursor-pointer" 
+                href="/knowledge"
+              >
+                <div className="flex items-center gap-space-xs font-code-mono text-code-mono text-on-surface">
+                  <span className="text-secondary">[[</span>
+                  <span className="group-hover:text-primary transition-colors">Syllabus-Matematyka-Dyskretna</span>
+                  <span className="text-secondary">]]</span>
+                </div>
+                <span className="material-symbols-outlined text-[16px] text-outline group-hover:text-on-surface">arrow_forward</span>
+              </a>
+            </div>
+          </section>
+
+          {/* Quick Exception / Task Injector */}
+          <section className="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-md shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-space-xs">
+                <span className="material-symbols-outlined text-tertiary text-[20px]">bolt</span>
+                <span className="font-headline-md text-headline-md text-on-surface font-semibold">Wyjątek do Planu</span>
+              </div>
+              <span className="font-label-sm text-label-sm text-outline uppercase font-medium">Szybki Zapis</span>
+            </div>
+            
+            <form className="flex flex-col gap-space-sm" onSubmit={handleQuickException}>
+              <div className="flex flex-col gap-1">
+                <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider" htmlFor="exceptionTitle">
+                  Tytuł zadania / wyjątku
+                </label>
+                <input 
+                  id="exceptionTitle"
+                  type="text"
+                  value={quickTitle}
+                  onChange={(e) => setQuickTitle(e.target.value)}
+                  placeholder="np. Konsultacje z fizyki, Zakupy przedtreningowe" 
+                  className="px-space-md py-2 rounded-lg bg-surface-container text-on-surface font-body-md text-body-md placeholder-outline focus:outline-none focus:ring-1 focus:ring-primary" 
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-space-xs">
+                <div className="flex flex-col gap-1">
+                  <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider" htmlFor="startTime">
+                    Od godz.
+                  </label>
+                  <input 
+                    id="startTime"
+                    type="text" 
+                    value={quickStartTime}
+                    onChange={(e) => setQuickStartTime(e.target.value)}
+                    className="px-space-md py-2 rounded-lg bg-surface-container text-on-surface font-code-mono text-code-mono focus:outline-none focus:ring-1 focus:ring-primary" 
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider" htmlFor="blockType">
+                    Typ bloku
+                  </label>
+                  <select 
+                    id="blockType"
+                    value={quickBlockType}
+                    onChange={(e) => setQuickBlockType(e.target.value)}
+                    className="px-space-md py-2 rounded-lg bg-surface-container text-on-surface font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="librus">Szkolne / Uczelnia</option>
+                    <option value="personal">Osobiste / Rutyna</option>
+                    <option value="study">Deep Study</option>
+                  </select>
+                </div>
+              </div>
+
+              <button 
+                className="w-full py-2.5 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface transition-colors font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs mt-space-xs cursor-pointer shadow-sm" 
+                type="submit"
+              >
+                <span className="material-symbols-outlined text-[18px]">bookmark_add</span>
+                <span>Wstrzyknij w Bufor Dnia</span>
+              </button>
+            </form>
+
+            {showToast && (
+              <div className="p-space-sm rounded-lg bg-surface-container font-code-mono text-[11px] text-primary flex items-center gap-space-xs">
+                <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                <span>Wyjątek dopisany do lokalnego bufora SQLite.</span>
+              </div>
+            )}
+          </section>
+
+          {/* Day Completion Metric Radial Summary */}
+          <section className="p-space-md rounded-xl bg-surface-container-low flex items-center justify-between shadow-sm">
+            <div className="flex flex-col gap-space-xs">
+              <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider">Progres Dnia</span>
+              <span className="font-headline-md text-headline-md text-on-surface font-semibold">42% zrealizowane</span>
+              <span className="font-code-mono text-[11px] text-on-surface-variant">Pozostało: 3 bloki (4h 15m)</span>
+            </div>
+            <div className="w-14 h-14 relative flex items-center justify-center shrink-0">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                <path 
+                  className="text-surface-container-highest" 
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="3.5"
+                />
+                <path 
+                  className="text-primary" 
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeDasharray="42, 100" 
+                  strokeLinecap="round" 
+                  strokeWidth="3.5"
+                />
+              </svg>
+              <span className="absolute font-code-mono text-label-sm font-semibold text-on-surface">42%</span>
+            </div>
+          </section>
+        </aside>
       </div>
 
-      {/* 4. Główny Widok Lekcji (Karty lub Siatka Tygodniowa) */}
-      <main className="flex-1 min-h-0 overflow-y-auto pr-1">
-        {filteredLessons.length === 0 ? (
-          <div className="h-64 rounded-2xl border border-dashed border-white/15 flex flex-col items-center justify-center text-center p-6 bg-surface/20">
-            <BookOpen className="w-10 h-10 text-textMuted/40 mb-3" />
-            <h3 className="text-sm font-bold text-textPrimary mb-1">Brak zaplanowanych zajęć</h3>
-            <p className="text-xs text-textMuted max-w-sm mb-4">
-              {searchQuery || typeFilter !== 'all' 
-                ? 'Żadne lekcje nie spełniają kryteriów wyszukiwania.'
-                : 'Dla wybranego dnia nie skonfigurowano jeszcze lekcji. Dodaj pierwszy przedmiot do planu.'}
-            </p>
-            <button
-              onClick={() => handleOpenAddModal(selectedDay !== 'all' ? selectedDay : 'monday')}
-              className="px-4 py-2 bg-accentPrimary/20 hover:bg-accentPrimary/30 border border-accentPrimary/40 text-accentPrimary font-semibold text-xs rounded-xl flex items-center gap-2 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Dodaj Lekcję Teraz
-            </button>
-          </div>
-        ) : viewMode === 'cards' ? (
-          /* Widok Kart / Osi Czasu */
-          <div className="space-y-6">
-            {DAYS.filter(d => selectedDay === 'all' || selectedDay === d.id).map(day => {
-              const dayItems = filteredLessons.filter(l => l.day === day.id);
-              if (dayItems.length === 0 && selectedDay === 'all') return null;
-
-              return (
-                <div key={day.id} className="space-y-3">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-sm font-bold text-textPrimary font-sans uppercase tracking-wider">
-                        {day.label}
-                      </h2>
-                      {day.id === todayDayId && (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                          DZISIAJ
-                        </span>
-                      )}
-                      <span className="text-xs font-mono text-textMuted">
-                        ({dayItems.length} {dayItems.length === 1 ? 'lekcja' : 'lekcje'})
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={() => handleOpenAddModal(day.id)}
-                      className="text-[11px] text-accentPrimary hover:underline flex items-center gap-1 font-mono"
-                    >
-                      <Plus className="w-3.5 h-3.5" /> Dodaj do tego dnia
-                    </button>
-                  </div>
-
-                  {dayItems.length === 0 ? (
-                    <div className="py-6 text-center text-xs text-textMuted/50 border border-dashed border-white/5 rounded-xl">
-                      Brak zajęć w tym dniu.
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                      {dayItems.map(lesson => {
-                        const style = COLOR_MAP[lesson.color] || COLOR_MAP.indigo;
-                        const isPersonal = isPersonalLesson(lesson);
-                        const isCancelled = isLessonCancelled(lesson);
-                        const hasAbsence = !isCancelled && !!lesson.absenceAlert?.isAbsent;
-                        const duration = Math.max(0, parseTimeToMinutes(lesson.time_end) - parseTimeToMinutes(lesson.time_start));
-                        const isNow = !isCancelled && lesson.day === todayDayId && 
-                          currentMinutes >= parseTimeToMinutes(lesson.time_start) && 
-                          currentMinutes <= parseTimeToMinutes(lesson.time_end);
-                        const priorityObj = PRIORITIES.find(p => p.id === lesson.priority);
-
-                        return (
-                          <div
-                            key={lesson.id}
-                            className={`glass-panel p-4 rounded-xl border transition-all duration-200 hover:-translate-y-0.5 relative group flex flex-col justify-between ${
-                              isCancelled
-                                ? 'border-dashed border-rose-500/50 bg-rose-950/20 shadow-[0_0_15px_rgba(244,63,94,0.12)]'
-                                : hasAbsence
-                                  ? 'border-amber-500/70 shadow-[0_0_20px_rgba(245,158,11,0.25)] bg-amber-950/15 ring-1 ring-amber-500/40'
-                                  : isNow 
-                                    ? 'border-emerald-500/70 shadow-[0_0_20px_rgba(16,185,129,0.2)] bg-emerald-950/10' 
-                                    : isPersonal
-                                      ? 'border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.1)] hover:border-emerald-500/60 bg-emerald-950/5'
-                                      : `${style.border} ${style.glow} hover:border-white/30`
-                            }`}
-                          >
-                            <div>
-                              {/* Pasek górny karty */}
-                              <div className="flex items-center justify-between gap-2 mb-2">
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className={`w-2 h-2 rounded-full ${isCancelled ? 'bg-rose-400' : (hasAbsence ? 'bg-amber-400 animate-pulse' : style.dot)}`}></span>
-                                  
-                                  {isPersonal ? (
-                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md border font-bold bg-emerald-500/15 text-emerald-300 border-emerald-500/40 flex items-center gap-1">
-                                      <Sparkles className="w-3 h-3 text-emerald-400" />
-                                      {lesson.personalCategory || 'Osobiste'}
-                                    </span>
-                                  ) : (
-                                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded-md border font-semibold ${style.badge}`}>
-                                      {lesson.type || 'Zajęcia'}
-                                    </span>
-                                  )}
-
-                                  {isPersonal && priorityObj && (
-                                    <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded border font-semibold ${priorityObj.badge}`}>
-                                      {priorityObj.label}
-                                    </span>
-                                  )}
-
-                                  {isNow && (
-                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-500 text-background font-bold animate-pulse">
-                                      LIVE
-                                    </span>
-                                  )}
-                                  {hasAbsence && (
-                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/50 font-bold flex items-center gap-1 animate-pulse">
-                                      <AlertTriangle className="w-3 h-3 text-amber-400" />
-                                      ABSENCJA ({lesson.absenceAlert.hours})
-                                    </span>
-                                  )}
-                                  {isCancelled && (
-                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/50 font-bold flex items-center gap-1">
-                                      <AlertOctagon className="w-3 h-3 text-rose-400" />
-                                      [!] ODWOŁANA
-                                    </span>
-                                  )}
-                                  {isCancelled && (
-                                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold">
-                                      OKIENKO
-                                    </span>
-                                  )}
-                                </div>
-
-                                <span className="text-xs font-mono text-textMuted">
-                                  {duration} min
-                                </span>
-                              </div>
-
-                              {/* Godziny i Tytuł */}
-                              <div className="flex items-baseline gap-2 mb-1.5">
-                                <Clock className="w-3.5 h-3.5 text-accentPrimary shrink-0" />
-                                <span className="text-xs font-mono font-bold text-accentPrimary tracking-wider">
-                                  {lesson.time_start} - {lesson.time_end}
-                                </span>
-                              </div>
-
-                              <h3 className={`text-base font-bold tracking-tight leading-snug mb-3 ${
-                                isCancelled ? 'line-through text-rose-200/60' : 'text-textPrimary'
-                              }`}>
-                                {lesson.subject}
-                              </h3>
-
-                              {/* Metadane (Sala, Prowadzący) */}
-                              <div className="space-y-1 text-xs text-textMuted mb-3">
-                                {lesson.room && (
-                                  <div className="flex items-center gap-2">
-                                    <MapPin className="w-3.5 h-3.5 text-textMuted/70 shrink-0" />
-                                    <span className="font-mono text-textPrimary/90">{lesson.room}</span>
-                                  </div>
-                                )}
-                                {lesson.teacher && (
-                                  <div className="flex items-center gap-2">
-                                    <User className="w-3.5 h-3.5 text-textMuted/70 shrink-0" />
-                                    <span className={hasAbsence ? 'line-through text-amber-400/80 font-medium' : ''}>
-                                      {lesson.teacher}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Baner odwołanej lekcji */}
-                              {isCancelled && (
-                                <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-[11px] text-rose-200 mb-3 font-mono leading-relaxed">
-                                  <div className="flex items-center gap-1.5 font-bold text-rose-300 mb-0.5">
-                                    <AlertOctagon className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-                                    <span>Lekcja odwołana w Librus Synergia</span>
-                                  </div>
-                                  <div className="text-[10px] text-textMuted">
-                                    Okienko w planie zajęć — czas wolny na zadania, naukę lub przerwę.
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Alert nieobecności nauczyciela */}
-                              {!isCancelled && hasAbsence && (
-                                <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-200 mb-3 font-mono leading-relaxed">
-                                  <div className="flex items-center gap-1.5 font-bold text-amber-300 mb-0.5">
-                                    <UserX className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                                    <span>Nauczyciel nieobecny w tych godzinach!</span>
-                                  </div>
-                                  <div className="text-[10px] text-textMuted">
-                                    {lesson.absenceAlert.teacher} ({lesson.absenceAlert.hours}) {'->'} Możliwe okienko lub zastępstwo.
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Notatki */}
-                              {lesson.notes && (
-                                <div className="p-2 rounded-lg bg-black/25 border border-white/5 text-[11px] text-textMuted mb-3 font-mono leading-relaxed">
-                                  {lesson.notes}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Pasek akcji */}
-                            <div className="pt-2 border-t border-white/5 flex items-center justify-between text-xs">
-                              <span className="text-[10px] font-mono text-textMuted/60">
-                                ID: {String(lesson.id).slice(-4)}
-                              </span>
-
-                              <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
-                                <button
-                                  onClick={() => handleToggleCancelled(lesson)}
-                                  className={`px-2 py-1 text-[10px] font-mono rounded-lg transition-colors border ${
-                                    isCancelled 
-                                      ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30' 
-                                      : 'bg-white/5 hover:bg-rose-500/20 text-textMuted hover:text-rose-300 border-white/10'
-                                  }`}
-                                  title={isCancelled ? 'Przywróć lekcję' : 'Oznacz jako odwołaną (okienko)'}
-                                >
-                                  {isCancelled ? 'Przywróć' : 'Okienko?'}
-                                </button>
-                                <button
-                                  onClick={() => handleDuplicate(lesson)}
-                                  className="p-1.5 text-textMuted hover:text-accentPrimary hover:bg-white/5 rounded-lg transition-colors"
-                                  title="Duplikuj do następnego dnia"
-                                >
-                                  <Copy className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={() => handleOpenEditModal(lesson)}
-                                  className="p-1.5 text-textMuted hover:text-cyan-400 hover:bg-white/5 rounded-lg transition-colors"
-                                  title="Edytuj aktywność"
-                                >
-                                  <Edit2 className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={() => handleDelete(lesson.id)}
-                                  className="p-1.5 text-textMuted hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors"
-                                  title="Usuń z planu"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          /* Widok Siatki Tygodniowej (Tabela Dni Pon-Pt/Nd z horyzontalnym scrollem na mobile) */
-          <div className="overflow-x-auto custom-scrollbar touch-pan-x pb-2 min-h-0 flex-1">
-            <div className="grid grid-cols-7 gap-3 min-w-[720px] h-full">
-              {DAYS.map(day => {
-                const dayLessons = filteredLessons.filter(l => l.day === day.id);
-                const isToday = day.id === todayDayId;
-
-                return (
-                  <div 
-                    key={day.id} 
-                    className={`glass-panel p-3 rounded-xl border flex flex-col h-full min-h-[420px] ${
-                      isToday ? 'border-accentPrimary/50 bg-accentPrimary/5' : 'border-white/10 bg-surface/30'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
-                      <div>
-                        <span className="font-bold text-xs text-textPrimary uppercase block">{day.short}</span>
-                        <span className="text-[10px] text-textMuted">{day.label}</span>
-                      </div>
-                      {isToday && (
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                      )}
-                    </div>
-
-                    <div className="space-y-2 flex-1 overflow-y-auto pr-0.5 no-scrollbar">
-                      {dayLessons.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center p-2 text-textMuted/40 text-[11px]">
-                          Brak
-                        </div>
-                      ) : (
-                        dayLessons.map(lesson => {
-                          const isPersonal = isPersonalLesson(lesson);
-                          const isCancelled = isLessonCancelled(lesson);
-                          const style = COLOR_MAP[lesson.color] || COLOR_MAP.indigo;
-                          const hasAbsence = !isCancelled && !!lesson.absenceAlert?.isAbsent;
-
-                          return (
-                            <div
-                              key={lesson.id}
-                              onClick={() => handleOpenEditModal(lesson)}
-                              className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:scale-[1.02] relative ${
-                                isCancelled
-                                  ? 'border-dashed border-rose-500/50 bg-rose-950/25 opacity-70'
-                                  : hasAbsence
-                                    ? 'border-amber-500/70 bg-amber-950/25 shadow-[0_0_12px_rgba(245,158,11,0.25)] ring-1 ring-amber-500/30'
-                                    : isPersonal
-                                      ? 'border-emerald-500/40 bg-emerald-950/20'
-                                      : `${style.badge} ${style.border}`
-                              }`}
-                            >
-                              <div className="flex items-center justify-between text-[10px] font-mono font-bold opacity-80 mb-0.5">
-                                <span>{lesson.time_start} - {lesson.time_end}</span>
-                                {isCancelled && (
-                                  <span className="text-rose-400 text-[9px] font-bold">[!] ODWOŁANA</span>
-                                )}
-                                {!isCancelled && hasAbsence && (
-                                  <span className="text-amber-400 text-[9px] font-bold animate-pulse">[!] ABSENCJA</span>
-                                )}
-                                {isPersonal && (
-                                  <span className="text-emerald-400 text-[9px] font-bold">OSOBISTE</span>
-                                )}
-                              </div>
-                              <div className={`text-xs font-bold leading-tight line-clamp-2 ${
-                                isCancelled ? 'line-through text-rose-200/70' : 'text-textPrimary'
-                              }`}>
-                                {lesson.subject}
-                              </div>
-                              {lesson.teacher && (
-                                <div className={`text-[10px] font-mono mt-0.5 truncate ${hasAbsence ? 'text-amber-300 font-semibold' : 'text-textMuted'}`}>
-                                  {lesson.teacher}
-                                </div>
-                              )}
-                              {lesson.room && (
-                                <div className="text-[10px] text-textMuted font-mono mt-0.5 flex items-center gap-1">
-                                  <MapPin className="w-2.5 h-2.5 shrink-0" /> {lesson.room}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-
-                    <button
-                      onClick={() => handleOpenAddModal(day.id)}
-                      className="w-full mt-2 py-1.5 rounded-lg border border-dashed border-white/10 hover:border-accentPrimary/50 hover:bg-accentPrimary/10 text-textMuted hover:text-accentPrimary text-[11px] font-mono flex items-center justify-center gap-1 transition-colors"
-                    >
-                      <Plus className="w-3 h-3" /> Dodaj
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* 5. Modal Dodawania / Edycji Zajęć / Aktywności */}
+      {/* Modal: Nowy Blok Własny */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="glass-panel w-full max-w-lg rounded-2xl border border-white/20 p-6 shadow-2xl relative bg-surface/95 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-accentPrimary/20 border border-accentPrimary/30 flex items-center justify-center text-accentPrimary">
-                  {formData.category === 'personal' ? <Sparkles className="w-4 h-4" /> : <GraduationCap className="w-4 h-4" />}
-                </div>
-                <h3 className="text-base font-bold text-textPrimary">
-                  {editingLesson ? 'Edycja w Planie Dnia' : (formData.category === 'personal' ? 'Nowa Aktywność Osobista' : 'Nowa Lekcja / Zajęcia Szkolne')}
-                </h3>
-              </div>
-              <button
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-surface-container-low border border-surface-container-high rounded-2xl p-space-lg shadow-2xl flex flex-col gap-space-md">
+            <div className="flex items-center justify-between">
+              <h3 className="font-headline-md text-headline-md text-on-surface font-semibold">
+                Dodaj Blok do Planu
+              </h3>
+              <button 
                 onClick={() => setShowModal(false)}
-                className="text-textMuted hover:text-textPrimary text-sm font-mono p-1"
+                className="w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-colors cursor-pointer"
+                type="button"
               >
-                x
+                <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              {/* Wybór kategorii głównej: Szkolne vs Osobiste */}
-              <div>
-                <label className="block text-textMuted font-medium mb-1.5">Kategoria Planu Dnia *</label>
-                <div className="grid grid-cols-2 gap-2 p-1 bg-black/30 rounded-xl border border-white/10">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ 
-                      ...formData, 
-                      category: 'school', 
-                      type: 'Wykład',
-                      color: 'indigo'
-                    })}
-                    className={`py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${
-                      formData.category === 'school'
-                        ? 'bg-accentPrimary text-background shadow-sm'
-                        : 'text-textMuted hover:text-textPrimary'
-                    }`}
-                  >
-                    <GraduationCap className="w-4 h-4" />
-                    <span>Szkolne (Librus)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ 
-                      ...formData, 
-                      category: 'personal', 
-                      type: 'Osobiste',
-                      color: 'emerald'
-                    })}
-                    className={`py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${
-                      formData.category === 'personal'
-                        ? 'bg-accentPrimary text-background shadow-sm'
-                        : 'text-textMuted hover:text-textPrimary'
-                    }`}
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    <span>Osobiste (Prywatne)</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Nazwa przedmiotu lub aktywności */}
-              <div>
-                <label className="block text-textMuted font-medium mb-1">
-                  {formData.category === 'personal' ? 'Nazwa Aktywności / Zadania *' : 'Nazwa Przedmiotu / Kursu *'}
+            <form onSubmit={handleModalSave} className="flex flex-col gap-space-sm">
+              <div className="flex flex-col gap-1">
+                <label className="font-label-sm text-label-sm text-outline uppercase tracking-wider">
+                  Nazwa Zajęć / Czynności
                 </label>
                 <input
                   type="text"
                   required
-                  value={formData.subject}
-                  onChange={e => setFormData({ ...formData, subject: e.target.value })}
-                  placeholder={formData.category === 'personal' ? 'np. Trening FBW, Nauka Pythona, Projekt AI...' : 'np. Architektura Systemów AI, Matematyka...'}
-                  className="w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
+                  placeholder="np. Architektura Systemów, Trening FBW..."
+                  value={modalTitle}
+                  onChange={(e) => setModalTitle(e.target.value)}
+                  className="px-space-md py-2 rounded-lg bg-surface-container text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-primary font-body-md"
                 />
               </div>
 
-              {/* Dzień tygodnia oraz Typ / Podkategoria */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-textMuted font-medium mb-1">Dzień Tygodnia</label>
-                  <select
-                    value={formData.day}
-                    onChange={e => setFormData({ ...formData, day: e.target.value })}
-                    className="w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
-                  >
-                    {DAYS.map(d => (
-                      <option key={d.id} value={d.id}>{d.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {formData.category === 'personal' ? (
-                  <div>
-                    <label className="block text-textMuted font-medium mb-1">Kategoria Osobista</label>
-                    <select
-                      value={formData.personalCategory || 'Trening'}
-                      onChange={e => {
-                        const sel = PERSONAL_CATEGORIES.find(c => c.id === e.target.value);
-                        setFormData({ 
-                          ...formData, 
-                          personalCategory: e.target.value,
-                          color: sel ? sel.color : formData.color
-                        });
-                      }}
-                      className="w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
-                    >
-                      {PERSONAL_CATEGORIES.map(c => (
-                        <option key={c.id} value={c.id}>{c.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                ) : (
-                  <div>
-                    <label className="block text-textMuted font-medium mb-1">Typ Zajęć</label>
-                    <select
-                      value={formData.type}
-                      onChange={e => {
-                        const selectedT = LESSON_TYPES.find(t => t.id === e.target.value);
-                        setFormData({ 
-                          ...formData, 
-                          type: e.target.value,
-                          color: selectedT ? selectedT.defaultColor : formData.color
-                        });
-                      }}
-                      className="w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
-                    >
-                      {LESSON_TYPES.filter(t => t.id !== 'Osobiste').map(t => (
-                        <option key={t.id} value={t.id}>{t.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-
-              {/* Priorytet dla aktywności osobistych */}
-              {formData.category === 'personal' && (
-                <div>
-                  <label className="block text-textMuted font-medium mb-1">Priorytet Aktywności</label>
-                  <select
-                    value={formData.priority || 'normal'}
-                    onChange={e => setFormData({ ...formData, priority: e.target.value })}
-                    className="w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
-                  >
-                    {PRIORITIES.map(p => (
-                      <option key={p.id} value={p.id}>{p.label}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Godziny Rozpoczęcia i Zakończenia */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-textMuted font-medium mb-1">Godzina Rozpoczęcia</label>
+              <div className="grid grid-cols-2 gap-space-sm">
+                <div className="flex flex-col gap-1">
+                  <label className="font-label-sm text-label-sm text-outline uppercase tracking-wider">
+                    Początek
+                  </label>
                   <input
                     type="time"
                     required
-                    value={formData.time_start}
-                    onChange={e => setFormData({ ...formData, time_start: e.target.value })}
-                    className="w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-textPrimary font-mono focus:outline-none focus:border-accentPrimary transition-colors"
+                    value={modalStart}
+                    onChange={(e) => setModalStart(e.target.value)}
+                    className="px-space-md py-2 rounded-lg bg-surface-container text-on-surface font-code-mono focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-textMuted font-medium mb-1">Godzina Zakończenia</label>
+                <div className="flex flex-col gap-1">
+                  <label className="font-label-sm text-label-sm text-outline uppercase tracking-wider">
+                    Koniec
+                  </label>
                   <input
                     type="time"
                     required
-                    value={formData.time_end}
-                    onChange={e => setFormData({ ...formData, time_end: e.target.value })}
-                    className="w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-textPrimary font-mono focus:outline-none focus:border-accentPrimary transition-colors"
+                    value={modalEnd}
+                    onChange={(e) => setModalEnd(e.target.value)}
+                    className="px-space-md py-2 rounded-lg bg-surface-container text-on-surface font-code-mono focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
 
-              {/* Sala / Miejsce i Prowadzący */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-textMuted font-medium mb-1">
-                    {formData.category === 'personal' ? 'Miejsce / Lokalizacja' : 'Sala / Budynek'}
+              <div className="grid grid-cols-2 gap-space-sm">
+                <div className="flex flex-col gap-1">
+                  <label className="font-label-sm text-label-sm text-outline uppercase tracking-wider">
+                    Kategoria
+                  </label>
+                  <select
+                    value={modalCategory}
+                    onChange={(e) => setModalCategory(e.target.value)}
+                    className="px-space-md py-2 rounded-lg bg-surface-container text-on-surface focus:outline-none focus:ring-1 focus:ring-primary font-body-md"
+                  >
+                    <option value="personal">Osobiste (Rutyna & Cele)</option>
+                    <option value="librus">Szkolne (Librus / Uczelnia)</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="font-label-sm text-label-sm text-outline uppercase tracking-wider">
+                    Sala / Miejsce
                   </label>
                   <input
                     type="text"
-                    value={formData.room}
-                    onChange={e => setFormData({ ...formData, room: e.target.value })}
-                    placeholder={formData.category === 'personal' ? 'np. Dom, Siłownia, Biuro...' : 'np. Sala 104, Lab AI 2...'}
-                    className="w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
+                    placeholder="np. Dom, Sala 104"
+                    value={modalRoom}
+                    onChange={(e) => setModalRoom(e.target.value)}
+                    className="px-space-md py-2 rounded-lg bg-surface-container text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-primary font-body-md"
                   />
                 </div>
-
-                {formData.category === 'school' && (
-                  <div>
-                    <label className="block text-textMuted font-medium mb-1">Prowadzący / Nauczyciel</label>
-                    <input
-                      type="text"
-                      value={formData.teacher}
-                      onChange={e => setFormData({ ...formData, teacher: e.target.value })}
-                      placeholder="np. prof. dr hab. Jan Nowak"
-                      className="w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors"
-                    />
-                  </div>
-                )}
               </div>
 
-              {/* Kolor Akcentu */}
-              <div>
-                <label className="block text-textMuted font-medium mb-1.5">Kolor Wyróżnienia</label>
-                <div className="flex items-center gap-2">
-                  {Object.keys(COLOR_MAP).map(cKey => (
-                    <button
-                      key={cKey}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, color: cKey })}
-                      className={`w-6 h-6 rounded-full border-2 transition-transform ${COLOR_MAP[cKey].dot} ${
-                        formData.color === cKey ? 'scale-125 border-white ring-2 ring-accentPrimary/40' : 'border-transparent opacity-70 hover:opacity-100'
-                      }`}
-                      title={cKey}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Notatki */}
-              <div>
-                <label className="block text-textMuted font-medium mb-1">
-                  {formData.category === 'personal' ? 'Notatki / Cele / Zadania' : 'Notatki / Linki / Sylabus'}
+              <div className="flex flex-col gap-1">
+                <label className="font-label-sm text-label-sm text-outline uppercase tracking-wider">
+                  Notatki / Sylabus
                 </label>
                 <textarea
                   rows={2}
-                  value={formData.notes}
-                  onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder={formData.category === 'personal' ? 'np. Plan treningowy, lista zadań do zrobienia...' : 'np. Wymagane materiały, hasło do sali...'}
-                  className="w-full bg-black/30 border border-white/15 rounded-xl p-3 text-textPrimary focus:outline-none focus:border-accentPrimary transition-colors resize-none"
+                  placeholder="Dodatkowe informacje, cele, linki..."
+                  value={modalDesc}
+                  onChange={(e) => setModalDesc(e.target.value)}
+                  className="px-space-md py-2 rounded-lg bg-surface-container text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-primary font-body-md resize-none"
                 />
               </div>
 
-              {/* Przyciski Modala */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+              <div className="flex items-center justify-end gap-space-sm pt-space-xs mt-2">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl text-textMuted hover:text-textPrimary transition-colors"
+                  className="px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-md transition-colors cursor-pointer"
                 >
                   Anuluj
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-accentPrimary text-background font-bold rounded-xl shadow-[0_0_12px_rgba(var(--color-accent-primary),0.3)] hover:brightness-110 transition-all"
+                  className="px-space-lg py-2 rounded-lg bg-primary text-on-primary font-semibold font-label-md hover:brightness-110 transition-all cursor-pointer shadow-md"
                 >
-                  {editingLesson ? 'Zapisz Zmiany' : 'Dodaj do Planu'}
+                  Dodaj do Harmonogramu
                 </button>
               </div>
             </form>

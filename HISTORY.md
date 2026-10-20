@@ -1,5 +1,18 @@
 ## Wersja Bieżąca
-**v3.0.1**
+**v3.1.0**
+
+## v 3.1.0 — 2026-10-20
+**Typ:** MINOR  
+**Zakres:** Pełna Rekonstrukcja 1:1 Czterech Kluczowych Podstron OmniDash (Workouts, Chat, Timetable, Dashboard) Zgodnie z Dostarczonymi Makietami HTML, Standardem Obsidian Academic Engine i Zasadami Apple Fluid Interfaces (`apple-design`), 100% Zgodność z Testami (264/264 PASS):
+- [+] Dodano: `modules/pages/WorkoutsPage.jsx` – kokpit treningowy FBW Strych: żywy stoper sesji (MM:SS), wskaźnik ukończenia serii (58.33%, 7/12), 6 bazowych ćwiczeń FBW z interaktywnymi stepperami powtórzeń (+/-) i obciążenia (kg), pływający panel rest timer z animowanym radialnym zegarem SVG (`stroke-dasharray="440"`), tygodniowy rytm (Pon/Śr/Pt), wektorowy sparkline objętości SVG, rejestrator wagi i notatki Obsidian (`⌘ + Enter`).
+- [+] Dodano: `modules/pages/ChatPage.jsx` – kognitywne centrum konwersacyjne Omni Chat z procesorem Groq LPU: nagłówek z selektorem 3 modeli (`Groq LPU 120B`, `Claude 3.5 Sonnet`, `Llama 3.3 70B Turbo`), lewy panel Voice Inspector HUD z 15-słupkowym animowanym korektorem audio (96.4 kHz) i rejestrem 5 narzędzi brzegowych Tool Calling, scrollbox dialogu ze znacznikami klastra i kartami egzekucji narzędzi (`librus_sync`, `workouts.get_fbw_routine`), dolna szklana konsola z dyktowaniem i telemetrią 420 t/s.
+- [+] Dodano: `modules/pages/TimetablePage.jsx` – harmonogram i plan dnia `Szkic Czasowy / v3.0.4-live`: segmentowy filtr (Wszystkie / Szkolne Librus / Osobiste Cele), wstęga 4 metryk (Kalendarz akademicki, Alokacja, Wolne okienka, Cel FBW), matryca dni Pon-Ndz, 8-kolumnowa oś czasu ze wskaźnikiem strefy CET i zegarem na żywo (`clockTicker`), wyróżnienie odwołanych lekcji `[!] Lekcja Odwołana` z przekreśleniem i alertem okienka, 4-kolumnowy boczny inspektor API Librusa (OAuth2 CONNECTED), powiązania Obsidian (`[[Harmonogram-Semestr]]`, `[[Rutyna-Dnia]]`, `[[Syllabus-Matematyka-Dyskretna]]`), formularz wstrzykiwania wyjątków do SQLite i radialny progres dnia SVG (42%).
+- [+] Dodano: `modules/pages/Dashboard.jsx` – centralny pulpit operacyjny OmniDash: nagłówek z trybem skupienia, synchronizacją obrotową i terminalem CLI (`~`), syntetyczny briefing Omni AI z telemetrią LPU 120t/s, siatka 4 kart KPI (Aktywność Dnia ze wskaźnikiem 9/11, Sesja FBW Strych 17:30, Budżet Kopertowy 50/30/20, Telemetria LPU 120B 18ms), lewa kolumna (ticker newsów Brave Search 10m/15m/20m, pogoda CANARD & Open-Meteo z alertami drogowymi, 4-etapowa pionowa oś czasu dnia), prawa kolumna (mini konsola szybkiego czatu Omni AI LPU, status 5/5 zintegrowanych usług).
+- [+] Dodano: Raport wydania `docs/versions/v3.1.0.md`.
+- [*] Zmodyfikowano: `package.json` – inkrementacja wersji do `3.1.0`.
+- [*] Weryfikacja: 264/264 PASS w 22 zestawach testowych Vitest, czysty build Vite w 11.00s.
+
+---
 
 ## v 3.0.1 — 2026-10-20
 **Typ:** PATCH  
