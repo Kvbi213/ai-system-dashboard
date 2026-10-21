@@ -25,8 +25,8 @@ const getGradeBadgeStyle = (val) => {
   if (s.startsWith('2')) {
     return 'bg-orange-500/10 text-orange-300 border-orange-500/30 hover:bg-orange-500/20';
   }
-  if (s.startsWith('1')) {
-    return 'bg-error-container/30 text-error border-error/40 hover:bg-error-container/40';
+  if (s.startsWith('1') || s.toUpperCase() === 'N') {
+    return 'bg-error-container/30 text-error border-error/40 hover:bg-error-container/40 font-bold';
   }
   if (s === '-' || s.toLowerCase() === 'np' || s.toLowerCase() === 'bz') {
     return 'bg-surface-container-high text-on-surface-variant border-border/80 hover:bg-surface-container';
@@ -242,9 +242,14 @@ const GradesPage = () => {
   const [toastMessage, setToastMessage] = useState(null);
 
   // Filtry i widoki
-  const [selectedSemester, setSelectedSemester] = useState('sem2'); // 'sem1' | 'sem2' | 'all'
+  const [selectedSemester, setSelectedSemester] = useState(() => {
+    const m = new Date().getMonth();
+    // Wrzesień (8) do Luty (1) -> Semestr 1, w przeciwnym razie Semestr 2
+    return (m >= 8 || m <= 1) ? 'sem1' : 'sem2';
+  });
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'danger' | 'waga3' | 'waga0'
   const [searchQuery, setSearchQuery] = useState('');
+  const [showGuide, setShowGuide] = useState(false);
 
   // Modal szczegółów oceny
   const [selectedGrade, setSelectedGrade] = useState(null);
@@ -820,7 +825,7 @@ const GradesPage = () => {
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md p-space-sm rounded-xl bg-surface-container-lowest border border-outline-variant/20">
         
         {/* Semester macOS Pill Switcher */}
-        <div className="flex items-center p-1 bg-surface-container rounded-lg gap-1 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center p-1 bg-surface-container rounded-lg gap-1 self-start sm:self-auto">
           <button
             onClick={() => setSelectedSemester('sem1')}
             className={`px-space-md py-1.5 rounded-lg font-label-md text-label-md transition-all ${
@@ -829,7 +834,7 @@ const GradesPage = () => {
                 : 'text-outline hover:text-on-surface'
             }`}
           >
-            Semestr 1
+            Semestr 1 {new Date().getMonth() >= 8 || new Date().getMonth() <= 1 ? '(Bieżący)' : ''}
           </button>
           <button
             onClick={() => setSelectedSemester('sem2')}
@@ -839,7 +844,7 @@ const GradesPage = () => {
                 : 'text-outline hover:text-on-surface'
             }`}
           >
-            Semestr 2 (Bieżący)
+            Semestr 2 {new Date().getMonth() >= 2 && new Date().getMonth() <= 7 ? '(Bieżący)' : ''}
           </button>
           <button
             onClick={() => setSelectedSemester('all')}
@@ -850,6 +855,18 @@ const GradesPage = () => {
             }`}
           >
             Cały Rok Szkolny
+          </button>
+
+          <button
+            onClick={() => setShowGuide(!showGuide)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-code-mono text-label-sm border transition-all sm:ml-2 ${
+              showGuide
+                ? 'bg-secondary/20 text-secondary border-secondary/40 font-bold'
+                : 'bg-surface-container-high/60 text-outline hover:text-on-surface border-outline-variant/30'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px] text-secondary">help</span>
+            <span>{showGuide ? 'Zamknij Poradnik' : 'Jak Czytać Oceny (Legenda)'}</span>
           </button>
         </div>
 
@@ -904,6 +921,75 @@ const GradesPage = () => {
 
       </div>
 
+      {/* PRZEWODNIK / LEGENDA OZNACZEŃ (COLLAPSIBLE / INTERACTIVE) */}
+      {showGuide && (
+        <div className="p-space-md rounded-2xl bg-surface-container-low border border-secondary/40 shadow-xl space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-outline-variant/20">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-secondary text-[20px]">school</span>
+              <h3 className="font-code-mono text-xs font-bold text-on-surface uppercase tracking-wider">
+                Przewodnik Po Dzienniku Ocen (Librus Synergia • Standard NANO v3.2)
+              </h3>
+            </div>
+            <button
+              onClick={() => setShowGuide(false)}
+              className="text-xs font-code-mono text-outline hover:text-on-surface px-2 py-0.5 rounded hover:bg-surface-container"
+            >
+              Zamknij ✕
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-mono">
+            <div className="p-3 rounded-xl bg-surface-container border border-outline-variant/20 flex flex-col justify-between">
+              <div>
+                <span className="text-secondary font-bold block mb-1">1. Semestr 1 vs Semestr 2</span>
+                <p className="text-on-surface-variant text-[11px] leading-relaxed">
+                  Semestr 1 trwa od września do stycznia/lutego. W październiku wszystkie bieżące oceny szkolne znajdują się w <strong>Semestrze 1</strong>. Przełącznik &quot;Cały Rok&quot; łączy oba okresy.
+                </p>
+              </div>
+              <span className="text-[10px] text-outline mt-2">Domyślnie aktywny: Semestr 1</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-surface-container border border-outline-variant/20 flex flex-col justify-between">
+              <div>
+                <span className="text-primary font-bold block mb-1">2. Wagi Ocen (W1 / W2 / W3)</span>
+                <p className="text-on-surface-variant text-[11px] leading-relaxed">
+                  <strong className="text-tertiary">W3</strong>: Sprawdziany kluczowe.<br />
+                  <strong className="text-primary">W2</strong>: Prace klasowe i sprawdziany.<br />
+                  <strong className="text-on-surface">W1</strong>: Kartkówki, odpowiedzi, aktywności.<br />
+                  <strong className="text-outline">W0</strong>: Wpisy diagnostyczne (brak wagi).
+                </p>
+              </div>
+              <span className="text-[10px] text-outline mt-2">Formuła: Średnia ważona</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-surface-container border border-outline-variant/20 flex flex-col justify-between">
+              <div>
+                <span className="text-tertiary font-bold block mb-1">3. Kolory i Symbole Ocen</span>
+                <p className="text-on-surface-variant text-[11px] leading-relaxed">
+                  <span className="text-primary font-bold">6 i 5</span>: Celujący / Bardzo dobry.<br />
+                  <span className="text-tertiary font-bold">4</span>: Dobry.<br />
+                  <span className="text-amber-400 font-bold">3</span>: Dostateczny.<br />
+                  <span className="text-orange-400 font-bold">2</span>: Dopuszczający.<br />
+                  <span className="text-error font-bold">1 i N</span>: Niedostateczny / Nieklasyfikowany.
+                </p>
+              </div>
+              <span className="text-[10px] text-outline mt-2">N = Wymaga poprawy / uzupełnienia</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-surface-container border border-outline-variant/20 flex flex-col justify-between">
+              <div>
+                <span className="text-on-surface font-bold block mb-1">4. Klikalna Inspekcja Wpisu</span>
+                <p className="text-on-surface-variant text-[11px] leading-relaxed">
+                  Kliknij w dowolny kafelek oceny na karcie przedmiotu, aby wyświetlić modal z pełnymi danymi: data wpisania, nauczyciel, kategoria i komentarz (np. zakres sprawdzianu).
+                </p>
+              </div>
+              <span className="text-[10px] text-outline mt-2">Symulator What-If na dole strony</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 4. SUBJECT CARDS DECK */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-md" id="subjects-deck">
         {filteredSubjects.map((subject, idx) => {
@@ -912,6 +998,7 @@ const GradesPage = () => {
           const displayedGrades = selectedSemester === 'sem1' ? sem1Grades : selectedSemester === 'sem2' ? sem2Grades : [...sem1Grades, ...sem2Grades];
           const currentAvg = parseFloat(subject.computedAverage || subject.average || 0);
           const subjCode = getSubjectCode(subject.name);
+          const hasNGrade = displayedGrades.some(g => String(g.value || '').toUpperCase() === 'N');
 
           return (
             <div
@@ -929,10 +1016,12 @@ const GradesPage = () => {
                     </h3>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="font-code-mono text-headline-md font-bold text-on-surface">
-                      {currentAvg > 0 ? currentAvg.toFixed(2) : (subject.average || '—')}
+                    <span className={`font-code-mono text-headline-md font-bold ${hasNGrade && currentAvg === 0 ? 'text-error' : 'text-on-surface'}`}>
+                      {currentAvg > 0 ? currentAvg.toFixed(2) : (hasNGrade ? 'N' : (subject.average || '—'))}
                     </span>
-                    <span className="font-label-sm text-[10px] text-primary uppercase">Śr. ważona</span>
+                    <span className={`font-label-sm text-[10px] uppercase ${hasNGrade && currentAvg === 0 ? 'text-error font-bold' : 'text-primary'}`}>
+                      {hasNGrade && currentAvg === 0 ? 'Nieklasyfikowany' : 'Śr. ważona'}
+                    </span>
                   </div>
                 </div>
 

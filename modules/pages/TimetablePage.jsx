@@ -7,16 +7,45 @@ import {
   isCloudEnvironment
 } from '../services/cloudSync.js';
 
-const DAYS_DATA = [
-  { id: 'all_week', name: 'Cały Tydzień', dayNumber: 'Siatka', blocks: 'Pon-Ndz', isAllWeek: true },
-  { id: 'mon', name: 'Pon', dayNumber: '14', blocks: '5 bloków' },
-  { id: 'tue', name: 'Wt', dayNumber: '15', blocks: '7 bloków' },
-  { id: 'wed', name: 'Śr • Dziś', dayNumber: '16', blocks: '7 bloków', isToday: true },
-  { id: 'thu', name: 'Czw', dayNumber: '17', blocks: '4 bloki' },
-  { id: 'fri', name: 'Pt', dayNumber: '18', blocks: '4 bloki' },
-  { id: 'sat', name: 'Sob', dayNumber: '19', blocks: 'Regeneracja', muted: true },
-  { id: 'sun', name: 'Ndz', dayNumber: '20', blocks: 'Planowanie', muted: true },
-];
+const getWeekDaysData = () => {
+  const now = new Date();
+  const currentDayOfWeek = now.getDay(); // 0 = Sun, 1 = Mon ...
+  const mondayOffset = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + mondayOffset);
+
+  const dayNames = [
+    { id: 'mon', short: 'Pon', fullName: 'Poniedziałek' },
+    { id: 'tue', short: 'Wt', fullName: 'Wtorek' },
+    { id: 'wed', short: 'Śr', fullName: 'Środa' },
+    { id: 'thu', short: 'Czw', fullName: 'Czwartek' },
+    { id: 'fri', short: 'Pt', fullName: 'Piątek' },
+    { id: 'sat', short: 'Sob', fullName: 'Sobota', muted: true },
+    { id: 'sun', short: 'Ndz', fullName: 'Niedziela', muted: true },
+  ];
+
+  const days = [
+    { id: 'all_week', name: 'Cały Tydzień', dayNumber: 'Siatka', blocks: 'Pon-Ndz', isAllWeek: true }
+  ];
+
+  dayNames.forEach((d, idx) => {
+    const dayDate = new Date(monday);
+    dayDate.setDate(monday.getDate() + idx);
+    const isToday = dayDate.toDateString() === now.toDateString();
+    days.push({
+      id: d.id,
+      name: isToday ? `${d.short} • Dziś` : d.short,
+      dayNumber: String(dayDate.getDate()),
+      blocks: d.muted ? (d.id === 'sat' ? 'Regeneracja' : 'Planowanie') : 'Zajęcia',
+      isToday,
+      muted: d.muted
+    });
+  });
+
+  return days;
+};
+
+const DAYS_DATA = getWeekDaysData();
 
 const INITIAL_SCHEDULE = [
   // Poniedziałek (mon)
@@ -460,7 +489,12 @@ const INITIAL_SCHEDULE = [
 export const TimetablePage = () => {
   // Filters & State
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'librus' | 'personal'
-  const [selectedDay, setSelectedDay] = useState('wed'); // 'all_week' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
+  const [selectedDay, setSelectedDay] = useState(() => {
+    const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const today = days[new Date().getDay()];
+    return today === 'sun' || today === 'sat' ? 'all_week' : today;
+  });
+  const [showTimetableGuide, setShowTimetableGuide] = useState(false);
   const [scheduleItems, setScheduleItems] = useState(INITIAL_SCHEDULE);
   
   // Clock Ticker
@@ -835,6 +869,19 @@ END:VEVENT`).join('\n');
 
           <div className="flex items-center gap-space-xs">
             <button 
+              className={`flex items-center gap-space-xs px-space-md py-2 rounded-lg border font-label-md text-label-md transition-colors cursor-pointer ${
+                showTimetableGuide
+                  ? 'bg-secondary/20 text-secondary border-secondary/40 font-bold'
+                  : 'bg-surface-container hover:bg-surface-container-high text-on-surface border-outline-variant/30'
+              }`}
+              onClick={() => setShowTimetableGuide(!showTimetableGuide)} 
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[16px] text-secondary">help</span>
+              <span>{showTimetableGuide ? 'Zamknij Poradnik' : 'Jak Czytać Plan'}</span>
+            </button>
+
+            <button 
               className="flex items-center gap-space-xs px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors font-label-md text-label-md cursor-pointer"
               onClick={handleLibrusSync} 
               type="button"
@@ -939,6 +986,69 @@ END:VEVENT`).join('\n');
           </div>
         </div>
       </section>
+
+      {/* PRZEWODNIK PO PLANIE DNIA (HARMONOGRAM HYBRYDOWY) */}
+      {showTimetableGuide && (
+        <div className="p-space-md rounded-2xl bg-surface-container-low border border-secondary/40 shadow-xl space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-outline-variant/20">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-secondary text-[20px]">calendar_today</span>
+              <h3 className="font-code-mono text-xs font-bold text-on-surface uppercase tracking-wider">
+                Przewodnik Po Planie Dnia (Harmonogram Hybrydowy • Standard NANO v3.2)
+              </h3>
+            </div>
+            <button
+              onClick={() => setShowTimetableGuide(false)}
+              className="text-xs font-code-mono text-outline hover:text-on-surface px-2 py-0.5 rounded hover:bg-surface-container"
+            >
+              Zamknij ✕
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-mono">
+            <div className="p-3 rounded-xl bg-surface-container border border-outline-variant/20 flex flex-col justify-between">
+              <div>
+                <span className="text-secondary font-bold block mb-1">1. Dwa Światy w Jednym Planie</span>
+                <p className="text-on-surface-variant text-[11px] leading-relaxed">
+                  <strong className="text-primary">Szkolne (Librus)</strong>: Oficjalne lekcje pobrane ze szkoły.<br />
+                  <strong className="text-tertiary">Osobiste</strong>: Poranny rozruch (06:00), trening FBW na strychu (17:30), kodowanie i deep work.
+                </p>
+              </div>
+              <span className="text-[10px] text-outline mt-2">Filtruj u góry: Wszystkie / Szkolne / Osobiste</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-surface-container border border-outline-variant/20 flex flex-col justify-between">
+              <div>
+                <span className="text-error font-bold block mb-1">2. Odwołane Lekcje i Okienka</span>
+                <p className="text-on-surface-variant text-[11px] leading-relaxed">
+                  Gdy w terminarzu Librusa odnotowano nieobecność nauczyciela, lekcja jest przekreślona jako <strong className="text-error">[!] Odwołana</strong>. Wolny czas możesz przeznaczyć na powtórkę w bibliotece lub kliknąć &quot;Przypisz Zadanie&quot;.
+                </p>
+              </div>
+              <span className="text-[10px] text-outline mt-2">Automatyczna korelacja z zastępstwami</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-surface-container border border-outline-variant/20 flex flex-col justify-between">
+              <div>
+                <span className="text-primary font-bold block mb-1">3. Widok Tygodnia vs Dnia</span>
+                <p className="text-on-surface-variant text-[11px] leading-relaxed">
+                  Wybierz <strong>Cały Tydzień</strong> (Siatka), aby widzieć układ 7 kolumn znany z aplikacji mobilnej Librus. Kliknij konkretny dzień, aby przejść do szczegółowej osi czasu z podglądem sal i nauczycieli.
+                </p>
+              </div>
+              <span className="text-[10px] text-outline mt-2">Przełącznik dni na pasku poniżej</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-surface-container border border-outline-variant/20 flex flex-col justify-between">
+              <div>
+                <span className="text-on-surface font-bold block mb-1">4. Własne Bloki i Wyjątki</span>
+                <p className="text-on-surface-variant text-[11px] leading-relaxed">
+                  Przycisk <strong>Nowy Blok Własny</strong> oraz prawy panel <strong>Szybki Wyjątek Dnia</strong> pozwalają natychmiast zapisać własne spotkanie, trening lub zadanie do bazy SQLite i Firestore.
+                </p>
+              </div>
+              <span className="text-[10px] text-outline mt-2">Dwukierunkowa synchronizacja z chmurą</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Day Selection Pill Matrix + All Week Switcher */}
       <section className="flex items-center gap-space-xs overflow-x-auto pb-space-xs pt-1">
