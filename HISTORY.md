@@ -1,5 +1,18 @@
 ## Wersja Bieżąca
-**v3.3.0**
+**v3.3.1**
+
+## v 3.3.1 — 2026-10-23
+**Typ:** PATCH  
+**Zakres:** Rygorystyczna Eliminacja Defektów Logicznych, Wycieków Zasobów i Wyścigów Asynchronicznych (Senior Code Reviewer Groq / GPT-OSS Hardening):
+- [+] Dodano: `modules/services/gradeUtils.js` – wyodrębniony moduł czystych funkcji pomocniczych dla analizy ocen i metryk z rygorystyczną sanityzacją typów wejściowych (`toFiniteNumber`, `isValidAverage`, `isNeutralGrade`, `getGradeWeight`, `getSubjectCode`, `getGradeBadgeStyle`).
+- [*] Zmodyfikowano: `modules/pages/GradesPage.jsx` – zaimplementowano bezpieczne zarządzanie stanem po odmontowaniu `useSafeState`, anulowanie zapytań w toku `AbortController` wraz z inkrementalnym identyfikatorem `requestIdRef`, automatyczne czyszczenie subskrypcji Firestore `onSnapshot` w `unsubscribeRef` na poziomie unmount oraz bezpieczny menedżer powiadomień `showToast` eliminujący wyciek timera `toastTimeoutRef`.
+- [*] Zmodyfikowano: `modules/pages/TimetablePage.jsx` – usunięto race conditions i niekontrolowane zapytania w toku: sekwencyjny `currentRequestIdRef`, `abortCurrentRequest` przerywający poprzednie zapytanie przed startem nowego i na unmount, modułowa i zamrożona mapa dni `DAY_MAP`, funkcja `mapDayToAbbrev` eliminująca błędy mapowania dni, bezpieczne czyszczenie timera `syncTimeoutRef` oraz filtracja niepoprawnych lekcji `.filter(Boolean)`.
+- [*] Zmodyfikowano: `api/librus.js` & `modules/services/librusService.js` – bezpieczny parser zakresu godzin `parseHourRange`, eliminacja mutacji `process.env`, obsługa szczęśliwego numerka zachowująca wartość `0` oraz deduplikacja lekcji `addLessonIfUnique`.
+- [+] Dodano: Raport wydania `docs/versions/v3.3.1.md`.
+- [*] Zmodyfikowano: `package.json` – inkrementacja wersji do `3.3.1`.
+- [*] Weryfikacja: 264/264 PASS w 22 zestawach testowych Vitest (100%), kompilacja produkcyjna Vite w 16.73s bez błędów.
+
+---
 
 ## v 3.3.0 — 2026-10-20
 **Typ:** MINOR  

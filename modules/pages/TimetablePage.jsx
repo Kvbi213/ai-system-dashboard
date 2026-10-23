@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { 
   subscribeCollection, 
@@ -46,6 +46,22 @@ const getWeekDaysData = () => {
 };
 
 const DAYS_DATA = getWeekDaysData();
+
+const DAY_MAP = Object.freeze({
+  monday: 'mon', mon: 'mon', poniedziałek: 'mon',
+  tuesday: 'tue', tue: 'tue', wtorek: 'tue',
+  wednesday: 'wed', wed: 'wed', środa: 'wed',
+  thursday: 'thu', thu: 'thu', czwartek: 'thu',
+  friday: 'fri', fri: 'fri', piątek: 'fri',
+  saturday: 'sat', sat: 'sat', sobota: 'sat',
+  sunday: 'sun', sun: 'sun', niedziela: 'sun'
+});
+
+const mapDayToAbbrev = (day) => {
+  if (typeof day !== 'string') return null;
+  const key = day.trim().toLowerCase();
+  return DAY_MAP[key] || null;
+};
 
 const INITIAL_SCHEDULE = [
   // Poniedziałek (mon)
@@ -524,7 +540,38 @@ export const TimetablePage = () => {
     };
   }, []);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncError, setSyncError] = useState(null);
   const [lastVerifyText, setLastVerifyText] = useState('8 min temu');
+  
+  const daysData = DAYS_DATA;
+  const abortControllerRef = useRef(null);
+  const isMountedRef = useRef(false);
+  const currentRequestIdRef = useRef(0);
+  const syncTimeoutRef = useRef(null);
+
+  const abortCurrentRequest = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      abortCurrentRequest();
+      abortControllerRef.current = null;
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+        syncTimeoutRef.current = null;
+      }
+    };
+  }, [abortCurrentRequest]);
+
+  const validSelectedDay = useMemo(() => {
+    return DAYS_DATA.some(d => d.id === selectedDay) ? selectedDay : 'all_week';
+  }, [selectedDay]);
   
   // Quick Exception Form & Toast
   const [quickTitle, setQuickTitle] = useState('');
@@ -601,9 +648,9 @@ export const TimetablePage = () => {
 
   // Filter items for single day view
   const singleDaySchedule = useMemo(() => {
-    if (selectedDay === 'all_week') return categoryFiltered;
-    return categoryFiltered.filter(item => (item.day || 'wed') === selectedDay);
-  }, [categoryFiltered, selectedDay]);
+    if (validSelectedDay === 'all_week') return categoryFiltered;
+    return categoryFiltered.filter(item => (item.day || 'wed') === validSelectedDay);
+  }, [categoryFiltered, validSelectedDay]);
 
   // Group items by day for Week Grid (Librus App Style)
   const weekColumns = useMemo(() => {
@@ -625,77 +672,103 @@ export const TimetablePage = () => {
     });
   }, [categoryFiltered]);
 
-  const fetchLibrusSchedule = async (isManualRefresh = false) => {
+  const fetchLibrusSchedule = useCallback(async (isManualRefresh = false) => {
+    abortCurrentRequest();
+    if (!isMountedRef.current) return;
+
+    const requestId = ++currentRequestIdRef.current;
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsSyncing(true);
+    setSyncError(null);
     try {
       const isCloud = isCloudEnvironment();
       const endpoint = isCloud ? '/api/librus?path=timetable' : '/api/librus/timetable';
       const refreshQuery = isManualRefresh ? (isCloud ? '&refresh=true' : '?refresh=true') : '';
       const url = `${endpoint}${refreshQuery}`;
 
-      const res = await axios.get(url, { timeout: 15000 });
+      const res = await axios.get(url, { signal: controller.signal, timeout: 15000 });
+      if (!isMountedRef.current || currentRequestIdRef.current !== requestId) return;
       if (res.data?.success && Array.isArray(res.data.lessons)) {
-        const dayMap = {
-          monday: 'mon', mon: 'mon', poniedziałek: 'mon',
-          tuesday: 'tue', tue: 'tue', wtorek: 'tue',
-          wednesday: 'wed', wed: 'wed', środa: 'wed',
-          thursday: 'thu', thu: 'thu', czwartek: 'thu',
-          friday: 'fri', fri: 'fri', piątek: 'fri',
-          saturday: 'sat', sat: 'sat', sobota: 'sat',
-          sunday: 'sun', sun: 'sun', niedziela: 'sun'
-        };
+        const isValidLesson = (l) => typeof l === 'object' && l !== null;
+        const parsedLessons = res.data.lessons
+          .filter(isValidLesson)
+          .map((l, lIdx) => {
+            const mappedDay = mapDayToAbbrev(l.day);
+            if (!mappedDay) return null;
+            const isCancelled = Boolean(l.isCancelled || l.status === 'cancelled' || (l.notes && l.notes.includes('ODWOŁANA')));
+            const safeStart = l.time_start || l.timeStart || '08:00';
+            const safeEnd = l.time_end || l.timeEnd || '08:45';
+            const safeId = l.id || `librus_${mappedDay}_${safeStart.replace(':', '')}_${lIdx}`;
+            return {
+              id: safeId,
+              day: mappedDay,
+              timeStart: safeStart,
+              timeEnd: safeEnd,
+              duration: l.duration || '45 min',
+              category: 'librus',
+              categoryLabel: 'Szkolne • Librus',
+              room: l.room || '',
+              teacher: l.cleanTeacher || l.teacher || '',
+              indicatorColor: isCancelled ? 'bg-error' : (l.color ? `bg-${l.color}` : 'bg-primary'),
+              title: l.subject || l.title || 'Lekcja',
+              description: l.notes || l.description || '',
+              isCancelled,
+              statusText: isCancelled ? '[!] Odwołana' : (l.statusText || 'Zajęcia w planie'),
+              librusSyncTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+          })
+          .filter(Boolean);
 
-        const parsedLessons = res.data.lessons.map(l => {
-          const mappedDay = dayMap[(l.day || '').toLowerCase()] || 'wed';
-          const isCancelled = Boolean(l.isCancelled || l.status === 'cancelled' || (l.notes && l.notes.includes('ODWOŁANA')));
-          return {
-            id: l.id || `librus_${Math.random()}`,
-            day: mappedDay,
-            timeStart: l.time_start || l.timeStart || '08:00',
-            timeEnd: l.time_end || l.timeEnd || '08:45',
-            duration: l.duration || '45 min',
-            category: 'librus',
-            categoryLabel: 'Szkolne • Librus',
-            room: l.room || '',
-            teacher: l.cleanTeacher || l.teacher || '',
-            indicatorColor: isCancelled ? 'bg-error' : (l.color ? `bg-${l.color}` : 'bg-primary'),
-            title: l.subject || l.title || 'Lekcja',
-            description: l.notes || l.description || '',
-            isCancelled,
-            statusText: isCancelled ? '[!] Odwołana' : (l.statusText || 'Zajęcia w planie'),
-            librusSyncTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          };
-        });
-
+        if (!isMountedRef.current || currentRequestIdRef.current !== requestId) return;
         setScheduleItems(prev => {
           const personalItems = prev.filter(item => item.category === 'personal');
           return [...parsedLessons, ...personalItems];
         });
-        setLastVerifyText('Przed chwilą (0 s)');
+        if (isMountedRef.current) {
+          setLastVerifyText('Przed chwilą (0 s)');
+        }
       }
     } catch (err) {
-      console.warn('[!] ALERT :: Timetable Librus fetch warning:', err.message);
+      if (axios.isCancel(err) || err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return;
+      console.warn('[!] ALERT :: Timetable Librus fetch warning:', err);
+      if (isMountedRef.current && currentRequestIdRef.current === requestId) {
+        const errorMsg = (err && (err.response?.data?.error || err.message)) || 'Nieznany błąd pobierania planu';
+        setSyncError(String(errorMsg));
+      }
     } finally {
-      setIsSyncing(false);
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+      }
+      if (isMountedRef.current && currentRequestIdRef.current === requestId) {
+        setIsSyncing(false);
+      }
     }
-  };
+  }, [abortCurrentRequest]);
 
   useEffect(() => {
     if (isLibrusEnabled) {
       fetchLibrusSchedule(false);
     }
-  }, [isLibrusEnabled]);
+  }, [isLibrusEnabled, fetchLibrusSchedule]);
 
   // Run Librus Sync
   const handleLibrusSync = async () => {
-    setIsSyncing(true);
     if (isLibrusEnabled) {
       await fetchLibrusSchedule(true);
     } else {
-      setTimeout(() => {
-        setIsSyncing(false);
-        setLastVerifyText('Przed chwilą (0 s)');
-        alert('[*] Tryb autonomiczny: Plan dnia zaktualizowany z bazy lokalnej (bez Librus API).');
+      if (!isMountedRef.current) return;
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+        syncTimeoutRef.current = null;
+      }
+      setIsSyncing(true);
+      syncTimeoutRef.current = setTimeout(() => {
+        if (isMountedRef.current) {
+          setIsSyncing(false);
+          setLastVerifyText('Przed chwilą (0 s)');
+        }
       }, 800);
     }
   };
@@ -705,7 +778,7 @@ export const TimetablePage = () => {
     e.preventDefault();
     if (!quickTitle.trim()) return;
 
-    const targetDay = selectedDay === 'all_week' ? 'wed' : selectedDay;
+    const targetDay = validSelectedDay === 'all_week' ? 'mon' : validSelectedDay;
     const newBlock = {
       id: `quick_${Date.now()}`,
       day: targetDay,
@@ -749,7 +822,7 @@ export const TimetablePage = () => {
 
     const newBlock = {
       id: `modal_${Date.now()}`,
-      day: modalDay || (selectedDay === 'all_week' ? 'wed' : selectedDay),
+      day: modalDay || (validSelectedDay === 'all_week' ? 'mon' : validSelectedDay),
       timeStart: modalStart,
       timeEnd: modalEnd,
       duration: `${modalStart} - ${modalEnd}`,
@@ -936,16 +1009,16 @@ END:VEVENT`).join('\n');
           </div>
           <div className="mt-space-md flex items-baseline gap-space-xs">
             <span className="font-display-lg text-headline-xl text-on-surface font-semibold tracking-tight">
-              {selectedDay === 'all_week' ? '32h 15m' : `${singleDaySchedule.length} bloków`}
+              {validSelectedDay === 'all_week' ? '32h 15m' : `${singleDaySchedule.length} bloków`}
             </span>
             <span className="font-label-md text-label-md text-outline">
-              {selectedDay === 'all_week' ? '/ 34 bloki' : `w wybranym dniu`}
+              {validSelectedDay === 'all_week' ? '/ 34 bloki' : `w wybranym dniu`}
             </span>
           </div>
           <div className="font-code-mono text-code-mono text-on-surface-variant text-[11px] mt-space-xs flex items-center gap-space-xs">
             <span className="w-2 h-2 rounded-full bg-primary"></span>
             <span>
-              {selectedDay === 'all_week' ? 'Siatka pełnego tygodnia Librus' : `Wyświetlanie: ${DAYS_DATA.find(d => d.id === selectedDay)?.name || selectedDay}`}
+              {validSelectedDay === 'all_week' ? 'Siatka pełnego tygodnia Librus' : `Wyświetlanie: ${daysData.find(d => d.id === validSelectedDay)?.name || validSelectedDay}`}
             </span>
           </div>
         </div>
@@ -1052,8 +1125,8 @@ END:VEVENT`).join('\n');
 
       {/* Day Selection Pill Matrix + All Week Switcher */}
       <section className="flex items-center gap-space-xs overflow-x-auto pb-space-xs pt-1">
-        {DAYS_DATA.map((day) => {
-          const isSelected = selectedDay === day.id;
+        {daysData.map((day) => {
+          const isSelected = validSelectedDay === day.id;
           return (
             <button
               key={day.id}
@@ -1081,7 +1154,7 @@ END:VEVENT`).join('\n');
       </section>
 
       {/* MAIN VIEW: All Week Column Grid (Librus App Style) OR Single Day Timeline View */}
-      {selectedDay === 'all_week' ? (
+      {validSelectedDay === 'all_week' ? (
         /* ================= CAŁY TYDZIEŃ: SIATKA KOLUMNOWA LIBRUS ================= */
         <section className="flex flex-col gap-space-md">
           <div className="flex items-center justify-between px-space-md py-space-xs rounded-lg bg-surface-container-lowest font-code-mono text-code-mono text-outline">
@@ -1191,7 +1264,7 @@ END:VEVENT`).join('\n');
               <div className="flex items-center gap-space-xs">
                 <span className="w-2 h-2 rounded-full bg-primary animate-ping"></span>
                 <span className="text-on-surface font-medium">
-                  Wybrany dzień: {DAYS_DATA.find(d => d.id === selectedDay)?.name || selectedDay}
+                  Wybrany dzień: {daysData.find(d => d.id === validSelectedDay)?.name || validSelectedDay}
                 </span>
               </div>
               <div className="flex items-center gap-space-md">
@@ -1206,7 +1279,7 @@ END:VEVENT`).join('\n');
                 <span className="material-symbols-outlined text-[36px] text-outline opacity-40">event_busy</span>
                 <h3 className="font-headline-md text-headline-md text-on-surface">Brak bloków na ten dzień</h3>
                 <p className="font-body-md text-body-md text-outline">
-                  Dla wybranego dnia ({DAYS_DATA.find(d => d.id === selectedDay)?.name}) nie zdefiniowano jeszcze zajęć. Użyj przycisku &quot;Nowy Blok Własny&quot; powyżej.
+                  Dla wybranego dnia ({daysData.find(d => d.id === validSelectedDay)?.name}) nie zdefiniowano jeszcze zajęć. Użyj przycisku &quot;Nowy Blok Własny&quot; powyżej.
                 </p>
               </div>
             ) : (

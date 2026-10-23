@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -6,9 +6,25 @@ import { doc, onSnapshot, getDoc, setDoc } from 'firebase/firestore';
 import { firestore } from '../firebaseClient';
 import { isCloudEnvironment } from '../services/cloudSync';
 
+const DEFAULT_OVERALL_AVG = 4.62;
+const HONORS_THRESHOLD = 4.75;
+const MAX_GRADE = 6.00;
+
+export const NEUTRAL_GRADE_TOKENS = new Set(['-', 'NP', 'BZ', 'NB', 'ZW']);
+export const ALLOWED_SIM_GRADES = new Set(['6', '5.5', '5', '4.5', '4', '3']);
+export const ALLOWED_SIM_WEIGHTS = new Set(['3', '2', '1']);
+
+export const isNeutralGrade = (val) => {
+  if (typeof val !== 'string') return false;
+  return NEUTRAL_GRADE_TOKENS.has(val.trim().toUpperCase());
+};
+
 // Kolorystyka pigułek ocen w standardzie Obsidian Minimalist Dark & Stitch
 const getGradeBadgeStyle = (val) => {
-  const s = String(val || '').trim();
+  const s = String(val ?? '').trim().toUpperCase();
+  if (!s) {
+    return 'bg-surface-container text-outline border-dashed border-outline-variant/50 hover:bg-surface-container-high';
+  }
 
   if (s.startsWith('6')) {
     return 'bg-primary/10 text-primary border-primary/30 shadow-[0_0_8px_rgba(77,142,255,0.25)] hover:bg-primary/20';
@@ -25,16 +41,27 @@ const getGradeBadgeStyle = (val) => {
   if (s.startsWith('2')) {
     return 'bg-orange-500/10 text-orange-300 border-orange-500/30 hover:bg-orange-500/20';
   }
-  if (s.startsWith('1') || s.toUpperCase() === 'N') {
+  if (s.startsWith('1') || s === 'N') {
     return 'bg-error-container/30 text-error border-error/40 hover:bg-error-container/40 font-bold';
   }
-  if (s === '-' || s.toLowerCase() === 'np' || s.toLowerCase() === 'bz') {
+  if (isNeutralGrade(s)) {
     return 'bg-surface-container-high text-on-surface-variant border-border/80 hover:bg-surface-container';
   }
   if (s === '+') {
     return 'bg-secondary/15 text-secondary border-secondary/30 hover:bg-secondary/25';
   }
   return 'bg-surface-container text-on-surface border-border hover:bg-surface-container-high';
+};
+
+const toFiniteNumber = (v) => {
+  if (v === null || v === undefined) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
+const isValidAverage = (v) => {
+  const n = toFiniteNumber(v);
+  return n !== null && n > 0;
 };
 
 // Bezpieczne wyciąganie wagi oceny
@@ -205,19 +232,36 @@ const STATIC_DEMO_DATA = {
   ]
 };
 
+const getCurrentMonth = () => new Date().getMonth();
+
+function useSafeState(initial) {
+  const [state, setState] = useState(initial);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  const safeSet = useCallback((value) => {
+    if (mounted.current) setState(value);
+  }, []);
+  return [state, safeSet];
+}
+
 const GradesPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const [data, setData] = useState(() => {
+  const [data, setDataSafe] = useSafeState(() => {
     try {
       const cached = localStorage.getItem('cloud_cache_librus_grades');
       if (cached) return JSON.parse(cached);
     } catch {}
     return null;
   });
-  const [loading, setLoading] = useState(() => !localStorage.getItem('cloud_cache_librus_grades'));
-  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoadingSafe] = useSafeState(() => !localStorage.getItem('cloud_cache_librus_grades'));
+  const [refreshing, setRefreshingSafe] = useSafeState(false);
   const [isLibrusEnabled, setIsLibrusEnabled] = useState(() => {
     return localStorage.getItem('system_librus_enabled') === 'true';
   });
@@ -237,13 +281,52 @@ const GradesPage = () => {
       window.removeEventListener('systemConfigUpdated', handleLibrusConfig);
     };
   }, []);
-  const [error, setError] = useState(null);
+  const [error, setErrorSafe] = useSafeState(null);
   const [useDemo, setUseDemo] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
+  const showToast = useCallback((msg) => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setToastMessage(msg);
+    toastTimeoutRef.current = setTimeout(() => {
+      setToastMessage(null);
+    }, 4000);
+  }, []);
+
+  const unsubscribeRef = useRef(null);
+  const fetchAbortControllerRef = useRef(null);
+  const requestIdRef = useRef(0);
+  const toastTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (fetchAbortControllerRef.current) {
+        fetchAbortControllerRef.current.abort();
+        fetchAbortControllerRef.current = null;
+      }
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        unsubscribeRef.current = null;
+      }
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Filtry i widoki
+  const [currentMonth, setCurrentMonth] = useState(getCurrentMonth);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const nowMonth = getCurrentMonth();
+      setCurrentMonth(prev => (prev !== nowMonth ? nowMonth : prev));
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   const [selectedSemester, setSelectedSemester] = useState(() => {
-    const m = new Date().getMonth();
+    const m = getCurrentMonth();
     // Wrzesień (8) do Luty (1) -> Semestr 1, w przeciwnym razie Semestr 2
     return (m >= 8 || m <= 1) ? 'sem1' : 'sem2';
   });
@@ -259,16 +342,45 @@ const GradesPage = () => {
   const [simGrade, setSimGrade] = useState('5');
   const [simWeight, setSimWeight] = useState('3');
 
+  const handleSimGradeChange = (e) => {
+    const val = e.target.value;
+    if (ALLOWED_SIM_GRADES.has(val)) setSimGrade(val);
+  };
+
+  const handleSimWeightChange = (e) => {
+    const val = e.target.value;
+    if (ALLOWED_SIM_WEIGHTS.has(val)) setSimWeight(val);
+  };
+
   // Pobieranie danych ocen
-  const fetchGrades = async (isManualRefresh = false, forceDemoMode = useDemo) => {
-    if (isManualRefresh) setRefreshing(true);
-    else setLoading(true);
-    setError(null);
+  const fetchGrades = useCallback(async (isManualRefresh = false, forceDemoMode = useDemo) => {
+    if (fetchAbortControllerRef.current) {
+      fetchAbortControllerRef.current.abort();
+      fetchAbortControllerRef.current = null;
+    }
+    const controller = new AbortController();
+    fetchAbortControllerRef.current = controller;
+
+    const curId = ++requestIdRef.current;
+
+    const setSafe = (setter) => (value) => {
+      if (requestIdRef.current === curId) {
+        setter(value);
+      }
+    };
+    const setLocalData = setSafe(setDataSafe);
+    const setLocalLoading = setSafe(setLoadingSafe);
+    const setLocalRefreshing = setSafe(setRefreshingSafe);
+    const setLocalError = setSafe(setErrorSafe);
+
+    if (isManualRefresh) setLocalRefreshing(true);
+    else setLocalLoading(true);
+    setLocalError(null);
 
     if (forceDemoMode) {
-      setData(STATIC_DEMO_DATA);
-      setLoading(false);
-      setRefreshing(false);
+      setLocalData(STATIC_DEMO_DATA);
+      setLocalLoading(false);
+      setLocalRefreshing(false);
       return;
     }
 
@@ -279,15 +391,15 @@ const GradesPage = () => {
           if (snap.exists()) {
             const cloudData = snap.data();
             if (cloudData && Array.isArray(cloudData.subjects)) {
-              setData(prev => ({
+              setLocalData(prev => ({
                 ...(prev || {}),
                 ...cloudData,
                 isConfigured: true,
                 isDemo: false
               }));
-              setError(null);
-              setLoading(false);
-              setRefreshing(false);
+              setLocalError(null);
+              setLocalLoading(false);
+              setLocalRefreshing(false);
               return;
             }
           }
@@ -295,17 +407,17 @@ const GradesPage = () => {
           console.debug('[Firestore] Błąd odczytu bezpośredniego:', fErr);
         }
       }
-      setData(STATIC_DEMO_DATA);
-      setLoading(false);
-      setRefreshing(false);
+      setLocalData(STATIC_DEMO_DATA);
+      setLocalLoading(false);
+      setLocalRefreshing(false);
       return;
     }
 
     try {
       const url = '/api/librus/grades';
-      const res = await axios.get(url, { timeout: 12000 });
+      const res = await axios.get(url, { signal: controller.signal, timeout: 12000 });
       if (res.data) {
-        setData(res.data);
+        setLocalData(res.data);
         try {
           localStorage.setItem('cloud_cache_librus_grades', JSON.stringify(res.data));
           if (firestore && res.data.subjects && res.data.subjects.length > 0) {
@@ -317,11 +429,16 @@ const GradesPage = () => {
         } catch {}
       }
     } catch (err) {
+      if (axios.isCancel(err) || err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return;
+      if (err.code === 'ECONNABORTED') {
+        setLocalError('Przekroczono limit czasu połączenia z Librus Synergia (timeout 12s)');
+        return;
+      }
       const isHtmlErr = err.message?.includes('zwrócił HTML');
-      if (isHtmlErr || data?.subjects?.length > 0) {
-        console.debug('[Librus] Pominięto anomalię endpointu:', err.message);
+      if (isHtmlErr) {
+        console.debug('[Librus] Pominięto anomalię HTML endpointu:', err.message);
       } else {
-        setError(err.response?.data?.error || err.message || 'Nie udało się pobrać ocen');
+        setLocalError(err.response?.data?.error || err.message || 'Nie udało się pobrać ocen');
       }
 
       if (firestore) {
@@ -330,61 +447,87 @@ const GradesPage = () => {
           if (snap.exists()) {
             const cloudData = snap.data();
             if (cloudData && Array.isArray(cloudData.subjects) && cloudData.subjects.length > 0) {
-              setData(prev => ({
+              setLocalData(prev => ({
                 ...(prev || {}),
                 ...cloudData,
                 isConfigured: true,
                 isDemo: false
               }));
-              setError(null);
+              setLocalError(null);
               return;
             }
           }
         } catch {}
       }
 
-      if (!data) {
-        setData(STATIC_DEMO_DATA);
-      }
+      setLocalData(prev => prev || STATIC_DEMO_DATA);
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (fetchAbortControllerRef.current === controller) {
+        fetchAbortControllerRef.current = null;
+      }
+      setLocalLoading(false);
+      setLocalRefreshing(false);
     }
-  };
+  }, [useDemo, firestore, setDataSafe, setErrorSafe, setLoadingSafe, setRefreshingSafe]);
 
   useEffect(() => {
     fetchGrades(false, useDemo);
-  }, [useDemo]);
+  }, [fetchGrades, useDemo]);
 
   useEffect(() => {
-    if (!firestore || useDemo) return;
-    try {
-      const docRef = doc(firestore, 'librus_cache', 'latest');
-      const unsub = onSnapshot(docRef, (snap) => {
-        if (snap.exists()) {
-          const cloudData = snap.data();
-          if (cloudData && Array.isArray(cloudData.subjects)) {
-            setData(prev => ({
-              ...(prev || {}),
-              ...cloudData,
-              isConfigured: true,
-              isDemo: false
-            }));
-            setError(null);
-            setLoading(false);
+    if (unsubscribeRef.current) {
+      unsubscribeRef.current();
+      unsubscribeRef.current = null;
+    }
+
+    if (!firestore || useDemo) {
+      return;
+    }
+
+    const docRef = doc(firestore, 'librus_cache', 'latest');
+
+    const unsub = onSnapshot(
+      docRef,
+      (snap) => {
+        if (!snap.exists()) return;
+
+        const cloudData = snap.data();
+        if (cloudData && Array.isArray(cloudData.subjects)) {
+          if (fetchAbortControllerRef.current) {
+            fetchAbortControllerRef.current.abort();
           }
+          setDataSafe((prev) => ({
+            ...(prev ?? {}),
+            ...cloudData,
+            isConfigured: true,
+            isDemo: false,
+          }));
+          setErrorSafe(null);
+          setLoadingSafe(false);
         }
-      }, () => {});
-      return () => unsub();
-    } catch {}
-  }, [useDemo]);
+      },
+      (err) => {
+        console.warn('[!] ALERT :: LIBRUS :: Firestore onSnapshot error:', err);
+        setErrorSafe(err.code === 'permission-denied' ? 'Brak uprawnień dostępu do danych w chmurze' : (err.message || 'Błąd subskrypcji ocen'));
+        setLoadingSafe(false);
+      }
+    );
+
+    unsubscribeRef.current = unsub;
+
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        unsubscribeRef.current = null;
+      }
+    };
+  }, [firestore, useDemo, setDataSafe, setErrorSafe, setLoadingSafe]);
 
   // Wymuszenie odświeżenia z gwarancją min. 800ms płynnej animacji
   const handleForceRefresh = async () => {
     if (useDemo) {
       setData(STATIC_DEMO_DATA);
-      setToastMessage('[+] Odświeżono oceny w trybie demonstracyjnym. Średnia ogólna: 4.62');
-      setTimeout(() => setToastMessage(null), 4000);
+      showToast('[+] Odświeżono oceny w trybie demonstracyjnym. Średnia ogólna: 4.62');
       return;
     }
     setRefreshing(true);
@@ -450,11 +593,10 @@ const GradesPage = () => {
 
     setRefreshing(false);
     const currentAvg = refreshedData?.overallAverage || (data?.overallAverage ? Number(data.overallAverage).toFixed(2) : '4.62');
-    setToastMessage(`[+] Pomyślnie zsynchronizowano oceny z Librus Synergia. Średnia ogólna: ${currentAvg}`);
-    setTimeout(() => setToastMessage(null), 4000);
+    showToast(`[+] Pomyślnie zsynchronizowano oceny z Librus Synergia. Średnia ogólna: ${currentAvg}`);
   };
 
-  const rawSubjects = data?.subjects || STATIC_DEMO_DATA.subjects;
+  const rawSubjects = Array.isArray(data?.subjects) && data.subjects.length > 0 ? data.subjects : STATIC_DEMO_DATA.subjects;
 
   // Ustawienie domyślnego przedmiotu symulacji
   useEffect(() => {
@@ -486,8 +628,8 @@ const GradesPage = () => {
 
   const riskSubjectsCount = useMemo(() => {
     return rawSubjects.filter(s => {
-      const avg = parseFloat(s.computedAverage || s.average || 0);
-      return avg > 0 && avg <= 2.25;
+      const avg = toFiniteNumber(s.computedAverage || s.average);
+      return isValidAverage(avg) && avg <= 2.25;
     }).length;
   }, [rawSubjects]);
 
@@ -499,8 +641,8 @@ const GradesPage = () => {
 
     if (statusFilter === 'danger') {
       list = list.filter(s => {
-        const avg = parseFloat(s.computedAverage || s.average || 0);
-        return avg > 0 && avg <= 2.25;
+        const avg = toFiniteNumber(s.computedAverage || s.average);
+        return isValidAverage(avg) && avg <= 2.25;
       });
     } else if (statusFilter === 'waga3') {
       list = list.filter(s => {
@@ -523,30 +665,35 @@ const GradesPage = () => {
   }, [rawSubjects, searchQuery, statusFilter]);
 
   // Globalna średnia i próg paska
-  const overallAvg = data?.overallAverage ? Number(data.overallAverage).toFixed(2) : '4.62';
-  const numericAvg = parseFloat(overallAvg) || 4.62;
-  const targetThreshold = 4.75;
+  const safeOverallVal = toFiniteNumber(data?.overallAverage);
+  const numericAvg = isValidAverage(safeOverallVal) ? safeOverallVal : DEFAULT_OVERALL_AVG;
+  const overallAvg = numericAvg.toFixed(2);
+  const targetThreshold = HONORS_THRESHOLD;
   const deltaToHonors = Math.max(0, targetThreshold - numericAvg).toFixed(2);
-  const distinctionPercentage = ((numericAvg / 6.00) * 100).toFixed(1);
+  const rawDistinction = (numericAvg / MAX_GRADE) * 100;
+  const distinctionPercentage = Number.isFinite(rawDistinction) ? rawDistinction.toFixed(1) : '0.0';
 
   // Symulator What-If
   const simulationResult = useMemo(() => {
-    const gradeNum = parseFloat(simGrade) || 5.0;
-    const weightNum = parseFloat(simWeight) || 3.0;
+    const rawGrade = toFiniteNumber(simGrade);
+    const gradeNum = (rawGrade !== null && rawGrade >= 1 && rawGrade <= 6) ? rawGrade : 5.0;
+    const rawWeight = toFiniteNumber(simWeight);
+    const weightNum = (rawWeight !== null && rawWeight >= 0 && rawWeight <= 10) ? rawWeight : 3.0;
 
     let totalAvgSum = 0;
     let count = 0;
 
     rawSubjects.forEach(s => {
-      const sAvg = parseFloat(s.computedAverage || s.average || 0);
-      if (sAvg > 0) {
+      const sAvg = toFiniteNumber(s.computedAverage || s.average);
+      if (isValidAverage(sAvg)) {
         if (s.name === simSubject) {
           // Oblicz nową średnią dla symulowanego przedmiotu
           const allGrades = [...(s.sem1Grades || []), ...(s.sem2Grades || [])];
           let sumWeight = 0;
           let sumWeightedVal = 0;
           allGrades.forEach(g => {
-            const v = parseFloat(String(g.value).replace('+', '.5').replace('-', '.75')) || 0;
+            const rawV = toFiniteNumber(String(g?.value ?? '').replace('+', '.5').replace('-', '.75'));
+            const v = rawV !== null ? rawV : 0;
             const w = getGradeWeight(g.details);
             if (v > 0 && w > 0) {
               sumWeight += w;
@@ -834,7 +981,7 @@ const GradesPage = () => {
                 : 'text-outline hover:text-on-surface'
             }`}
           >
-            Semestr 1 {new Date().getMonth() >= 8 || new Date().getMonth() <= 1 ? '(Bieżący)' : ''}
+            Semestr 1 {currentMonth >= 8 || currentMonth <= 1 ? '(Bieżący)' : ''}
           </button>
           <button
             onClick={() => setSelectedSemester('sem2')}
@@ -844,7 +991,7 @@ const GradesPage = () => {
                 : 'text-outline hover:text-on-surface'
             }`}
           >
-            Semestr 2 {new Date().getMonth() >= 2 && new Date().getMonth() <= 7 ? '(Bieżący)' : ''}
+            Semestr 2 {currentMonth >= 2 && currentMonth <= 7 ? '(Bieżący)' : ''}
           </button>
           <button
             onClick={() => setSelectedSemester('all')}
@@ -993,16 +1140,17 @@ const GradesPage = () => {
       {/* 4. SUBJECT CARDS DECK */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-md" id="subjects-deck">
         {filteredSubjects.map((subject, idx) => {
-          const sem1Grades = subject.sem1Grades || [];
-          const sem2Grades = subject.sem2Grades || [];
+          const sem1Grades = Array.isArray(subject?.sem1Grades) ? subject.sem1Grades : [];
+          const sem2Grades = Array.isArray(subject?.sem2Grades) ? subject.sem2Grades : [];
           const displayedGrades = selectedSemester === 'sem1' ? sem1Grades : selectedSemester === 'sem2' ? sem2Grades : [...sem1Grades, ...sem2Grades];
-          const currentAvg = parseFloat(subject.computedAverage || subject.average || 0);
-          const subjCode = getSubjectCode(subject.name);
-          const hasNGrade = displayedGrades.some(g => String(g.value || '').toUpperCase() === 'N');
+          const currentAvg = toFiniteNumber(subject?.computedAverage || subject?.average);
+          const subjCode = getSubjectCode(subject?.name);
+          const hasNGrade = displayedGrades.some(g => String(g?.value ?? '').toUpperCase() === 'N');
+          const subjectKey = subject?.id ? `subj_${subject.id}` : `subj_${subject?.name || 'unknown'}_${idx}`;
 
           return (
             <div
-              key={subject.name || idx}
+              key={subjectKey}
               className="subject-card rounded-xl bg-surface-container-low p-space-md flex flex-col justify-between shadow-sm hover:bg-surface-container transition-colors group border border-outline-variant/20"
             >
               <div>
@@ -1012,15 +1160,15 @@ const GradesPage = () => {
                       {subjCode}
                     </span>
                     <h3 className="font-headline-md text-headline-md text-on-surface font-semibold group-hover:text-primary transition-colors">
-                      {subject.name}
+                      {subject?.name || 'Przedmiot'}
                     </h3>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className={`font-code-mono text-headline-md font-bold ${hasNGrade && currentAvg === 0 ? 'text-error' : 'text-on-surface'}`}>
-                      {currentAvg > 0 ? currentAvg.toFixed(2) : (hasNGrade ? 'N' : (subject.average || '—'))}
+                    <span className={`font-code-mono text-headline-md font-bold ${hasNGrade && (!currentAvg || currentAvg === 0) ? 'text-error' : 'text-on-surface'}`}>
+                      {currentAvg !== null && currentAvg > 0 ? currentAvg.toFixed(2) : (hasNGrade ? 'N' : (subject?.average || '—'))}
                     </span>
-                    <span className={`font-label-sm text-[10px] uppercase ${hasNGrade && currentAvg === 0 ? 'text-error font-bold' : 'text-primary'}`}>
-                      {hasNGrade && currentAvg === 0 ? 'Nieklasyfikowany' : 'Śr. ważona'}
+                    <span className={`font-label-sm text-[10px] uppercase ${hasNGrade && (!currentAvg || currentAvg === 0) ? 'text-error font-bold' : 'text-primary'}`}>
+                      {hasNGrade && (!currentAvg || currentAvg === 0) ? 'Nieklasyfikowany' : 'Śr. ważona'}
                     </span>
                   </div>
                 </div>
@@ -1109,11 +1257,15 @@ const GradesPage = () => {
                   onChange={(e) => setSimSubject(e.target.value)}
                   className="w-full bg-surface-container px-space-sm py-2 rounded-lg text-on-surface font-body-md appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary border border-outline-variant/30"
                 >
-                  {rawSubjects.map((s, idx) => (
-                    <option key={idx} value={s.name}>
-                      {s.name} ({parseFloat(s.computedAverage || s.average || 0).toFixed(2)})
-                    </option>
-                  ))}
+                  {rawSubjects.map((s, idx) => {
+                    const avg = toFiniteNumber(s?.computedAverage || s?.average);
+                    const avgDisplay = isValidAverage(avg) ? avg.toFixed(2) : '—';
+                    return (
+                      <option key={s?.id ? `opt_${s.id}` : `opt_${s?.name || 'unknown'}_${idx}`} value={s?.name || ''}>
+                        {s?.name || 'Przedmiot'} ({avgDisplay})
+                      </option>
+                    );
+                  })}
                 </select>
                 <span className="material-symbols-outlined text-[16px] text-outline absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
                   expand_more
@@ -1129,7 +1281,7 @@ const GradesPage = () => {
               <div className="relative">
                 <select
                   value={simGrade}
-                  onChange={(e) => setSimGrade(e.target.value)}
+                  onChange={handleSimGradeChange}
                   className="w-full bg-surface-container px-space-sm py-2 rounded-lg text-on-surface font-body-md font-code-mono appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary border border-outline-variant/30"
                 >
                   <option value="6">6 (Celujący)</option>
@@ -1153,7 +1305,7 @@ const GradesPage = () => {
               <div className="relative">
                 <select
                   value={simWeight}
-                  onChange={(e) => setSimWeight(e.target.value)}
+                  onChange={handleSimWeightChange}
                   className="w-full bg-surface-container px-space-sm py-2 rounded-lg text-on-surface font-body-md font-code-mono appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary border border-outline-variant/30"
                 >
                   <option value="3">Waga 3 (Sprawdzian / Projekt)</option>

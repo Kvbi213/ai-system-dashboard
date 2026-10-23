@@ -167,12 +167,13 @@ export function computeGradeStats(subjects = []) {
   };
 
   const enrichedSubjects = (subjects || []).map(subj => {
-    const rawSem1 = subj.semester?.[0];
+    const rawSem1 = subj.semester?.[0] ?? null;
     // librus-api zwraca tablicę 4-elementową: [sem1_oceny, srodroczna, sem2_oceny, roczna].
-    // Jeśli indeks 2 istnieje i zawiera oceny, traktujemy go jako pełny Semestr 2; w przeciwnym razie fallback do indeksu 1.
-    const rawSem2 = (subj.semester && subj.semester[2] && (subj.semester[2].grades || typeof subj.semester[2] === 'object'))
-      ? subj.semester[2]
-      : subj.semester?.[1];
+    // Jeśli indeks 2 istnieje i zawiera oceny (tablicę lub obiekt z polem grades), traktujemy go jako pełny Semestr 2; w przeciwnym razie fallback do indeksu 1.
+    const sem2Candidate = subj.semester?.[2] ?? null;
+    const rawSem2 = (sem2Candidate && (Array.isArray(sem2Candidate) || Array.isArray(sem2Candidate.grades)))
+      ? sem2Candidate
+      : (subj.semester?.[1] ?? null);
 
     const sem1Grades = extractGradesList(rawSem1).map(g => {
       const details = parseGradeInfo(g.info);
@@ -323,6 +324,9 @@ export async function fetchLibrusFromSource(login, password) {
   // Przetwórz i wzbogać statystykami
   const stats = computeGradeStats(rawGrades || []);
 
+  const parsedLucky = (luckyNumber !== null && luckyNumber !== undefined) ? parseInt(luckyNumber, 10) : null;
+  const safeLuckyNumber = Number.isNaN(parsedLucky) ? null : parsedLucky;
+
   const payload = {
     isConfigured: true,
     isDemo: false,
@@ -332,7 +336,7 @@ export async function fetchLibrusFromSource(login, password) {
     gradedSubjectsCount: stats.gradedSubjectsCount,
     highestAverage: stats.highestAverage,
     lowestAverage: stats.lowestAverage,
-    luckyNumber: luckyNumber ? parseInt(luckyNumber, 10) || null : null,
+    luckyNumber: safeLuckyNumber,
     studentInfo,
     attendanceRate,
     lastSync: new Date().toISOString()
@@ -1018,10 +1022,10 @@ export function parseTimetableHtml($, from, to) {
   // W Synergii wiersze planu lekcji posiadają naprzemiennie klasy .line0 oraz .line1
   let rows = $("table.decorated.plan-lekcji tbody tr").filter((_, tr) => $(tr).find("th").length > 0 && $(tr).find("td").length > 0);
   if (rows.length === 0) {
-    rows = $("tr.line0, tr.line1").filter((_, tr) => $(tr).find("th").length > 0);
+    rows = $("tr.line0, tr.line1").filter((_, tr) => $(tr).find("th").length > 0 && $(tr).find("td").length > 0);
   }
   if (rows.length === 0) {
-    rows = $("tr.line1");
+    rows = $("tr.line1").filter((_, tr) => $(tr).find("th").length > 0 && $(tr).find("td").length > 0);
   }
 
   rows.each((rowIndex, row) => {
@@ -1089,6 +1093,15 @@ export function parseTimetableHtml($, from, to) {
         };
       };
 
+      const addLessonIfUnique = (lesson) => {
+        if (!lesson) return;
+        const exists = table[dayId].some(ex => ex.id === lesson.id && ex.subject === lesson.subject);
+        if (!exists) {
+          table[dayId].push(lesson);
+          allLessons.push(lesson);
+        }
+      };
+
       const hasStrike = $cell.find("s").length > 0;
       const planInfoText = $cell.find(".plan-lekcji-info").text().trim();
       const isCancelledByInfo = /odwołan/i.test(planInfoText);
@@ -1115,10 +1128,7 @@ export function parseTimetableHtml($, from, to) {
         }
 
         const cancelledLesson = parseCellDetails(struckSubj, struckTeacherRoom, true);
-        if (cancelledLesson) {
-          table[dayId].push(cancelledLesson);
-          allLessons.push(cancelledLesson);
-        }
+        addLessonIfUnique(cancelledLesson);
       }
 
       // 2. Sprawdź czy jest aktywna lekcja (b lub tekst niebędący w s)
@@ -1138,10 +1148,7 @@ export function parseTimetableHtml($, from, to) {
             }
           }
           const lesson = parseCellDetails(activeSubj, activeTR, false);
-          if (lesson && !table[dayId].some(ex => ex.id === lesson.id && ex.subject === lesson.subject)) {
-            table[dayId].push(lesson);
-            allLessons.push(lesson);
-          }
+          addLessonIfUnique(lesson);
         });
       } else if (!hasStrike && !isCancelledByInfo) {
         const textDiv = $cell.find(".text").first();
@@ -1150,10 +1157,7 @@ export function parseTimetableHtml($, from, to) {
         const subj = parts[0] ? parts[0].replace(/<[^>]*>/g, '').trim() : '';
         const tr = parts[1] ? parts[1].replace(/<[^>]*>/g, '').trim() : '';
         const fallbackLesson = parseCellDetails(subj, tr, false);
-        if (fallbackLesson && !table[dayId].some(ex => ex.id === fallbackLesson.id && ex.subject === fallbackLesson.subject)) {
-          table[dayId].push(fallbackLesson);
-          allLessons.push(fallbackLesson);
-        }
+        addLessonIfUnique(fallbackLesson);
       }
     });
   });

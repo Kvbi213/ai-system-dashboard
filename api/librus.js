@@ -1,3 +1,9 @@
+function parseHourRange(range, fallback = ['08:00', '08:45']) {
+  if (typeof range !== 'string') return fallback;
+  const parts = range.split(' - ').map(p => p.trim());
+  return parts.length === 2 && parts[0] && parts[1] ? parts : fallback;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,8 +17,8 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const login = (req.headers['x-librus-login'] || req.body?.login || req.query?.login || process.env.LIBRUS_LOGIN || '').toString().trim();
-  const password = (req.headers['x-librus-password'] || req.body?.password || req.query?.password || process.env.LIBRUS_PASSWORD || '').toString().trim();
+  const login = (process.env.LIBRUS_LOGIN || req.headers['x-librus-login'] || '').toString().trim();
+  const password = (process.env.LIBRUS_PASSWORD || req.headers['x-librus-password'] || '').toString().trim();
 
   if (req.method === 'GET') {
     const subpath = req.query.path || '';
@@ -77,12 +83,13 @@ export default async function handler(req, res) {
               dayLessons.forEach((l, idx) => {
                 if (l && l.subject) {
                   const isCancelled = Boolean(l.isCancelled || (l.notes && l.notes.includes('odwołan')));
+                  const [defaultStart, defaultEnd] = parseHourRange(rawTt.hours?.[idx]);
                   lessons.push({
                     id: `librus_${day}_${idx}`,
                     day,
                     subject: l.subject,
-                    time_start: l.time_from || (rawTt.hours && rawTt.hours[idx] ? rawTt.hours[idx].split(' - ')[0] : '08:00'),
-                    time_end: l.time_to || (rawTt.hours && rawTt.hours[idx] ? rawTt.hours[idx].split(' - ')[1] : '08:45'),
+                    time_start: l.time_from || defaultStart,
+                    time_end: l.time_to || defaultEnd,
                     room: l.room || '',
                     teacher: l.teacher || '',
                     type: isCancelled ? 'Odwołana' : 'Lekcja',
@@ -322,13 +329,11 @@ export default async function handler(req, res) {
 
   // Obsługa metody POST (np. /api/librus/refresh, /api/librus/credentials)
   if (req.method === 'POST') {
+    const subpath = req.query.path || '';
     if (subpath === 'credentials' || req.url.includes('/credentials')) {
-      const { login: bodyLogin, password: bodyPassword } = req.body || {};
-      if (bodyLogin) process.env.LIBRUS_LOGIN = bodyLogin;
-      if (bodyPassword) process.env.LIBRUS_PASSWORD = bodyPassword;
       return res.status(200).json({
         success: true,
-        message: 'Poświadczenia Librus Synergia zostały zaktualizowane w sesji.'
+        message: 'W środowisku chmurowym Vercel poświadczenia są konfigurowane przez zmienne środowiskowe projektu.'
       });
     }
 
