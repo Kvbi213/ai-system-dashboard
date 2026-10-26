@@ -132,6 +132,26 @@ Komentarz: Dział 3`;
       expect(parsed.date).toBe('2026-09-24');
     });
 
+    it('should parse absence without hours and with newlines properly', () => {
+      const rawNoHours = {
+        id: 3469820,
+        day: '2026-10-21',
+        title: 'Nieobecność: Nauczyciel: Becker Adam'
+      };
+      const parsedNoHours = parseCalendarEvent(rawNoHours);
+      expect(parsedNoHours.teacher).toBe('Becker Adam');
+      expect(parsedNoHours.time).toBe('Cały dzień');
+
+      const rawWithNewlines = {
+        id: 3469821,
+        day: '2026-10-22',
+        title: 'Nieobecność:\nNauczyciel: Czarna Alicja\nGodziny: 10:00 do 12:00'
+      };
+      const parsedNewlines = parseCalendarEvent(rawWithNewlines);
+      expect(parsedNewlines.teacher).toBe('Czarna Alicja');
+      expect(parsedNewlines.time).toBe('10:00 do 12:00');
+    });
+
     it('should parse quiz (kartkówka) event correctly', () => {
       const raw = {
         id: 12481501,
@@ -237,6 +257,14 @@ Komentarz: Dział 3`;
       expect(checkTimeOverlap('08:00', '08:45', '08:50 do 14:50')).toBe(false);
       // Lekcja 15:00 - 15:45, nieobecność od 08:50 do 14:50 -> brak nakładania!
       expect(checkTimeOverlap('15:00', '15:45', '08:50 do 14:50')).toBe(false);
+    });
+
+    it('should return false safely for null, undefined or malformed absence range', () => {
+      expect(checkTimeOverlap('08:00', '08:45', null)).toBe(false);
+      expect(checkTimeOverlap('08:00', '08:45', undefined)).toBe(false);
+      expect(checkTimeOverlap('08:00', '08:45', 'niepoprawny format')).toBe(false);
+      expect(checkTimeOverlap(null, '08:45', '08:00 do 09:00')).toBe(false);
+      expect(checkTimeOverlap('08:00', null, '08:00 do 09:00')).toBe(false);
     });
   });
 

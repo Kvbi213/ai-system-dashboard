@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   const password = (process.env.LIBRUS_PASSWORD || req.headers['x-librus-password'] || '').toString().trim();
 
   if (req.method === 'GET') {
-    const subpath = req.query.path || '';
+    const subpath = typeof req.query?.path === 'string' ? req.query.path.trim() : '';
     
     if (subpath === 'status' || req.url.includes('/status')) {
       return res.status(200).json({
@@ -572,7 +572,7 @@ export default async function handler(req, res) {
 
   // Obsługa metody POST (np. /api/librus/refresh, /api/librus/credentials)
   if (req.method === 'POST') {
-    const subpath = req.query.path || '';
+    const subpath = typeof req.query?.path === 'string' ? req.query.path.trim() : '';
     if (subpath === 'credentials' || req.url.includes('/credentials')) {
       return res.status(200).json({
         success: true,

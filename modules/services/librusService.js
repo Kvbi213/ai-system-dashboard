@@ -941,10 +941,10 @@ export function parseCalendarEvent(item) {
 
   // 1. Nieobecność nauczyciela
   if (/nieobecność/i.test(rawTitle) && /nauczyciel/i.test(rawTitle)) {
-    const teacherMatch = rawTitle.match(/nauczyciel:\s*([^\n\r]+?)(?:godziny:|$)/i);
+    const teacherMatch = rawTitle.match(/nauczyciel:\s*(.*?)(?=\s*godziny:|$)/i);
     const hoursMatch = rawTitle.match(/godziny:\s*([^\n\r]+)/i);
-    const teacher = teacherMatch ? teacherMatch[1].trim() : 'Nauczyciel';
-    const hours = hoursMatch ? hoursMatch[1].trim() : 'Cały dzień';
+    const teacher = teacherMatch && teacherMatch[1].trim() ? teacherMatch[1].trim() : 'Nauczyciel';
+    const hours = hoursMatch && hoursMatch[1].trim() ? hoursMatch[1].trim() : 'Cały dzień';
 
     return {
       id: id || `abs_${day}_${teacher.replace(/\s+/g, '_')}`,
@@ -1359,13 +1359,16 @@ export function parseTimeToMinutes(timeStr) {
  * Sprawdza czy godziny lekcji nakładają się na godziny absencji.
  */
 export function checkTimeOverlap(lessonStartStr, lessonEndStr, absenceRangeStr) {
-  if (!absenceRangeStr || typeof absenceRangeStr !== 'string') return true;
+  if (!lessonStartStr || !lessonEndStr) return false;
+  if (absenceRangeStr === null || absenceRangeStr === undefined) return false;
+  if (typeof absenceRangeStr !== 'string') return false;
+
   const lower = absenceRangeStr.toLowerCase().trim();
-  if (lower.includes('cały dzień') || lower === '' || lower === 'brak') return true;
+  if (lower === '' || lower.includes('cały dzień') || lower === 'caly dzien') return true;
 
   // Wyodrębnij godziny z absencji np. '08:50 do 14:50' lub '08:50 - 14:50'
   const timeMatches = absenceRangeStr.match(/(\d{1,2}:\d{2})/g);
-  if (!timeMatches || timeMatches.length < 2) return true;
+  if (!timeMatches || timeMatches.length < 2) return false;
 
   const absStart = parseTimeToMinutes(timeMatches[0]);
   const absEnd = parseTimeToMinutes(timeMatches[1]);
