@@ -12,11 +12,11 @@ const AVAILABLE_MODELS = [
 ];
 
 const DEFAULT_TOOLS = [
-  { id: 'tool_db', name: 'Firestore / SQLite Tool', active: true },
-  { id: 'tool_librus', name: 'Librus Schedule Fetcher', active: true },
-  { id: 'tool_push', name: 'Pushbullet Dispatcher', active: true },
-  { id: 'tool_osint', name: 'OSINT & DNS Resolver', active: true },
-  { id: 'tool_workout', name: 'Workout & Reps Tracker', active: true },
+  { id: 'tool_db', name: 'Firestore / SQLite Tool', active: true, desc: 'Zarządzanie stanem baz danych w czasie rzeczywistym i synchronizacja transakcji WAL', latency: '4ms' },
+  { id: 'tool_librus', name: 'Librus Schedule Fetcher', active: true, desc: 'Pobieranie terminów, ocen i odwołanych lekcji z Librus Synergia API', latency: '48ms' },
+  { id: 'tool_push', name: 'Pushbullet Dispatcher', active: true, desc: 'Wysyłanie powiadomień PUSH na zarejestrowane urządzenia mobilne', latency: '120ms' },
+  { id: 'tool_osint', name: 'OSINT & DNS Resolver', active: true, desc: 'Rekonesans domenowy, geolokalizacja IP oraz skanowanie nagłówków', latency: '85ms' },
+  { id: 'tool_workout', name: 'Workout & Reps Tracker', active: true, desc: 'Rejestracja serii, powtórzeń i ciężarów roboczych w sesjach FBW', latency: '6ms' },
 ];
 
 const DEFAULT_THREADS = [
@@ -71,11 +71,35 @@ const ChatPage = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [modelIdx, setModelIdx] = useState(0);
   const [toolsList, setToolsList] = useState(DEFAULT_TOOLS);
+  const [isToolsDrawerOpen, setIsToolsDrawerOpen] = useState(false);
+  const [expandedToolCards, setExpandedToolCards] = useState({
+    tool_librus_call: false,
+    tool_workout_call: false
+  });
+  const [isVoiceHudCollapsed, setIsVoiceHudCollapsed] = useState(false);
+  const [isThreadsCollapsed, setIsThreadsCollapsed] = useState(false);
+  const [toolExecutionFeedback, setToolExecutionFeedback] = useState(null);
   const [threads, setThreads] = useState(DEFAULT_THREADS);
   const [activeThreadId, setActiveThreadId] = useState('th1');
   const [tokensMeta, setTokensMeta] = useState({ in: 1420, out: 388, cost: '$0.0004' });
   const [showClearToast, setShowClearToast] = useState(false);
   const [copyToast, setCopyToast] = useState(false);
+
+  const toggleToolCard = (id) => {
+    setExpandedToolCards(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  const setAllTools = (active) => {
+    setToolsList(prev => prev.map(t => ({ ...t, active })));
+  };
+
+  const handleTestTool = (tool) => {
+    setToolExecutionFeedback(`Uruchomiono test ${tool.name}: Status 200 OK (${tool.latency})`);
+    setTimeout(() => setToolExecutionFeedback(null), 3000);
+  };
 
   // Live Continuous Voice Conversation States
   const [isLiveMode, setIsLiveMode] = useState(false);
@@ -584,10 +608,13 @@ const ChatPage = () => {
       enterLiveMode(payload);
     };
 
-    // 4. Klawisz Escape natychmiastowo zamyka tryb mowy
+    // 4. Klawisz Escape zamyka wysuwane panele lub tryb mowy
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && isLiveModeRef.current) {
-        stopLiveMode(false);
+      if (e.key === 'Escape') {
+        setIsToolsDrawerOpen(false);
+        if (isLiveModeRef.current) {
+          stopLiveMode(false);
+        }
       }
     };
 
@@ -648,8 +675,19 @@ const ChatPage = () => {
           {/* Action Cluster */}
           <div className="flex items-center gap-space-xs flex-wrap">
             <button 
+              onClick={() => setIsToolsDrawerOpen(true)}
+              className="flex items-center gap-space-xs px-space-md py-space-xs rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md transition-all active:scale-95 border border-outline-variant/30 shadow-sm cursor-pointer" 
+              type="button"
+              title="Otwórz panel narzędzi autonomicznych (Apple Slide-Over Drawer)"
+            >
+              <span className="material-symbols-outlined text-[16px] text-primary">extension</span>
+              <span>Narzędzia ({activeToolsCount})</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+            </button>
+
+            <button 
               onClick={handleClearContext}
-              className="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md transition-colors shadow-sm active:scale-95 border border-outline-variant/30" 
+              className="flex items-center gap-space-xs px-space-md py-space-xs rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md transition-colors shadow-sm active:scale-95 border border-outline-variant/30 cursor-pointer" 
               type="button"
             >
               <span className="material-symbols-outlined text-[16px] text-outline">history_toggle_off</span>
@@ -659,7 +697,7 @@ const ChatPage = () => {
             <div className="relative inline-block text-left">
               <button 
                 onClick={handleNextModel}
-                className="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md transition-colors shadow-sm active:scale-95 border border-outline-variant/30" 
+                className="flex items-center gap-space-xs px-space-md py-space-xs rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md transition-colors shadow-sm active:scale-95 border border-outline-variant/30 cursor-pointer" 
                 type="button"
               >
                 <span className="material-symbols-outlined text-[16px] text-primary">memory</span>
@@ -670,7 +708,7 @@ const ChatPage = () => {
 
             <button 
               onClick={handleExportLog}
-              className="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-primary text-on-primary hover:opacity-90 text-label-md font-label-md transition-colors shadow-sm font-semibold active:scale-95"
+              className="flex items-center gap-space-xs px-space-md py-space-xs rounded-xl bg-primary text-on-primary hover:opacity-90 text-label-md font-label-md transition-colors shadow-sm font-semibold active:scale-95 cursor-pointer"
               type="button"
             >
               <span className="material-symbols-outlined text-[16px]">file_upload</span>
@@ -709,8 +747,8 @@ const ChatPage = () => {
         {/* Left Column: Context, Audio HUD, Tool Inspector, Threads (4/3 cols) */}
         <div className="order-2 lg:order-1 lg:col-span-4 xl:col-span-3 flex flex-col gap-space-md">
           
-          {/* Live Voice HUD Card */}
-          <div className={`p-space-md rounded-xl bg-surface-container-low shadow-sm flex flex-col gap-space-sm border transition-all ${
+          {/* Live Voice HUD Card with Collapsible Waveform */}
+          <div className={`p-space-md rounded-2xl bg-surface-container-low/90 backdrop-blur-md shadow-sm flex flex-col gap-space-sm border transition-all ${
             isLiveMode ? 'border-primary ring-2 ring-primary/20 bg-surface-container' : 'border-outline-variant/30'
           }`}>
             <div className="flex items-center justify-between">
@@ -722,103 +760,136 @@ const ChatPage = () => {
                   Voice Inspector HUD
                 </span>
               </div>
-              <span className="font-code-mono text-code-mono text-primary text-xs">96.4 kHz</span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-code-mono text-code-mono text-primary text-xs">96.4 kHz</span>
+                <button
+                  type="button"
+                  onClick={() => setIsVoiceHudCollapsed(prev => !prev)}
+                  className="w-6 h-6 rounded flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container transition-colors"
+                  title={isVoiceHudCollapsed ? "Rozwiń wykres fali głosu" : "Zwiń wykres głosu"}
+                >
+                  <span className="material-symbols-outlined text-[16px]">
+                    {isVoiceHudCollapsed ? 'unfold_more' : 'unfold_less'}
+                  </span>
+                </button>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-space-xs py-space-xs">
-              {/* Dynamic 15-Bar Waveform reacting to Voice States */}
-              <div className="flex items-end justify-between h-9 px-space-sm bg-surface-container-lowest rounded-lg overflow-hidden border border-outline-variant/20">
-                {[
-                  isListening ? '35%' : isSpeaking ? '55%' : '15%',
-                  isListening ? '85%' : isSpeaking ? '90%' : '20%',
-                  isListening ? '50%' : isSpeaking ? '40%' : '12%',
-                  isListening ? '95%' : isSpeaking ? '85%' : '25%',
-                  isListening ? '40%' : isSpeaking ? '60%' : '15%',
-                  isListening ? '90%' : isSpeaking ? '75%' : '30%',
-                  isListening ? '65%' : isSpeaking ? '95%' : '18%',
-                  isListening ? '100%' : isSpeaking ? '80%' : '35%',
-                  isListening ? '45%' : isSpeaking ? '50%' : '15%',
-                  isListening ? '80%' : isSpeaking ? '70%' : '22%',
-                  isListening ? '30%' : isSpeaking ? '40%' : '12%',
-                  isListening ? '90%' : isSpeaking ? '85%' : '28%',
-                  isListening ? '70%' : isSpeaking ? '60%' : '18%',
-                  isListening ? '55%' : isSpeaking ? '75%' : '15%',
-                  isListening ? '25%' : isSpeaking ? '30%' : '10%'
-                ].map((h, i) => (
-                  <span
-                    key={i}
-                    className={`w-1 rounded-full transition-all duration-150 ${
-                      isListening
-                        ? 'bg-primary'
-                        : isSpeaking
-                        ? 'bg-secondary'
-                        : 'bg-outline/30'
-                    }`}
-                    style={{ height: h }}
-                  />
-                ))}
+            {!isVoiceHudCollapsed && (
+              <div className="flex flex-col gap-space-xs py-space-xs animate-in fade-in duration-150">
+                {/* Dynamic 15-Bar Waveform reacting to Voice States */}
+                <div className="flex items-end justify-between h-9 px-space-sm bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/20">
+                  {[
+                    isListening ? '35%' : isSpeaking ? '55%' : '15%',
+                    isListening ? '85%' : isSpeaking ? '90%' : '20%',
+                    isListening ? '50%' : isSpeaking ? '40%' : '12%',
+                    isListening ? '95%' : isSpeaking ? '85%' : '25%',
+                    isListening ? '40%' : isSpeaking ? '60%' : '15%',
+                    isListening ? '90%' : isSpeaking ? '75%' : '30%',
+                    isListening ? '65%' : isSpeaking ? '95%' : '18%',
+                    isListening ? '100%' : isSpeaking ? '80%' : '35%',
+                    isListening ? '45%' : isSpeaking ? '50%' : '15%',
+                    isListening ? '80%' : isSpeaking ? '70%' : '22%',
+                    isListening ? '30%' : isSpeaking ? '40%' : '12%',
+                    isListening ? '90%' : isSpeaking ? '85%' : '28%',
+                    isListening ? '70%' : isSpeaking ? '60%' : '18%',
+                    isListening ? '55%' : isSpeaking ? '75%' : '15%',
+                    isListening ? '25%' : isSpeaking ? '30%' : '10%'
+                  ].map((h, i) => (
+                    <span
+                      key={i}
+                      className={`w-1 rounded-full transition-all duration-150 ${
+                        isListening
+                          ? 'bg-primary'
+                          : isSpeaking
+                          ? 'bg-secondary'
+                          : 'bg-outline/30'
+                      }`}
+                      style={{ height: h }}
+                    />
+                  ))}
+                </div>
               </div>
+            )}
 
-              {/* Status opisu głosu */}
-              <div className="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm pt-space-xs">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <span className={`material-symbols-outlined text-[15px] ${
-                    isListening ? 'text-primary animate-pulse' : isSpeaking ? 'text-secondary animate-bounce' : 'text-outline'
-                  }`}>
-                    {isListening ? 'mic' : isSpeaking ? 'volume_up' : 'mic_none'}
-                  </span>
-                  <span className={isListening ? 'text-primary font-bold' : isSpeaking ? 'text-secondary font-bold' : 'text-on-surface'}>
-                    {isListening
-                      ? 'Omni słucha... Mów teraz!'
-                      : isProcessingSpeech
-                      ? 'Analizuję zapytanie...'
-                      : isSpeaking
-                      ? 'Omni odpowiada na głos...'
-                      : 'Nasłuch w tle ("Hej Omni")'}
-                  </span>
+            {/* Status opisu głosu */}
+            <div className="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm pt-0.5 border-t border-outline-variant/20">
+              <span className="flex items-center gap-1.5 font-medium">
+                <span className={`material-symbols-outlined text-[15px] ${
+                  isListening ? 'text-primary animate-pulse' : isSpeaking ? 'text-secondary animate-bounce' : 'text-outline'
+                }`}>
+                  {isListening ? 'mic' : isSpeaking ? 'volume_up' : 'mic_none'}
                 </span>
-                <span className="font-code-mono text-[10px] text-outline">
-                  {isLiveMode ? '[LIVE ACTIVE]' : 'WakeWord OK'}
+                <span className={isListening ? 'text-primary font-bold' : isSpeaking ? 'text-secondary font-bold' : 'text-on-surface'}>
+                  {isListening
+                    ? 'Omni słucha... Mów teraz!'
+                    : isProcessingSpeech
+                    ? 'Analizuję zapytanie...'
+                    : isSpeaking
+                    ? 'Omni odpowiada na głos...'
+                    : 'Nasłuch w tle ("Hej Omni")'}
                 </span>
-              </div>
+              </span>
+              <span className="font-code-mono text-[10px] text-outline">
+                {isLiveMode ? '[LIVE ACTIVE]' : 'WakeWord OK'}
+              </span>
             </div>
           </div>
 
-          {/* Active Tools Inspector */}
-          <div className="p-space-md rounded-xl bg-surface-container-low shadow-sm flex flex-col gap-space-sm border border-outline-variant/30">
+          {/* Active Tools Inspector Card with Slide-over Drawer trigger */}
+          <div className="p-space-md rounded-2xl bg-surface-container-low/90 backdrop-blur-md shadow-sm flex flex-col gap-space-sm border border-outline-variant/30">
             <div className="flex items-center justify-between">
               <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold">Tool Calling Registry</span>
-              <span className="px-space-xs py-0.5 rounded bg-surface-container text-primary font-code-mono text-code-mono text-xs">
-                {activeToolsCount}/5 live
-              </span>
+              <button 
+                type="button" 
+                onClick={() => setIsToolsDrawerOpen(true)}
+                className="px-2 py-0.5 rounded-full bg-surface-container hover:bg-surface-container-high text-primary font-code-mono text-xs border border-primary/20 hover:border-primary/40 transition-colors flex items-center gap-1 cursor-pointer"
+                title="Otwórz pełny rejestr narzędzi"
+              >
+                <span>{activeToolsCount}/5 live</span>
+                <span className="material-symbols-outlined text-[12px]">open_in_new</span>
+              </button>
             </div>
 
-            <div className="space-y-space-xs">
+            <div className="space-y-1.5">
               {toolsList.map(tool => (
                 <label 
                   key={tool.id}
                   onClick={() => toggleTool(tool.id)}
-                  className="flex items-center justify-between p-space-xs px-space-sm rounded-lg bg-surface-container-lowest hover:bg-surface-container cursor-pointer transition-colors border border-outline-variant/20"
+                  className="flex items-center justify-between p-2 px-3 rounded-xl bg-surface-container-lowest hover:bg-surface-container cursor-pointer transition-colors border border-outline-variant/20 active:scale-[0.99]"
                 >
-                  <div className="flex items-center gap-space-xs">
+                  <div className="flex items-center gap-2 min-w-0">
                     <input 
                       checked={tool.active} 
                       onChange={() => {}}
-                      className="accent-primary rounded w-3.5 h-3.5 bg-surface-container-high" 
+                      className="accent-primary rounded w-3.5 h-3.5 bg-surface-container-high shrink-0" 
                       type="checkbox"
                     />
-                    <span className="font-code-mono text-code-mono text-xs text-on-surface">{tool.name}</span>
+                    <span className="font-code-mono text-xs text-on-surface truncate">{tool.name}</span>
                   </div>
-                  <span className={`w-1.5 h-1.5 rounded-full ${tool.active ? 'bg-primary' : 'bg-outline'}`}></span>
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${tool.active ? 'bg-primary' : 'bg-outline'}`}></span>
                 </label>
               ))}
             </div>
           </div>
 
-          {/* Recent Sessions / Threads */}
-          <div className="p-space-md rounded-xl bg-surface-container-low shadow-sm flex flex-col gap-space-sm border border-outline-variant/30">
+          {/* Recent Sessions / Threads with Collapse toggle */}
+          <div className="p-space-md rounded-2xl bg-surface-container-low/90 backdrop-blur-md shadow-sm flex flex-col gap-space-sm border border-outline-variant/30">
             <div className="flex items-center justify-between">
-              <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold">Ostatnie Wątki</span>
+              <div className="flex items-center gap-2">
+                <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold">Ostatnie Wątki</span>
+                <button
+                  type="button"
+                  onClick={() => setIsThreadsCollapsed(prev => !prev)}
+                  className="w-5 h-5 rounded flex items-center justify-center text-outline hover:text-on-surface transition-colors"
+                  title={isThreadsCollapsed ? "Rozwiń listę wątków" : "Zwiń listę wątków"}
+                >
+                  <span className="material-symbols-outlined text-[15px]">
+                    {isThreadsCollapsed ? 'unfold_more' : 'unfold_less'}
+                  </span>
+                </button>
+              </div>
+
               <button 
                 onClick={() => {
                   const newTitle = prompt('Nazwa nowego wątku:');
@@ -828,35 +899,37 @@ const ChatPage = () => {
                     setActiveThreadId(newTh.id);
                   }
                 }}
-                className="text-on-surface-variant hover:text-on-surface text-label-sm font-label-sm flex items-center gap-1 active:scale-95"
+                className="text-on-surface-variant hover:text-on-surface text-label-sm font-label-sm flex items-center gap-1 active:scale-95 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[14px]">add</span> Nowy
               </button>
             </div>
 
-            <div className="flex flex-col gap-space-xs">
-              {threads.map(th => {
-                const isActive = activeThreadId === th.id;
-                return (
-                  <div 
-                    key={th.id}
-                    onClick={() => {
-                      setActiveThreadId(th.id);
-                      setThreads(prev => prev.map(t => ({ ...t, active: t.id === th.id })));
-                    }}
-                    className={`p-space-sm rounded-lg text-on-surface flex flex-col gap-0.5 cursor-pointer transition-colors border ${
-                      isActive ? 'bg-surface-container-high border-primary/30' : 'bg-surface-container-lowest hover:bg-surface-container text-on-surface-variant border-transparent'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className={`font-label-sm text-label-sm font-semibold ${isActive ? 'text-primary' : 'text-outline'}`}>{th.date}</span>
-                      <span className="font-code-mono text-[10px] text-outline">{th.time}</span>
+            {!isThreadsCollapsed && (
+              <div className="flex flex-col gap-1.5 animate-in fade-in duration-150">
+                {threads.map(th => {
+                  const isActive = activeThreadId === th.id;
+                  return (
+                    <div 
+                      key={th.id}
+                      onClick={() => {
+                        setActiveThreadId(th.id);
+                        setThreads(prev => prev.map(t => ({ ...t, active: t.id === th.id })));
+                      }}
+                      className={`p-2.5 rounded-xl text-on-surface flex flex-col gap-0.5 cursor-pointer transition-colors border active:scale-[0.99] ${
+                        isActive ? 'bg-surface-container-high border-primary/30' : 'bg-surface-container-lowest hover:bg-surface-container text-on-surface-variant border-transparent'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={`font-label-sm text-xs font-semibold ${isActive ? 'text-primary' : 'text-outline'}`}>{th.date}</span>
+                        <span className="font-code-mono text-[10px] text-outline">{th.time}</span>
+                      </div>
+                      <span className="font-body-md text-xs font-medium truncate">{th.title}</span>
                     </div>
-                    <span className="font-body-md text-body-md font-medium truncate">{th.title}</span>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Quick Session Telemetry Pin */}
@@ -922,40 +995,96 @@ const ChatPage = () => {
                   <span className="font-label-sm text-label-sm text-outline ml-space-xs">12:14:04 • 1.8s</span>
                 </div>
 
-                {/* Tool Invocation Cards Stack */}
-                <div className="w-full flex flex-col gap-space-xs">
-                  {/* Tool 1: Librus Sync */}
-                  <div className="p-space-sm rounded-lg bg-surface-container-lowest flex flex-col gap-1 shadow-sm border border-outline-variant/30">
-                    <div className="flex items-center justify-between flex-wrap gap-1">
-                      <div className="flex items-center gap-space-xs">
-                        <span className="material-symbols-outlined text-primary text-[15px]">terminal</span>
-                        <span className="font-code-mono text-code-mono text-xs text-primary font-semibold">librus_sync.get_timetable(date="today")</span>
+                {/* Tool Invocation Pills Stack with Accordion Disclosure */}
+                <div className="w-full flex flex-col gap-2">
+                  {/* Tool 1: Librus Sync Accordion Pill */}
+                  <div className="rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-sm overflow-hidden transition-all duration-200">
+                    <button
+                      type="button"
+                      onClick={() => toggleToolCard('tool_librus_call')}
+                      className="w-full p-2.5 sm:px-3 flex items-center justify-between gap-2 hover:bg-surface-container/40 transition-colors text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-5 h-5 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-[14px]">terminal</span>
+                        </div>
+                        <span className="font-code-mono text-xs text-primary font-semibold truncate">
+                          librus_sync.get_timetable(date="today")
+                        </span>
                       </div>
-                      <div className="flex items-center gap-space-xs font-code-mono text-code-mono text-xs">
-                        <span className="px-space-xs py-0.2 rounded bg-surface-container-high text-primary border border-primary/20">HTTP 200 OK</span>
-                        <span className="text-outline">48ms</span>
+                      <div className="flex items-center gap-2 shrink-0 font-code-mono text-xs">
+                        <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-primary border border-primary/20 text-[10px]">
+                          HTTP 200 OK
+                        </span>
+                        <span className="text-outline text-[11px]">48ms</span>
+                        <span className="material-symbols-outlined text-[16px] text-outline transition-transform duration-200">
+                          {expandedToolCards.tool_librus_call ? 'expand_less' : 'expand_more'}
+                        </span>
                       </div>
-                    </div>
-                    <div className="font-code-mono text-code-mono text-xs text-on-surface-variant pl-space-md">
-                      • Wykryto zmianę w planie lekcji: <span className="text-tertiary font-semibold">12:45 Fizyka (Odwołana)</span> → Okienko: 45 minut.
-                    </div>
+                    </button>
+
+                    {expandedToolCards.tool_librus_call && (
+                      <div className="p-3 pt-1 border-t border-outline-variant/20 space-y-2 bg-surface-container/20 animate-in fade-in duration-150">
+                        <div className="font-code-mono text-xs text-on-surface-variant pl-2 border-l-2 border-primary/40">
+                          Wykryto zmianę w planie lekcji: <span className="text-tertiary font-semibold">12:45 Fizyka (Odwołana)</span> → Okienko buforowe: 45 minut.
+                        </div>
+                        <div className="p-2 rounded-lg bg-surface-container-lowest font-code-mono text-[11px] text-outline flex items-center justify-between">
+                          <span>Payload: {`{ "status": "active", "cancelled_lessons": 1, "next": "13:30 Historia" }`}</span>
+                          <button 
+                            type="button" 
+                            onClick={(e) => { e.stopPropagation(); setIsToolsDrawerOpen(true); }}
+                            className="text-primary hover:underline text-[11px] cursor-pointer"
+                          >
+                            Inspektor
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Tool 2: Workout Routine */}
-                  <div className="p-space-sm rounded-lg bg-surface-container-lowest flex flex-col gap-1 shadow-sm border border-outline-variant/30">
-                    <div className="flex items-center justify-between flex-wrap gap-1">
-                      <div className="flex items-center gap-space-xs">
-                        <span className="material-symbols-outlined text-secondary text-[15px]">terminal</span>
-                        <span className="font-code-mono text-code-mono text-xs text-secondary font-semibold">workouts.get_fbw_routine(day="Wednesday", location="strych")</span>
+                  {/* Tool 2: Workout Routine Accordion Pill */}
+                  <div className="rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-sm overflow-hidden transition-all duration-200">
+                    <button
+                      type="button"
+                      onClick={() => toggleToolCard('tool_workout_call')}
+                      className="w-full p-2.5 sm:px-3 flex items-center justify-between gap-2 hover:bg-surface-container/40 transition-colors text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-5 h-5 rounded-md bg-secondary/15 text-secondary flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-[14px]">terminal</span>
+                        </div>
+                        <span className="font-code-mono text-xs text-secondary font-semibold truncate">
+                          workouts.get_fbw_routine(day="Wednesday", location="strych")
+                        </span>
                       </div>
-                      <div className="flex items-center gap-space-xs font-code-mono text-code-mono text-xs">
-                        <span className="px-space-xs py-0.2 rounded bg-surface-container-high text-secondary border border-secondary/20">Local SQLite Sync</span>
-                        <span className="text-outline">6ms</span>
+                      <div className="flex items-center gap-2 shrink-0 font-code-mono text-xs">
+                        <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-secondary border border-secondary/20 text-[10px]">
+                          SQLite Sync
+                        </span>
+                        <span className="text-outline text-[11px]">6ms</span>
+                        <span className="material-symbols-outlined text-[16px] text-outline transition-transform duration-200">
+                          {expandedToolCards.tool_workout_call ? 'expand_less' : 'expand_more'}
+                        </span>
                       </div>
-                    </div>
-                    <div className="font-code-mono text-code-mono text-xs text-on-surface-variant pl-space-md">
-                      • Załadowano zestaw: Drążek, Dipy na poręczach, Wiosłowanie hantlem 22.5kg, OHP hantle.
-                    </div>
+                    </button>
+
+                    {expandedToolCards.tool_workout_call && (
+                      <div className="p-3 pt-1 border-t border-outline-variant/20 space-y-2 bg-surface-container/20 animate-in fade-in duration-150">
+                        <div className="font-code-mono text-xs text-on-surface-variant pl-2 border-l-2 border-secondary/40">
+                          Załadowano zestaw ćwiczeń: Drążek, Dipy na poręczach, Wiosłowanie hantlem 22.5kg, OHP hantle.
+                        </div>
+                        <div className="p-2 rounded-lg bg-surface-container-lowest font-code-mono text-[11px] text-outline flex items-center justify-between">
+                          <span>Payload: {`{ "routine": "FBW Sesja B", "total_sets": 10, "duration": 42 }`}</span>
+                          <button 
+                            type="button" 
+                            onClick={(e) => { e.stopPropagation(); setIsToolsDrawerOpen(true); }}
+                            className="text-secondary hover:underline text-[11px] cursor-pointer"
+                          >
+                            Inspektor
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1160,13 +1289,15 @@ const ChatPage = () => {
             {/* Bottom Pill Controls & Telemetry */}
             <div className="flex items-center justify-between flex-wrap gap-space-xs pt-1">
               <div className="flex items-center gap-space-xs flex-wrap">
-                {/* Tool selection pill */}
+                {/* Tool selection pill -> opens Apple slide-over drawer */}
                 <button 
-                  onClick={() => alert(`Narzędzia autonomiczne: ${toolsList.filter(t => t.active).map(t => t.name).join(', ')}`)}
-                  className="flex items-center gap-1 px-space-sm py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-sm font-label-sm transition-colors border border-outline-variant/30"
+                  onClick={() => setIsToolsDrawerOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface text-label-sm font-label-sm transition-all active:scale-95 border border-outline-variant/30 cursor-pointer shadow-sm"
+                  title="Otwórz panel narzędzi autonomicznych"
                 >
-                  <span className="material-symbols-outlined text-[14px] text-primary">extension</span>
+                  <span className="material-symbols-outlined text-[15px] text-primary">extension</span>
                   <span>Narzędzia: Aktywne ({activeToolsCount})</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
                 </button>
                 
                 {/* Voice Status Pill */}
@@ -1208,6 +1339,160 @@ const ChatPage = () => {
 
       </div>
 
+      {/* APPLE-STYLE SLIDE-OVER GLASS SHEET: TOOL CALLING & TELEMETRY INSPECTOR */}
+      {isToolsDrawerOpen && (
+        <div className="fixed inset-0 z-50 overflow-hidden animate-in fade-in duration-200">
+          {/* Backdrop */}
+          <div 
+            onClick={() => setIsToolsDrawerOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+          />
+
+          {/* Drawer Panel */}
+          <aside className="fixed inset-y-0 right-0 max-w-full flex pl-10 z-50">
+            <div className="w-screen max-w-md sm:max-w-lg bg-surface-container-low/95 backdrop-blur-2xl border-l border-white/[0.08] shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+              {/* Drawer Header */}
+              <div className="p-6 border-b border-white/[0.06] flex flex-col space-y-4">
+                <div className="w-12 h-1 rounded-full bg-white/20 self-center mb-1"></div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center border border-primary/20">
+                      <span className="material-symbols-outlined text-[22px]">extension</span>
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-on-surface tracking-tight">
+                        Rejestr Narzędzi Autonomicznych
+                      </h2>
+                      <span className="text-xs font-code-mono text-on-surface-variant">
+                        Groq LPU Function Calling • FP8 Kwantyzacja
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsToolsDrawerOpen(false)}
+                    className="w-9 h-9 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-all active:scale-[0.95] cursor-pointer border border-white/[0.06]"
+                    title="Zamknij (Esc)"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">close</span>
+                  </button>
+                </div>
+
+                {/* Global Batch Controls */}
+                <div className="flex items-center justify-between pt-1">
+                  <div className="flex items-center gap-2 text-xs font-code-mono text-outline">
+                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                    <span>Aktywne moduły: {activeToolsCount} z {toolsList.length}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAllTools(true)}
+                      className="px-2.5 py-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary text-xs font-code-mono font-medium border border-primary/20 transition-colors cursor-pointer"
+                    >
+                      Włącz wszystkie
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAllTools(false)}
+                      className="px-2.5 py-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-outline text-xs font-code-mono transition-colors cursor-pointer"
+                    >
+                      Wyłącz wszystkie
+                    </button>
+                  </div>
+                </div>
+
+                {/* Feedback notification toast if tool tested */}
+                {toolExecutionFeedback && (
+                  <div className="p-2.5 rounded-xl bg-primary/15 text-primary font-code-mono text-xs border border-primary/30 animate-in fade-in duration-150">
+                    {toolExecutionFeedback}
+                  </div>
+                )}
+              </div>
+
+              {/* Drawer Body: Tools Cards Stack */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-3">
+                {toolsList.map((tool) => (
+                  <div
+                    key={tool.id}
+                    className={`p-4 rounded-2xl border transition-all duration-200 flex flex-col space-y-2 ${
+                      tool.active
+                        ? 'bg-surface-container/80 border-primary/30 shadow-sm'
+                        : 'bg-surface-container-lowest/60 border-white/[0.03] opacity-60'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                          tool.active ? 'bg-primary/15 text-primary' : 'bg-surface-container text-outline'
+                        }`}>
+                          <span className="material-symbols-outlined text-[18px]">
+                            {tool.id === 'tool_librus' ? 'calendar_month' : tool.id === 'tool_workout' ? 'fitness_center' : tool.id === 'tool_push' ? 'notifications_active' : tool.id === 'tool_osint' ? 'radar' : 'database'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="font-code-mono text-xs font-bold text-on-surface block">
+                            {tool.name}
+                          </span>
+                          <span className="font-code-mono text-[10px] text-outline">
+                            ID: {tool.id}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Apple-style Spring Toggle Switch */}
+                      <button
+                        type="button"
+                        onClick={() => toggleTool(tool.id)}
+                        className={`w-12 h-6 rounded-full transition-colors p-0.5 flex items-center cursor-pointer border ${
+                          tool.active ? 'bg-primary border-primary justify-end' : 'bg-surface-container border-outline/30 justify-start'
+                        }`}
+                      >
+                        <span className="w-5 h-5 rounded-full bg-white shadow-md block transition-transform duration-200"></span>
+                      </button>
+                    </div>
+
+                    <p className="text-xs text-on-surface-variant leading-relaxed">
+                      {tool.desc || 'Autonomiczny moduł narzędziowy w klastrze Groq LPU.'}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-1 border-t border-white/[0.04] text-[11px] font-code-mono">
+                      <span className="text-outline">
+                        Średnia latencja: <span className="text-primary font-semibold">{tool.latency || '12ms'}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleTestTool(tool)}
+                        disabled={!tool.active}
+                        className="px-2 py-0.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-[11px] font-code-mono transition-colors disabled:opacity-30 cursor-pointer"
+                      >
+                        Testuj wywołanie
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Drawer Footer */}
+              <div className="p-4 border-t border-white/[0.06] bg-surface-container/50 flex items-center justify-between">
+                <div className="flex items-center gap-2 font-code-mono text-xs text-outline">
+                  <span className="text-primary font-bold">Groq 420 t/s</span>
+                  <span>• Context 128k</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsToolsDrawerOpen(false)}
+                  className="px-4 py-1.5 rounded-xl bg-primary text-on-primary font-semibold text-xs hover:bg-primary-fixed-dim transition-all active:scale-[0.98] shadow-sm cursor-pointer"
+                >
+                  Gotowe
+                </button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      )}
     </div>
   );
 };

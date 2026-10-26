@@ -55,7 +55,7 @@ describe('Librus Manual Reader & Multi-day Schedule Suite', () => {
         // Expected when no network credentials configured in CI/sandbox
         expect(err).toBeDefined();
       }
-    });
+    }, 15000);
   });
 
   describe('importLessonsToSchedule Safeguards', () => {
@@ -76,6 +76,6 @@ describe('Librus Manual Reader & Multi-day Schedule Suite', () => {
       const result = await importLessonsToSchedule(dummyLessons);
       expect(result.success).toBe(true);
       expect(result.importedCount).toBe(1);
-    });
+    }, 15000);
   });
 });

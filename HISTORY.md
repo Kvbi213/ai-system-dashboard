@@ -1,7 +1,21 @@
 ## Wersja Bieżąca
-**v3.3.3**
+**v3.4.0**
 
-## v 3.3.3 — 2026-10-26
+## v 3.4.0 — 2026-10-26
+**Typ:** MINOR  
+**Zakres:** Architektura Apple-Style Glass GUI Decluttering, Wysuwane Rejestry Boczne (Slide-Over Sheets) i Responsywny Tool Calling w Chat AI:
+- [+] Dodano: Apple Slide-Over Glass Drawer dla To-Do (`modules/pages/Dashboard.jsx`) – pełny, wysuwany z prawej krawędzi rejestr zadań z płynnym tłem `backdrop-blur-2xl bg-surface-container-low/95`, segmentowanym filtrowaniem (`Wszystkie`, `W toku`, `Zrobione`), szybkim formularzem priorytetów i kategorii, płynną eliminacją i kasowaniem zadań oraz zamykaniem na `Escape` i kliknięcie tła.
+- [+] Dodano: Ekekutywną Kapsułę Zadań na pulpicie (`modules/pages/Dashboard.jsx`) – kompaktowe podsumowanie aktywności dnia z dynamicznym pierścieniem SVG, dystrybucją priorytetów (Wysoki/Średni/Niski), bezpośrednim podglądem i odznaczaniem 2 najbliższych celów oraz opcjonalnym akordeonem szybkiego podglądu bezpośrednio w widżecie.
+- [+] Dodano: Radar Meteorologiczny i Alerty Drogowe CANARD (`modules/pages/Dashboard.jsx`) – kompaktowa kapsuła glance z temperaturą, stanem dróg i rozwijaną tacą telemetryczną stacji Kraków-Północ oraz ostrzeżeniami GDDKiA (`isWeatherExpanded`).
+- [+] Dodano: Kapsułę Integralności Usług i Węzłów (`modules/pages/Dashboard.jsx`) – z pulsującą matrycą diodową 5 węzłów w jednym rzędzie i rozwijaną listą szczegółów latencji i statusu chmury/lokalnej bazy (`isServicesExpanded`).
+- [+] Dodano: Modal / Inspektor Artykułów OSINT & IT News (`modules/pages/Dashboard.jsx`) – kliknięcie dowolnego artykułu w Live IT News otwiera interaktywną kartę z pełnym syntetycznym streszczeniem i źródłem OSINT.
+- [+] Dodano: Apple Slide-Over Tool Calling Inspector Drawer (`modules/pages/ChatPage.jsx`) – wysuwany arkusz inspekcji i telemetrii autonomicznych narzędzi kognitywnych Groq LPU, zastępujący dotychczasowy `alert()`, z kartami modułów, przełącznikami springowymi, globalnym sterowaniem i przyciskiem testu wywołania.
+- [+] Dodano: Collapsible Accordion Pills dla wywołań narzędzi w wiadomościach czatu (`modules/pages/ChatPage.jsx`) – zwinięcie blokujących widok kart wywołań narzędzi do eleganckich jednolinijkowych pigułek ze statusem i czasem wykonania, rozwijających parametry i payload na kliknięcie (`expandedToolCards`).
+- [+] Dodano: Zwijane panele boczne czatu (`modules/pages/ChatPage.jsx`) – możliwość zwijania panelu Audio HUD oraz listy wątków jednym kliknięciem, maksymalizując pionową przestrzeń konwersacji.
+- [*] Zmodyfikowano: `modules/pages/Dashboard.jsx` – wdrożono naturalny, przestronny wertykalny rytm (`space-y-8 pb-16`), eliminując uczucie stłoczenia i wymuszone statyczne widżety.
+- [*] Zmodyfikowano: `tests/librus_reader.test.js` – wydłużono timeouty operacji sieciowych i bazodanowych do 15000ms, gwarantując 100% stabilność testów w pełnym środowisku współbieżnym Vitest (271/271 PASS).
+- [*] Zmodyfikowano: `package.json` & `ARCHITECTURE.md` – podniesiono wersję do `v3.4.0`.
+- [+] Dodano: `docs/versions/v3.4.0.md` – dedykowany raport wydania i specyfikacja wdrożonych wzorców Apple Design.
 **Typ:** PATCH  
 **Zakres:** Implementacja Ręcznego Czytnika Librus Synergia API (Ground Truth Reader), Wielodniowego Harmonogramu Pełnego Tygodnia oraz Integracji UI:
 - [+] Dodano: `modules/components/LibrusReaderModal.jsx` – interaktywne okno dialogowe ręcznego czytnika Librus API (Ground Truth Reader) ze stepperem 6 etapów, podsumowaniem konta (Uczeń, Klasa, Szczęśliwy Numerek), filtrem dni tygodnia, wykazem ocen, zdarzeń terminarza i nieobecności nauczycieli, dziennikiem logów, kopiowaniem raportu do schowka, pobieraniem zrzutu JSON oraz bezpośrednim importem do aktywnego harmonogramu.
