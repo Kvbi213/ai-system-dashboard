@@ -98,6 +98,7 @@ describe('Google Cloud Billing & Pub/Sub Budget Guard (omnidash-509607)', () => 
   });
 
   describe('processBudgetNotification & simulateBudgetAlert', () => {
+    // Timeout 15000ms uzasadniony czasem asynchronicznego zapisu do Firebase Firestore oraz roundtripem do Pushbullet API
     it('powinien przeprowadzić symulację alertu 90% budżetu i zwrócić zaktualizowany stan', async () => {
       const state = await simulateBudgetAlert(45.0, 50.0, 0.9);
 

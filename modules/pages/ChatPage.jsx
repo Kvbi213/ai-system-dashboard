@@ -676,39 +676,69 @@ const ChatPage = () => {
     clearCopyTimer();
     setCopyToast(!hasError);
     setCopyToastError(hasError);
-    copyToastTimerRef.current = setTimeout(() => {
-      setCopyToast(false);
-      setCopyToastError(false);
-      clearCopyTimer();
+    const timerId = setTimeout(() => {
+      if (copyToastTimerRef.current === timerId) {
+        setCopyToast(false);
+        setCopyToastError(false);
+        copyToastTimerRef.current = null;
+      }
     }, COPY_TOAST_DURATION_MS);
+    copyToastTimerRef.current = timerId;
+  };
+
+  const performLegacyCopy = (text) => {
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      textarea.style.pointerEvents = 'none';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return Boolean(successful);
+    } catch (err) {
+      console.warn('[ChatPage] Legacy copy exception:', err);
+      return false;
+    }
   };
 
   const handleQuickAction = async (action) => {
     if (action === 'copy') {
       const copyPayload = "Sprawdziłem Twój dzisiejszy harmonogram. O 12:45 masz okienko (odwołana lekcja fizyki)...";
       try {
-        if (!navigator.clipboard?.writeText) {
-          const textarea = document.createElement('textarea');
-          textarea.value = copyPayload;
-          textarea.style.position = 'fixed';
-          textarea.style.opacity = '0';
-          document.body.appendChild(textarea);
-          textarea.select();
-          document.execCommand('copy');
-          document.body.removeChild(textarea);
-        } else {
+        if (navigator.clipboard?.writeText && window.isSecureContext) {
           await navigator.clipboard.writeText(copyPayload);
+          triggerCopyFeedback(false);
+        } else {
+          const success = performLegacyCopy(copyPayload);
+          if (success) {
+            triggerCopyFeedback(false);
+          } else {
+            throw new Error('Legacy copy returned false');
+          }
         }
-        triggerCopyFeedback(false);
       } catch (err) {
         console.warn('[ChatPage] Clipboard copy error:', err);
         triggerCopyFeedback(true);
       }
     } else if (action === 'timer') {
       window.location.hash = '#timer';
-      alert('Stoper sesji został zainicjalizowany.');
+      setToolExecutionFeedback('Stoper sesji został zainicjalizowany.');
+      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+      feedbackTimerRef.current = setTimeout(() => {
+        setToolExecutionFeedback(null);
+        feedbackTimerRef.current = null;
+      }, TOOL_FEEDBACK_TIMEOUT_MS);
     } else if (action === 'pushbullet') {
-      alert('Plan treningowy i harmonogram wysłany na smartfon przez Pushbullet.');
+      setToolExecutionFeedback('Plan treningowy i harmonogram wysłany na smartfon przez Pushbullet.');
+      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+      feedbackTimerRef.current = setTimeout(() => {
+        setToolExecutionFeedback(null);
+        feedbackTimerRef.current = null;
+      }, TOOL_FEEDBACK_TIMEOUT_MS);
     }
   };
 
