@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import { useChatContext } from '../context/ChatContext';
@@ -104,14 +104,14 @@ const ChatPage = () => {
   const TOOL_FEEDBACK_TIMEOUT_MS = 3000;
   const COPY_TOAST_DURATION_MS = 2000;
 
-  const showTransientFeedback = (message, duration = TOOL_FEEDBACK_TIMEOUT_MS) => {
+  const showTransientFeedback = useCallback((message, duration = TOOL_FEEDBACK_TIMEOUT_MS) => {
     setToolExecutionFeedback(message);
     if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
     feedbackTimerRef.current = setTimeout(() => {
       setToolExecutionFeedback(null);
       feedbackTimerRef.current = null;
     }, duration);
-  };
+  }, []);
 
   const toggleToolCard = (id) => {
     setExpandedToolCards(prev => ({
@@ -130,14 +130,14 @@ const ChatPage = () => {
     });
   };
 
-  const handleTestTool = (tool) => {
+  const handleTestTool = useCallback((tool) => {
     try {
       if (!tool || typeof tool !== 'object') return;
       showTransientFeedback(`Uruchomiono test ${tool.name || 'narzędzia'}: Status 200 OK (${tool.latency || '0ms'})`);
     } catch (err) {
       console.error('[ChatPage] handleTestTool error:', err);
     }
-  };
+  }, [showTransientFeedback]);
 
   // Live Continuous Voice Conversation States
   const [isLiveMode, setIsLiveMode] = useState(false);
