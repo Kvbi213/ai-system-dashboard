@@ -99,6 +99,9 @@ const ChatPage = () => {
     };
   }, []);
 
+  const TOOL_FEEDBACK_TIMEOUT_MS = 3000;
+  const COPY_TOAST_DURATION_MS = 2000;
+
   const toggleToolCard = (id) => {
     setExpandedToolCards(prev => ({
       ...prev,
@@ -108,7 +111,7 @@ const ChatPage = () => {
 
   const setAllTools = (active) => {
     setToolsList(prev => {
-      if (!Array.isArray(prev)) return [];
+      if (!Array.isArray(prev)) return prev;
       return prev.map(t => ({ ...t, active }));
     });
   };
@@ -123,7 +126,7 @@ const ChatPage = () => {
       feedbackTimerRef.current = setTimeout(() => {
         setToolExecutionFeedback(null);
         feedbackTimerRef.current = null;
-      }, 3000);
+      }, TOOL_FEEDBACK_TIMEOUT_MS);
     } catch (err) {
       console.error('[ChatPage] handleTestTool error:', err);
     }
@@ -660,13 +663,16 @@ const ChatPage = () => {
 
   const handleQuickAction = (action) => {
     if (action === 'copy') {
-      navigator.clipboard?.writeText("Sprawdziłem Twój dzisiejszy harmonogram. O 12:45 masz okienko (odwołana lekcja fizyki)...");
+      const copyPayload = "Sprawdziłem Twój dzisiejszy harmonogram. O 12:45 masz okienko (odwołana lekcja fizyki)...";
+      navigator.clipboard?.writeText(copyPayload).catch(err => {
+        console.warn('[ChatPage] Niepowodzenie zapisu do schowka:', err);
+      });
       setCopyToast(true);
       if (copyToastTimerRef.current) clearTimeout(copyToastTimerRef.current);
       copyToastTimerRef.current = setTimeout(() => {
         setCopyToast(false);
         copyToastTimerRef.current = null;
-      }, 2000);
+      }, COPY_TOAST_DURATION_MS);
     } else if (action === 'timer') {
       window.location.hash = '#timer';
       alert('Stoper sesji został zainicjalizowany.');
