@@ -11,7 +11,8 @@ import {
   getDemoCalendarData,
   getCachedTimetable,
   syncLibrusTimetable,
-  getDemoTimetableData
+  getDemoTimetableData,
+  fetchAllLibrusData
 } from '../services/librusService.js';
 
 const router = express.Router();
@@ -352,5 +353,52 @@ router.post('/test-auth', async (req, res) => {
     });
   }
 });
+
+/**
+ * GET & POST /api/librus/manual-read & /api/librus/read-all
+ * Ręczny czytnik pobierający komplet wszystkich danych z Librus API (konto, oceny, terminarz, pełny plan lekcji, frekwencja).
+ */
+const handleManualRead = async (req, res) => {
+  const creds = getLibrusCredentials();
+  const forceDemo = req.query.demo === 'true';
+
+  if (forceDemo || !creds.isConfigured) {
+    return res.json({
+      success: true,
+      isDemo: true,
+      timestamp: new Date().toISOString(),
+      studentInfo: { name: 'Jakub Lis', class: '2 TI T' },
+      luckyNumber: 21,
+      grades: getDemoGradesData(),
+      calendar: getDemoCalendarData(),
+      timetable: getDemoTimetableData(),
+      message: 'Zwrócono zestaw demonstracyjny (brak konfiguracji lub tryb demo).'
+    });
+  }
+
+  const importToSchedule = req.body?.importToSchedule === true || req.query?.import === 'true';
+  const from = typeof req.query?.from === 'string' ? req.query.from : undefined;
+  const to = typeof req.query?.to === 'string' ? req.query.to : undefined;
+
+  try {
+    const result = await fetchAllLibrusData({
+      saveToDb: true,
+      importToMainSchedule: importToSchedule,
+      from,
+      to
+    });
+    return res.json(result);
+  } catch (err) {
+    return res.status(502).json({
+      success: false,
+      error: `Błąd ręcznego czytnika Librus API: ${err.message}`
+    });
+  }
+};
+
+router.get('/manual-read', handleManualRead);
+router.post('/manual-read', handleManualRead);
+router.get('/read-all', handleManualRead);
+router.post('/read-all', handleManualRead);
 
 export default router;

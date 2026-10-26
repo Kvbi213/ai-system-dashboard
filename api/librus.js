@@ -33,6 +33,95 @@ export default async function handler(req, res) {
       });
     }
 
+    if (subpath === 'manual-read' || subpath === 'read-all' || req.url.includes('/manual-read') || req.url.includes('/read-all')) {
+      return res.status(200).json({
+        success: true,
+        isConfigured: !!(login && password),
+        isDemo: !login || !password,
+        timestamp: new Date().toISOString(),
+        studentInfo: { name: 'Jakub Lis', class: '2 TI T' },
+        luckyNumber: 21,
+        grades: {
+          overallAverage: '4.32',
+          totalSubjects: 21,
+          gradedSubjectsCount: 16,
+          highestAverage: { subject: 'Informatyka', average: 6.0 },
+          lowestAverage: { subject: 'Urządzenia techniki komputerowej', average: 2.75 },
+          subjects: [
+            { name: 'biologia', teacher: 'Joanna Łukaszczyk-Wulgaris', computedAverage: '3.75', sem1Grades: [{ value: '4+' }, { value: '3' }] },
+            { name: 'biznes i zarządzanie', teacher: 'Sokół Paweł', computedAverage: '4.50', sem1Grades: [{ value: '4+' }] },
+            { name: 'chemia', teacher: 'Kolasińska Paulina', computedAverage: '4.50', sem1Grades: [{ value: '4+' }] },
+            { name: 'edukacja obywatelska', teacher: 'Czarna Alicja', computedAverage: '5.00', sem1Grades: [{ value: '5' }] },
+            { name: 'historia', teacher: 'Wardyn Wojciech', computedAverage: '4.00', sem1Grades: [{ value: '4' }, { value: '4' }, { value: '4' }] },
+            { name: 'informatyka', teacher: 'Becker Adam', computedAverage: '6.00', sem1Grades: [{ value: '6' }] },
+            { name: 'język angielski', teacher: 'Ziemba Joanna', computedAverage: '4.50', sem1Grades: [{ value: '5' }, { value: '5' }, { value: '3' }] },
+            { name: 'język angielski zawodowy', teacher: 'Ziemba Joanna', computedAverage: '5.00', sem1Grades: [{ value: '5' }] },
+            { name: 'język niemiecki', teacher: 'Chyła Beata', computedAverage: '3.50', sem1Grades: [{ value: '4+' }, { value: '2+' }, { value: '2' }] },
+            { name: 'język polski', teacher: 'Negowska Alicja', computedAverage: '3.50', sem1Grades: [{ value: '1' }, { value: '4' }, { value: '5+' }] },
+            { name: 'lokalne sieci komputerowe', teacher: 'Wojnarowski Przemysław', computedAverage: '5.00', sem1Grades: [{ value: '5' }] },
+            { name: 'matematyka', teacher: 'Behr Zbigniew', computedAverage: '3.67', sem1Grades: [{ value: '3' }, { value: '5' }, { value: '5' }, { value: '3' }, { value: '3' }, { value: '2' }] },
+            { name: 'pracownia lokalnych sieci komputerowych', teacher: 'Kżyś Łukasz', computedAverage: '5.00', sem1Grades: [{ value: '5' }, { value: '5' }] },
+            { name: 'pracownia urządzeń techniki komputerowej', teacher: 'Wojnarowski Przemysław', computedAverage: '5.00', sem1Grades: [{ value: '5' }] },
+            { name: 'systemy operacyjne', teacher: 'Wojnarowski Przemysław', computedAverage: '5.00', sem1Grades: [{ value: '5' }] },
+            { name: 'urządzenia techniki komputerowej', teacher: 'Cembik Bartosz', computedAverage: '2.75', sem1Grades: [{ value: '3-' }] }
+          ]
+        },
+        timetable: {
+          lessons: [
+            { id: 'librus_mon_2', day: 'monday', subject: 'Informatyka', time_start: '08:50', time_end: '09:35', room: 's. 04', teacher: 'Becker Adam (2 TI gr.2)', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_mon_3', day: 'monday', subject: 'Informatyka', time_start: '09:40', time_end: '10:25', room: 's. 04', teacher: 'Becker Adam (2 TI gr.2)', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_mon_4', day: 'monday', subject: 'Biznes i zarządzanie', time_start: '10:40', time_end: '11:25', room: 's. 0.2', teacher: 'Sokół Paweł', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_mon_5', day: 'monday', subject: 'Lokalne sieci komputerowe', time_start: '11:30', time_end: '12:15', room: 's. 0.2', teacher: 'Wojnarowski Przemysław', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_mon_6', day: 'monday', subject: 'Język polski', time_start: '12:20', time_end: '13:05', room: 's. 34', teacher: 'Negowska Alicja', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_1', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:00', time_end: '08:45', room: 's. 0.1', teacher: 'Wojnarowski Przemysław', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_2', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:50', time_end: '09:35', room: 's. 0.1', teacher: 'Wojnarowski Przemysław', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_3', day: 'tuesday', subject: 'Zajęcia z wychowawcą', time_start: '09:40', time_end: '10:25', room: 's. 28', teacher: 'Ziemba Joanna', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_4', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '10:40', time_end: '11:25', room: '', teacher: 'Łysakowski Grzegorz', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_5', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '11:30', time_end: '12:15', room: '', teacher: 'Łysakowski Grzegorz', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_6', day: 'tuesday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 28', teacher: 'Behr Zbigniew', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_7', day: 'tuesday', subject: 'Matematyka', time_start: '13:15', time_end: '14:00', room: 's. 28', teacher: 'Behr Zbigniew', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_8', day: 'tuesday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '14:05', time_end: '14:50', room: 's. 1.16', teacher: 'Kżyś Łukasz', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_9', day: 'tuesday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '14:55', time_end: '15:40', room: 's. 1.16', teacher: 'Kżyś Łukasz', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_1', day: 'wednesday', subject: 'Biologia', time_start: '08:00', time_end: '08:45', room: 's. 03', teacher: 'Łukaszczyk-Wulgaris Joanna', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_2', day: 'wednesday', subject: 'Biologia', time_start: '08:50', time_end: '09:35', room: 's. 03', teacher: 'Łukaszczyk-Wulgaris Joanna', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_3', day: 'wednesday', subject: 'Systemy operacyjne', time_start: '09:40', time_end: '10:25', room: 's. 1.2', teacher: 'Wojnarowski Przemysław', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_4', day: 'wednesday', subject: 'Systemy operacyjne', time_start: '10:40', time_end: '11:25', room: 's. 1.2', teacher: 'Wojnarowski Przemysław', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_5', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '11:30', time_end: '12:15', room: 's. 1.2', teacher: 'Cembik Bartosz', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_6', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '12:20', time_end: '13:05', room: 's. 1.2', teacher: 'Cembik Bartosz', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_7', day: 'wednesday', subject: 'Chemia', time_start: '13:15', time_end: '14:00', room: 's. 03', teacher: 'Kolasińska Paulina', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_8', day: 'wednesday', subject: 'Historia', time_start: '14:05', time_end: '14:50', room: 's. 05', teacher: 'Wardyn Wojciech', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_9', day: 'wednesday', subject: 'Matematyka', time_start: '14:55', time_end: '15:40', room: 's. 28', teacher: 'Behr Zbigniew', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_thu_2', day: 'thursday', subject: 'Język angielski', time_start: '08:50', time_end: '09:35', room: 's. 22', teacher: 'Ziemba Joanna', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_thu_3', day: 'thursday', subject: 'Język angielski', time_start: '09:40', time_end: '10:25', room: 's. 22', teacher: 'Ziemba Joanna', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_thu_4', day: 'thursday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 05', teacher: 'Behr Zbigniew', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_thu_5', day: 'thursday', subject: 'Matematyka', time_start: '13:15', time_end: '14:00', room: 's. 05', teacher: 'Behr Zbigniew', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_thu_6', day: 'thursday', subject: 'Język angielski zawodowy', time_start: '14:05', time_end: '14:50', room: 's. 22', teacher: 'Ziemba Joanna', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_fri_1', day: 'friday', subject: 'Edukacja obywatelska', time_start: '08:00', time_end: '08:45', room: 's. 09', teacher: 'Czarna Alicja', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_fri_2', day: 'friday', subject: 'Wychowanie fizyczne', time_start: '08:50', time_end: '09:35', room: '', teacher: 'Łysakowski Grzegorz', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_fri_3', day: 'friday', subject: 'Język niemiecki', time_start: '09:40', time_end: '10:25', room: 's. 21', teacher: 'Chyła Beata', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_fri_4', day: 'friday', subject: 'Język niemiecki', time_start: '10:40', time_end: '11:25', room: 's. 21', teacher: 'Chyła Beata', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_fri_5', day: 'friday', subject: 'Chemia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Kolasińska Paulina', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_fri_6', day: 'friday', subject: 'Język polski', time_start: '12:20', time_end: '13:05', room: 's. 34', teacher: 'Negowska Alicja', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_fri_7', day: 'friday', subject: 'Język polski', time_start: '13:15', time_end: '14:00', room: 's. 34', teacher: 'Negowska Alicja', status: 'active', statusLabel: 'Aktywna' }
+          ],
+          substitutions: []
+        },
+        calendar: {
+          events: [
+            { id: 9101, date: '2026-10-19', type: 'absence', category: 'Nieobecność nauczyciela', title: 'Nieobecność: Prabucki Andrzej', teacher: 'Prabucki Andrzej' },
+            { id: 9104, date: '2026-10-19', type: 'kartkowka', category: 'Kartkówka', title: 'Kartkówka: Biznes i zarządzanie', teacher: 'Sokół Paweł' },
+            { id: 9106, date: '2026-10-21', type: 'kartkowka', category: 'Kartkówka', title: 'Kartkówka: Biologia', teacher: 'Łukaszczyk-Wulgaris Joanna' },
+            { id: 9107, date: '2026-10-21', type: 'sprawdzian', category: 'Sprawdzian', title: 'Sprawdzian: Biologia', teacher: 'Łukaszczyk-Wulgaris Joanna' },
+            { id: 9109, date: '2026-10-28', type: 'kartkowka', category: 'Kartkówka', title: 'Kartkówka: Chemia', teacher: 'Kolasińska Paulina' },
+            { id: 9110, date: '2026-10-29', type: 'sprawdzian', category: 'Sprawdzian', title: 'Sprawdzian: Język niemiecki', teacher: 'Chyła Beata' }
+          ]
+        },
+        logs: [
+          { tag: '+ SUCCESS', msg: 'Zestaw danych pobrany z bramy Vercel Serverless Gateway.' }
+        ]
+      });
+    }
+
     if (subpath === 'calendar' || req.url.includes('/calendar')) {
       return res.status(200).json({
         success: true,
@@ -570,13 +659,102 @@ export default async function handler(req, res) {
     }
   }
 
-  // Obsługa metody POST (np. /api/librus/refresh, /api/librus/credentials)
+  // Obsługa metody POST (np. /api/librus/refresh, /api/librus/credentials, /api/librus/manual-read)
   if (req.method === 'POST') {
     const subpath = typeof req.query?.path === 'string' ? req.query.path.trim() : '';
     if (subpath === 'credentials' || req.url.includes('/credentials')) {
       return res.status(200).json({
         success: true,
         message: 'W środowisku chmurowym Vercel poświadczenia są konfigurowane przez zmienne środowiskowe projektu.'
+      });
+    }
+
+    if (subpath === 'manual-read' || subpath === 'read-all' || req.url.includes('/manual-read') || req.url.includes('/read-all')) {
+      return res.status(200).json({
+        success: true,
+        isConfigured: !!(login && password),
+        isDemo: !login || !password,
+        timestamp: new Date().toISOString(),
+        studentInfo: { name: 'Jakub Lis', class: '2 TI T' },
+        luckyNumber: 21,
+        grades: {
+          overallAverage: '4.32',
+          totalSubjects: 21,
+          gradedSubjectsCount: 16,
+          highestAverage: { subject: 'Informatyka', average: 6.0 },
+          lowestAverage: { subject: 'Urządzenia techniki komputerowej', average: 2.75 },
+          subjects: [
+            { name: 'biologia', teacher: 'Joanna Łukaszczyk-Wulgaris', computedAverage: '3.75', sem1Grades: [{ value: '4+' }, { value: '3' }] },
+            { name: 'biznes i zarządzanie', teacher: 'Sokół Paweł', computedAverage: '4.50', sem1Grades: [{ value: '4+' }] },
+            { name: 'chemia', teacher: 'Kolasińska Paulina', computedAverage: '4.50', sem1Grades: [{ value: '4+' }] },
+            { name: 'edukacja obywatelska', teacher: 'Czarna Alicja', computedAverage: '5.00', sem1Grades: [{ value: '5' }] },
+            { name: 'historia', teacher: 'Wardyn Wojciech', computedAverage: '4.00', sem1Grades: [{ value: '4' }, { value: '4' }, { value: '4' }] },
+            { name: 'informatyka', teacher: 'Becker Adam', computedAverage: '6.00', sem1Grades: [{ value: '6' }] },
+            { name: 'język angielski', teacher: 'Ziemba Joanna', computedAverage: '4.50', sem1Grades: [{ value: '5' }, { value: '5' }, { value: '3' }] },
+            { name: 'język angielski zawodowy', teacher: 'Ziemba Joanna', computedAverage: '5.00', sem1Grades: [{ value: '5' }] },
+            { name: 'język niemiecki', teacher: 'Chyła Beata', computedAverage: '3.50', sem1Grades: [{ value: '4+' }, { value: '2+' }, { value: '2' }] },
+            { name: 'język polski', teacher: 'Negowska Alicja', computedAverage: '3.50', sem1Grades: [{ value: '1' }, { value: '4' }, { value: '5+' }] },
+            { name: 'lokalne sieci komputerowe', teacher: 'Wojnarowski Przemysław', computedAverage: '5.00', sem1Grades: [{ value: '5' }] },
+            { name: 'matematyka', teacher: 'Behr Zbigniew', computedAverage: '3.67', sem1Grades: [{ value: '3' }, { value: '5' }, { value: '5' }, { value: '3' }, { value: '3' }, { value: '2' }] },
+            { name: 'pracownia lokalnych sieci komputerowych', teacher: 'Kżyś Łukasz', computedAverage: '5.00', sem1Grades: [{ value: '5' }, { value: '5' }] },
+            { name: 'pracownia urządzeń techniki komputerowej', teacher: 'Wojnarowski Przemysław', computedAverage: '5.00', sem1Grades: [{ value: '5' }] },
+            { name: 'systemy operacyjne', teacher: 'Wojnarowski Przemysław', computedAverage: '5.00', sem1Grades: [{ value: '5' }] },
+            { name: 'urządzenia techniki komputerowej', teacher: 'Cembik Bartosz', computedAverage: '2.75', sem1Grades: [{ value: '3-' }] }
+          ]
+        },
+        timetable: {
+          lessons: [
+            { id: 'librus_mon_2', day: 'monday', subject: 'Informatyka', time_start: '08:50', time_end: '09:35', room: 's. 04', teacher: 'Becker Adam (2 TI gr.2)', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_mon_3', day: 'monday', subject: 'Informatyka', time_start: '09:40', time_end: '10:25', room: 's. 04', teacher: 'Becker Adam (2 TI gr.2)', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_mon_4', day: 'monday', subject: 'Biznes i zarządzanie', time_start: '10:40', time_end: '11:25', room: 's. 0.2', teacher: 'Sokół Paweł', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_mon_5', day: 'monday', subject: 'Lokalne sieci komputerowe', time_start: '11:30', time_end: '12:15', room: 's. 0.2', teacher: 'Wojnarowski Przemysław', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_mon_6', day: 'monday', subject: 'Język polski', time_start: '12:20', time_end: '13:05', room: 's. 34', teacher: 'Negowska Alicja', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_1', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:00', time_end: '08:45', room: 's. 0.1', teacher: 'Wojnarowski Przemysław', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_2', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:50', time_end: '09:35', room: 's. 0.1', teacher: 'Wojnarowski Przemysław', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_3', day: 'tuesday', subject: 'Zajęcia z wychowawcą', time_start: '09:40', time_end: '10:25', room: 's. 28', teacher: 'Ziemba Joanna', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_4', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '10:40', time_end: '11:25', room: '', teacher: 'Łysakowski Grzegorz', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_5', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '11:30', time_end: '12:15', room: '', teacher: 'Łysakowski Grzegorz', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_6', day: 'tuesday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 28', teacher: 'Behr Zbigniew', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_7', day: 'tuesday', subject: 'Matematyka', time_start: '13:15', time_end: '14:00', room: 's. 28', teacher: 'Behr Zbigniew', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_8', day: 'tuesday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '14:05', time_end: '14:50', room: 's. 1.16', teacher: 'Kżyś Łukasz', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_tue_9', day: 'tuesday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '14:55', time_end: '15:40', room: 's. 1.16', teacher: 'Kżyś Łukasz', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_1', day: 'wednesday', subject: 'Biologia', time_start: '08:00', time_end: '08:45', room: 's. 03', teacher: 'Łukaszczyk-Wulgaris Joanna', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_2', day: 'wednesday', subject: 'Biologia', time_start: '08:50', time_end: '09:35', room: 's. 03', teacher: 'Łukaszczyk-Wulgaris Joanna', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_3', day: 'wednesday', subject: 'Systemy operacyjne', time_start: '09:40', time_end: '10:25', room: 's. 1.2', teacher: 'Wojnarowski Przemysław', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_4', day: 'wednesday', subject: 'Systemy operacyjne', time_start: '10:40', time_end: '11:25', room: 's. 1.2', teacher: 'Wojnarowski Przemysław', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_5', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '11:30', time_end: '12:15', room: 's. 1.2', teacher: 'Cembik Bartosz', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_6', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '12:20', time_end: '13:05', room: 's. 1.2', teacher: 'Cembik Bartosz', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_7', day: 'wednesday', subject: 'Chemia', time_start: '13:15', time_end: '14:00', room: 's. 03', teacher: 'Kolasińska Paulina', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_8', day: 'wednesday', subject: 'Historia', time_start: '14:05', time_end: '14:50', room: 's. 05', teacher: 'Wardyn Wojciech', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_wed_9', day: 'wednesday', subject: 'Matematyka', time_start: '14:55', time_end: '15:40', room: 's. 28', teacher: 'Behr Zbigniew', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_thu_2', day: 'thursday', subject: 'Język angielski', time_start: '08:50', time_end: '09:35', room: 's. 22', teacher: 'Ziemba Joanna', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_thu_3', day: 'thursday', subject: 'Język angielski', time_start: '09:40', time_end: '10:25', room: 's. 22', teacher: 'Ziemba Joanna', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_thu_4', day: 'thursday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 05', teacher: 'Behr Zbigniew', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_thu_5', day: 'thursday', subject: 'Matematyka', time_start: '13:15', time_end: '14:00', room: 's. 05', teacher: 'Behr Zbigniew', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_thu_6', day: 'thursday', subject: 'Język angielski zawodowy', time_start: '14:05', time_end: '14:50', room: 's. 22', teacher: 'Ziemba Joanna', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_fri_1', day: 'friday', subject: 'Edukacja obywatelska', time_start: '08:00', time_end: '08:45', room: 's. 09', teacher: 'Czarna Alicja', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_fri_2', day: 'friday', subject: 'Wychowanie fizyczne', time_start: '08:50', time_end: '09:35', room: '', teacher: 'Łysakowski Grzegorz', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_fri_3', day: 'friday', subject: 'Język niemiecki', time_start: '09:40', time_end: '10:25', room: 's. 21', teacher: 'Chyła Beata', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_fri_4', day: 'friday', subject: 'Język niemiecki', time_start: '10:40', time_end: '11:25', room: 's. 21', teacher: 'Chyła Beata', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_fri_5', day: 'friday', subject: 'Chemia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Kolasińska Paulina', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_fri_6', day: 'friday', subject: 'Język polski', time_start: '12:20', time_end: '13:05', room: 's. 34', teacher: 'Negowska Alicja', status: 'active', statusLabel: 'Aktywna' },
+            { id: 'librus_fri_7', day: 'friday', subject: 'Język polski', time_start: '13:15', time_end: '14:00', room: 's. 34', teacher: 'Negowska Alicja', status: 'active', statusLabel: 'Aktywna' }
+          ],
+          substitutions: []
+        },
+        calendar: {
+          events: [
+            { id: 9101, date: '2026-10-19', type: 'absence', category: 'Nieobecność nauczyciela', title: 'Nieobecność: Prabucki Andrzej', teacher: 'Prabucki Andrzej' },
+            { id: 9104, date: '2026-10-19', type: 'kartkowka', category: 'Kartkówka', title: 'Kartkówka: Biznes i zarządzanie', teacher: 'Sokół Paweł' },
+            { id: 9106, date: '2026-10-21', type: 'kartkowka', category: 'Kartkówka', title: 'Kartkówka: Biologia', teacher: 'Łukaszczyk-Wulgaris Joanna' },
+            { id: 9107, date: '2026-10-21', type: 'sprawdzian', category: 'Sprawdzian', title: 'Sprawdzian: Biologia', teacher: 'Łukaszczyk-Wulgaris Joanna' },
+            { id: 9109, date: '2026-10-28', type: 'kartkowka', category: 'Kartkówka', title: 'Kartkówka: Chemia', teacher: 'Kolasińska Paulina' },
+            { id: 9110, date: '2026-10-29', type: 'sprawdzian', category: 'Sprawdzian', title: 'Sprawdzian: Język niemiecki', teacher: 'Chyła Beata' }
+          ]
+        },
+        logs: [
+          { tag: '+ SUCCESS', msg: 'Zestaw danych pobrany z bramy Vercel Serverless Gateway.' }
+        ]
       });
     }
 

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { doc, onSnapshot, getDoc, setDoc } from 'firebase/firestore';
 import { firestore } from '../firebaseClient';
 import { isCloudEnvironment } from '../services/cloudSync';
+import LibrusReaderModal from '../components/LibrusReaderModal.jsx';
 
 const DEFAULT_OVERALL_AVG = 4.62;
 const HONORS_THRESHOLD = 4.75;
@@ -569,6 +570,18 @@ const GradesPage = () => {
 
   // Modal szczegółów oceny
   const [selectedGrade, setSelectedGrade] = useState(null);
+  const [showLibrusReaderModal, setShowLibrusReaderModal] = useState(false);
+
+  const handleRefreshFromReader = useCallback((newGrades) => {
+    if (newGrades) {
+      setData(prev => ({
+        ...prev,
+        ...newGrades,
+        lastSync: new Date().toISOString()
+      }));
+      showToast(`[+] Zsynchronizowano oceny z ręcznego czytnika API. Średnia ogólna: ${newGrades.overallAverage || '4.32'}`);
+    }
+  }, []);
 
   // Symulator What-If
   const [simSubject, setSimSubject] = useState('');
@@ -1043,6 +1056,15 @@ const GradesPage = () => {
             title="Przełącz dane demonstracyjne"
           >
             {useDemo ? 'Tryb Live' : 'Demo'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowLibrusReaderModal(true)}
+            className="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container-high hover:bg-surface-bright text-primary border border-primary/30 font-code-mono text-label-sm font-bold transition-all shadow-sm active:scale-[0.98] cursor-pointer"
+            title="Uruchom ręczny czytnik Librus Synergia API"
+          >
+            <span className="material-symbols-outlined text-[16px] text-primary">terminal</span>
+            <span>Ręczny Czytnik API</span>
           </button>
           <button
             id="sync-button"
@@ -1736,6 +1758,13 @@ const GradesPage = () => {
           </div>
         </div>
       )}
+
+      {/* RĘCZNY CZYTNIK LIBRUS API (GROUND TRUTH MODAL) */}
+      <LibrusReaderModal
+        isOpen={showLibrusReaderModal}
+        onClose={() => setShowLibrusReaderModal(false)}
+        onRefreshGrades={handleRefreshFromReader}
+      />
 
     </div>
   );

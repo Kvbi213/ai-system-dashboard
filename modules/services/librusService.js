@@ -265,6 +265,47 @@ export function computeGradeStats(subjects = []) {
 }
 
 /**
+ * Zapisuje oceny i metryki do bazy SQLite oraz replikuje do Firestore (librus_cache/latest).
+ */
+export async function saveGradesToCache(payload) {
+  try {
+    await executeRun(`
+      CREATE TABLE IF NOT EXISTS librus_cache (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        data TEXT NOT NULL,
+        lucky_number INTEGER,
+        last_sync DATETIME DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'ok',
+        error_message TEXT
+      )
+    `);
+    await executeRun(
+      `INSERT OR REPLACE INTO librus_cache (id, data, lucky_number, last_sync, status, error_message)
+       VALUES (1, ?, ?, datetime('now'), 'ok', NULL)`,
+      [JSON.stringify(payload), payload.luckyNumber]
+    );
+    console.log(`[+] SUCCESS :: LIBRUS :: Zapisano stan ocen do tabeli librus_cache.`);
+  } catch (dbErr) {
+    console.error(`[!] ERROR :: LIBRUS :: Błąd zapisu do bazy SQLite:`, dbErr.message);
+  }
+
+  // Replikacja ocen do Firebase Firestore
+  try {
+    const { getFirestoreDb } = await import('../firebase.js');
+    const firestoreDb = getFirestoreDb ? getFirestoreDb() : null;
+    if (firestoreDb) {
+      await firestoreDb.collection('librus_cache').doc('latest').set({
+        ...payload,
+        updated_at: new Date().toISOString()
+      });
+      console.log(`[+] SUCCESS :: LIBRUS :: Zreplikowano stan ocen do chmury Firestore (librus_cache/latest).`);
+    }
+  } catch (fErr) {
+    console.warn(`[!] ALERT :: LIBRUS :: Pominięto replikację ocen do Firestore: ${fErr.message}`);
+  }
+}
+
+/**
  * Pobiera dane bezpośrednio z Synergia Librus przy użyciu librus-api.
  */
 export async function fetchLibrusFromSource(login, password) {
@@ -340,27 +381,8 @@ export async function fetchLibrusFromSource(login, password) {
     lastSync: new Date().toISOString()
   };
 
-  // Zapis do bazy SQLite
-  try {
-    await executeRun(`
-      CREATE TABLE IF NOT EXISTS librus_cache (
-        id INTEGER PRIMARY KEY CHECK (id = 1),
-        data TEXT NOT NULL,
-        lucky_number INTEGER,
-        last_sync DATETIME DEFAULT CURRENT_TIMESTAMP,
-        status TEXT DEFAULT 'ok',
-        error_message TEXT
-      )
-    `);
-    await executeRun(
-      `INSERT OR REPLACE INTO librus_cache (id, data, lucky_number, last_sync, status, error_message)
-       VALUES (1, ?, ?, datetime('now'), 'ok', NULL)`,
-      [JSON.stringify(payload), payload.luckyNumber]
-    );
-    console.log(`[+] SUCCESS :: LIBRUS :: Zapisano stan ocen do tabeli librus_cache.`);
-  } catch (dbErr) {
-    console.error(`[!] ERROR :: LIBRUS :: Błąd zapisu do bazy SQLite:`, dbErr.message);
-  }
+  // Zapis do bazy SQLite oraz replikacja do Firestore
+  await saveGradesToCache(payload);
 
   // Pobierz terminarz szkolny (sprawdziany, kartkówki, nieobecności nauczycieli)
   let calendarPayload = null;
@@ -392,20 +414,6 @@ export async function fetchLibrusFromSource(login, password) {
     console.warn(`[!] ALERT :: LIBRUS :: Pominięto synchronizację planu lekcji: ${tErr.message}`);
   }
 
-  // Replikacja ocen do Firebase Firestore (dostęp dla omnidash-509607.web.app)
-  try {
-    const { getFirestoreDb } = await import('../firebase.js');
-    const firestoreDb = getFirestoreDb ? getFirestoreDb() : null;
-    if (firestoreDb) {
-      await firestoreDb.collection('librus_cache').doc('latest').set({
-        ...payload,
-        updated_at: new Date().toISOString()
-      });
-      console.log(`[+] SUCCESS :: LIBRUS :: Zreplikowano stan ocen do chmury Firestore (librus_cache/latest).`);
-    }
-  } catch (fErr) {
-    console.warn(`[!] ALERT :: LIBRUS :: Pominięto replikację ocen do Firestore: ${fErr.message}`);
-  }
 
   return { 
     ...payload, 
@@ -1059,8 +1067,11 @@ export async function fetchLibrusCalendarFromSource(client, targetMonth, targetY
     const parsed = parseCalendarEvent(it);
     if (!parsed) continue;
 
-    // Próba wzbogacenia o szczegóły jeśli ID jest unikalne i dodatnie
-    if (it.id && typeof it.id === 'number' && it.id > 0) {
+    // Pobierz szczegóły tylko jeśli brakuje kluczowych pól (oszczędność dziesiątek zapytań HTTP)
+    const needsDetails = (parsed.type === 'absence' && (!parsed.teacher || parsed.teacher === 'Nauczyciel')) ||
+                         (parsed.type !== 'absence' && (!parsed.subject || parsed.subject === 'Zajęcia szkolne'));
+
+    if (needsDetails && it.id && typeof it.id === 'number' && it.id > 0) {
       try {
         const isAbs = parsed.type === 'absence';
         const details = await client.calendar.getEvent(it.id, isAbs);
@@ -1892,45 +1903,7 @@ export async function syncLibrusTimetable(options = {}) {
 
     // 4. Opcjonalny import do aktywnego planu zajęć aplikacji (tabela `timetable`)
     if (options.importToMainSchedule) {
-      try {
-        await executeRun(`DELETE FROM timetable`);
-        for (const l of correlated.lessons) {
-          const fullT = l.cleanTeacher || resolveFullTeacherName(l.teacher) || l.teacher || '';
-          await executeRun(
-            `INSERT OR REPLACE INTO timetable (id, day, subject, time_start, time_end, room, teacher, type, color, notes)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [l.id, l.day, l.subject, l.time_start, l.time_end, l.room || '', fullT, l.type || 'Wykład', l.color || 'indigo', l.notes || '']
-          );
-        }
-        console.log(`[+] SUCCESS :: LIBRUS :: Zaimportowano ${correlated.lessons.length} lekcji do tabeli timetable.`);
-
-        // Replikacja do kolekcji Firestore 'timetable'
-        try {
-          const { getFirestoreDb } = await import('../firebase.js');
-          const firestoreDb = getFirestoreDb ? getFirestoreDb() : null;
-          if (firestoreDb) {
-            const snap = await firestoreDb.collection('timetable').get();
-            const batch = firestoreDb.batch();
-            snap.forEach(d => batch.delete(d.ref));
-            for (const l of correlated.lessons) {
-              const fullT = l.cleanTeacher || resolveFullTeacherName(l.teacher) || l.teacher || '';
-              const docRef = firestoreDb.collection('timetable').doc(String(l.id));
-              batch.set(docRef, {
-                ...l,
-                teacher: fullT,
-                cleanTeacher: fullT,
-                updated_at: new Date().toISOString()
-              });
-            }
-            await batch.commit();
-            console.log(`[+] SUCCESS :: LIBRUS :: Zreplikowano ${correlated.lessons.length} lekcji do kolekcji Firestore timetable.`);
-          }
-        } catch (fSyncErr) {
-          console.warn(`[!] ALERT :: LIBRUS :: Błąd replikacji do kolekcji timetable:`, fSyncErr.message);
-        }
-      } catch (impErr) {
-        console.warn(`[!] ALERT :: LIBRUS :: Błąd importu do tabeli timetable: ${impErr.message}`);
-      }
+      await importLessonsToSchedule(correlated.lessons);
     }
 
     return { success: true, data: timetablePayload };
@@ -2214,5 +2187,240 @@ export async function resetAndSeedLibrusDatabase() {
     grades: gradesPayload,
     timetable: timetablePayload,
     calendar: calendarPayload
+  };
+}
+
+/**
+ * Importuje lekcje z Librusa do aktywnego harmonogramu (tabela timetable w SQLite i kolekcja Firestore),
+ * bezwzględnie zachowując istniejące aktywności prywatne (category: 'personal').
+ */
+export async function importLessonsToSchedule(lessons = []) {
+  if (!Array.isArray(lessons) || lessons.length === 0) {
+    return { success: true, importedCount: 0 };
+  }
+
+  try {
+    await executeRun(`DELETE FROM timetable WHERE category IS NULL OR category != 'personal'`);
+    for (const l of lessons) {
+      const fullT = l.cleanTeacher || resolveFullTeacherName(l.teacher) || l.teacher || '';
+      await executeRun(
+        `INSERT OR REPLACE INTO timetable (id, day, subject, time_start, time_end, room, teacher, type, color, notes, category)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'librus')`,
+        [l.id, l.day, l.subject, l.time_start, l.time_end, l.room || '', fullT, l.type || 'Wykład', l.color || 'indigo', l.notes || '']
+      );
+    }
+    console.log(`[+] SUCCESS :: LIBRUS :: Zaimportowano ${lessons.length} lekcji do tabeli timetable.`);
+
+    const { getFirestoreDb } = await import('../firebase.js');
+    const firestoreDb = getFirestoreDb ? getFirestoreDb() : null;
+    if (firestoreDb && !process.env.VITEST && process.env.NODE_ENV !== 'test') {
+      const snap = await firestoreDb.collection('timetable').get();
+      const batch = firestoreDb.batch();
+      snap.forEach(d => {
+        const dData = d.data();
+        if (dData.category !== 'personal') {
+          batch.delete(d.ref);
+        }
+      });
+      for (const l of lessons) {
+        const fullT = l.cleanTeacher || resolveFullTeacherName(l.teacher) || l.teacher || '';
+        const docRef = firestoreDb.collection('timetable').doc(String(l.id));
+        batch.set(docRef, {
+          ...l,
+          teacher: fullT,
+          cleanTeacher: fullT,
+          category: 'librus',
+          updated_at: new Date().toISOString()
+        });
+      }
+      await batch.commit();
+      console.log(`[+] SUCCESS :: LIBRUS :: Zreplikowano ${lessons.length} lekcji do kolekcji Firestore timetable.`);
+    }
+    return { success: true, importedCount: lessons.length };
+  } catch (err) {
+    console.warn(`[!] ALERT :: LIBRUS :: Błąd importu do harmonogramu: ${err.message}`);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Ręczny i kompleksowy czytnik wszystkich zasobów z Librus API (Ground Truth Full Sync).
+ * Pobiera: konto ucznia, szczęśliwy numerek, powiadomienia, oceny, frekwencję, terminarz wielomiesięczny oraz pełny plan lekcji dla wszystkich dni tygodnia.
+ */
+export async function fetchAllLibrusData(options = {}) {
+  const creds = (options.login && options.password) 
+    ? { login: options.login, password: options.password, isConfigured: true }
+    : getLibrusCredentials();
+
+  if (!creds.isConfigured) {
+    return {
+      success: false,
+      error: 'Brak skonfigurowanych poświadczeń Librus Synergia w systemie lub pliku .env.'
+    };
+  }
+
+  const logs = [];
+  const logStep = (tag, msg) => {
+    logs.push(`[${tag}] :: ${msg}`);
+    console.log(`[${tag}] :: LIBRUS READER :: ${msg}`);
+  };
+
+  logStep('* INFO', 'Inicjalizacja autoryzacji sesji Librus Synergia...');
+  const LibrusClass = (await import('librus-api')).default;
+  const client = new LibrusClass();
+  await client.authorize(creds.login, creds.password);
+  logStep('+ SUCCESS', 'Pomyślna autoryzacja w Librus Synergia.');
+
+  // 1. Informacje o koncie ucznia
+  let studentInfo = null;
+  try {
+    logStep('* INFO', 'Pobieranie profilu ucznia i klasy...');
+    const acc = await client.info.getAccountInfo();
+    if (acc?.student) {
+      studentInfo = {
+        name: acc.student.nameSurname || '',
+        class: acc.student.class || '',
+        index: acc.student.index || '',
+        educator: acc.student.educator || '',
+        accountLogin: acc.account?.login || ''
+      };
+      logStep('+ SUCCESS', `Profil ucznia: ${studentInfo.name} (${studentInfo.class})`);
+    }
+  } catch (err) {
+    logStep('! ALERT', `Pominięto profil ucznia: ${err.message}`);
+  }
+
+  // 2. Szczęśliwy numerek
+  let luckyNumber = null;
+  try {
+    const rawLucky = await client.info.getLuckyNumber();
+    luckyNumber = typeof rawLucky === 'object' && rawLucky !== null ? (rawLucky.luckyNumber || rawLucky.number || null) : rawLucky;
+    luckyNumber = Number.isNaN(parseInt(luckyNumber, 10)) ? null : parseInt(luckyNumber, 10);
+    logStep('+ SUCCESS', `Szczęśliwy numerek: ${luckyNumber !== null ? luckyNumber : 'brak'}`);
+  } catch (err) {
+    logStep('! ALERT', `Nie udało się pobrać szczęśliwego numerka: ${err.message}`);
+  }
+
+  // 3. Powiadomienia
+  let notifications = null;
+  try {
+    notifications = await client.info.getNotifications();
+  } catch {}
+
+  // 4. Oceny (wszystkie przedmioty i semestry)
+  let rawGrades = [];
+  let gradeStats = null;
+  try {
+    logStep('* INFO', 'Pobieranie kompletnego wykazu ocen dla wszystkich przedmiotów...');
+    rawGrades = await client.info.getGrades();
+    gradeStats = computeGradeStats(rawGrades || []);
+    logStep('+ SUCCESS', `Pobrano oceny: ${gradeStats.gradedSubjectsCount} ocenionych z ${gradeStats.totalSubjects} przedmiotów. Średnia ogólna: ${gradeStats.overallAverage}`);
+  } catch (err) {
+    logStep('! ALERT', `Błąd pobierania ocen: ${err.message}`);
+  }
+
+  // 5. Frekwencja i nieobecności
+  let attendanceRate = null;
+  let rawAbsences = [];
+  try {
+    logStep('* INFO', 'Pobieranie rejestru nieobecności i frekwencji...');
+    if (client.absence && typeof client.absence.getAbsences === 'function') {
+      const absences = await client.absence.getAbsences();
+      if (Array.isArray(absences) && absences.length > 0) {
+        rawAbsences = absences;
+        const total = absences.length;
+        const present = absences.filter(a => a.type === 'obecnosc' || a.presence).length;
+        attendanceRate = parseFloat(((present / total) * 100).toFixed(1));
+        logStep('+ SUCCESS', `Frekwencja ucznia: ${attendanceRate}% (${total} wpisów)`);
+      }
+    }
+  } catch (err) {
+    logStep('! ALERT', `Pominięto rejestr nieobecności: ${err.message}`);
+  }
+
+  // 6. Terminarz wielomiesięczny (bieżący i kolejny miesiąc)
+  let calendarPayload = { events: [] };
+  try {
+    logStep('* INFO', 'Pobieranie terminarza szkolnego (sprawdziany, kartkówki, absencje)...');
+    calendarPayload = await fetchLibrusCalendarFromSource(client);
+    if (options.includeNextMonth !== false) {
+      const now = new Date();
+      let nextM = now.getMonth() + 2;
+      let nextY = now.getFullYear();
+      if (nextM > 12) { nextM = 1; nextY++; }
+      try {
+        const nextCal = await fetchLibrusCalendarFromSource(client, nextM, nextY);
+        if (nextCal?.events?.length > 0) {
+          const combined = [...(calendarPayload.events || []), ...nextCal.events];
+          const uniqueEvents = Array.from(new Map(combined.map(e => [e.id || `${e.date}_${e.title}`, e])).values());
+          calendarPayload.events = uniqueEvents.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+        }
+      } catch {}
+    }
+    logStep('+ SUCCESS', `Terminarz: pobrano ${calendarPayload.events.length} wydarzeń.`);
+  } catch (err) {
+    logStep('! ALERT', `Błąd terminarza: ${err.message}`);
+  }
+
+  // 7. Plan lekcji dla wszystkich dni tygodnia
+  let timetablePayload = { hours: [], table: {}, lessons: [], substitutions: [] };
+  try {
+    logStep('* INFO', 'Pobieranie planu lekcji dla wszystkich dni tygodnia...');
+    const rawTt = await fetchLibrusTimetableFromSource(client, options.from, options.to);
+    const correlated = correlateTimetableWithAbsences(rawTt.lessons || [], calendarPayload.events || []);
+    timetablePayload = {
+      hours: rawTt.hours || [],
+      table: rawTt.table || {},
+      lessons: correlated.lessons || [],
+      substitutions: correlated.detectedSubstitutions || [],
+      lastSync: new Date().toISOString()
+    };
+    logStep('+ SUCCESS', `Plan lekcji: pobrano ${timetablePayload.lessons.length} lekcji dla ${Object.keys(timetablePayload.table).length} dni, wykryto ${timetablePayload.substitutions.length} zastępstw.`);
+  } catch (err) {
+    logStep('! ALERT', `Błąd planu lekcji: ${err.message}`);
+  }
+
+  // 8. Zapis do pamięci trwałej (SQLite + Cloud Firestore)
+  if (options.saveToDb !== false) {
+    logStep('* INFO', 'Zapis i synchronizacja z lokalną bazą SQLite oraz Cloud Firestore...');
+    if (gradeStats) {
+      await saveGradesToCache({
+        isConfigured: true,
+        isDemo: false,
+        subjects: gradeStats.subjects,
+        overallAverage: gradeStats.overallAverage,
+        totalSubjects: gradeStats.totalSubjects,
+        gradedSubjectsCount: gradeStats.gradedSubjectsCount,
+        highestAverage: gradeStats.highestAverage,
+        lowestAverage: gradeStats.lowestAverage,
+        luckyNumber,
+        studentInfo,
+        attendanceRate,
+        lastSync: new Date().toISOString()
+      });
+    }
+    if (calendarPayload?.events?.length > 0) {
+      await saveCalendarToCache(calendarPayload);
+    }
+    if (timetablePayload?.lessons?.length > 0) {
+      await saveTimetableToCache(timetablePayload);
+      if (options.importToMainSchedule) {
+        await importLessonsToSchedule(timetablePayload.lessons);
+      }
+    }
+    logStep('+ SUCCESS', 'Bazy SQLite i Cloud Firestore zostały pomyślnie zaktualizowane.');
+  }
+
+  return {
+    success: true,
+    timestamp: new Date().toISOString(),
+    studentInfo,
+    luckyNumber,
+    notifications,
+    grades: gradeStats,
+    attendanceRate,
+    calendar: calendarPayload,
+    timetable: timetablePayload,
+    logs
   };
 }

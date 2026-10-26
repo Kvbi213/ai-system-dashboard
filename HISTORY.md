@@ -1,5 +1,21 @@
 ## Wersja Bieżąca
-**v3.3.2**
+**v3.3.3**
+
+## v 3.3.3 — 2026-10-26
+**Typ:** PATCH  
+**Zakres:** Implementacja Ręcznego Czytnika Librus Synergia API (Ground Truth Reader), Wielodniowego Harmonogramu Pełnego Tygodnia oraz Integracji UI:
+- [+] Dodano: `modules/components/LibrusReaderModal.jsx` – interaktywne okno dialogowe ręcznego czytnika Librus API (Ground Truth Reader) ze stepperem 6 etapów, podsumowaniem konta (Uczeń, Klasa, Szczęśliwy Numerek), filtrem dni tygodnia, wykazem ocen, zdarzeń terminarza i nieobecności nauczycieli, dziennikiem logów, kopiowaniem raportu do schowka, pobieraniem zrzutu JSON oraz bezpośrednim importem do aktywnego harmonogramu.
+- [+] Dodano: `scripts/librus_reader.js` – autonomiczny skrypt wiersza poleceń CLI pobierający komplet wszystkich zasobów z Librus API (`--save`, `--schedule`, `--json`, `--from`, `--to`). Pomyślnie zweryfikowany z żywymi poświadczeniami operatora (Jakub Lis, 2 TI T, Szczęśliwy nr: 21, 35 lekcji w 7 dniach, 37 zdarzeń w terminarzu, 16 ocenionych przedmiotów).
+- [+] Dodano: `tests/librus_reader.test.js` – dedykowany zestaw testów jednostkowych i integracyjnych dla ręcznego czytnika, weryfikujący pokrycie wszystkich dni tygodnia, zabezpieczenia tabeli harmonogramu (`category: 'personal'`) oraz strukturę kontraktu API.
+- [*] Zmodyfikowano: `modules/pages/TimetablePage.jsx` – przełączono domyślny stan `selectedDay` na `'all_week'` (Harmonogram Pełnego Tygodnia / Librus App Grid), dodano przycisk `[>] Ręczny Czytnik API` w pasku akcji, zintegrowano modal `LibrusReaderModal` z funkcją automatycznego aplikowania odczytanych lekcji do aktywnego planu dnia z zachowaniem rutyn osobistych (FBW, cele, praca głęboka).
+- [*] Zmodyfikowano: `modules/pages/GradesPage.jsx` – dodano przycisk `[>] Ręczny Czytnik API` w pasku nawigacyjnym, zintegrowano modal `LibrusReaderModal` z dynamiczną aktualizacją średnich i ocen.
+- [*] Zmodyfikowano: `modules/services/librusService.js` – zoptymalizowano `fetchLibrusCalendarFromSource` (guard `needsDetails` skracający czas pobierania terminarza z 35s do <1s), wdrożono `saveGradesToCache`, uodporniono `importLessonsToSchedule` z jawnym obiektem zwrotnym `{ success: true, importedCount: ... }` i zachowaniem wpisów prywatnych `category = 'personal'`.
+- [*] Zmodyfikowano: `modules/routes/librus.js` & `api/librus.js` – dodano pełną obsługę endpointów `GET & POST /api/librus/manual-read` i `/api/librus/read-all` w backendzie lokalnym Express oraz bramie chmurowej Vercel Serverless Gateway.
+- [*] Zmodyfikowano: `package.json` – podniesiono wersję do `3.3.3`.
+- [+] Dodano: `docs/versions/v3.3.3.md` – pełna dokumentacja wydania wraz z checklistą integralności.
+- [*] Weryfikacja: 48/48 PASS w testach Vitest (100%), kompilacja produkcyjna Vite zakończona sukcesem (12.62s).
+
+---
 
 ## v 3.3.2 — 2026-10-26
 **Typ:** PATCH  

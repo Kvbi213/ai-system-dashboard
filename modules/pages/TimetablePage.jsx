@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import axios from 'axios';
+import LibrusReaderModal from '../components/LibrusReaderModal.jsx';
 import { 
   subscribeCollection, 
   saveCloudDocument, 
@@ -738,13 +739,46 @@ const INITIAL_SCHEDULE = [
 export const TimetablePage = () => {
   // Filters & State
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'librus' | 'personal'
-  const [selectedDay, setSelectedDay] = useState(() => {
-    const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-    const today = days[new Date().getDay()];
-    return today === 'sun' || today === 'sat' ? 'all_week' : today;
-  });
+  const [selectedDay, setSelectedDay] = useState('all_week');
   const [showTimetableGuide, setShowTimetableGuide] = useState(false);
+  const [showLibrusReaderModal, setShowLibrusReaderModal] = useState(false);
   const [scheduleItems, setScheduleItems] = useState(INITIAL_SCHEDULE);
+
+  const handleApplyFromReader = useCallback((newLessons) => {
+    if (Array.isArray(newLessons)) {
+      setScheduleItems(prev => {
+        const personal = prev.filter(p => p.category === 'personal');
+        const mappedLessons = newLessons.map((l, lIdx) => {
+          const mappedDay = mapDayToAbbrev(l.day) || l.day;
+          const isCancelled = Boolean(l.isCancelled || l.status === 'cancelled');
+          const isSubstitution = Boolean(l.isSubstitution || l.status === 'substitution');
+          const safeStart = l.time_start || l.timeStart || '08:00';
+          const safeEnd = l.time_end || l.timeEnd || '08:45';
+          const safeId = l.id || `librus_${mappedDay}_${safeStart.replace(':', '')}_${lIdx}`;
+          return {
+            id: safeId,
+            day: mappedDay,
+            timeStart: safeStart,
+            timeEnd: safeEnd,
+            duration: l.duration || '45 min',
+            category: 'librus',
+            categoryLabel: isSubstitution ? 'Szkolne • Zastępstwo' : isCancelled ? '[!] Lekcja Odwołana' : 'Szkolne • Librus',
+            room: l.room || '',
+            teacher: l.cleanTeacher || l.teacher || '',
+            indicatorColor: isCancelled ? 'bg-error' : isSubstitution ? 'bg-amber-500' : 'bg-primary',
+            title: l.subject || l.title || 'Lekcja',
+            description: l.notes || l.description || '',
+            isCancelled,
+            isSubstitution,
+            statusText: isCancelled ? '[!] Odwołana' : isSubstitution ? '[~] Zastępstwo' : 'Zajęcia w planie'
+          };
+        });
+        return [...mappedLessons, ...personal];
+      });
+      setSelectedDay('all_week');
+      setLastVerifyText('Przed chwilą (z czytnika API)');
+    }
+  }, []);
   
   // Clock Ticker
   const [currentTime, setCurrentTime] = useState(() => {
@@ -1187,6 +1221,16 @@ END:VEVENT`).join('\n');
             >
               <span className="material-symbols-outlined text-[16px] text-secondary">help</span>
               <span>{showTimetableGuide ? 'Zamknij Poradnik' : 'Jak Czytać Plan'}</span>
+            </button>
+
+            <button 
+              className="flex items-center gap-space-xs px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary border border-primary/30 font-label-md text-label-md font-bold transition-all cursor-pointer shadow-sm"
+              onClick={() => setShowLibrusReaderModal(true)} 
+              type="button"
+              title="Uruchom ręczny czytnik Librus Synergia API (zrzut wszystkich dni i ocen)"
+            >
+              <span className="material-symbols-outlined text-[16px] text-primary">terminal</span>
+              <span>Ręczny Czytnik API</span>
             </button>
 
             <button 
@@ -2084,6 +2128,13 @@ END:VEVENT`).join('\n');
           </div>
         </div>
       )}
+
+      {/* RĘCZNY CZYTNIK LIBRUS API (GROUND TRUTH MODAL) */}
+      <LibrusReaderModal
+        isOpen={showLibrusReaderModal}
+        onClose={() => setShowLibrusReaderModal(false)}
+        onApplyToSchedule={handleApplyFromReader}
+      />
     </div>
   );
 };
