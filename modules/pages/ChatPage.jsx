@@ -85,6 +85,20 @@ const ChatPage = () => {
   const [showClearToast, setShowClearToast] = useState(false);
   const [copyToast, setCopyToast] = useState(false);
 
+  const feedbackTimerRef = useRef(null);
+  const copyToastTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimerRef.current) {
+        clearTimeout(feedbackTimerRef.current);
+      }
+      if (copyToastTimerRef.current) {
+        clearTimeout(copyToastTimerRef.current);
+      }
+    };
+  }, []);
+
   const toggleToolCard = (id) => {
     setExpandedToolCards(prev => ({
       ...prev,
@@ -93,12 +107,26 @@ const ChatPage = () => {
   };
 
   const setAllTools = (active) => {
-    setToolsList(prev => prev.map(t => ({ ...t, active })));
+    setToolsList(prev => {
+      if (!Array.isArray(prev)) return [];
+      return prev.map(t => ({ ...t, active }));
+    });
   };
 
   const handleTestTool = (tool) => {
-    setToolExecutionFeedback(`Uruchomiono test ${tool.name}: Status 200 OK (${tool.latency})`);
-    setTimeout(() => setToolExecutionFeedback(null), 3000);
+    try {
+      if (!tool || typeof tool !== 'object') return;
+      if (feedbackTimerRef.current) {
+        clearTimeout(feedbackTimerRef.current);
+      }
+      setToolExecutionFeedback(`Uruchomiono test ${tool.name || 'narzędzia'}: Status 200 OK (${tool.latency || '0ms'})`);
+      feedbackTimerRef.current = setTimeout(() => {
+        setToolExecutionFeedback(null);
+        feedbackTimerRef.current = null;
+      }, 3000);
+    } catch (err) {
+      console.error('[ChatPage] handleTestTool error:', err);
+    }
   };
 
   // Live Continuous Voice Conversation States
@@ -611,7 +639,7 @@ const ChatPage = () => {
     // 4. Klawisz Escape zamyka wysuwane panele lub tryb mowy
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        setIsToolsDrawerOpen(false);
+        setIsToolsDrawerOpen(prev => (prev ? false : prev));
         if (isLiveModeRef.current) {
           stopLiveMode(false);
         }
@@ -634,7 +662,11 @@ const ChatPage = () => {
     if (action === 'copy') {
       navigator.clipboard?.writeText("Sprawdziłem Twój dzisiejszy harmonogram. O 12:45 masz okienko (odwołana lekcja fizyki)...");
       setCopyToast(true);
-      setTimeout(() => setCopyToast(false), 2000);
+      if (copyToastTimerRef.current) clearTimeout(copyToastTimerRef.current);
+      copyToastTimerRef.current = setTimeout(() => {
+        setCopyToast(false);
+        copyToastTimerRef.current = null;
+      }, 2000);
     } else if (action === 'timer') {
       window.location.hash = '#timer';
       alert('Stoper sesji został zainicjalizowany.');
@@ -644,7 +676,8 @@ const ChatPage = () => {
   };
 
   const activeToolsCount = useMemo(() => {
-    return toolsList.filter(t => t.active).length;
+    if (!Array.isArray(toolsList)) return 0;
+    return toolsList.reduce((sum, tool) => sum + (tool?.active ? 1 : 0), 0);
   }, [toolsList]);
 
   return (
