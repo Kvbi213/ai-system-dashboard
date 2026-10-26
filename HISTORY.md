@@ -1,5 +1,24 @@
 ## Wersja Bieżąca
-**v3.3.1**
+**v3.3.2**
+
+## v 3.3.2 — 2026-10-26
+**Typ:** PATCH  
+**Zakres:** Autentyczne Źródło Prawdy Librus Synergia (Plan Lekcji, Zastępstwa, Oceny, Reset Bazy Danych i Przywrócenie Metadanych Ocen):
+- [*] Zmodyfikowano: `modules/services/librusService.js` – usunięto sztuczne, zafałszowane dane testowe (m.in. fałszywe czwartkowe odwołania lekcji). Wdrożono autentyczny zestaw danych źródłowych z Librus Synergia na podstawie zrzutów ekranu (single source of truth):
+  1. Tygodniowy plan lekcji (2026-10-19 – 2026-10-25): autentyczne lekcje dla klasy 2 TI (godziny 0–10), wykrywanie zastępstw (`isSubstitution: true`, `status: 'substitution'`, wtorkowe lekcje 4 i 5 z Joanną Ziembą) oraz lekcji odwołanych (`isCancelled: true`, piątkowa lekcja 1 z Alicją Czarną).
+  2. Baza ocen: 21 autentycznych przedmiotów ze średnią ogólną 4.35 (w tym Matematyka śr. 3.75, Historia śr. 4.00, Informatyka śr. 6.00).
+  3. Eliminacja defektu utraty metadanych ocen: w `computeGradeStats` funkcja `mapGradeItem` bezpiecznie scala istniejące pole `details`, zapobiegając nadpisywaniu wag i kategorii pustymi wartościami domyślnymi podczas odczytu z pamięci podręcznej i Firestore.
+  4. Implementacja procedury `resetAndSeedLibrusDatabase()`: kompleksowe czyszczenie i zasilenie świeżymi danymi tabel SQLite (`librus_cache`, `librus_timetable_cache`, `librus_calendar_cache`, `timetable`) oraz replikacja do dokumentów Firestore (`librus_cache/latest`, `librus_cache/timetable`, `librus_cache/calendar`), przy bezwzględnym zachowaniu osobistych bloków harmonogramu (`category: 'personal'`).
+- [*] Zmodyfikowano: `modules/services/teacherUtils.js` – rozszerzono słownik skrótów i inicjałów nauczycieli o brakujące aliasy (`KŻ`/`ŻK` -> `Kżyś Łukasz`, `BG`/`GB`/`BCM` -> `Cembik Bartosz`, `BZ`/`ZB` -> `Behr Zbigniew`).
+- [*] Zmodyfikowano: `modules/pages/TimetablePage.jsx` – zaktualizowano `INITIAL_SCHEDULE` do autentycznego planu (2026-10-19 – 2026-10-25) powiązanego z blokami osobistymi (FBW, nauka, chill, praca głęboka). Wdrożono wizualną obsługę zastępstw (`[~] Zastępstwo` w kolorze bursztynowym) w widoku tygodniowym i widoku pojedynczego dnia.
+- [*] Zmodyfikowano: `modules/pages/GradesPage.jsx` – zaktualizowano `STATIC_DEMO_DATA` do autentycznych 21 przedmiotów ze średnią 4.35. Dodano wyświetlanie nazwiska nauczyciela w modalu szczegółów oceny oraz bezpieczne przekazywanie nauczyciela w zdarzeniu kliknięcia w ocenę.
+- [*] Zmodyfikowano: `api/librus.js` – zaktualizowano fallbacki demo w Vercel Serverless Gateway dla kalendarza, planu lekcji i ocen do autentycznego stanu z Librus Synergia.
+- [*] Zmodyfikowano: `tests/librus.test.js` – zaktualizowano asercje testów integracyjnych pod kątem autentycznych średnich (4.35) i autentycznych statusów planu lekcji (zastępstwa wtorkowe, odwołanie piątkowe). Wszystkie testy (35/35) przechodzą w 100%.
+- [+] Dodano: Raport wydania `docs/versions/v3.3.2.md`.
+- [*] Zmodyfikowano: `package.json` – inkrementacja wersji do `3.3.2`.
+- [*] Weryfikacja: Pełna kompilacja produkcyjna Vite bez błędów (`dist/`).
+
+---
 
 ## v 3.3.1 — 2026-10-23
 **Typ:** PATCH  

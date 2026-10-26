@@ -325,7 +325,7 @@ Komentarz: Dział 3`;
 
       const absentLesson = data.lessons.find(l => l.absenceAlert && l.absenceAlert.isAbsent);
       expect(absentLesson).toBeDefined();
-      expect(absentLesson.teacher).toBe('Negowska Alicja');
+      expect(absentLesson.teacher).toBe('Czarna Alicja');
     });
   });
 
@@ -426,44 +426,47 @@ Komentarz: Dział 3`;
   });
 
   describe('Librus Cancelled Lessons & Plan Dnia Demo Verification', () => {
-    it('should have Thursday lessons 1, 2, 3, 8 marked as cancelled and math lessons 6-7 active', () => {
+    it('should have Friday lesson 1 marked as cancelled, Tuesday lessons 4-5 as substitutions, and Thursday lessons active', () => {
       const timetable = getDemoTimetableData();
+      const fridayLessons = timetable.lessons.filter(l => l.day === 'friday');
+      const tuesdayLessons = timetable.lessons.filter(l => l.day === 'tuesday');
       const thursdayLessons = timetable.lessons.filter(l => l.day === 'thursday');
 
-      const thu1 = thursdayLessons.find(l => l.id === 'librus_thu_1');
-      const thu2 = thursdayLessons.find(l => l.id === 'librus_thu_2');
-      const thu3 = thursdayLessons.find(l => l.id === 'librus_thu_3');
-      const thu6 = thursdayLessons.find(l => l.id === 'librus_thu_6');
-      const thu7 = thursdayLessons.find(l => l.id === 'librus_thu_7');
-      const thu8 = thursdayLessons.find(l => l.id === 'librus_thu_8');
+      const fri1 = fridayLessons.find(l => l.id === 'librus_fri_1');
+      expect(fri1?.isCancelled).toBe(true);
+      expect(fri1?.status).toBe('cancelled');
 
-      expect(thu1?.isCancelled).toBe(true);
-      expect(thu1?.status).toBe('cancelled');
-      expect(thu2?.isCancelled).toBe(true);
-      expect(thu3?.isCancelled).toBe(true);
-      expect(thu8?.isCancelled).toBe(true);
+      const tue4 = tuesdayLessons.find(l => l.id === 'librus_tue_4');
+      const tue5 = tuesdayLessons.find(l => l.id === 'librus_tue_5');
+      expect(tue4?.isSubstitution).toBe(true);
+      expect(tue4?.status).toBe('substitution');
+      expect(tue5?.isSubstitution).toBe(true);
+      expect(tue5?.status).toBe('substitution');
 
-      // Lekcje matematyki 6 i 7 odbywają się normalnie
-      expect(thu6?.isCancelled).toBeFalsy();
-      expect(thu6?.status).toBe('active');
-      expect(thu7?.isCancelled).toBeFalsy();
-      expect(thu7?.status).toBe('active');
+      // Lekcje czwartkowe odbywają się normalnie
+      thursdayLessons.forEach(l => {
+        expect(l.isCancelled).toBeFalsy();
+        expect(l.status).toBe('active');
+      });
     });
 
-    it('should calculate accurate demo grades stats with overall average 4.62', () => {
+    it('should calculate accurate demo grades stats with authentic overall average 4.35 matching Librus ground truth', () => {
       const grades = getDemoGradesData();
-      expect(grades.overallAverage).toBe(4.62);
+      expect(grades.overallAverage).toBe(4.35);
 
-      const math = grades.subjects.find(s => s.name === 'Matematyka');
+      const math = grades.subjects.find(s => s.name.toLowerCase() === 'matematyka');
       expect(math).toBeDefined();
       expect(math.average).toBe(3.67);
       expect(math.grades.length).toBe(5);
 
-      const utk = grades.subjects.find(s => s.name.includes('techniki komputerowej'));
-      expect(utk).toBeDefined();
-      const nGrade = utk.grades.find(g => g.value === 'N');
-      expect(nGrade).toBeDefined();
-      expect(nGrade.inAverage).toBe(false);
+      const history = grades.subjects.find(s => s.name.toLowerCase() === 'historia');
+      expect(history).toBeDefined();
+      expect(history.average).toBe(4.00);
+      expect(history.grades.length).toBe(3);
+
+      const edb = grades.subjects.find(s => s.name.toLowerCase().includes('edukacja obywatelska'));
+      expect(edb).toBeDefined();
+      expect(edb.average).toBe(5.00);
     });
 
     it('should correctly tag timetable lessons and preserve personal activities and school classes', () => {
@@ -473,12 +476,16 @@ Komentarz: Dział 3`;
       // Wszystkie lekcje demonstracyjne mają zdefiniowane poprawne statusy
       timetable.lessons.forEach(l => {
         expect(l.status).toBeDefined();
-        expect(['active', 'cancelled']).toContain(l.status);
+        expect(['active', 'cancelled', 'substitution']).toContain(l.status);
       });
 
       // Sprawdź czy odwołane lekcje nie zostały wycięte
       const cancelled = timetable.lessons.filter(l => l.isCancelled);
-      expect(cancelled.length).toBe(4); // Czwartkowe lekcje 1, 2, 3, 8
+      expect(cancelled.length).toBe(1); // Piątkowa lekcja 1 (Alicja Czarna)
+
+      // Sprawdź wykryte zastępstwa
+      const substitutions = timetable.lessons.filter(l => l.isSubstitution);
+      expect(substitutions.length).toBe(2); // Wtorkowe lekcje 4 i 5 (Joanna Ziemba)
     });
 
     it('should cleanly differentiate between personal and school lessons in Plan Dnia switching', () => {

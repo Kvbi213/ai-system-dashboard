@@ -66,65 +66,79 @@ const mapDayToAbbrev = (day) => {
 const INITIAL_SCHEDULE = [
   // Poniedziałek (mon)
   {
-    id: 'mon_1',
+    id: 'mon_2',
     day: 'mon',
     timeStart: '08:50',
     timeEnd: '09:35',
     duration: '45 min',
     category: 'librus',
     categoryLabel: 'Szkolne • Librus',
-    room: 'Sala 17',
-    teacher: 'Becker Adam',
+    room: 's. 04',
+    teacher: 'Becker Adam (2 TI gr.2)',
     indicatorColor: 'bg-primary',
     title: 'Informatyka',
-    description: 'Pracownia informatyczna, algorytmy sortowania i struktur danych.',
+    description: 'Pracownia informatyczna s. 04, algorytmy i bazy danych.',
     statusText: 'Obecność odnotowana'
   },
   {
-    id: 'mon_2',
+    id: 'mon_3',
     day: 'mon',
     timeStart: '09:40',
     timeEnd: '10:25',
     duration: '45 min',
     category: 'librus',
     categoryLabel: 'Szkolne • Librus',
-    room: 'Sala 17',
-    teacher: 'Becker Adam',
+    room: 's. 04',
+    teacher: 'Becker Adam (2 TI gr.2)',
     indicatorColor: 'bg-primary',
     title: 'Informatyka',
-    description: 'Warsztaty praktyczne w środowisku Linux.',
+    description: 'Pracownia informatyczna s. 04, implementacje algorytmów.',
     statusText: 'Obecność odnotowana'
   },
   {
-    id: 'mon_3',
+    id: 'mon_4',
     day: 'mon',
     timeStart: '10:40',
     timeEnd: '11:25',
     duration: '45 min',
     category: 'librus',
     categoryLabel: 'Szkolne • Librus',
-    room: 'Sala 31',
-    teacher: 'Kolasińska Paulina',
+    room: 's. 0.2',
+    teacher: 'Sokół Paweł',
     indicatorColor: 'bg-secondary',
-    title: 'Chemia',
-    description: 'Kinetyka reakcji chemicznych i równowaga dynamiczna.'
-  },
-  {
-    id: 'mon_4',
-    day: 'mon',
-    timeStart: '12:20',
-    timeEnd: '14:00',
-    duration: '90 min',
-    category: 'librus',
-    categoryLabel: 'Szkolne • Librus',
-    room: 'Sala 1.16',
-    teacher: 'Wojnarowski Przemysław',
-    indicatorColor: 'bg-primary',
-    title: 'Systemy operacyjne',
-    description: 'Architektura jądra Unix, procesy i wątki POSIX.'
+    title: 'Biznes i zarządzanie',
+    description: 'Formy działalności gospodarczej i podstawy przedsiębiorczości.'
   },
   {
     id: 'mon_5',
+    day: 'mon',
+    timeStart: '11:30',
+    timeEnd: '12:15',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 0.2',
+    teacher: 'Wojnarowski Przemysław',
+    indicatorColor: 'bg-primary',
+    title: 'Lokalne sieci komputerowe',
+    description: 'Architektura sieci LAN, protokoły warstwy 2 i 3.'
+  },
+  {
+    id: 'mon_6',
+    day: 'mon',
+    timeStart: '12:20',
+    timeEnd: '13:05',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 34',
+    teacher: 'Negowska Alicja',
+    indicatorColor: 'bg-secondary',
+    title: 'Język polski',
+    description: 'Analiza tekstu literackiego i konteksty epoki.'
+  },
+  {
+    id: 'mon_workout',
     day: 'mon',
     timeStart: '17:30',
     timeEnd: '18:45',
@@ -143,137 +157,266 @@ const INITIAL_SCHEDULE = [
     id: 'tue_1',
     day: 'tue',
     timeStart: '08:00',
-    timeEnd: '09:35',
-    duration: '95 min',
+    timeEnd: '08:45',
+    duration: '45 min',
     category: 'librus',
     categoryLabel: 'Szkolne • Librus',
-    room: 'Sala 1.16',
-    teacher: 'Wojnarowski Przemysław',
+    room: 's. 0.1',
+    teacher: 'Wojnarowski Przemysław (2TI gr.1)',
     indicatorColor: 'bg-primary',
     title: 'Pracownia urządzeń techniki komputerowej',
-    description: 'Diagnostyka magistrali PCIe i pamięci RAM DDR5.'
+    description: 'Diagnostyka podzespołów i interfejsów magistrali.'
   },
   {
     id: 'tue_2',
     day: 'tue',
-    timeStart: '10:40',
-    timeEnd: '12:15',
-    duration: '90 min',
+    timeStart: '08:50',
+    timeEnd: '09:35',
+    duration: '45 min',
     category: 'librus',
     categoryLabel: 'Szkolne • Librus',
-    room: 'Hala Sportowa',
-    teacher: 'Łysakowski Grzegorz',
-    indicatorColor: 'bg-tertiary',
-    title: 'Wychowanie fizyczne',
-    description: 'Kondycja ogólna i gry zespołowe.'
+    room: 's. 0.1',
+    teacher: 'Wojnarowski Przemysław (2TI gr.1)',
+    indicatorColor: 'bg-primary',
+    title: 'Pracownia urządzeń techniki komputerowej',
+    description: 'Montaż i konfiguracja układów chłodzenia.'
   },
   {
     id: 'tue_3',
     day: 'tue',
-    timeStart: '12:20',
-    timeEnd: '14:00',
-    duration: '90 min',
+    timeStart: '09:40',
+    timeEnd: '10:25',
+    duration: '45 min',
     category: 'librus',
     categoryLabel: 'Szkolne • Librus',
-    room: 'Sala 1.16',
-    teacher: 'Reszka Sławomir',
-    indicatorColor: 'bg-primary',
-    title: 'Pracownia systemów operacyjnych',
-    description: 'Skrypty bash, automatyzacja zadań crontab i systemd.'
+    room: 's. 28',
+    teacher: 'Ziemba Joanna',
+    indicatorColor: 'bg-secondary',
+    title: 'Zajęcia z wychowawcą',
+    description: 'Sprawy organizacyjne klasy 2 TI.'
   },
   {
     id: 'tue_4',
+    day: 'tue',
+    timeStart: '10:40',
+    timeEnd: '11:25',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Zastępstwo',
+    room: '',
+    teacher: 'Ziemba Joanna (j.ang 2 TI gr.1)',
+    indicatorColor: 'bg-amber-500',
+    isSubstitution: true,
+    status: 'substitution',
+    statusLabel: 'Zastępstwo',
+    title: 'Język angielski',
+    description: '[~] Zastępstwo w Librus Synergia (Joanna Ziemba)',
+    statusText: '[~] Zastępstwo'
+  },
+  {
+    id: 'tue_5',
+    day: 'tue',
+    timeStart: '11:30',
+    timeEnd: '12:15',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Zastępstwo',
+    room: '',
+    teacher: 'Ziemba Joanna (j.ang 2 TI gr.1)',
+    indicatorColor: 'bg-amber-500',
+    isSubstitution: true,
+    status: 'substitution',
+    statusLabel: 'Zastępstwo',
+    title: 'Język angielski',
+    description: '[~] Zastępstwo w Librus Synergia (Joanna Ziemba)',
+    statusText: '[~] Zastępstwo'
+  },
+  {
+    id: 'tue_6',
+    day: 'tue',
+    timeStart: '12:20',
+    timeEnd: '13:05',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 1.15',
+    teacher: 'Reszka Sławomir (2 TI gr.1 PSO)',
+    indicatorColor: 'bg-primary',
+    title: 'Pracownia systemów operacyjnych',
+    description: 'Zarządzanie środowiskiem Linux, skrypty powłoki.'
+  },
+  {
+    id: 'tue_7',
+    day: 'tue',
+    timeStart: '13:15',
+    timeEnd: '14:00',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 1.15',
+    teacher: 'Reszka Sławomir (2 TI gr.1 PSO)',
+    indicatorColor: 'bg-primary',
+    title: 'Pracownia systemów operacyjnych',
+    description: 'Uprawnienia, potoki i konfiguracja demonów systemd.'
+  },
+  {
+    id: 'tue_8',
     day: 'tue',
     timeStart: '14:05',
     timeEnd: '14:50',
     duration: '45 min',
     category: 'librus',
     categoryLabel: 'Szkolne • Librus',
-    room: 'Sala 26',
-    teacher: 'Bahr Zbigniew',
+    room: 's. 35',
+    teacher: 'Spych Monika',
+    indicatorColor: 'bg-secondary',
+    title: 'Edukacja zdrowotna',
+    description: 'Higiena pracy przy komputerze i ergonomia.'
+  },
+  {
+    id: 'tue_9',
+    day: 'tue',
+    timeStart: '14:55',
+    timeEnd: '15:40',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 28',
+    teacher: 'Behr Zbigniew',
     indicatorColor: 'bg-secondary',
     title: 'Matematyka',
-    description: 'Funkcje wykładnicze i logarytmiczne.'
+    description: 'Trójmian kwadratowy i zadania z parametrem.'
   },
 
-  // Środa (wed) - Dziś
+  // Środa (wed)
   {
-    id: 'b1',
-    day: 'wed',
-    timeStart: '07:00',
-    timeEnd: '07:45',
-    duration: '45 min',
-    category: 'personal',
-    categoryLabel: 'Osobiste',
-    badge: 'SYS-CHECK',
-    indicatorColor: 'bg-secondary-container',
-    title: 'Poranny rozruch & Przegląd telemetrii OmniDash',
-    description: 'Nawodnienie, kalibracja sensorów snu, synchronizacja dziennika bazy wektorowej.',
-    statusText: 'Zrealizowano',
-    isDone: true,
-  },
-  {
-    id: 'b2',
+    id: 'wed_1',
     day: 'wed',
     timeStart: '08:00',
+    timeEnd: '08:45',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 03',
+    teacher: 'Łukaszczyk-Wulgaris Joanna',
+    indicatorColor: 'bg-secondary',
+    title: 'Biologia',
+    description: 'Struktury komórkowe i procesy biochemiczne.'
+  },
+  {
+    id: 'wed_2',
+    day: 'wed',
+    timeStart: '08:50',
     timeEnd: '09:35',
-    duration: '95 min',
+    duration: '45 min',
     category: 'librus',
     categoryLabel: 'Szkolne • Librus',
-    room: 'Sala 104',
-    teacher: 'Becker Adam',
-    indicatorColor: 'bg-primary',
-    title: 'Informatyka Stosowana',
-    description: 'Struktury danych, implementacja kolejki FIFO/LIFO w C++. Sprawdzian formatywny.',
-    statusText: 'Obecność odnotowana',
-    isDone: true,
+    room: 's. 03',
+    teacher: 'Łukaszczyk-Wulgaris Joanna',
+    indicatorColor: 'bg-secondary',
+    title: 'Biologia',
+    description: 'Praca klasowa / ćwiczenia problemowe.'
   },
   {
-    id: 'b3',
+    id: 'wed_3',
     day: 'wed',
-    timeStart: '09:50',
+    timeStart: '09:40',
+    timeEnd: '10:25',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 1.2',
+    teacher: 'Wojnarowski Przemysław',
+    indicatorColor: 'bg-primary',
+    title: 'Systemy operacyjne',
+    description: 'Zarządzanie zasobami procesora i pamięci RAM.'
+  },
+  {
+    id: 'wed_4',
+    day: 'wed',
+    timeStart: '10:40',
     timeEnd: '11:25',
-    duration: 'Aktywny',
-    category: 'librus',
-    categoryLabel: 'Trwa teraz',
-    room: 'Sala 210',
-    teacher: 'dr inż. M. Karwicki',
-    indicatorColor: 'bg-primary/40',
-    isActive: true,
-    title: 'Matematyka Dyskretna',
-    description: 'Teoria grafów, izomorfizmy oraz algorytm Dijkstry. Notatki zapisywane w Obsidian.',
-    hasNoteBtn: true,
-  },
-  {
-    id: 'b4',
-    day: 'wed',
-    timeStart: '11:40',
-    timeEnd: '12:25',
-    duration: 'Okienko',
-    category: 'librus',
-    categoryLabel: '[!] Lekcja Odwołana',
-    librusSyncTime: '08:12',
-    isCancelled: true,
-    indicatorColor: 'bg-error',
-    title: 'Fizyka Techniczna',
-    infoText: 'Okienko czasowe: 45 min na powtórkę w bibliotece',
-    hasAssignTaskBtn: true,
-  },
-  {
-    id: 'b5',
-    day: 'wed',
-    timeStart: '13:00',
-    timeEnd: '14:30',
-    duration: '90 min',
+    duration: '45 min',
     category: 'librus',
     categoryLabel: 'Szkolne • Librus',
-    room: 'Sala 302',
+    room: 's. 1.2',
+    teacher: 'Wojnarowski Przemysław',
     indicatorColor: 'bg-primary',
-    title: 'Język Angielski C1',
-    description: 'Academic writing & research terminology presentation. Przygotowanie eseju technicznego.',
+    title: 'Systemy operacyjne',
+    description: 'System plików ext4, kronikowanie i partycjonowanie.'
   },
   {
-    id: 'b6',
+    id: 'wed_5',
+    day: 'wed',
+    timeStart: '11:30',
+    timeEnd: '12:15',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 1.2',
+    teacher: 'Cembik Bartosz',
+    indicatorColor: 'bg-primary',
+    title: 'Urządzenia techniki komputerowej',
+    description: 'Standardy pamięci masowych NVMe, interfejsy SATA.'
+  },
+  {
+    id: 'wed_6',
+    day: 'wed',
+    timeStart: '12:20',
+    timeEnd: '13:05',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 1.2',
+    teacher: 'Cembik Bartosz',
+    indicatorColor: 'bg-primary',
+    title: 'Urządzenia techniki komputerowej',
+    description: 'Magistrale PCIe, chipset płyty głównej.'
+  },
+  {
+    id: 'wed_7',
+    day: 'wed',
+    timeStart: '13:15',
+    timeEnd: '14:00',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 03',
+    teacher: 'Kolasińska Paulina',
+    indicatorColor: 'bg-secondary',
+    title: 'Chemia',
+    description: 'Wiązania kowalencyjne i polaryzacja cząsteczek.'
+  },
+  {
+    id: 'wed_8',
+    day: 'wed',
+    timeStart: '14:05',
+    timeEnd: '14:50',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 05',
+    teacher: 'Wardyn Wojciech',
+    indicatorColor: 'bg-secondary',
+    title: 'Historia',
+    description: 'Wiek Oświecenia w Rzeczypospolitej.'
+  },
+  {
+    id: 'wed_9',
+    day: 'wed',
+    timeStart: '14:55',
+    timeEnd: '15:40',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 28',
+    teacher: 'Behr Zbigniew',
+    indicatorColor: 'bg-secondary',
+    title: 'Matematyka',
+    description: 'Równania i nierówności kwadratowe.'
+  },
+  {
+    id: 'wed_workout',
     day: 'wed',
     timeStart: '17:30',
     timeEnd: '18:45',
@@ -282,80 +425,109 @@ const INITIAL_SCHEDULE = [
     categoryLabel: 'Osobiste • Trening',
     room: 'Dom / Strych',
     indicatorColor: 'bg-tertiary',
-    title: 'FBW Strych (Podciąganie, Dipy, OHP)',
-    description: 'Progresywne przeładowanie. Serie główne: 4x8 Podciąganie z pasem +15kg, 3x10 Dipy +20kg.',
-    hasWorkoutBtn: true,
-  },
-  {
-    id: 'b7',
-    day: 'wed',
-    timeStart: '20:00',
-    timeEnd: '21:30',
-    duration: '90 min',
-    category: 'personal',
-    categoryLabel: 'Osobiste • Fokus',
-    badge: 'OmniDash Core',
-    indicatorColor: 'bg-secondary',
-    title: 'Projekt Systemu & Deep Work',
-    description: 'Implementacja endpointów SQLite WAL i indeksowania wektorowego dla bazy wiedzy.',
+    title: 'FBW Strych (Sesja B)',
+    description: 'Podciąganie, Dipy, OHP, Brzuch.',
+    hasWorkoutBtn: true
   },
 
   // Czwartek (thu)
   {
-    id: 'thu_1',
+    id: 'thu_2',
     day: 'thu',
     timeStart: '08:50',
     timeEnd: '09:35',
     duration: '45 min',
     category: 'librus',
-    categoryLabel: '[!] Lekcja Odwołana',
-    librusSyncTime: '07:45',
-    isCancelled: true,
-    indicatorColor: 'bg-error',
-    title: 'Język Polski',
-    infoText: 'Odwołane z powodu nieobecności nauczyciela'
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 22',
+    teacher: 'Ziemba Joanna (j.ang 2 TI gr.1)',
+    indicatorColor: 'bg-secondary',
+    title: 'Język angielski',
+    description: 'Technical terminology & grammar practice.'
   },
   {
-    id: 'thu_2',
+    id: 'thu_3',
     day: 'thu',
     timeStart: '09:40',
     timeEnd: '10:25',
     duration: '45 min',
     category: 'librus',
     categoryLabel: 'Szkolne • Librus',
-    room: 'Sala 26',
-    teacher: 'Bahr Zbigniew',
-    indicatorColor: 'bg-primary',
-    title: 'Matematyka',
-    description: 'Równania i nierówności kwadratowe.'
+    room: 's. 22',
+    teacher: 'Ziemba Joanna (j.ang 2 TI gr.1)',
+    indicatorColor: 'bg-secondary',
+    title: 'Język angielski',
+    description: 'Reading comprehension and conversational skills.'
   },
   {
-    id: 'thu_3',
+    id: 'thu_4',
     day: 'thu',
     timeStart: '10:40',
     timeEnd: '11:25',
     duration: '45 min',
     category: 'librus',
     categoryLabel: 'Szkolne • Librus',
-    room: 'Sala 302',
-    teacher: 'Wiśniewska Ewa',
-    indicatorColor: 'bg-secondary',
-    title: 'Język Angielski',
-    description: 'Grammar and technical vocabulary.'
+    room: 's. 1.16',
+    teacher: 'Kżyś Łukasz',
+    indicatorColor: 'bg-primary',
+    title: 'Pracownia lokalnych sieci komputerowych',
+    description: 'Montaż okablowania strukturalnego, zarabianie gniazd RJ-45.'
   },
   {
-    id: 'thu_4',
+    id: 'thu_5',
     day: 'thu',
     timeStart: '11:30',
-    timeEnd: '13:05',
-    duration: '90 min',
+    timeEnd: '12:15',
+    duration: '45 min',
     category: 'librus',
     categoryLabel: 'Szkolne • Librus',
-    room: 'Sala 1.16',
-    teacher: 'Becker Adam',
+    room: 's. 1.16',
+    teacher: 'Kżyś Łukasz',
     indicatorColor: 'bg-primary',
-    title: 'Sieci komputerowe',
-    description: 'Konfiguracja protokołu OSPF i adresacja IPv6.'
+    title: 'Pracownia lokalnych sieci komputerowych',
+    description: 'Pomiary toru transmisyjnego i certyfikacja łączy.'
+  },
+  {
+    id: 'thu_6',
+    day: 'thu',
+    timeStart: '12:20',
+    timeEnd: '13:05',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 05',
+    teacher: 'Behr Zbigniew',
+    indicatorColor: 'bg-secondary',
+    title: 'Matematyka',
+    description: 'Funkcje kwadratowe — zadania maturalne.'
+  },
+  {
+    id: 'thu_7',
+    day: 'thu',
+    timeStart: '13:15',
+    timeEnd: '14:00',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 05',
+    teacher: 'Behr Zbigniew',
+    indicatorColor: 'bg-secondary',
+    title: 'Matematyka',
+    description: 'Ćwiczenia rachunkowe i dowodzenie twierdzeń.'
+  },
+  {
+    id: 'thu_8',
+    day: 'thu',
+    timeStart: '14:05',
+    timeEnd: '14:50',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 22',
+    teacher: 'Ziemba Joanna (j.ang.zaw. 2 TI gr.1)',
+    indicatorColor: 'bg-secondary',
+    title: 'Język angielski zawodowy',
+    description: 'Hardware architecture & networking documentation in English.'
   },
 
   // Piątek (fri)
@@ -363,46 +535,107 @@ const INITIAL_SCHEDULE = [
     id: 'fri_1',
     day: 'fri',
     timeStart: '08:00',
-    timeEnd: '09:35',
-    duration: '95 min',
+    timeEnd: '08:45',
+    duration: 'Okienko',
     category: 'librus',
-    categoryLabel: 'Szkolne • Librus',
-    room: 'Sala 1.16',
-    teacher: 'Wojnarowski Przemysław',
-    indicatorColor: 'bg-primary',
-    title: 'Urządzenia techniki komputerowej',
-    description: 'Pomiary oscyloskopowe linii zasilania i magistrali I2C.'
+    categoryLabel: '[!] Lekcja Odwołana',
+    room: '',
+    teacher: 'Czarna Alicja',
+    indicatorColor: 'bg-error',
+    isCancelled: true,
+    status: 'cancelled',
+    statusLabel: 'Odwołana',
+    title: 'Edukacja obywatelska',
+    description: '[!] ODWOŁANA (nieobecność nauczyciela: Alicja Czarna)',
+    infoText: 'Lekcja odwołana — okienko czasowe 45 min',
+    statusText: '[!] Odwołana'
   },
   {
     id: 'fri_2',
     day: 'fri',
-    timeStart: '09:50',
-    timeEnd: '10:35',
+    timeStart: '08:50',
+    timeEnd: '09:35',
     duration: '45 min',
     category: 'librus',
     categoryLabel: 'Szkolne • Librus',
-    room: 'Sala 31',
-    teacher: 'Kolasińska Paulina',
-    indicatorColor: 'bg-secondary',
-    title: 'Geografia',
-    description: 'Geopolityka i surowce strategiczne.'
+    room: '',
+    teacher: 'Łysakowski Grzegorz (Klasa 2 TI)',
+    indicatorColor: 'bg-tertiary',
+    title: 'Wychowanie fizyczne',
+    description: 'Ćwiczenia ogólnorozwojowe i gry zespołowe.'
   },
   {
     id: 'fri_3',
+    day: 'fri',
+    timeStart: '09:40',
+    timeEnd: '10:25',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 21',
+    teacher: 'Chyła Beata (2TI/1)',
+    indicatorColor: 'bg-secondary',
+    title: 'Język niemiecki',
+    description: 'Słownictwo zawodowe i gramatyka praktyczna.'
+  },
+  {
+    id: 'fri_4',
     day: 'fri',
     timeStart: '10:40',
     timeEnd: '11:25',
     duration: '45 min',
     category: 'librus',
     categoryLabel: 'Szkolne • Librus',
-    room: 'Sala 12',
-    teacher: 'Müller Jan',
+    room: 's. 21',
+    teacher: 'Chyła Beata (2TI/1)',
     indicatorColor: 'bg-secondary',
-    title: 'Język Niemiecki',
-    description: 'Komunikacja zawodowa w IT.'
+    title: 'Język niemiecki',
+    description: 'Ćwiczenia komunikacyjne i rozumienie ze słuchu.'
   },
   {
-    id: 'fri_4',
+    id: 'fri_5',
+    day: 'fri',
+    timeStart: '11:30',
+    timeEnd: '12:15',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 19',
+    teacher: 'Kolasińska Paulina',
+    indicatorColor: 'bg-secondary',
+    title: 'Chemia',
+    description: 'Reakcje redoks i bilansowanie równań chemicznych.'
+  },
+  {
+    id: 'fri_6',
+    day: 'fri',
+    timeStart: '12:20',
+    timeEnd: '13:05',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 34',
+    teacher: 'Negowska Alicja',
+    indicatorColor: 'bg-secondary',
+    title: 'Język polski',
+    description: 'Dramat romantyczny — analiza tekstu źródłowego.'
+  },
+  {
+    id: 'fri_7',
+    day: 'fri',
+    timeStart: '13:15',
+    timeEnd: '14:00',
+    duration: '45 min',
+    category: 'librus',
+    categoryLabel: 'Szkolne • Librus',
+    room: 's. 34',
+    teacher: 'Negowska Alicja',
+    indicatorColor: 'bg-secondary',
+    title: 'Język polski',
+    description: 'Warsztat pisarski i przygotowanie do rozprawki.'
+  },
+  {
+    id: 'fri_workout',
     day: 'fri',
     timeStart: '17:30',
     timeEnd: '18:45',
@@ -471,7 +704,7 @@ const INITIAL_SCHEDULE = [
     badge: 'PLANNING',
     indicatorColor: 'bg-secondary',
     title: 'Planowanie Nadchodzącego Tygodnia & Cele',
-    description: 'Harmonogram akademicki Tydzień B, rozpisanie progresji ciężarów FBW.',
+    description: 'Harmonogram technikum 2 TI, rozpisanie progresji ciężarów FBW.',
     statusText: 'Planowanie'
   },
   {
@@ -498,7 +731,7 @@ const INITIAL_SCHEDULE = [
     badge: 'PREPARATION',
     indicatorColor: 'bg-primary',
     title: 'Przygotowanie Materiałów Edukacyjnych',
-    description: 'Syllabusy, zaktualizowanie repozytoriów git i notatek z wykładów.'
+    description: 'Materiały do pracowni, aktualizacja repozytoriów git i notatek.'
   }
 ];
 
@@ -698,6 +931,7 @@ export const TimetablePage = () => {
             const mappedDay = mapDayToAbbrev(l.day);
             if (!mappedDay) return null;
             const isCancelled = Boolean(l.isCancelled || l.status === 'cancelled' || (l.notes && l.notes.includes('ODWOŁANA')));
+            const isSubstitution = Boolean(l.isSubstitution || l.status === 'substitution' || (l.notes && l.notes.includes('ZASTĘPSTWO')));
             const safeStart = l.time_start || l.timeStart || '08:00';
             const safeEnd = l.time_end || l.timeEnd || '08:45';
             const safeId = l.id || `librus_${mappedDay}_${safeStart.replace(':', '')}_${lIdx}`;
@@ -708,14 +942,15 @@ export const TimetablePage = () => {
               timeEnd: safeEnd,
               duration: l.duration || '45 min',
               category: 'librus',
-              categoryLabel: 'Szkolne • Librus',
+              categoryLabel: isSubstitution ? 'Szkolne • Zastępstwo' : isCancelled ? '[!] Lekcja Odwołana' : 'Szkolne • Librus',
               room: l.room || '',
               teacher: l.cleanTeacher || l.teacher || '',
-              indicatorColor: isCancelled ? 'bg-error' : (l.color ? `bg-${l.color}` : 'bg-primary'),
+              indicatorColor: isCancelled ? 'bg-error' : isSubstitution ? 'bg-amber-500' : (l.color ? `bg-${l.color}` : 'bg-primary'),
               title: l.subject || l.title || 'Lekcja',
               description: l.notes || l.description || '',
               isCancelled,
-              statusText: isCancelled ? '[!] Odwołana' : (l.statusText || 'Zajęcia w planie'),
+              isSubstitution,
+              statusText: isCancelled ? '[!] Odwołana' : isSubstitution ? '[~] Zastępstwo' : (l.statusText || 'Zajęcia w planie'),
               librusSyncTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
           })
@@ -1205,13 +1440,15 @@ END:VEVENT`).join('\n');
                         className={`p-2.5 rounded-lg flex flex-col gap-1 transition-all ${
                           item.isCancelled
                             ? 'bg-error-container/20 border border-error/30 opacity-75'
+                            : item.isSubstitution
+                            ? 'bg-amber-500/15 border border-amber-500/40 shadow-sm'
                             : item.isActive
                             ? 'bg-primary/15 border border-primary/40 shadow-sm'
                             : 'bg-surface-container hover:bg-surface-container-high border border-white/[0.04]'
                         }`}
                       >
                         <div className="flex items-center justify-between text-[11px] font-code-mono">
-                          <span className={`${item.isCancelled ? 'text-error line-through' : item.isActive ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>
+                          <span className={`${item.isCancelled ? 'text-error line-through' : item.isSubstitution ? 'text-amber-400 font-semibold' : item.isActive ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>
                             {item.timeStart} - {item.timeEnd}
                           </span>
                           {item.room && (
@@ -1224,6 +1461,8 @@ END:VEVENT`).join('\n');
                         <h4 className={`font-headline-md text-[13px] font-medium leading-snug ${
                           item.isCancelled 
                             ? 'text-outline line-through' 
+                            : item.isSubstitution
+                            ? 'text-amber-200 font-semibold'
                             : item.isActive 
                             ? 'text-primary font-bold' 
                             : 'text-on-surface'
@@ -1235,6 +1474,10 @@ END:VEVENT`).join('\n');
                           {item.isCancelled ? (
                             <span className="text-error font-bold tracking-tight">
                               [!] Odwołana
+                            </span>
+                          ) : item.isSubstitution ? (
+                            <span className="text-amber-400 font-bold tracking-tight truncate max-w-[120px]">
+                              [~] Zastępstwo
                             </span>
                           ) : item.teacher ? (
                             <span className="text-outline truncate max-w-[110px]">
@@ -1323,6 +1566,48 @@ END:VEVENT`).join('\n');
                         >
                           Przypisz Zadanie
                         </button>
+                      </div>
+                    </article>
+                  );
+                }
+
+                // Substitution Block
+                if (item.isSubstitution) {
+                  return (
+                    <article 
+                      key={item.id} 
+                      className="schedule-card p-space-md rounded-xl bg-surface-container-lowest border border-amber-500/30 flex flex-col md:flex-row md:items-center justify-between gap-space-md relative overflow-hidden" 
+                      data-category={item.category}
+                    >
+                      <div className="flex items-start gap-space-md">
+                        <div className="flex flex-col items-end w-28 shrink-0">
+                          <span className="font-code-mono text-headline-md text-amber-400 font-semibold">{item.timeStart}</span>
+                          <span className="font-code-mono text-code-mono text-outline">{item.timeEnd}</span>
+                          <span className="font-label-sm text-[10px] uppercase text-amber-400 mt-1 font-semibold">{item.duration}</span>
+                        </div>
+                        <div className="w-1 self-stretch rounded-full bg-amber-500"></div>
+                        <div className="flex flex-col gap-space-xs">
+                          <div className="flex items-center gap-space-xs">
+                            <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-label-sm text-label-sm uppercase font-bold tracking-wide border border-amber-500/30">
+                              [~] Zastępstwo
+                            </span>
+                            <span className="font-code-mono text-[11px] text-outline">Librus Sync: {item.librusSyncTime || '08:12'}</span>
+                          </div>
+                          <h2 className="font-headline-md text-headline-md text-on-surface font-medium">
+                            {item.title}
+                          </h2>
+                          <div className="flex items-center gap-space-xs text-amber-300 font-body-md text-body-md">
+                            <span className="material-symbols-outlined text-[16px]">swap_horiz</span>
+                            <span>{item.description || `Zastępstwo prowadzi: ${item.teacher || 'Nauczyciel zastępujący'}`}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-space-xs self-end md:self-center shrink-0">
+                        {item.room ? (
+                          <span className="px-2 py-1 rounded bg-surface-container text-label-sm font-code-mono text-on-surface-variant">
+                            {item.room}
+                          </span>
+                        ) : null}
                       </div>
                     </article>
                   );

@@ -1,8 +1,8 @@
 # OMNIDASH — PEŁNA DOKUMENTACJA ARCHITEKTONICZNA I OPERACYJNA
 
-**Wersja Systemu:** v3.3.1 (Stan na Październik 2026) 
+**Wersja Systemu:** v3.3.2 (Stan na Październik 2026) 
 **Status:** AKTYWNY | PRODUKCJA (10/10 ENTERPRISE GRADE) 
-**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Senior Code Reviewer Groq GPT-OSS Hardening, High Contrast 7-Theme Overhaul, Pełna Ekstrakcja Librus Synergia 100%, Setup Onboarding Wizard, Tryb Autonomiczny Offline vs Librus API, Smooth Morph & Scroll to Top, Obsidian Academic Engine v3.0.0 GUI Overhaul, Plan Dnia: Przełącznik Osobisty / Szkolny, Stały Schemat Dnia, Attic FBW Workouts, Scraper Odwołanych Lekcji Librus Synergia, Harvey Sales Specialist, Fish Audio Ultra-Natural TTS, Entities & Intelligence OSINT Hub, Obsidian Vault Integration, Zero-Trust Security)
+**Rodzaj:** Kompleksowy System OmniDash / Asystent Osobisty (Librus Synergia Ground Truth Alignment, Grade Details Preservation, Timetable Substitution & Cancellation Badging, Senior Code Reviewer Groq GPT-OSS Hardening, High Contrast 7-Theme Overhaul, Pełna Ekstrakcja Librus Synergia 100%, Setup Onboarding Wizard, Tryb Autonomiczny Offline vs Librus API, Smooth Morph & Scroll to Top, Obsidian Academic Engine v3.0.0 GUI Overhaul, Plan Dnia: Przełącznik Osobisty / Szkolny, Stały Schemat Dnia, Attic FBW Workouts, Scraper Odwołanych Lekcji Librus Synergia, Harvey Sales Specialist, Fish Audio Ultra-Natural TTS, Entities & Intelligence OSINT Hub, Obsidian Vault Integration, Zero-Trust Security)
 
 ---
 

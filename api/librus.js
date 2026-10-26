@@ -34,8 +34,6 @@ export default async function handler(req, res) {
     }
 
     if (subpath === 'calendar' || req.url.includes('/calendar')) {
-      const today = new Date().toISOString().split('T')[0];
-      const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
       return res.status(200).json({
         success: true,
         isConfigured: !!(login && password),
@@ -43,26 +41,81 @@ export default async function handler(req, res) {
         lastSync: new Date().toISOString(),
         events: [
           {
-            id: 9001,
-            date: today,
+            id: 9101,
+            date: '2026-10-19',
             type: 'absence',
             category: 'Nieobecność nauczyciela',
-            title: 'Nieobecność: Lorenz Krzysztof',
-            teacher: 'Lorenz Krzysztof',
-            time: '08:00 do 13:05',
-            subject: 'Informatyka',
-            description: 'Nieobecność nauczyciela (zastępstwo lub okienko)'
+            title: 'Nieobecność: Prabucki Andrzej',
+            teacher: 'Prabucki Andrzej',
+            time: '08:00 do 12:15',
+            subject: null,
+            description: 'Nieobecność nauczyciela: Prabucki Andrzej (08:00 do 12:15)'
           },
           {
-            id: 9002,
-            date: tomorrow,
+            id: 9104,
+            date: '2026-10-19',
             type: 'kartkowka',
             category: 'Kartkówka',
-            title: 'Kartkówka: Język angielski',
+            title: 'Kartkówka: Biznes i zarządzanie',
+            teacher: 'Sokół Paweł',
+            time: 'Lekcja 5 (11:30)',
+            subject: 'Biznes i zarządzanie',
+            description: 'Kartkówka z form działalności gospodarczej'
+          },
+          {
+            id: 9105,
+            date: '2026-10-20',
+            type: 'absence',
+            category: 'Nieobecność nauczyciela',
+            title: 'Nieobecność: Negowska Alicja',
+            teacher: 'Negowska Alicja',
+            time: '12:20 do 15:40',
+            subject: null,
+            description: 'Nieobecność nauczyciela: Negowska Alicja (12:20 do 15:40)'
+          },
+          {
+            id: 9107,
+            date: '2026-10-20',
+            type: 'inne',
+            category: 'Zastępstwo',
+            title: 'Zastępstwo: Joanna Ziemba',
             teacher: 'Ziemba Joanna',
-            time: 'Lekcja 2 (08:50)',
+            time: 'Lekcja 4 i 5 (10:40 - 12:15)',
             subject: 'Język angielski',
-            description: 'Słownictwo unit 4'
+            description: 'Zastępstwo z Joanna Ziemba na lekcji 4 i 5'
+          },
+          {
+            id: 9109,
+            date: '2026-10-21',
+            type: 'kartkowka',
+            category: 'Kartkówka',
+            title: 'Kartkówka: Biologia',
+            teacher: 'Łukaszczyk-Wulgaris Joanna',
+            time: 'Lekcja 1 (08:00)',
+            subject: 'Biologia',
+            description: 'Kartkówka z budowy komórki'
+          },
+          {
+            id: 9110,
+            date: '2026-10-21',
+            type: 'sprawdzian',
+            category: 'Praca Klasowa',
+            title: 'Praca Klasowa: Biologia',
+            teacher: 'Łukaszczyk-Wulgaris Joanna',
+            time: 'Lekcja 2 (08:50)',
+            subject: 'Biologia',
+            description: 'Praca Klasowa z biologii'
+          },
+          {
+            id: 9114,
+            date: '2026-10-23',
+            type: 'odwolane',
+            category: 'Odwołane zajęcia',
+            title: 'Odwołane zajęcia: Edukacja obywatelska',
+            teacher: 'Czarna Alicja',
+            time: 'Lekcja 1 (08:00)',
+            subject: 'Edukacja obywatelska',
+            description: 'Odwołane zajęcia: Alicja Czarna na lekcji nr: 1'
           }
         ]
       });
@@ -124,6 +177,7 @@ export default async function handler(req, res) {
         isDemo: true,
         lastSync: new Date().toISOString(),
         hours: [
+          '07:10 - 07:55',
           '08:00 - 08:45',
           '08:50 - 09:35',
           '09:40 - 10:25',
@@ -132,36 +186,79 @@ export default async function handler(req, res) {
           '12:20 - 13:05',
           '13:15 - 14:00',
           '14:05 - 14:50',
-          '14:55 - 15:40'
+          '14:55 - 15:40',
+          '15:45 - 16:30'
         ],
         lessons: [
-          { id: 'librus_mon_1', day: 'monday', subject: 'Informatyka', time_start: '08:50', time_end: '09:35', room: 's. 17', teacher: 'Becker Adam (2 TI gr.2)', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia' },
-          { id: 'librus_mon_2', day: 'monday', subject: 'Informatyka', time_start: '09:40', time_end: '10:25', room: 's. 17', teacher: 'Becker Adam (2 TI gr.2)', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia' },
-          { id: 'librus_tue_1', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:00', time_end: '08:45', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
-          { id: 'librus_wed_1', day: 'wednesday', subject: 'Biznes i zarządzanie', time_start: '10:40', time_end: '11:25', room: 's. 0.2', teacher: 'Sokół Paweł', type: 'Wykład', color: 'blue', notes: '' },
-          // Czwartek - lekcje 1, 2, 3, 8 odwołane, matematyka 6 i 7 odbywa się
-          { id: 'librus_thu_1', day: 'thursday', subject: 'Język polski', time_start: '08:00', time_end: '08:45', room: 's. 34', teacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '[!] ODWOŁANA', isCancelled: true, status: 'cancelled', statusLabel: 'Odwołana' },
-          { id: 'librus_thu_2', day: 'thursday', subject: 'Język angielski zawodowy', time_start: '08:50', time_end: '09:35', room: 's. Z2', teacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: '[!] ODWOŁANA', isCancelled: true, status: 'cancelled', statusLabel: 'Odwołana' },
-          { id: 'librus_thu_3', day: 'thursday', subject: 'Język angielski', time_start: '09:40', time_end: '10:25', room: 's. Z2', teacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: '[!] ODWOŁANA', isCancelled: true, status: 'cancelled', statusLabel: 'Odwołana' },
-          { id: 'librus_thu_4', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: '' },
-          { id: 'librus_thu_5', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '11:30', time_end: '12:15', room: 's. 1.16', teacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: '' },
-          { id: 'librus_thu_6', day: 'thursday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 05', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: 'Zajęcia odbywają się (sala 05)' },
-          { id: 'librus_thu_7', day: 'thursday', subject: 'Matematyka', time_start: '13:15', time_end: '14:00', room: 's. 05', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: 'Zajęcia odbywają się (sala 05)' },
-          { id: 'librus_thu_8', day: 'thursday', subject: 'Język niemiecki', time_start: '14:05', time_end: '14:50', room: 's. Z1', teacher: 'Chyła Beata', type: 'Lektorat', color: 'amber', notes: '[!] ODWOŁANA', isCancelled: true, status: 'cancelled', statusLabel: 'Odwołana' },
-          { id: 'librus_thu_9', day: 'thursday', subject: 'Biologia', time_start: '14:55', time_end: '15:40', room: 's. 19', teacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '' },
-          { id: 'librus_fri_1', day: 'friday', subject: 'Język angielski', time_start: '08:00', time_end: '08:45', room: 's. Z2', teacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: '' }
+          // Poniedziałek
+          { id: 'librus_mon_2', day: 'monday', subject: 'Informatyka', time_start: '08:50', time_end: '09:35', room: 's. 04', teacher: 'Becker Adam (2 TI gr.2)', type: 'Laboratorium', color: 'cyan', notes: '' },
+          { id: 'librus_mon_3', day: 'monday', subject: 'Informatyka', time_start: '09:40', time_end: '10:25', room: 's. 04', teacher: 'Becker Adam (2 TI gr.2)', type: 'Laboratorium', color: 'cyan', notes: '' },
+          { id: 'librus_mon_4', day: 'monday', subject: 'Biznes i zarządzanie', time_start: '10:40', time_end: '11:25', room: 's. 0.2', teacher: 'Sokół Paweł', type: 'Wykład', color: 'blue', notes: '' },
+          { id: 'librus_mon_5', day: 'monday', subject: 'Lokalne sieci komputerowe', time_start: '11:30', time_end: '12:15', room: 's. 0.2', teacher: 'Wojnarowski Przemysław', type: 'Wykład', color: 'cyan', notes: '' },
+          { id: 'librus_mon_6', day: 'monday', subject: 'Język polski', time_start: '12:20', time_end: '13:05', room: 's. 34', teacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '' },
+
+          // Wtorek
+          { id: 'librus_tue_1', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:00', time_end: '08:45', room: 's. 0.1', teacher: 'Wojnarowski Przemysław (2TI gr.1)', type: 'Laboratorium', color: 'cyan', notes: '' },
+          { id: 'librus_tue_2', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:50', time_end: '09:35', room: 's. 0.1', teacher: 'Wojnarowski Przemysław (2TI gr.1)', type: 'Laboratorium', color: 'cyan', notes: '' },
+          { id: 'librus_tue_3', day: 'tuesday', subject: 'Zajęcia z wychowawcą', time_start: '09:40', time_end: '10:25', room: 's. 28', teacher: 'Ziemba Joanna', type: 'Wykład', color: 'amber', notes: '' },
+          { id: 'librus_tue_4', day: 'tuesday', subject: 'Język angielski', time_start: '10:40', time_end: '11:25', room: '', teacher: 'Ziemba Joanna (j.ang 2 TI gr.1)', type: 'Lektorat', color: 'amber', isSubstitution: true, status: 'substitution', statusLabel: 'Zastępstwo', notes: '[~] Zastępstwo w Librus Synergia (Joanna Ziemba)' },
+          { id: 'librus_tue_5', day: 'tuesday', subject: 'Język angielski', time_start: '11:30', time_end: '12:15', room: '', teacher: 'Ziemba Joanna (j.ang 2 TI gr.1)', type: 'Lektorat', color: 'amber', isSubstitution: true, status: 'substitution', statusLabel: 'Zastępstwo', notes: '[~] Zastępstwo w Librus Synergia (Joanna Ziemba)' },
+          { id: 'librus_tue_6', day: 'tuesday', subject: 'Pracownia systemów operacyjnych', time_start: '12:20', time_end: '13:05', room: 's. 1.15', teacher: 'Reszka Sławomir (2 TI gr.1 PSO)', type: 'Laboratorium', color: 'cyan', notes: '' },
+          { id: 'librus_tue_7', day: 'tuesday', subject: 'Pracownia systemów operacyjnych', time_start: '13:15', time_end: '14:00', room: 's. 1.15', teacher: 'Reszka Sławomir (2 TI gr.1 PSO)', type: 'Laboratorium', color: 'cyan', notes: '' },
+          { id: 'librus_tue_8', day: 'tuesday', subject: 'Edukacja zdrowotna', time_start: '14:05', time_end: '14:50', room: 's. 35', teacher: 'Spych Monika', type: 'Wykład', color: 'emerald', notes: '' },
+          { id: 'librus_tue_9', day: 'tuesday', subject: 'Matematyka', time_start: '14:55', time_end: '15:40', room: 's. 28', teacher: 'Behr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
+
+          // Środa
+          { id: 'librus_wed_1', day: 'wednesday', subject: 'Biologia', time_start: '08:00', time_end: '08:45', room: 's. 03', teacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '' },
+          { id: 'librus_wed_2', day: 'wednesday', subject: 'Biologia', time_start: '08:50', time_end: '09:35', room: 's. 03', teacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '' },
+          { id: 'librus_wed_3', day: 'wednesday', subject: 'Systemy operacyjne', time_start: '09:40', time_end: '10:25', room: 's. 1.2', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
+          { id: 'librus_wed_4', day: 'wednesday', subject: 'Systemy operacyjne', time_start: '10:40', time_end: '11:25', room: 's. 1.2', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
+          { id: 'librus_wed_5', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '11:30', time_end: '12:15', room: 's. 1.2', teacher: 'Cembik Bartosz', type: 'Laboratorium', color: 'cyan', notes: '' },
+          { id: 'librus_wed_6', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '12:20', time_end: '13:05', room: 's. 1.2', teacher: 'Cembik Bartosz', type: 'Laboratorium', color: 'cyan', notes: '' },
+          { id: 'librus_wed_7', day: 'wednesday', subject: 'Chemia', time_start: '13:15', time_end: '14:00', room: 's. 03', teacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '' },
+          { id: 'librus_wed_8', day: 'wednesday', subject: 'Historia', time_start: '14:05', time_end: '14:50', room: 's. 05', teacher: 'Wardyn Wojciech', type: 'Wykład', color: 'rose', notes: '' },
+          { id: 'librus_wed_9', day: 'wednesday', subject: 'Matematyka', time_start: '14:55', time_end: '15:40', room: 's. 28', teacher: 'Behr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
+
+          // Czwartek
+          { id: 'librus_thu_2', day: 'thursday', subject: 'Język angielski', time_start: '08:50', time_end: '09:35', room: 's. 22', teacher: 'Ziemba Joanna (j.ang 2 TI gr.1)', type: 'Lektorat', color: 'amber', notes: '' },
+          { id: 'librus_thu_3', day: 'thursday', subject: 'Język angielski', time_start: '09:40', time_end: '10:25', room: 's. 22', teacher: 'Ziemba Joanna (j.ang 2 TI gr.1)', type: 'Lektorat', color: 'amber', notes: '' },
+          { id: 'librus_thu_4', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Kżyś Łukasz', type: 'Laboratorium', color: 'cyan', notes: '' },
+          { id: 'librus_thu_5', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '11:30', time_end: '12:15', room: 's. 1.16', teacher: 'Kżyś Łukasz', type: 'Laboratorium', color: 'cyan', notes: '' },
+          { id: 'librus_thu_6', day: 'thursday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 05', teacher: 'Behr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
+          { id: 'librus_thu_7', day: 'thursday', subject: 'Matematyka', time_start: '13:15', time_end: '14:00', room: 's. 05', teacher: 'Behr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
+          { id: 'librus_thu_8', day: 'thursday', subject: 'Język angielski zawodowy', time_start: '14:05', time_end: '14:50', room: 's. 22', teacher: 'Ziemba Joanna (j.ang.zaw. 2 TI gr.1)', type: 'Lektorat', color: 'amber', notes: '' },
+
+          // Piątek
+          { id: 'librus_fri_1', day: 'friday', subject: 'Edukacja obywatelska', time_start: '08:00', time_end: '08:45', room: '', teacher: 'Czarna Alicja', type: 'Wykład', color: 'rose', notes: '[!] ODWOŁANA', isCancelled: true, status: 'cancelled', statusLabel: 'Odwołana' },
+          { id: 'librus_fri_2', day: 'friday', subject: 'Wychowanie fizyczne', time_start: '08:50', time_end: '09:35', room: '', teacher: 'Łysakowski Grzegorz (Klasa 2 TI)', type: 'Ćwiczenia', color: 'purple', notes: '' },
+          { id: 'librus_fri_3', day: 'friday', subject: 'Język niemiecki', time_start: '09:40', time_end: '10:25', room: 's. 21', teacher: 'Chyła Beata (2TI/1)', type: 'Lektorat', color: 'amber', notes: '' },
+          { id: 'librus_fri_4', day: 'friday', subject: 'Język niemiecki', time_start: '10:40', time_end: '11:25', room: 's. 21', teacher: 'Chyła Beata (2TI/1)', type: 'Lektorat', color: 'amber', notes: '' },
+          { id: 'librus_fri_5', day: 'friday', subject: 'Chemia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '' },
+          { id: 'librus_fri_6', day: 'friday', subject: 'Język polski', time_start: '12:20', time_end: '13:05', room: 's. 34', teacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '' },
+          { id: 'librus_fri_7', day: 'friday', subject: 'Język polski', time_start: '13:15', time_end: '14:00', room: 's. 34', teacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '' }
         ],
         substitutions: [
           {
-            lessonId: 'librus_thu_1',
-            day: 'thursday',
-            subject: 'Język polski',
-            time_start: '08:00',
-            time_end: '08:45',
-            teacher: 'Negowska Alicja',
+            lessonId: 'librus_tue_4',
+            day: 'tuesday',
+            subject: 'Język angielski',
+            time_start: '10:40',
+            time_end: '11:25',
+            teacher: 'Ziemba Joanna (j.ang 2 TI gr.1)',
             absenceTeacher: 'Negowska Alicja',
-            absenceHours: '08:00 do 14:50',
-            absenceDate: new Date().toISOString().split('T')[0]
+            absenceHours: '10:40 - 11:25',
+            absenceDate: '2026-10-20'
+          },
+          {
+            lessonId: 'librus_tue_5',
+            day: 'tuesday',
+            subject: 'Język angielski',
+            time_start: '11:30',
+            time_end: '12:15',
+            teacher: 'Ziemba Joanna (j.ang 2 TI gr.1)',
+            absenceTeacher: 'Negowska Alicja',
+            absenceHours: '11:30 - 12:15',
+            absenceDate: '2026-10-20'
           }
         ]
       });
@@ -177,125 +274,271 @@ export default async function handler(req, res) {
         isDemo: true,
         luckyNumber: 17,
         lastSync: new Date().toISOString(),
-        overallAverage: 4.62,
-        totalSubjects: 9,
-        gradedSubjectsCount: 8,
+        overallAverage: 4.35,
+        totalSubjects: 21,
+        gradedSubjectsCount: 16,
         highestAverage: { subject: 'Informatyka', average: 6.0 },
-        lowestAverage: { subject: 'Język polski', average: 3.5 },
+        lowestAverage: { subject: 'Urządzenia techniki komputerowej', average: 2.75 },
         subjects: [
           {
-            name: 'Język polski',
-            average: '3.50',
-            computedAverage: 3.5,
-            sem1Avg: 3.5,
-            sem2Avg: 3.5,
+            name: 'biologia',
+            teacher: 'Joanna Łukaszczyk-Wulgaris',
+            average: '3.38',
+            computedAverage: 3.38,
+            sem1Avg: 3.38,
+            sem2Avg: 3.38,
             sem1Grades: [
-              { id: 101, value: '1', numericValue: 1, details: { category: 'Kartkówka', weight: 1, date: '2026-02-14', teacher: 'A. Negowska' } },
-              { id: 102, value: '4', numericValue: 4, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-03-02', teacher: 'A. Negowska' } },
-              { id: 103, value: '5+', numericValue: 5.5, details: { category: 'Wypracowanie', weight: 1, date: '2026-03-18', teacher: 'A. Negowska' } }
+              { id: 101, value: '4+', numericValue: 4.5, details: { category: 'Kartkówka', weight: 1, date: '2026-10-06', teacher: 'Joanna Łukaszczyk-Wulgaris', comment: 'Budowa komórki' } },
+              { id: 102, value: '3', numericValue: 3.0, details: { category: 'Sprawdzian', weight: 3, date: '2026-10-14', teacher: 'Joanna Łukaszczyk-Wulgaris', comment: 'Składniki chemiczne' } }
             ],
             sem2Grades: []
           },
           {
-            name: 'Matematyka',
+            name: 'biznes i zarządzanie',
+            teacher: 'Paweł Sokół',
+            average: '4.50',
+            computedAverage: 4.50,
+            sem1Avg: 4.50,
+            sem2Avg: 4.50,
+            sem1Grades: [
+              { id: 201, value: '4+', numericValue: 4.5, details: { category: 'Kartkówka', weight: 1, date: '2026-10-12', teacher: 'Paweł Sokół', comment: 'Formy działalności' } }
+            ],
+            sem2Grades: []
+          },
+          {
+            name: 'chemia',
+            teacher: 'Paulina Kolasińska',
+            average: '4.50',
+            computedAverage: 4.50,
+            sem1Avg: 4.50,
+            sem2Avg: 4.50,
+            sem1Grades: [
+              { id: 301, value: '4+', numericValue: 4.5, details: { category: 'Sprawdzian', weight: 2, date: '2026-10-08', teacher: 'Paulina Kolasińska', comment: 'Wiązania chemiczne' } }
+            ],
+            sem2Grades: []
+          },
+          {
+            name: 'edukacja obywatelska',
+            teacher: 'Alicja Czarna',
+            average: '5.00',
+            computedAverage: 5.00,
+            sem1Avg: 5.00,
+            sem2Avg: 5.00,
+            sem1Grades: [
+              { id: 401, value: '5', numericValue: 5.0, details: { category: 'Projekt', weight: 2, date: '2026-10-05', teacher: 'Alicja Czarna', comment: 'Prawa człowieka' } }
+            ],
+            sem2Grades: []
+          },
+          {
+            name: 'edukacja zdrowotna',
+            teacher: 'Monika Spych',
+            average: null,
+            computedAverage: null,
+            sem1Avg: null,
+            sem2Avg: null,
+            sem1Grades: [],
+            sem2Grades: []
+          },
+          {
+            name: 'historia',
+            teacher: 'Wojciech Wardyn',
+            average: '4.00',
+            computedAverage: 4.00,
+            sem1Avg: 4.00,
+            sem2Avg: 4.00,
+            sem1Grades: [
+              { id: 501, value: '4', numericValue: 4.0, details: { category: 'Kartkówka', weight: 1, date: '2026-09-22', teacher: 'Wojciech Wardyn' } },
+              { id: 502, value: '4', numericValue: 4.0, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-02', teacher: 'Wojciech Wardyn' } },
+              { id: 503, value: '4', numericValue: 4.0, details: { category: 'Sprawdzian', weight: 2, date: '2026-10-16', teacher: 'Wojciech Wardyn' } }
+            ],
+            sem2Grades: []
+          },
+          {
+            name: 'informatyka',
+            teacher: 'Adam Becker',
+            average: '6.00',
+            computedAverage: 6.00,
+            sem1Avg: 6.00,
+            sem2Avg: 6.00,
+            sem1Grades: [
+              { id: 601, value: '6', numericValue: 6.0, details: { category: 'Projekt', weight: 3, date: '2026-10-10', teacher: 'Adam Becker', comment: 'Algorytmy grafowe' } }
+            ],
+            sem2Grades: []
+          },
+          {
+            name: 'język angielski',
+            teacher: 'Joanna Ziemba',
+            average: '4.33',
+            computedAverage: 4.33,
+            sem1Avg: 4.33,
+            sem2Avg: 4.33,
+            sem1Grades: [
+              { id: 701, value: '5', numericValue: 5.0, details: { category: 'Kartkówka', weight: 1, date: '2026-09-24', teacher: 'Joanna Ziemba' } },
+              { id: 702, value: '5', numericValue: 5.0, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-01', teacher: 'Joanna Ziemba' } },
+              { id: 703, value: '-', numericValue: null, details: { category: 'Brak zadania', weight: 0, date: '2026-10-07', teacher: 'Joanna Ziemba', inAverage: false } },
+              { id: 704, value: '3', numericValue: 3.0, details: { category: 'Sprawdzian', weight: 1, date: '2026-10-15', teacher: 'Joanna Ziemba' } }
+            ],
+            sem2Grades: []
+          },
+          {
+            name: 'język angielski zawodowy',
+            teacher: 'Joanna Ziemba',
+            average: '5.00',
+            computedAverage: 5.00,
+            sem1Avg: 5.00,
+            sem2Avg: 5.00,
+            sem1Grades: [
+              { id: 801, value: '5', numericValue: 5.0, details: { category: 'Słownictwo techniczne', weight: 2, date: '2026-10-13', teacher: 'Joanna Ziemba' } }
+            ],
+            sem2Grades: []
+          },
+          {
+            name: 'język niemiecki',
+            teacher: 'Beata Chyła',
+            average: '3.00',
+            computedAverage: 3.00,
+            sem1Avg: 3.00,
+            sem2Avg: 3.00,
+            sem1Grades: [
+              { id: 901, value: '4+', numericValue: 4.5, details: { category: 'Kartkówka', weight: 1, date: '2026-09-25', teacher: 'Beata Chyła' } },
+              { id: 902, value: '2+', numericValue: 2.5, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-02', teacher: 'Beata Chyła' } },
+              { id: 903, value: '2', numericValue: 2.0, details: { category: 'Sprawdzian', weight: 1, date: '2026-10-12', teacher: 'Beata Chyła' } },
+              { id: 904, value: '-', numericValue: null, details: { category: 'Brak zadania', weight: 0, date: '2026-10-16', teacher: 'Beata Chyła', inAverage: false } }
+            ],
+            sem2Grades: []
+          },
+          {
+            name: 'język polski',
+            teacher: 'Alicja Negowska',
+            average: '3.50',
+            computedAverage: 3.50,
+            sem1Avg: 3.50,
+            sem2Avg: 3.50,
+            sem1Grades: [
+              { id: 1001, value: '1', numericValue: 1.0, details: { category: 'Kartkówka', weight: 1, date: '2026-09-20', teacher: 'Alicja Negowska' } },
+              { id: 1002, value: '4', numericValue: 4.0, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-04', teacher: 'Alicja Negowska' } },
+              { id: 1003, value: '5+', numericValue: 5.5, details: { category: 'Wypracowanie', weight: 1, date: '2026-10-14', teacher: 'Alicja Negowska' } }
+            ],
+            sem2Grades: []
+          },
+          {
+            name: 'lokalne sieci komputerowe',
+            teacher: 'Przemysław Wojnarowski',
+            average: '5.00',
+            computedAverage: 5.00,
+            sem1Avg: 5.00,
+            sem2Avg: 5.00,
+            sem1Grades: [
+              { id: 1101, value: '5', numericValue: 5.0, details: { category: 'Laboratorium', weight: 2, date: '2026-10-09', teacher: 'Przemysław Wojnarowski' } }
+            ],
+            sem2Grades: []
+          },
+          {
+            name: 'matematyka',
+            teacher: 'Zbigniew Behr',
             average: '3.67',
             computedAverage: 3.67,
             sem1Avg: 3.67,
             sem2Avg: 3.67,
             sem1Grades: [
-              { id: 201, value: '3', numericValue: 3, details: { category: 'Sprawdzian', weight: 2, date: '2026-02-18', teacher: 'Z. Bahr' } },
-              { id: 202, value: '5', numericValue: 5, details: { category: 'Kartkówka', weight: 1, date: '2026-03-05', teacher: 'Z. Bahr' } },
-              { id: 203, value: '5', numericValue: 5, details: { category: 'Praca na lekcji', weight: 1, date: '2026-03-12', teacher: 'Z. Bahr' } },
-              { id: 204, value: '3', numericValue: 3, details: { category: 'Sprawdzian', weight: 1, date: '2026-03-24', teacher: 'Z. Bahr' } },
-              { id: 205, value: '3', numericValue: 3, details: { category: 'Kartkówka', weight: 1, date: '2026-04-02', teacher: 'Z. Bahr' } }
+              { id: 1201, value: '3', numericValue: 3.0, details: { category: 'Sprawdzian', weight: 2, date: '2026-09-22', teacher: 'Zbigniew Behr' } },
+              { id: 1202, value: '5', numericValue: 5.0, details: { category: 'Kartkówka', weight: 1, date: '2026-09-30', teacher: 'Zbigniew Behr' } },
+              { id: 1203, value: '5', numericValue: 5.0, details: { category: 'Praca na lekcji', weight: 1, date: '2026-10-05', teacher: 'Zbigniew Behr' } },
+              { id: 1204, value: '3', numericValue: 3.0, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-12', teacher: 'Zbigniew Behr' } },
+              { id: 1205, value: '3', numericValue: 3.0, details: { category: 'Kartkówka', weight: 1, date: '2026-10-16', teacher: 'Zbigniew Behr' } }
             ],
             sem2Grades: []
           },
           {
-            name: 'Język angielski',
+            name: 'pracownia lokalnych sieci komputerowych',
+            teacher: 'Łukasz Kżyś',
             average: '5.00',
-            computedAverage: 5.0,
-            sem1Avg: 5.0,
-            sem2Avg: 5.0,
+            computedAverage: 5.00,
+            sem1Avg: 5.00,
+            sem2Avg: 5.00,
             sem1Grades: [
-              { id: 301, value: '5', numericValue: 5, details: { category: 'Sprawdzian', weight: 2, date: '2026-02-12', teacher: 'J. Ziemba' } },
-              { id: 302, value: '5', numericValue: 5, details: { category: 'Prezentacja', weight: 2, date: '2026-03-08', teacher: 'J. Ziemba' } },
-              { id: 303, value: '-', numericValue: null, details: { category: 'Nieprzygotowanie', weight: 0, inAverage: false, date: '2026-03-15', teacher: 'J. Ziemba' } },
-              { id: 304, value: '+', numericValue: null, details: { category: 'Aktywność', weight: 0, inAverage: false, date: '2026-03-22', teacher: 'J. Ziemba' } }
+              { id: 1301, value: '5', numericValue: 5.0, details: { category: 'Ćwiczenia praktyczne', weight: 2, date: '2026-10-01', teacher: 'Łukasz Kżyś' } },
+              { id: 1302, value: '5', numericValue: 5.0, details: { category: 'Sprawdzian praktyczny', weight: 2, date: '2026-10-15', teacher: 'Łukasz Kżyś' } }
             ],
             sem2Grades: []
           },
           {
-            name: 'Język niemiecki',
-            average: '3.50',
-            computedAverage: 3.5,
-            sem1Avg: 3.5,
-            sem2Avg: 3.5,
+            name: 'pracownia systemów operacyjnych',
+            teacher: 'Sławomir Reszka',
+            average: null,
+            computedAverage: null,
+            sem1Avg: null,
+            sem2Avg: null,
+            sem1Grades: [],
+            sem2Grades: []
+          },
+          {
+            name: 'pracownia urządzeń techniki komputerowej',
+            teacher: 'Przemysław Wojnarowski',
+            average: '5.00',
+            computedAverage: 5.00,
+            sem1Avg: 5.00,
+            sem2Avg: 5.00,
             sem1Grades: [
-              { id: 351, value: '4+', numericValue: 4.5, details: { category: 'Kartkówka', weight: 1, date: '2026-02-20', teacher: 'B. Chyła' } },
-              { id: 352, value: '2+', numericValue: 2.5, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-03-16', teacher: 'B. Chyła' } }
+              { id: 1401, value: '5', numericValue: 5.0, details: { category: 'Montaż podzespołów', weight: 2, date: '2026-10-06', teacher: 'Przemysław Wojnarowski' } }
             ],
             sem2Grades: []
           },
           {
-            name: 'Historia',
-            average: '4.00',
-            computedAverage: 4.0,
-            sem1Avg: 4.0,
-            sem2Avg: 4.0,
+            name: 'religia',
+            teacher: 'Ks. Katecheta',
+            average: null,
+            computedAverage: null,
+            sem1Avg: null,
+            sem2Avg: null,
+            sem1Grades: [],
+            sem2Grades: []
+          },
+          {
+            name: 'systemy operacyjne',
+            teacher: 'Przemysław Wojnarowski',
+            average: '5.00',
+            computedAverage: 5.00,
+            sem1Avg: 5.00,
+            sem2Avg: 5.00,
             sem1Grades: [
-              { id: 601, value: '4', numericValue: 4, details: { category: 'Sprawdzian', weight: 2, date: '2026-02-25', teacher: 'W. Wardyn' } },
-              { id: 602, value: '4', numericValue: 4, details: { category: 'Kartkówka', weight: 1, date: '2026-03-14', teacher: 'W. Wardyn' } },
-              { id: 603, value: '4', numericValue: 4, details: { category: 'Projekt', weight: 1, date: '2026-04-02', teacher: 'W. Wardyn' } }
+              { id: 1501, value: '5', numericValue: 5.0, details: { category: 'Kolokwium', weight: 2, date: '2026-10-07', teacher: 'Przemysław Wojnarowski' } },
+              { id: 1502, value: '-', numericValue: null, details: { category: 'Brak zadania', weight: 0, date: '2026-10-14', teacher: 'Przemysław Wojnarowski', inAverage: false } }
             ],
             sem2Grades: []
           },
           {
-            name: 'Informatyka',
-            average: '6.00',
-            computedAverage: 6.0,
-            sem1Avg: 6.0,
-            sem2Avg: 6.0,
+            name: 'urządzenia techniki komputerowej',
+            teacher: 'Bartosz Cembik',
+            average: '2.75',
+            computedAverage: 2.75,
+            sem1Avg: 2.75,
+            sem2Avg: 2.75,
             sem1Grades: [
-              { id: 401, value: '6', numericValue: 6, details: { category: 'Projekt', weight: 3, date: '2026-02-20', teacher: 'A. Becker' } },
-              { id: 402, value: '6', numericValue: 6, details: { category: 'Sprawdzian praktyczny', weight: 3, date: '2026-03-15', teacher: 'A. Becker' } }
+              { id: 1601, value: '3-', numericValue: 2.75, details: { category: 'Sprawdzian', weight: 2, date: '2026-10-14', teacher: 'Bartosz Cembik', comment: 'Magistrale PCIe' } }
             ],
             sem2Grades: []
           },
           {
-            name: 'Systemy operacyjne',
-            average: '5.75',
-            computedAverage: 5.75,
-            sem1Avg: 5.75,
-            sem2Avg: 5.75,
-            sem1Grades: [
-              { id: 701, value: '6', numericValue: 6, details: { category: 'Laboratorium', weight: 2, date: '2026-02-28', teacher: 'P. Wojnarowski' } },
-              { id: 702, value: '5+', numericValue: 5.5, details: { category: 'Sprawdzian', weight: 2, date: '2026-03-20', teacher: 'P. Wojnarowski' } }
-            ],
-            sem2Grades: []
-          },
-          {
-            name: 'Lokalne sieci komputerowe',
-            average: '5.54',
-            computedAverage: 5.54,
-            sem1Avg: 5.54,
-            sem2Avg: 5.54,
-            sem1Grades: [
-              { id: 801, value: '6', numericValue: 6, details: { category: 'Konfiguracja switcha', weight: 3, date: '2026-03-02', teacher: 'Ł. Kryła' } },
-              { id: 802, value: '5', numericValue: 5, details: { category: 'Sprawdzian', weight: 2, date: '2026-03-19', teacher: 'Ł. Kryła' } },
-              { id: 803, value: '5+', numericValue: 5.5, details: { category: 'Kartkówka', weight: 2, date: '2026-04-05', teacher: 'Ł. Kryła' } }
-            ],
-            sem2Grades: []
-          },
-          {
-            name: 'Urządzenia techniki komputerowej',
-            average: 'N',
+            name: 'wychowanie fizyczne',
+            teacher: 'Grzegorz Łysakowski',
+            average: null,
             computedAverage: null,
             sem1Avg: null,
             sem2Avg: null,
             sem1Grades: [
-              { id: 901, value: 'N', numericValue: null, details: { category: 'Klasyfikacja semestralna', weight: 0, inAverage: false, date: '2026-03-25', teacher: 'B. Gembiak' } }
+              { id: 1701, value: '-', numericValue: null, details: { category: 'Strój / Aktywność', weight: 0, date: '2026-10-09', teacher: 'Grzegorz Łysakowski', inAverage: false } }
             ],
+            sem2Grades: []
+          },
+          {
+            name: 'zajęcia z wychowawcą',
+            teacher: 'Joanna Ziemba',
+            average: null,
+            computedAverage: null,
+            sem1Avg: null,
+            sem2Avg: null,
+            sem1Grades: [],
             sem2Grades: []
           }
         ]

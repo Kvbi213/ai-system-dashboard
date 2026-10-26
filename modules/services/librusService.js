@@ -175,25 +175,23 @@ export function computeGradeStats(subjects = []) {
       ? sem2Candidate
       : (subj.semester?.[1] ?? null);
 
-    const sem1Grades = extractGradesList(rawSem1).map(g => {
-      const details = parseGradeInfo(g.info);
+    const mapGradeItem = (g) => {
+      const existingDetails = (g.details && typeof g.details === 'object' && Object.keys(g.details).length > 0) ? g.details : null;
+      const parsedDetails = parseGradeInfo(g.info);
+      const details = existingDetails ? { ...parsedDetails, ...existingDetails } : parsedDetails;
+      if (!details.teacher && (g.teacher || subj.teacher)) {
+        details.teacher = g.teacher || subj.teacher;
+      }
       return {
         ...g,
         details,
         inAverage: details?.inAverage !== undefined ? details.inAverage : (g.inAverage !== undefined ? g.inAverage : true),
-        numericValue: parseGradeNumeric(g.value)
+        numericValue: g.numericValue !== undefined && g.numericValue !== null ? g.numericValue : parseGradeNumeric(g.value)
       };
-    });
+    };
 
-    const sem2Grades = extractGradesList(rawSem2).map(g => {
-      const details = parseGradeInfo(g.info);
-      return {
-        ...g,
-        details,
-        inAverage: details?.inAverage !== undefined ? details.inAverage : (g.inAverage !== undefined ? g.inAverage : true),
-        numericValue: parseGradeNumeric(g.value)
-      };
-    });
+    const sem1Grades = extractGradesList(rawSem1).map(mapGradeItem);
+    const sem2Grades = extractGradesList(rawSem2).map(mapGradeItem);
 
     const calcAverage = (gradesList) => {
       let sum = 0;
@@ -488,110 +486,436 @@ export async function testLibrusAuth(login, password) {
 export function getDemoGradesData() {
   const mockSubjects = [
     {
-      name: 'Język polski',
-      average: 3.50,
+      name: 'biologia',
+      teacher: 'Łukaszczyk-Wulgaris Joanna',
+      average: 3.38,
       semester: [
         [
-          { id: 101, value: '1', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-02-14\nNauczyciel: A. Negowska\nKomentarz: Gramatyka' },
-          { id: 102, value: '4', info: 'Kategoria: Odpowiedź ustna\nWaga: 1\nData: 2026-03-02\nNauczyciel: A. Negowska\nKomentarz: Lektura' },
-          { id: 103, value: '5+', info: 'Kategoria: Wypracowanie\nWaga: 1\nData: 2026-03-18\nNauczyciel: A. Negowska\nKomentarz: Analiza tekstu' }
+          {
+            id: 101,
+            value: '4+',
+            numericValue: 4.5,
+            info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-10-06\nNauczyciel: Joanna Łukaszczyk-Wulgaris\nKomentarz: Budowa komórki zwierzęcej i roślinnej',
+            details: { category: 'Kartkówka', weight: 1, date: '2026-10-06', teacher: 'Joanna Łukaszczyk-Wulgaris', comment: 'Budowa komórki zwierzęcej i roślinnej', inAverage: true }
+          },
+          {
+            id: 102,
+            value: '3',
+            numericValue: 3.0,
+            info: 'Kategoria: Sprawdzian\nWaga: 3\nData: 2026-10-14\nNauczyciel: Joanna Łukaszczyk-Wulgaris\nKomentarz: Składniki chemiczne organizmów',
+            details: { category: 'Sprawdzian', weight: 3, date: '2026-10-14', teacher: 'Joanna Łukaszczyk-Wulgaris', comment: 'Składniki chemiczne organizmów', inAverage: true }
+          }
         ],
         []
       ]
     },
     {
-      name: 'Matematyka',
-      average: 3.67,
+      name: 'biznes i zarządzanie',
+      teacher: 'Sokół Paweł',
+      average: 4.50,
       semester: [
         [
-          { id: 201, value: '3', info: 'Kategoria: Sprawdzian\nWaga: 2\nData: 2026-02-18\nNauczyciel: Z. Bahr\nKomentarz: Funkcje kwadratowe' },
-          { id: 202, value: '5', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-03-05\nNauczyciel: Z. Bahr' },
-          { id: 203, value: '5', info: 'Kategoria: Praca na lekcji\nWaga: 1\nData: 2026-03-12\nNauczyciel: Z. Bahr' },
-          { id: 204, value: '3', info: 'Kategoria: Sprawdzian\nWaga: 1\nData: 2026-03-24\nNauczyciel: Z. Bahr\nKomentarz: Ciągi liczbowe' },
-          { id: 205, value: '3', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-04-02\nNauczyciel: Z. Bahr' }
+          {
+            id: 201,
+            value: '4+',
+            numericValue: 4.5,
+            info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-10-12\nNauczyciel: Paweł Sokół\nKomentarz: Formy działalności gospodarczej',
+            details: { category: 'Kartkówka', weight: 1, date: '2026-10-12', teacher: 'Paweł Sokół', comment: 'Formy działalności gospodarczej', inAverage: true }
+          }
         ],
         []
       ]
     },
     {
-      name: 'Język angielski',
+      name: 'chemia',
+      teacher: 'Kolasińska Paulina',
+      average: 4.50,
+      semester: [
+        [
+          {
+            id: 301,
+            value: '4+',
+            numericValue: 4.5,
+            info: 'Kategoria: Sprawdzian\nWaga: 2\nData: 2026-10-08\nNauczyciel: Paulina Kolasińska\nKomentarz: Wiązania chemiczne i hybrydyzacja',
+            details: { category: 'Sprawdzian', weight: 2, date: '2026-10-08', teacher: 'Paulina Kolasińska', comment: 'Wiązania chemiczne i hybrydyzacja', inAverage: true }
+          }
+        ],
+        []
+      ]
+    },
+    {
+      name: 'edukacja obywatelska',
+      teacher: 'Czarna Alicja',
       average: 5.00,
       semester: [
         [
-          { id: 301, value: '5', info: 'Kategoria: Sprawdzian\nWaga: 2\nData: 2026-02-12\nNauczyciel: J. Ziemba\nKomentarz: Unit 4 test' },
-          { id: 302, value: '5', info: 'Kategoria: Prezentacja\nWaga: 2\nData: 2026-03-08\nNauczyciel: J. Ziemba' },
-          { id: 303, value: '-', info: 'Kategoria: Nieprzygotowanie\nWaga: 0\nLicz do średniej: nie\nData: 2026-03-15\nNauczyciel: J. Ziemba' },
-          { id: 304, value: '+', info: 'Kategoria: Aktywność\nWaga: 0\nLicz do średniej: nie\nData: 2026-03-22\nNauczyciel: J. Ziemba' }
+          {
+            id: 401,
+            value: '5',
+            numericValue: 5.0,
+            info: 'Kategoria: Projekt\nWaga: 2\nData: 2026-10-05\nNauczyciel: Alicja Czarna\nKomentarz: Prawa człowieka i obywatela w RP',
+            details: { category: 'Projekt', weight: 2, date: '2026-10-05', teacher: 'Alicja Czarna', comment: 'Prawa człowieka i obywatela w RP', inAverage: true }
+          }
         ],
         []
       ]
     },
     {
-      name: 'Język niemiecki',
-      average: 3.50,
-      semester: [
-        [
-          { id: 351, value: '4+', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-02-20\nNauczyciel: B. Chyła\nKomentarz: Słownictwo rozdz. 3' },
-          { id: 352, value: '2+', info: 'Kategoria: Odpowiedź ustna\nWaga: 1\nData: 2026-03-16\nNauczyciel: B. Chyła' }
-        ],
-        []
-      ]
+      name: 'edukacja zdrowotna',
+      teacher: 'Spych Monika',
+      average: null,
+      semester: [[], []]
     },
     {
-      name: 'Historia',
+      name: 'historia',
+      teacher: 'Wardyn Wojciech',
       average: 4.00,
       semester: [
         [
-          { id: 601, value: '4', info: 'Kategoria: Sprawdzian\nWaga: 2\nData: 2026-02-25\nNauczyciel: W. Wardyn\nKomentarz: I wojna światowa' },
-          { id: 602, value: '4', info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-03-14\nNauczyciel: W. Wardyn' },
-          { id: 603, value: '4', info: 'Kategoria: Projekt\nWaga: 1\nData: 2026-04-02\nNauczyciel: W. Wardyn' }
+          {
+            id: 501,
+            value: '4',
+            numericValue: 4.0,
+            info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-09-22\nNauczyciel: Wojciech Wardyn\nKomentarz: Reformy Sejmu Wielkiego',
+            details: { category: 'Kartkówka', weight: 1, date: '2026-09-22', teacher: 'Wojciech Wardyn', comment: 'Reformy Sejmu Wielkiego', inAverage: true }
+          },
+          {
+            id: 502,
+            value: '4',
+            numericValue: 4.0,
+            info: 'Kategoria: Odpowiedź ustna\nWaga: 1\nData: 2026-10-02\nNauczyciel: Wojciech Wardyn\nKomentarz: Konstytucja 3 Maja',
+            details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-02', teacher: 'Wojciech Wardyn', comment: 'Konstytucja 3 Maja', inAverage: true }
+          },
+          {
+            id: 503,
+            value: '4',
+            numericValue: 4.0,
+            info: 'Kategoria: Sprawdzian\nWaga: 2\nData: 2026-10-16\nNauczyciel: Wojciech Wardyn\nKomentarz: Rzeczpospolita w XVIII wieku',
+            details: { category: 'Sprawdzian', weight: 2, date: '2026-10-16', teacher: 'Wojciech Wardyn', comment: 'Rzeczpospolita w XVIII wieku', inAverage: true }
+          }
         ],
         []
       ]
     },
     {
-      name: 'Informatyka',
+      name: 'informatyka',
+      teacher: 'Becker Adam',
       average: 6.00,
       semester: [
         [
-          { id: 401, value: '6', info: 'Kategoria: Projekt\nWaga: 3\nData: 2026-02-20\nNauczyciel: A. Becker\nKomentarz: Projekt aplikacji' },
-          { id: 402, value: '6', info: 'Kategoria: Sprawdzian praktyczny\nWaga: 3\nData: 2026-03-15\nNauczyciel: A. Becker' }
+          {
+            id: 601,
+            value: '6',
+            numericValue: 6.0,
+            info: 'Kategoria: Projekt\nWaga: 3\nData: 2026-10-10\nNauczyciel: Adam Becker\nKomentarz: Złożoność obliczeniowa i struktury grafowe',
+            details: { category: 'Projekt', weight: 3, date: '2026-10-10', teacher: 'Adam Becker', comment: 'Złożoność obliczeniowa i struktury grafowe', inAverage: true }
+          }
         ],
         []
       ]
     },
     {
-      name: 'Systemy operacyjne',
-      average: 5.75,
+      name: 'język angielski',
+      teacher: 'Ziemba Joanna',
+      average: 4.33,
       semester: [
         [
-          { id: 701, value: '6', info: 'Kategoria: Laboratorium\nWaga: 2\nData: 2026-02-28\nNauczyciel: P. Wojnarowski\nKomentarz: Konfiguracja Linux' },
-          { id: 702, value: '5+', info: 'Kategoria: Sprawdzian\nWaga: 2\nData: 2026-03-20\nNauczyciel: P. Wojnarowski\nKomentarz: Skrypty Bash' }
+          {
+            id: 701,
+            value: '5',
+            numericValue: 5.0,
+            info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-09-24\nNauczyciel: Joanna Ziemba\nKomentarz: Phrasal verbs unit 1',
+            details: { category: 'Kartkówka', weight: 1, date: '2026-09-24', teacher: 'Joanna Ziemba', comment: 'Phrasal verbs unit 1', inAverage: true }
+          },
+          {
+            id: 702,
+            value: '5',
+            numericValue: 5.0,
+            info: 'Kategoria: Odpowiedź ustna\nWaga: 1\nData: 2026-10-01\nNauczyciel: Joanna Ziemba\nKomentarz: Wypowiedź na temat technologii',
+            details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-01', teacher: 'Joanna Ziemba', comment: 'Wypowiedź na temat technologii', inAverage: true }
+          },
+          {
+            id: 703,
+            value: '-',
+            numericValue: null,
+            info: 'Kategoria: Brak zadania\nWaga: 0\nLicz do średniej: nie\nData: 2026-10-07\nNauczyciel: Joanna Ziemba\nKomentarz: Brak eseju',
+            details: { category: 'Brak zadania', weight: 0, date: '2026-10-07', teacher: 'Joanna Ziemba', comment: 'Brak eseju', inAverage: false }
+          },
+          {
+            id: 704,
+            value: '3',
+            numericValue: 3.0,
+            info: 'Kategoria: Sprawdzian\nWaga: 1\nData: 2026-10-15\nNauczyciel: Joanna Ziemba\nKomentarz: Reading comprehension & grammar',
+            details: { category: 'Sprawdzian', weight: 1, date: '2026-10-15', teacher: 'Joanna Ziemba', comment: 'Reading comprehension & grammar', inAverage: true }
+          }
         ],
         []
       ]
     },
     {
-      name: 'Lokalne sieci komputerowe',
-      average: 5.54,
+      name: 'język angielski zawodowy',
+      teacher: 'Ziemba Joanna',
+      average: 5.00,
       semester: [
         [
-          { id: 801, value: '6', info: 'Kategoria: Konfiguracja sieci\nWaga: 3\nData: 2026-03-02\nNauczyciel: Ł. Kryła\nKomentarz: VLAN i Routing' },
-          { id: 802, value: '5', info: 'Kategoria: Sprawdzian\nWaga: 2\nData: 2026-03-19\nNauczyciel: Ł. Kryła' },
-          { id: 803, value: '5+', info: 'Kategoria: Kartkówka\nWaga: 2\nData: 2026-04-05\nNauczyciel: Ł. Kryła' }
+          {
+            id: 801,
+            value: '5',
+            numericValue: 5.0,
+            info: 'Kategoria: Słownictwo techniczne\nWaga: 2\nData: 2026-10-13\nNauczyciel: Joanna Ziemba\nKomentarz: Computer Hardware and Architecture glossary',
+            details: { category: 'Słownictwo techniczne', weight: 2, date: '2026-10-13', teacher: 'Joanna Ziemba', comment: 'Computer Hardware and Architecture glossary', inAverage: true }
+          }
         ],
         []
       ]
     },
     {
-      name: 'Urządzenia techniki komputerowej',
-      average: 'N',
+      name: 'język niemiecki',
+      teacher: 'Chyła Beata',
+      average: 3.00,
       semester: [
         [
-          { id: 901, value: 'N', info: 'Kategoria: Klasyfikacja semestralna\nWaga: 0\nLicz do średniej: nie\nData: 2026-03-25\nNauczyciel: B. Gembiak\nKomentarz: Nieklasyfikowany' }
+          {
+            id: 901,
+            value: '4+',
+            numericValue: 4.5,
+            info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-09-25\nNauczyciel: Beata Chyła\nKomentarz: Słownictwo rozdział 1',
+            details: { category: 'Kartkówka', weight: 1, date: '2026-09-25', teacher: 'Beata Chyła', comment: 'Słownictwo rozdział 1', inAverage: true }
+          },
+          {
+            id: 902,
+            value: '2+',
+            numericValue: 2.5,
+            info: 'Kategoria: Odpowiedź ustna\nWaga: 1\nData: 2026-10-02\nNauczyciel: Beata Chyła\nKomentarz: Dialog w sklepie',
+            details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-02', teacher: 'Beata Chyła', comment: 'Dialog w sklepie', inAverage: true }
+          },
+          {
+            id: 903,
+            value: '2',
+            numericValue: 2.0,
+            info: 'Kategoria: Sprawdzian\nWaga: 1\nData: 2026-10-12\nNauczyciel: Beata Chyła\nKomentarz: Czasowniki nieregularne i przeszłe',
+            details: { category: 'Sprawdzian', weight: 1, date: '2026-10-12', teacher: 'Beata Chyła', comment: 'Czasowniki nieregularne i przeszłe', inAverage: true }
+          },
+          {
+            id: 904,
+            value: '-',
+            numericValue: null,
+            info: 'Kategoria: Brak zadania\nWaga: 0\nLicz do średniej: nie\nData: 2026-10-16\nNauczyciel: Beata Chyła\nKomentarz: Ćwiczenia gramatyczne',
+            details: { category: 'Brak zadania', weight: 0, date: '2026-10-16', teacher: 'Beata Chyła', comment: 'Ćwiczenia gramatyczne', inAverage: false }
+          }
         ],
         []
       ]
+    },
+    {
+      name: 'język polski',
+      teacher: 'Negowska Alicja',
+      average: 3.50,
+      semester: [
+        [
+          {
+            id: 1001,
+            value: '1',
+            numericValue: 1.0,
+            info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-09-20\nNauczyciel: Alicja Negowska\nKomentarz: Znajomość treści lektury',
+            details: { category: 'Kartkówka', weight: 1, date: '2026-09-20', teacher: 'Alicja Negowska', comment: 'Znajomość treści lektury', inAverage: true }
+          },
+          {
+            id: 1002,
+            value: '4',
+            numericValue: 4.0,
+            info: 'Kategoria: Odpowiedź ustna\nWaga: 1\nData: 2026-10-04\nNauczyciel: Alicja Negowska\nKomentarz: Analiza wiersza romantycznego',
+            details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-04', teacher: 'Alicja Negowska', comment: 'Analiza wiersza romantycznego', inAverage: true }
+          },
+          {
+            id: 1003,
+            value: '5+',
+            numericValue: 5.5,
+            info: 'Kategoria: Wypracowanie\nWaga: 1\nData: 2026-10-14\nNauczyciel: Alicja Negowska\nKomentarz: Rozprawka problemowa — Konrad Wallenrod',
+            details: { category: 'Wypracowanie', weight: 1, date: '2026-10-14', teacher: 'Alicja Negowska', comment: 'Rozprawka problemowa — Konrad Wallenrod', inAverage: true }
+          }
+        ],
+        []
+      ]
+    },
+    {
+      name: 'lokalne sieci komputerowe',
+      teacher: 'Wojnarowski Przemysław',
+      average: 5.00,
+      semester: [
+        [
+          {
+            id: 1101,
+            value: '5',
+            numericValue: 5.0,
+            info: 'Kategoria: Laboratorium\nWaga: 2\nData: 2026-10-09\nNauczyciel: Przemysław Wojnarowski\nKomentarz: Konfiguracja routingu statycznego i RIP',
+            details: { category: 'Laboratorium', weight: 2, date: '2026-10-09', teacher: 'Przemysław Wojnarowski', comment: 'Konfiguracja routingu statycznego i RIP', inAverage: true }
+          }
+        ],
+        []
+      ]
+    },
+    {
+      name: 'matematyka',
+      teacher: 'Behr Zbigniew',
+      average: 3.67,
+      semester: [
+        [
+          {
+            id: 1201,
+            value: '3',
+            numericValue: 3.0,
+            info: 'Kategoria: Sprawdzian\nWaga: 2\nData: 2026-09-22\nNauczyciel: Zbigniew Behr\nKomentarz: Wzory skróconego mnożenia i równania kwadratowe',
+            details: { category: 'Sprawdzian', weight: 2, date: '2026-09-22', teacher: 'Zbigniew Behr', comment: 'Wzory skróconego mnożenia i równania kwadratowe', inAverage: true }
+          },
+          {
+            id: 1202,
+            value: '5',
+            numericValue: 5.0,
+            info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-09-30\nNauczyciel: Zbigniew Behr\nKomentarz: Postać kanoniczna i iloczynowa trójmianu',
+            details: { category: 'Kartkówka', weight: 1, date: '2026-09-30', teacher: 'Zbigniew Behr', comment: 'Postać kanoniczna i iloczynowa trójmianu', inAverage: true }
+          },
+          {
+            id: 1203,
+            value: '5',
+            numericValue: 5.0,
+            info: 'Kategoria: Praca na lekcji\nWaga: 1\nData: 2026-10-05\nNauczyciel: Zbigniew Behr\nKomentarz: Zadania z parametrem',
+            details: { category: 'Praca na lekcji', weight: 1, date: '2026-10-05', teacher: 'Zbigniew Behr', comment: 'Zadania z parametrem', inAverage: true }
+          },
+          {
+            id: 1204,
+            value: '3',
+            numericValue: 3.0,
+            info: 'Kategoria: Odpowiedź ustna\nWaga: 1\nData: 2026-10-12\nNauczyciel: Zbigniew Behr\nKomentarz: Wykres funkcji kwadratowej',
+            details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-12', teacher: 'Zbigniew Behr', comment: 'Wykres funkcji kwadratowej', inAverage: true }
+          },
+          {
+            id: 1205,
+            value: '3',
+            numericValue: 3.0,
+            info: 'Kategoria: Kartkówka\nWaga: 1\nData: 2026-10-16\nNauczyciel: Zbigniew Behr\nKomentarz: Nierówności kwadratowe',
+            details: { category: 'Kartkówka', weight: 1, date: '2026-10-16', teacher: 'Zbigniew Behr', comment: 'Nierówności kwadratowe', inAverage: true }
+          }
+        ],
+        []
+      ]
+    },
+    {
+      name: 'pracownia lokalnych sieci komputerowych',
+      teacher: 'Kżyś Łukasz',
+      average: 5.00,
+      semester: [
+        [
+          {
+            id: 1301,
+            value: '5',
+            numericValue: 5.0,
+            info: 'Kategoria: Ćwiczenia praktyczne\nWaga: 2\nData: 2026-10-01\nNauczyciel: Łukasz Kżyś\nKomentarz: Zarabianie patchcordów RJ-45 w standardzie T568B',
+            details: { category: 'Ćwiczenia praktyczne', weight: 2, date: '2026-10-01', teacher: 'Łukasz Kżyś', comment: 'Zarabianie patchcordów RJ-45 w standardzie T568B', inAverage: true }
+          },
+          {
+            id: 1302,
+            value: '5',
+            numericValue: 5.0,
+            info: 'Kategoria: Sprawdzian praktyczny\nWaga: 2\nData: 2026-10-15\nNauczyciel: Łukasz Kżyś\nKomentarz: Pomiary toru transmisyjnego miernikiem sieciowym',
+            details: { category: 'Sprawdzian praktyczny', weight: 2, date: '2026-10-15', teacher: 'Łukasz Kżyś', comment: 'Pomiary toru transmisyjnego miernikiem sieciowym', inAverage: true }
+          }
+        ],
+        []
+      ]
+    },
+    {
+      name: 'pracownia systemów operacyjnych',
+      teacher: 'Reszka Sławomir',
+      average: null,
+      semester: [[], []]
+    },
+    {
+      name: 'pracownia urządzeń techniki komputerowej',
+      teacher: 'Wojnarowski Przemysław',
+      average: 5.00,
+      semester: [
+        [
+          {
+            id: 1401,
+            value: '5',
+            numericValue: 5.0,
+            info: 'Kategoria: Montaż podzespołów\nWaga: 2\nData: 2026-10-06\nNauczyciel: Przemysław Wojnarowski\nKomentarz: Montaż procesora i układu chłodzenia cieczą',
+            details: { category: 'Montaż podzespołów', weight: 2, date: '2026-10-06', teacher: 'Przemysław Wojnarowski', comment: 'Montaż procesora i układu chłodzenia cieczą', inAverage: true }
+          }
+        ],
+        []
+      ]
+    },
+    {
+      name: 'religia',
+      teacher: 'Ks. Katecheta',
+      average: null,
+      semester: [[], []]
+    },
+    {
+      name: 'systemy operacyjne',
+      teacher: 'Wojnarowski Przemysław',
+      average: 5.00,
+      semester: [
+        [
+          {
+            id: 1501,
+            value: '5',
+            numericValue: 5.0,
+            info: 'Kategoria: Kolokwium\nWaga: 2\nData: 2026-10-07\nNauczyciel: Przemysław Wojnarowski\nKomentarz: Uprawnienia chmod, chown i system plików ext4',
+            details: { category: 'Kolokwium', weight: 2, date: '2026-10-07', teacher: 'Przemysław Wojnarowski', comment: 'Uprawnienia chmod, chown i system plików ext4', inAverage: true }
+          },
+          {
+            id: 1502,
+            value: '-',
+            numericValue: null,
+            info: 'Kategoria: Brak zadania\nWaga: 0\nLicz do średniej: nie\nData: 2026-10-14\nNauczyciel: Przemysław Wojnarowski\nKomentarz: Ćwiczenie z potokami IPC',
+            details: { category: 'Brak zadania', weight: 0, date: '2026-10-14', teacher: 'Przemysław Wojnarowski', comment: 'Ćwiczenie z potokami IPC', inAverage: false }
+          }
+        ],
+        []
+      ]
+    },
+    {
+      name: 'urządzenia techniki komputerowej',
+      teacher: 'Cembik Bartosz',
+      average: 2.75,
+      semester: [
+        [
+          {
+            id: 1601,
+            value: '3-',
+            numericValue: 2.75,
+            info: 'Kategoria: Sprawdzian\nWaga: 2\nData: 2026-10-14\nNauczyciel: Bartosz Cembik\nKomentarz: Interfejsy pamięci RAM DDR4/DDR5 i magistrale PCIe',
+            details: { category: 'Sprawdzian', weight: 2, date: '2026-10-14', teacher: 'Bartosz Cembik', comment: 'Interfejsy pamięci RAM DDR4/DDR5 i magistrale PCIe', inAverage: true }
+          }
+        ],
+        []
+      ]
+    },
+    {
+      name: 'wychowanie fizyczne',
+      teacher: 'Łysakowski Grzegorz',
+      average: null,
+      semester: [
+        [
+          {
+            id: 1701,
+            value: '-',
+            numericValue: null,
+            info: 'Kategoria: Strój / Aktywność\nWaga: 0\nLicz do średniej: nie\nData: 2026-10-09\nNauczyciel: Grzegorz Łysakowski\nKomentarz: Zwolnienie lekarskie',
+            details: { category: 'Strój / Aktywność', weight: 0, date: '2026-10-09', teacher: 'Grzegorz Łysakowski', comment: 'Zwolnienie lekarskie', inAverage: false }
+          }
+        ],
+        []
+      ]
+    },
+    {
+      name: 'zajęcia z wychowawcą',
+      teacher: 'Ziemba Joanna',
+      average: null,
+      semester: [[], []]
     }
   ];
 
@@ -602,7 +926,7 @@ export function getDemoGradesData() {
     lastSync: new Date().toISOString(),
     status: 'demo',
     ...stats,
-    overallAverage: 4.62
+    overallAverage: 4.35
   };
 }
 
@@ -857,77 +1181,163 @@ export async function syncLibrusCalendar() {
  * Zwraca realistyczne dane demonstracyjne terminarza szkolnego.
  */
 export function getDemoCalendarData() {
-  const today = new Date();
-  const pad = (n) => String(n).padStart(2, '0');
-  const formatDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-
-  const d1 = new Date(today);
-  d1.setDate(d1.getDate() + 1);
-  const d2 = new Date(today);
-  d2.setDate(d2.getDate() + 2);
-  const d3 = new Date(today);
-  d3.setDate(d3.getDate() + 4);
-  const d4 = new Date(today);
-  d4.setDate(d4.getDate() + 7);
-
   return {
     isDemo: true,
     lastSync: new Date().toISOString(),
     events: [
       {
-        id: 9001,
-        date: formatDate(today),
+        id: 9101,
+        date: '2026-10-19',
         type: 'absence',
         category: 'Nieobecność nauczyciela',
-        title: 'Nieobecność: Lorenz Krzysztof',
-        teacher: 'Lorenz Krzysztof',
-        time: '08:00 do 13:05',
-        subject: 'Informatyka',
-        description: 'Nieobecność nauczyciela w godz. 08:00 do 13:05 (zastępstwo lub okienko)'
+        title: 'Nieobecność: Prabucki Andrzej',
+        teacher: 'Prabucki Andrzej',
+        time: '08:00 do 12:15',
+        subject: null,
+        description: 'Nieobecność nauczyciela: Prabucki Andrzej (08:00 do 12:15)'
       },
       {
-        id: 9002,
-        date: formatDate(d1),
+        id: 9102,
+        date: '2026-10-19',
+        type: 'absence',
+        category: 'Nieobecność nauczyciela',
+        title: 'Nieobecność: Wardyn Wojciech',
+        teacher: 'Wardyn Wojciech',
+        time: '08:00 do 08:45',
+        subject: null,
+        description: 'Nieobecność nauczyciela: Wardyn Wojciech (08:00 do 08:45)'
+      },
+      {
+        id: 9103,
+        date: '2026-10-19',
+        type: 'absence',
+        category: 'Nieobecność nauczyciela',
+        title: 'Nieobecność: Łysakowski Grzegorz',
+        teacher: 'Łysakowski Grzegorz',
+        time: '08:50 do 10:25',
+        subject: null,
+        description: 'Nieobecność nauczyciela: Łysakowski Grzegorz (08:50 do 10:25)'
+      },
+      {
+        id: 9104,
+        date: '2026-10-19',
         type: 'kartkowka',
         category: 'Kartkówka',
-        title: 'Kartkówka: Język angielski',
-        teacher: 'Ziemba Joanna',
-        time: 'Lekcja 2 (08:50)',
-        subject: 'Język angielski',
-        description: 'Słownictwo unit 4 (Phrasal verbs & Collocations)'
+        title: 'Kartkówka: Biznes i zarządzanie',
+        teacher: 'Sokół Paweł',
+        time: 'Lekcja 5 (11:30)',
+        subject: 'Biznes i zarządzanie',
+        description: 'Kartkówka z form działalności gospodarczej (2TI T)'
       },
       {
-        id: 9003,
-        date: formatDate(d2),
+        id: 9105,
+        date: '2026-10-20',
         type: 'absence',
         category: 'Nieobecność nauczyciela',
         title: 'Nieobecność: Negowska Alicja',
         teacher: 'Negowska Alicja',
-        time: '08:50 do 14:50',
+        time: '12:20 do 15:40',
         subject: null,
-        description: 'Nieobecność nauczyciela: Negowska Alicja (08:50 do 14:50)'
+        description: 'Nieobecność nauczyciela: Negowska Alicja (12:20 do 15:40)'
       },
       {
-        id: 9004,
-        date: formatDate(d3),
+        id: 9106,
+        date: '2026-10-20',
+        type: 'absence',
+        category: 'Nieobecność nauczyciela',
+        title: 'Nieobecność: Łysakowski Grzegorz',
+        teacher: 'Łysakowski Grzegorz',
+        time: 'Cały dzień',
+        subject: null,
+        description: 'Nieobecność nauczyciela: Łysakowski Grzegorz'
+      },
+      {
+        id: 9107,
+        date: '2026-10-20',
+        type: 'inne',
+        category: 'Zastępstwo',
+        title: 'Zastępstwo: Joanna Ziemba',
+        teacher: 'Ziemba Joanna',
+        time: 'Lekcja 4 i 5 (10:40 - 12:15)',
+        subject: 'Język angielski',
+        description: 'Zastępstwo z Joanna Ziemba na lekcji 4 i 5 (j.ang 2 TI gr.1)'
+      },
+      {
+        id: 9108,
+        date: '2026-10-21',
+        type: 'absence',
+        category: 'Nieobecność nauczyciela',
+        title: 'Nieobecność: Czarna Alicja',
+        teacher: 'Czarna Alicja',
+        time: 'Cały dzień',
+        subject: null,
+        description: 'Nieobecność nauczyciela: Czarna Alicja'
+      },
+      {
+        id: 9109,
+        date: '2026-10-21',
+        type: 'kartkowka',
+        category: 'Kartkówka',
+        title: 'Kartkówka: Biologia',
+        teacher: 'Łukaszczyk-Wulgaris Joanna',
+        time: 'Lekcja 1 (08:00)',
+        subject: 'Biologia',
+        description: 'Kartkówka z budowy komórki (2TI T)'
+      },
+      {
+        id: 9110,
+        date: '2026-10-21',
         type: 'sprawdzian',
-        category: 'Sprawdzian',
-        title: 'Sprawdzian: Matematyka',
-        teacher: 'Wiśniewski Andrzej',
-        time: 'Lekcja 4 (10:40)',
+        category: 'Praca Klasowa',
+        title: 'Praca Klasowa: Biologia',
+        teacher: 'Łukaszczyk-Wulgaris Joanna',
+        time: 'Lekcja 2 (08:50)',
+        subject: 'Biologia',
+        description: 'Praca Klasowa: Składniki komórkowe i procesy metaboliczne (2TI T)'
+      },
+      {
+        id: 9111,
+        date: '2026-10-22',
+        type: 'absence',
+        category: 'Nieobecność nauczyciela',
+        title: 'Nieobecność: Czarna Alicja',
+        teacher: 'Czarna Alicja',
+        time: 'Cały dzień',
+        subject: null,
+        description: 'Nieobecność nauczyciela: Czarna Alicja'
+      },
+      {
+        id: 9112,
+        date: '2026-10-22',
+        type: 'sprawdzian',
+        category: 'Praca Klasowa',
+        title: 'Praca Klasowa: Matematyka',
+        teacher: 'Behr Zbigniew',
+        time: 'Lekcja 0 (07:10)',
         subject: 'Matematyka',
-        description: 'Rachunek prawdopodobieństwa, permutacje i kombinatoryka'
+        description: 'Praca Klasowa przedlekcyjna'
       },
       {
-        id: 9005,
-        date: formatDate(d4),
-        type: 'sprawdzian',
-        category: 'Praca klasowa',
-        title: 'Praca klasowa: Język polski',
-        teacher: 'Kowalska Jadwiga',
-        time: 'Lekcja 3 (09:45)',
-        subject: 'Język polski',
-        description: 'Dziady cz. III oraz Kordian — motyw prometeizmu i tyrteizmu'
+        id: 9113,
+        date: '2026-10-23',
+        type: 'absence',
+        category: 'Nieobecność nauczyciela',
+        title: 'Nieobecność: Czarna Alicja',
+        teacher: 'Czarna Alicja',
+        time: 'Cały dzień',
+        subject: null,
+        description: 'Nieobecność nauczyciela: Czarna Alicja'
+      },
+      {
+        id: 9114,
+        date: '2026-10-23',
+        type: 'odwolane',
+        category: 'Odwołane zajęcia',
+        title: 'Odwołane zajęcia: Edukacja obywatelska',
+        teacher: 'Czarna Alicja',
+        time: 'Lekcja 1 (08:00)',
+        subject: 'Edukacja obywatelska',
+        description: 'Odwołane zajęcia: Alicja Czarna na lekcji nr: 1'
       }
     ]
   };
@@ -1051,10 +1461,12 @@ export function parseTimetableHtml($, from, to) {
       const timeStart = (times[0] || '08:00').trim();
       const timeEnd = (times[1] || '08:45').trim();
 
-      const parseCellDetails = (rawSubject, rawTeacherRoom, isCancelledLesson) => {
+      const parseCellDetails = (rawSubject, rawTeacherRoom, isCancelledLesson, isSubstitutionLesson = false) => {
         let cleanSubj = (rawSubject || '')
           .replace(/odwołan\w*/gi, '')
           .replace(/\(odwołane\)/gi, '')
+          .replace(/zastępstw\w*/gi, '')
+          .replace(/\(zastępstwo\)/gi, '')
           .replace(/[()]/g, '')
           .trim();
         if (!cleanSubj) return null;
@@ -1072,7 +1484,10 @@ export function parseTimetableHtml($, from, to) {
 
         const cleanTeacher = cleanTeacherName(teacher);
         const subjectFormatted = capitalize(cleanSubj);
-        const lessonId = `librus_${dayId}_${rowIndex}_${timeStart.replace(':', '')}${isCancelledLesson ? '_c' : ''}`;
+        const lessonId = `librus_${dayId}_${rowIndex}_${timeStart.replace(':', '')}${isCancelledLesson ? '_c' : isSubstitutionLesson ? '_s' : ''}`;
+
+        const status = isCancelledLesson ? 'cancelled' : isSubstitutionLesson ? 'substitution' : 'active';
+        const statusLabel = isCancelledLesson ? 'Odwołana' : isSubstitutionLesson ? 'Zastępstwo' : 'Aktywna';
 
         return {
           id: lessonId,
@@ -1084,11 +1499,16 @@ export function parseTimetableHtml($, from, to) {
           teacher: teacher || '',
           cleanTeacher: cleanTeacher,
           type: determineType(subjectFormatted),
-          color: determineColor(subjectFormatted),
-          notes: isCancelledLesson ? '[!] Lekcja odwołana w Librus Synergia' : (teacher ? `Nauczyciel: ${teacher}` : ''),
-          isCancelled: isCancelledLesson,
-          status: isCancelledLesson ? 'cancelled' : 'active',
-          statusLabel: isCancelledLesson ? 'Odwołana' : 'Aktywna',
+          color: isCancelledLesson ? 'rose' : isSubstitutionLesson ? 'amber' : determineColor(subjectFormatted),
+          notes: isCancelledLesson 
+            ? '[!] Lekcja odwołana w Librus Synergia' 
+            : isSubstitutionLesson 
+              ? `[~] Zastępstwo w Librus Synergia${teacher ? ` (nauczyciel: ${teacher})` : ''}` 
+              : (teacher ? `Nauczyciel: ${teacher}` : ''),
+          isCancelled: Boolean(isCancelledLesson),
+          isSubstitution: Boolean(isSubstitutionLesson),
+          status,
+          statusLabel,
           isLibrus: true
         };
       };
@@ -1105,6 +1525,7 @@ export function parseTimetableHtml($, from, to) {
       const hasStrike = $cell.find("s").length > 0;
       const planInfoText = $cell.find(".plan-lekcji-info").text().trim();
       const isCancelledByInfo = /odwołan/i.test(planInfoText);
+      const isSubstitutionByInfo = /zastęp/i.test(planInfoText);
 
       // 1. Sprawdź czy jest odwołana lekcja (tag <s> lub plan-lekcji-info: odwołane)
       if (hasStrike || isCancelledByInfo) {
@@ -1127,7 +1548,7 @@ export function parseTimetableHtml($, from, to) {
           struckTeacherRoom = parts[1] ? parts[1].replace(/<[^>]*>/g, '').trim() : '';
         }
 
-        const cancelledLesson = parseCellDetails(struckSubj, struckTeacherRoom, true);
+        const cancelledLesson = parseCellDetails(struckSubj, struckTeacherRoom, true, false);
         addLessonIfUnique(cancelledLesson);
       }
 
@@ -1147,7 +1568,7 @@ export function parseTimetableHtml($, from, to) {
               activeTR = tempDiv.text().trim();
             }
           }
-          const lesson = parseCellDetails(activeSubj, activeTR, false);
+          const lesson = parseCellDetails(activeSubj, activeTR, false, isSubstitutionByInfo);
           addLessonIfUnique(lesson);
         });
       } else if (!hasStrike && !isCancelledByInfo) {
@@ -1156,7 +1577,7 @@ export function parseTimetableHtml($, from, to) {
         const parts = (fullHtml || '').split(/<br\s*\/?>/i);
         const subj = parts[0] ? parts[0].replace(/<[^>]*>/g, '').trim() : '';
         const tr = parts[1] ? parts[1].replace(/<[^>]*>/g, '').trim() : '';
-        const fallbackLesson = parseCellDetails(subj, tr, false);
+        const fallbackLesson = parseCellDetails(subj, tr, false, isSubstitutionByInfo);
         addLessonIfUnique(fallbackLesson);
       }
     });
@@ -1521,117 +1942,108 @@ export async function syncLibrusTimetable(options = {}) {
  */
 export function getDemoTimetableData() {
   const demoLessons = [
-    // Poniedziałek
-    { id: 'librus_mon_1', day: 'monday', subject: 'Informatyka', time_start: '08:50', time_end: '09:35', room: 's. 17', teacher: 'Becker Adam (2 TI gr.2)', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia' },
-    { id: 'librus_mon_2', day: 'monday', subject: 'Informatyka', time_start: '09:40', time_end: '10:25', room: 's. 17', teacher: 'Becker Adam (2 TI gr.2)', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia' },
-    { id: 'librus_mon_3', day: 'monday', subject: 'Chemia', time_start: '10:40', time_end: '11:25', room: 's. 31', teacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '' },
-    { id: 'librus_mon_4', day: 'monday', subject: 'Edukacja zdrowotna', time_start: '11:30', time_end: '12:15', room: 's. 38', teacher: 'Spych Monika', type: 'Wykład', color: 'emerald', notes: '' },
-    { id: 'librus_mon_5', day: 'monday', subject: 'Systemy operacyjne', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
-    { id: 'librus_mon_6', day: 'monday', subject: 'Systemy operacyjne', time_start: '13:15', time_end: '14:00', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
+    // Poniedziałek (2026-10-19)
+    { id: 'librus_mon_2', day: 'monday', subject: 'Informatyka', time_start: '08:50', time_end: '09:35', room: 's. 04', teacher: 'Becker Adam (2 TI gr.2)', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia informatyczna s. 04' },
+    { id: 'librus_mon_3', day: 'monday', subject: 'Informatyka', time_start: '09:40', time_end: '10:25', room: 's. 04', teacher: 'Becker Adam (2 TI gr.2)', type: 'Laboratorium', color: 'cyan', notes: 'Pracownia informatyczna s. 04' },
+    { id: 'librus_mon_4', day: 'monday', subject: 'Biznes i zarządzanie', time_start: '10:40', time_end: '11:25', room: 's. 0.2', teacher: 'Sokół Paweł', type: 'Wykład', color: 'blue', notes: '' },
+    { id: 'librus_mon_5', day: 'monday', subject: 'Lokalne sieci komputerowe', time_start: '11:30', time_end: '12:15', room: 's. 0.2', teacher: 'Wojnarowski Przemysław', type: 'Wykład', color: 'cyan', notes: '' },
+    { id: 'librus_mon_6', day: 'monday', subject: 'Język polski', time_start: '12:20', time_end: '13:05', room: 's. 34', teacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '' },
 
-    // Wtorek
-    { id: 'librus_tue_1', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:00', time_end: '08:45', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
-    { id: 'librus_tue_2', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:50', time_end: '09:35', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
-    { id: 'librus_tue_3', day: 'tuesday', subject: 'Zajęcia z wychowawcą', time_start: '09:40', time_end: '10:25', room: 's. 1.16', teacher: 'Ziemba Joanna', type: 'Wykład', color: 'amber', notes: '' },
-    { id: 'librus_tue_4', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '10:40', time_end: '11:25', room: 's. WF', teacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: '' },
-    { id: 'librus_tue_5', day: 'tuesday', subject: 'Wychowanie fizyczne', time_start: '11:30', time_end: '12:15', room: 's. WF', teacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: '' },
-    { id: 'librus_tue_6', day: 'tuesday', subject: 'Matematyka', time_start: '14:05', time_end: '14:50', room: 's. 26', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
-
-    // Środa
-    { id: 'librus_wed_1', day: 'wednesday', subject: 'Biznes i zarządzanie', time_start: '10:40', time_end: '11:25', room: 's. 0.2', teacher: 'Sokół Paweł', type: 'Wykład', color: 'blue', notes: '' },
-    { id: 'librus_wed_2', day: 'wednesday', subject: 'Biologia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '' },
-    { id: 'librus_wed_3', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '12:20', time_end: '13:05', room: 's. 1.16', teacher: 'Gembiak Bartosz', type: 'Laboratorium', color: 'cyan', notes: '' },
-    { id: 'librus_wed_4', day: 'wednesday', subject: 'Historia', time_start: '14:05', time_end: '14:50', room: 's. 06', teacher: 'Wardyn Wojciech', type: 'Wykład', color: 'rose', notes: '' },
-    { id: 'librus_wed_5', day: 'wednesday', subject: 'Matematyka', time_start: '14:55', time_end: '15:40', room: 's. 26', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
-
-    // Czwartek (Zgodnie z Synergia Librus: lekcje 1, 2, 3 i 8 odwołane, okienka 4-5, matematyka 6-7 odbywa się)
+    // Wtorek (2026-10-20)
+    { id: 'librus_tue_1', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:00', time_end: '08:45', room: 's. 0.1', teacher: 'Wojnarowski Przemysław (2TI gr.1)', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_tue_2', day: 'tuesday', subject: 'Pracownia urządzeń techniki komputerowej', time_start: '08:50', time_end: '09:35', room: 's. 0.1', teacher: 'Wojnarowski Przemysław (2TI gr.1)', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_tue_3', day: 'tuesday', subject: 'Zajęcia z wychowawcą', time_start: '09:40', time_end: '10:25', room: 's. 28', teacher: 'Ziemba Joanna', type: 'Wykład', color: 'amber', notes: '' },
     { 
-      id: 'librus_thu_1', 
-      day: 'thursday', 
-      subject: 'Język polski', 
+      id: 'librus_tue_4', 
+      day: 'tuesday', 
+      subject: 'Język angielski', 
+      time_start: '10:40', 
+      time_end: '11:25', 
+      room: '', 
+      teacher: 'Ziemba Joanna (j.ang 2 TI gr.1)', 
+      type: 'Lektorat', 
+      color: 'amber', 
+      isSubstitution: true, 
+      status: 'substitution', 
+      statusLabel: 'Zastępstwo', 
+      notes: '[~] Zastępstwo w Librus Synergia (Joanna Ziemba)' 
+    },
+    { 
+      id: 'librus_tue_5', 
+      day: 'tuesday', 
+      subject: 'Język angielski', 
+      time_start: '11:30', 
+      time_end: '12:15', 
+      room: '', 
+      teacher: 'Ziemba Joanna (j.ang 2 TI gr.1)', 
+      type: 'Lektorat', 
+      color: 'amber', 
+      isSubstitution: true, 
+      status: 'substitution', 
+      statusLabel: 'Zastępstwo', 
+      notes: '[~] Zastępstwo w Librus Synergia (Joanna Ziemba)' 
+    },
+    { id: 'librus_tue_6', day: 'tuesday', subject: 'Pracownia systemów operacyjnych', time_start: '12:20', time_end: '13:05', room: 's. 1.15', teacher: 'Reszka Sławomir (2 TI gr.1 PSO)', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_tue_7', day: 'tuesday', subject: 'Pracownia systemów operacyjnych', time_start: '13:15', time_end: '14:00', room: 's. 1.15', teacher: 'Reszka Sławomir (2 TI gr.1 PSO)', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_tue_8', day: 'tuesday', subject: 'Edukacja zdrowotna', time_start: '14:05', time_end: '14:50', room: 's. 35', teacher: 'Spych Monika', type: 'Wykład', color: 'emerald', notes: '' },
+    { id: 'librus_tue_9', day: 'tuesday', subject: 'Matematyka', time_start: '14:55', time_end: '15:40', room: 's. 28', teacher: 'Behr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
+
+    // Środa (2026-10-21)
+    { id: 'librus_wed_1', day: 'wednesday', subject: 'Biologia', time_start: '08:00', time_end: '08:45', room: 's. 03', teacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '' },
+    { id: 'librus_wed_2', day: 'wednesday', subject: 'Biologia', time_start: '08:50', time_end: '09:35', room: 's. 03', teacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '' },
+    { id: 'librus_wed_3', day: 'wednesday', subject: 'Systemy operacyjne', time_start: '09:40', time_end: '10:25', room: 's. 1.2', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_wed_4', day: 'wednesday', subject: 'Systemy operacyjne', time_start: '10:40', time_end: '11:25', room: 's. 1.2', teacher: 'Wojnarowski Przemysław', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_wed_5', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '11:30', time_end: '12:15', room: 's. 1.2', teacher: 'Cembik Bartosz', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_wed_6', day: 'wednesday', subject: 'Urządzenia techniki komputerowej', time_start: '12:20', time_end: '13:05', room: 's. 1.2', teacher: 'Cembik Bartosz', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_wed_7', day: 'wednesday', subject: 'Chemia', time_start: '13:15', time_end: '14:00', room: 's. 03', teacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '' },
+    { id: 'librus_wed_8', day: 'wednesday', subject: 'Historia', time_start: '14:05', time_end: '14:50', room: 's. 05', teacher: 'Wardyn Wojciech', type: 'Wykład', color: 'rose', notes: '' },
+    { id: 'librus_wed_9', day: 'wednesday', subject: 'Matematyka', time_start: '14:55', time_end: '15:40', room: 's. 28', teacher: 'Behr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
+
+    // Czwartek (2026-10-22)
+    { id: 'librus_thu_2', day: 'thursday', subject: 'Język angielski', time_start: '08:50', time_end: '09:35', room: 's. 22', teacher: 'Ziemba Joanna (j.ang 2 TI gr.1)', type: 'Lektorat', color: 'amber', notes: '' },
+    { id: 'librus_thu_3', day: 'thursday', subject: 'Język angielski', time_start: '09:40', time_end: '10:25', room: 's. 22', teacher: 'Ziemba Joanna (j.ang 2 TI gr.1)', type: 'Lektorat', color: 'amber', notes: '' },
+    { id: 'librus_thu_4', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Kżyś Łukasz', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_thu_5', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '11:30', time_end: '12:15', room: 's. 1.16', teacher: 'Kżyś Łukasz', type: 'Laboratorium', color: 'cyan', notes: '' },
+    { id: 'librus_thu_6', day: 'thursday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 05', teacher: 'Behr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
+    { id: 'librus_thu_7', day: 'thursday', subject: 'Matematyka', time_start: '13:15', time_end: '14:00', room: 's. 05', teacher: 'Behr Zbigniew', type: 'Wykład', color: 'indigo', notes: '' },
+    { id: 'librus_thu_8', day: 'thursday', subject: 'Język angielski zawodowy', time_start: '14:05', time_end: '14:50', room: 's. 22', teacher: 'Ziemba Joanna (j.ang.zaw. 2 TI gr.1)', type: 'Lektorat', color: 'amber', notes: '' },
+
+    // Piątek (2026-10-23)
+    { 
+      id: 'librus_fri_1', 
+      day: 'friday', 
+      subject: 'Edukacja obywatelska', 
       time_start: '08:00', 
       time_end: '08:45', 
-      room: 's. 34', 
-      teacher: 'Negowska Alicja', 
+      room: '', 
+      teacher: 'Czarna Alicja', 
       type: 'Wykład', 
       color: 'rose', 
-      notes: '[!] ODWOŁANA (nieobecność nauczyciela)',
+      notes: '[!] ODWOŁANA (nieobecność nauczyciela: Alicja Czarna)',
       isCancelled: true,
       status: 'cancelled',
       statusLabel: 'Odwołana',
       absenceAlert: {
         isAbsent: true,
-        teacher: 'Negowska Alicja',
-        hours: '08:50 do 14:50',
-        date: '2026-09-24',
-        description: 'Nieobecność nauczyciela: Negowska Alicja (08:50 do 14:50)',
-        suggestedStatus: 'okienko_or_sub'
+        teacher: 'Czarna Alicja',
+        hours: '08:00 do 08:45',
+        date: '2026-10-23',
+        description: 'Nieobecność nauczyciela: Czarna Alicja'
       }
     },
-    { 
-      id: 'librus_thu_2', 
-      day: 'thursday', 
-      subject: 'Język angielski zawodowy', 
-      time_start: '08:50', 
-      time_end: '09:35', 
-      room: 's. Z2', 
-      teacher: 'Ziemba Joanna', 
-      type: 'Lektorat', 
-      color: 'amber', 
-      notes: '[!] ODWOŁANA',
-      isCancelled: true,
-      status: 'cancelled',
-      statusLabel: 'Odwołana'
-    },
-    { 
-      id: 'librus_thu_3', 
-      day: 'thursday', 
-      subject: 'Język angielski', 
-      time_start: '09:40', 
-      time_end: '10:25', 
-      room: 's. Z2', 
-      teacher: 'Ziemba Joanna', 
-      type: 'Lektorat', 
-      color: 'amber', 
-      notes: '[!] ODWOŁANA',
-      isCancelled: true,
-      status: 'cancelled',
-      statusLabel: 'Odwołana'
-    },
-    { id: 'librus_thu_4', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: '' },
-    { id: 'librus_thu_5', day: 'thursday', subject: 'Pracownia lokalnych sieci komputerowych', time_start: '11:30', time_end: '12:15', room: 's. 1.16', teacher: 'Kryła Łukasz', type: 'Laboratorium', color: 'cyan', notes: '' },
-    { id: 'librus_thu_6', day: 'thursday', subject: 'Matematyka', time_start: '12:20', time_end: '13:05', room: 's. 05', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: 'Zajęcia odbywają się (sala 05)' },
-    { id: 'librus_thu_7', day: 'thursday', subject: 'Matematyka', time_start: '13:15', time_end: '14:00', room: 's. 05', teacher: 'Bahr Zbigniew', type: 'Wykład', color: 'indigo', notes: 'Zajęcia odbywają się (sala 05)' },
-    { 
-      id: 'librus_thu_8', 
-      day: 'thursday', 
-      subject: 'Język niemiecki', 
-      time_start: '14:05', 
-      time_end: '14:50', 
-      room: 's. Z1', 
-      teacher: 'Chyła Beata', 
-      type: 'Lektorat', 
-      color: 'amber', 
-      notes: '[!] ODWOŁANA',
-      isCancelled: true,
-      status: 'cancelled',
-      statusLabel: 'Odwołana'
-    },
-    { id: 'librus_thu_9', day: 'thursday', subject: 'Biologia', time_start: '14:55', time_end: '15:40', room: 's. 19', teacher: 'Łukaszczyk-Wulgaris Joanna', type: 'Wykład', color: 'emerald', notes: '' },
-
-    // Piątek
-    { id: 'librus_fri_1', day: 'friday', subject: 'Język angielski', time_start: '08:00', time_end: '08:45', room: 's. Z2', teacher: 'Ziemba Joanna', type: 'Lektorat', color: 'amber', notes: '' },
-    { id: 'librus_fri_2', day: 'friday', subject: 'Język niemiecki', time_start: '08:50', time_end: '09:35', room: 's. Z1', teacher: 'Chyła Beata', type: 'Lektorat', color: 'amber', notes: '' },
-    { id: 'librus_fri_3', day: 'friday', subject: 'Wychowanie fizyczne', time_start: '09:40', time_end: '10:25', room: 's. WF', teacher: 'Łysakowski Grzegorz', type: 'Ćwiczenia', color: 'purple', notes: '' },
-    { id: 'librus_fri_4', day: 'friday', subject: 'Lokalne sieci komputerowe', time_start: '10:40', time_end: '11:25', room: 's. 1.16', teacher: 'Wojnarowski Przemysław', type: 'Wykład', color: 'cyan', notes: '' },
+    { id: 'librus_fri_2', day: 'friday', subject: 'Wychowanie fizyczne', time_start: '08:50', time_end: '09:35', room: '', teacher: 'Łysakowski Grzegorz (Klasa 2 TI)', type: 'Ćwiczenia', color: 'purple', notes: '' },
+    { id: 'librus_fri_3', day: 'friday', subject: 'Język niemiecki', time_start: '09:40', time_end: '10:25', room: 's. 21', teacher: 'Chyła Beata (2TI/1)', type: 'Lektorat', color: 'amber', notes: '' },
+    { id: 'librus_fri_4', day: 'friday', subject: 'Język niemiecki', time_start: '10:40', time_end: '11:25', room: 's. 21', teacher: 'Chyła Beata (2TI/1)', type: 'Lektorat', color: 'amber', notes: '' },
     { id: 'librus_fri_5', day: 'friday', subject: 'Chemia', time_start: '11:30', time_end: '12:15', room: 's. 19', teacher: 'Kolasińska Paulina', type: 'Wykład', color: 'emerald', notes: '' },
-    { id: 'librus_fri_6', day: 'friday', subject: 'Edukacja obywatelska', time_start: '12:20', time_end: '13:05', room: 's. 09', teacher: 'Czarna Alicja', type: 'Wykład', color: 'rose', notes: '' }
+    { id: 'librus_fri_6', day: 'friday', subject: 'Język polski', time_start: '12:20', time_end: '13:05', room: 's. 34', teacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '' },
+    { id: 'librus_fri_7', day: 'friday', subject: 'Język polski', time_start: '13:15', time_end: '14:00', room: 's. 34', teacher: 'Negowska Alicja', type: 'Wykład', color: 'rose', notes: '' }
   ];
 
   const normalizedLessons = demoLessons.map(l => ({
-    isCancelled: false,
-    status: 'active',
-    statusLabel: 'Aktywna',
+    isCancelled: Boolean(l.isCancelled),
+    isSubstitution: Boolean(l.isSubstitution),
+    status: l.status || (l.isCancelled ? 'cancelled' : l.isSubstitution ? 'substitution' : 'active'),
+    statusLabel: l.statusLabel || (l.isCancelled ? 'Odwołana' : l.isSubstitution ? 'Zastępstwo' : 'Aktywna'),
     ...l
   }));
 
@@ -1639,6 +2051,7 @@ export function getDemoTimetableData() {
     isDemo: true,
     lastSync: new Date().toISOString(),
     hours: [
+      '07:10 - 07:55',
       '08:00 - 08:45',
       '08:50 - 09:35',
       '09:40 - 10:25',
@@ -1647,21 +2060,156 @@ export function getDemoTimetableData() {
       '12:20 - 13:05',
       '13:15 - 14:00',
       '14:05 - 14:50',
-      '14:55 - 15:40'
+      '14:55 - 15:40',
+      '15:45 - 16:30'
     ],
     lessons: normalizedLessons,
     substitutions: [
       {
-        lessonId: 'librus_thu_5',
-        day: 'thursday',
-        subject: 'Język polski',
-        time_start: '13:15',
-        time_end: '14:00',
-        teacher: 'Negowska Alicja',
+        lessonId: 'librus_tue_4',
+        day: 'tuesday',
+        subject: 'Język angielski',
+        time_start: '10:40',
+        time_end: '11:25',
+        teacher: 'Ziemba Joanna (j.ang 2 TI gr.1)',
         absenceTeacher: 'Negowska Alicja',
-        absenceHours: '08:50 do 14:50',
-        absenceDate: '2026-09-24'
+        absenceHours: '10:40 - 11:25',
+        absenceDate: '2026-10-20'
+      },
+      {
+        lessonId: 'librus_tue_5',
+        day: 'tuesday',
+        subject: 'Język angielski',
+        time_start: '11:30',
+        time_end: '12:15',
+        teacher: 'Ziemba Joanna (j.ang 2 TI gr.1)',
+        absenceTeacher: 'Negowska Alicja',
+        absenceHours: '11:30 - 12:15',
+        absenceDate: '2026-10-20'
       }
     ]
+  };
+}
+
+/**
+ * Resetuje tabele cache Librusa (SQLite i Firestore) i zasila je autentycznymi danymi źródłowymi.
+ */
+export async function resetAndSeedLibrusDatabase() {
+  console.log('[*] INFO :: LIBRUS :: Inicjalizacja procedury resetu i re-seeding bazy Librusa...');
+  const gradesPayload = getDemoGradesData();
+  const timetablePayload = getDemoTimetableData();
+  const calendarPayload = getDemoCalendarData();
+
+  // 1. Zapis do SQLite: librus_cache
+  try {
+    await executeRun(`
+      CREATE TABLE IF NOT EXISTS librus_cache (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        data TEXT NOT NULL,
+        lucky_number INTEGER,
+        last_sync DATETIME DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'ok',
+        error_message TEXT
+      )
+    `);
+    await executeRun(`DELETE FROM librus_cache WHERE id = 1`);
+    await executeRun(
+      `INSERT INTO librus_cache (id, data, lucky_number, last_sync, status, error_message)
+       VALUES (1, ?, ?, datetime('now'), 'ok', NULL)`,
+      [JSON.stringify(gradesPayload), gradesPayload.luckyNumber]
+    );
+    console.log('[+] SUCCESS :: LIBRUS :: librus_cache zresetowany i zasilony autentycznymi ocenami.');
+  } catch (err) {
+    console.error('[!] ERROR :: LIBRUS :: Błąd resetu librus_cache w SQLite:', err.message);
+  }
+
+  // 2. Zapis do SQLite: librus_timetable_cache
+  try {
+    await executeRun(`
+      CREATE TABLE IF NOT EXISTS librus_timetable_cache (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        data TEXT NOT NULL,
+        last_sync DATETIME DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'ok',
+        error_message TEXT
+      )
+    `);
+    await executeRun(`DELETE FROM librus_timetable_cache WHERE id = 1`);
+    await executeRun(
+      `INSERT INTO librus_timetable_cache (id, data, last_sync, status, error_message)
+       VALUES (1, ?, datetime('now'), 'ok', NULL)`,
+      [JSON.stringify(timetablePayload)]
+    );
+    console.log('[+] SUCCESS :: LIBRUS :: librus_timetable_cache zresetowany i zasilony autentycznym planem.');
+  } catch (err) {
+    console.error('[!] ERROR :: LIBRUS :: Błąd resetu librus_timetable_cache w SQLite:', err.message);
+  }
+
+  // 3. Zapis do SQLite: librus_calendar_cache
+  try {
+    await executeRun(`
+      CREATE TABLE IF NOT EXISTS librus_calendar_cache (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        data TEXT NOT NULL,
+        last_sync DATETIME DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'ok',
+        error_message TEXT
+      )
+    `);
+    await executeRun(`DELETE FROM librus_calendar_cache WHERE id = 1`);
+    await executeRun(
+      `INSERT INTO librus_calendar_cache (id, data, last_sync, status, error_message)
+       VALUES (1, ?, datetime('now'), 'ok', NULL)`,
+      [JSON.stringify(calendarPayload)]
+    );
+    console.log('[+] SUCCESS :: LIBRUS :: librus_calendar_cache zresetowany i zasilony autentycznym terminarzem.');
+  } catch (err) {
+    console.error('[!] ERROR :: LIBRUS :: Błąd resetu librus_calendar_cache w SQLite:', err.message);
+  }
+
+  // 4. Aktualizacja tabeli timetable (szkolne lekcje, z zachowaniem personal)
+  try {
+    await executeRun(`DELETE FROM timetable WHERE category = 'librus' OR category IS NULL OR category = 'szkolne'`);
+    for (const l of timetablePayload.lessons) {
+      await executeRun(
+        `INSERT OR REPLACE INTO timetable (id, day, subject, time_start, time_end, room, teacher, type, color, notes, category)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'librus')`,
+        [l.id, l.day, l.subject, l.time_start, l.time_end, l.room || '', l.teacher || '', l.type || 'Lekcja', l.color || 'indigo', l.notes || '']
+      );
+    }
+    console.log(`[+] SUCCESS :: LIBRUS :: Zaimportowano ${timetablePayload.lessons.length} autentycznych lekcji do tabeli timetable.`);
+  } catch (err) {
+    console.error('[!] ERROR :: LIBRUS :: Błąd aktualizacji tabeli timetable:', err.message);
+  }
+
+  // 5. Replikacja do Firestore
+  try {
+    const { getFirestoreDb } = await import('../firebase.js');
+    const firestoreDb = getFirestoreDb ? getFirestoreDb() : null;
+    if (firestoreDb) {
+      await firestoreDb.collection('librus_cache').doc('latest').set({
+        ...gradesPayload,
+        updated_at: new Date().toISOString()
+      });
+      await firestoreDb.collection('librus_cache').doc('timetable').set({
+        ...timetablePayload,
+        updated_at: new Date().toISOString()
+      });
+      await firestoreDb.collection('librus_cache').doc('calendar').set({
+        ...calendarPayload,
+        updated_at: new Date().toISOString()
+      });
+      console.log('[+] SUCCESS :: LIBRUS :: Zreplikowano zresetowane dane do chmury Firestore (librus_cache: latest, timetable, calendar).');
+    }
+  } catch (fErr) {
+    console.warn('[!] ALERT :: LIBRUS :: Pominięto replikację do Firestore:', fErr.message);
+  }
+
+  return {
+    success: true,
+    message: 'Baza danych Librusa została pomyślnie zresetowana i zasilona autentycznymi danymi źródłowymi.',
+    grades: gradesPayload,
+    timetable: timetablePayload,
+    calendar: calendarPayload
   };
 }

@@ -95,138 +95,371 @@ const STATIC_DEMO_DATA = {
   isDemo: true,
   luckyNumber: 17,
   lastSync: new Date().toISOString(),
-  overallAverage: "4.62",
-  totalSubjects: 9,
+  overallAverage: "4.35",
+  totalSubjects: 21,
   highestAverage: { subject: "Informatyka", average: "6.00" },
   subjects: [
     {
-      name: 'Informatyka / Systemy Operacyjne',
-      teacher: 'dr hab. M. Kwiatkowski',
-      computedAverage: '5.25',
-      average: '5.25',
-      gradesCount: 3,
+      name: 'biologia',
+      teacher: 'Joanna Łukaszczyk-Wulgaris',
+      computedAverage: '3.38',
+      average: '3.38',
+      gradesCount: 2,
       semester: [
         [
-          { id: 101, value: '6', details: { category: 'Projekt Kernel', weight: 3, date: '2026-05-18 10:15', teacher: 'dr hab. M. Kwiatkowski', comment: 'Projekt Architektura Jądra' } },
-          { id: 102, value: '5+', details: { category: 'Spr. Pamięć', weight: 2, date: '2026-05-02 11:30', teacher: 'dr hab. M. Kwiatkowski', comment: 'Zarządzanie pamięcią wirtualną' } },
-          { id: 103, value: '5', details: { category: 'Odpowiedź', weight: 1, date: '2026-04-18 09:15', teacher: 'dr hab. M. Kwiatkowski', comment: 'Algorytmy planowania CPU' } }
+          { id: 101, value: '4+', numericValue: 4.5, details: { category: 'Kartkówka', weight: 1, date: '2026-10-06', teacher: 'Joanna Łukaszczyk-Wulgaris', comment: 'Budowa komórki zwierzęcej i roślinnej', inAverage: true } },
+          { id: 102, value: '3', numericValue: 3.0, details: { category: 'Sprawdzian', weight: 3, date: '2026-10-14', teacher: 'Joanna Łukaszczyk-Wulgaris', comment: 'Składniki chemiczne organizmów', inAverage: true } }
         ],
         []
       ],
       sem1Grades: [
-        { id: 101, value: '6', details: { category: 'Projekt Kernel', weight: 3, date: '2026-05-18 10:15', teacher: 'dr hab. M. Kwiatkowski', comment: 'Projekt Architektura Jądra' } },
-        { id: 102, value: '5+', details: { category: 'Spr. Pamięć', weight: 2, date: '2026-05-02 11:30', teacher: 'dr hab. M. Kwiatkowski', comment: 'Zarządzanie pamięcią wirtualną' } },
-        { id: 103, value: '5', details: { category: 'Odpowiedź', weight: 1, date: '2026-04-18 09:15', teacher: 'dr hab. M. Kwiatkowski', comment: 'Algorytmy planowania CPU' } }
+        { id: 101, value: '4+', numericValue: 4.5, details: { category: 'Kartkówka', weight: 1, date: '2026-10-06', teacher: 'Joanna Łukaszczyk-Wulgaris', comment: 'Budowa komórki zwierzęcej i roślinnej', inAverage: true } },
+        { id: 102, value: '3', numericValue: 3.0, details: { category: 'Sprawdzian', weight: 3, date: '2026-10-14', teacher: 'Joanna Łukaszczyk-Wulgaris', comment: 'Składniki chemiczne organizmów', inAverage: true } }
       ],
       sem2Grades: []
     },
     {
-      name: 'Matematyka Zaawansowana',
-      teacher: 'prof. E. Nowacka',
-      computedAverage: '4.40',
-      average: '4.40',
+      name: 'biznes i zarządzanie',
+      teacher: 'Paweł Sokół',
+      computedAverage: '4.50',
+      average: '4.50',
+      gradesCount: 1,
+      semester: [
+        [
+          { id: 201, value: '4+', numericValue: 4.5, details: { category: 'Kartkówka', weight: 1, date: '2026-10-12', teacher: 'Paweł Sokół', comment: 'Formy działalności gospodarczej', inAverage: true } }
+        ],
+        []
+      ],
+      sem1Grades: [
+        { id: 201, value: '4+', numericValue: 4.5, details: { category: 'Kartkówka', weight: 1, date: '2026-10-12', teacher: 'Paweł Sokół', comment: 'Formy działalności gospodarczej', inAverage: true } }
+      ],
+      sem2Grades: []
+    },
+    {
+      name: 'chemia',
+      teacher: 'Paulina Kolasińska',
+      computedAverage: '4.50',
+      average: '4.50',
+      gradesCount: 1,
+      semester: [
+        [
+          { id: 301, value: '4+', numericValue: 4.5, details: { category: 'Sprawdzian', weight: 2, date: '2026-10-08', teacher: 'Paulina Kolasińska', comment: 'Wiązania chemiczne i hybrydyzacja', inAverage: true } }
+        ],
+        []
+      ],
+      sem1Grades: [
+        { id: 301, value: '4+', numericValue: 4.5, details: { category: 'Sprawdzian', weight: 2, date: '2026-10-08', teacher: 'Paulina Kolasińska', comment: 'Wiązania chemiczne i hybrydyzacja', inAverage: true } }
+      ],
+      sem2Grades: []
+    },
+    {
+      name: 'edukacja obywatelska',
+      teacher: 'Alicja Czarna',
+      computedAverage: '5.00',
+      average: '5.00',
+      gradesCount: 1,
+      semester: [
+        [
+          { id: 401, value: '5', numericValue: 5.0, details: { category: 'Projekt', weight: 2, date: '2026-10-05', teacher: 'Alicja Czarna', comment: 'Prawa człowieka i obywatela w RP', inAverage: true } }
+        ],
+        []
+      ],
+      sem1Grades: [
+        { id: 401, value: '5', numericValue: 5.0, details: { category: 'Projekt', weight: 2, date: '2026-10-05', teacher: 'Alicja Czarna', comment: 'Prawa człowieka i obywatela w RP', inAverage: true } }
+      ],
+      sem2Grades: []
+    },
+    {
+      name: 'edukacja zdrowotna',
+      teacher: 'Monika Spych',
+      computedAverage: null,
+      average: null,
+      gradesCount: 0,
+      semester: [[], []],
+      sem1Grades: [],
+      sem2Grades: []
+    },
+    {
+      name: 'historia',
+      teacher: 'Wojciech Wardyn',
+      computedAverage: '4.00',
+      average: '4.00',
+      gradesCount: 3,
+      semester: [
+        [
+          { id: 501, value: '4', numericValue: 4.0, details: { category: 'Kartkówka', weight: 1, date: '2026-09-22', teacher: 'Wojciech Wardyn', comment: 'Reformy Sejmu Wielkiego', inAverage: true } },
+          { id: 502, value: '4', numericValue: 4.0, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-02', teacher: 'Wojciech Wardyn', comment: 'Konstytucja 3 Maja', inAverage: true } },
+          { id: 503, value: '4', numericValue: 4.0, details: { category: 'Sprawdzian', weight: 2, date: '2026-10-16', teacher: 'Wojciech Wardyn', comment: 'Rzeczpospolita w XVIII wieku', inAverage: true } }
+        ],
+        []
+      ],
+      sem1Grades: [
+        { id: 501, value: '4', numericValue: 4.0, details: { category: 'Kartkówka', weight: 1, date: '2026-09-22', teacher: 'Wojciech Wardyn', comment: 'Reformy Sejmu Wielkiego', inAverage: true } },
+        { id: 502, value: '4', numericValue: 4.0, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-02', teacher: 'Wojciech Wardyn', comment: 'Konstytucja 3 Maja', inAverage: true } },
+        { id: 503, value: '4', numericValue: 4.0, details: { category: 'Sprawdzian', weight: 2, date: '2026-10-16', teacher: 'Wojciech Wardyn', comment: 'Rzeczpospolita w XVIII wieku', inAverage: true } }
+      ],
+      sem2Grades: []
+    },
+    {
+      name: 'informatyka',
+      teacher: 'Adam Becker',
+      computedAverage: '6.00',
+      average: '6.00',
+      gradesCount: 1,
+      semester: [
+        [
+          { id: 601, value: '6', numericValue: 6.0, details: { category: 'Projekt', weight: 3, date: '2026-10-10', teacher: 'Adam Becker', comment: 'Złożoność obliczeniowa i struktury grafowe', inAverage: true } }
+        ],
+        []
+      ],
+      sem1Grades: [
+        { id: 601, value: '6', numericValue: 6.0, details: { category: 'Projekt', weight: 3, date: '2026-10-10', teacher: 'Adam Becker', comment: 'Złożoność obliczeniowa i struktury grafowe', inAverage: true } }
+      ],
+      sem2Grades: []
+    },
+    {
+      name: 'język angielski',
+      teacher: 'Joanna Ziemba',
+      computedAverage: '4.33',
+      average: '4.33',
+      gradesCount: 4,
+      semester: [
+        [
+          { id: 701, value: '5', numericValue: 5.0, details: { category: 'Kartkówka', weight: 1, date: '2026-09-24', teacher: 'Joanna Ziemba', comment: 'Phrasal verbs unit 1', inAverage: true } },
+          { id: 702, value: '5', numericValue: 5.0, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-01', teacher: 'Joanna Ziemba', comment: 'Wypowiedź na temat technologii', inAverage: true } },
+          { id: 703, value: '-', numericValue: null, details: { category: 'Brak zadania', weight: 0, date: '2026-10-07', teacher: 'Joanna Ziemba', comment: 'Brak eseju', inAverage: false } },
+          { id: 704, value: '3', numericValue: 3.0, details: { category: 'Sprawdzian', weight: 1, date: '2026-10-15', teacher: 'Joanna Ziemba', comment: 'Reading comprehension & grammar', inAverage: true } }
+        ],
+        []
+      ],
+      sem1Grades: [
+        { id: 701, value: '5', numericValue: 5.0, details: { category: 'Kartkówka', weight: 1, date: '2026-09-24', teacher: 'Joanna Ziemba', comment: 'Phrasal verbs unit 1', inAverage: true } },
+        { id: 702, value: '5', numericValue: 5.0, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-01', teacher: 'Joanna Ziemba', comment: 'Wypowiedź na temat technologii', inAverage: true } },
+        { id: 703, value: '-', numericValue: null, details: { category: 'Brak zadania', weight: 0, date: '2026-10-07', teacher: 'Joanna Ziemba', comment: 'Brak eseju', inAverage: false } },
+        { id: 704, value: '3', numericValue: 3.0, details: { category: 'Sprawdzian', weight: 1, date: '2026-10-15', teacher: 'Joanna Ziemba', comment: 'Reading comprehension & grammar', inAverage: true } }
+      ],
+      sem2Grades: []
+    },
+    {
+      name: 'język angielski zawodowy',
+      teacher: 'Joanna Ziemba',
+      computedAverage: '5.00',
+      average: '5.00',
+      gradesCount: 1,
+      semester: [
+        [
+          { id: 801, value: '5', numericValue: 5.0, details: { category: 'Słownictwo techniczne', weight: 2, date: '2026-10-13', teacher: 'Joanna Ziemba', comment: 'Computer Hardware and Architecture glossary', inAverage: true } }
+        ],
+        []
+      ],
+      sem1Grades: [
+        { id: 801, value: '5', numericValue: 5.0, details: { category: 'Słownictwo techniczne', weight: 2, date: '2026-10-13', teacher: 'Joanna Ziemba', comment: 'Computer Hardware and Architecture glossary', inAverage: true } }
+      ],
+      sem2Grades: []
+    },
+    {
+      name: 'język niemiecki',
+      teacher: 'Beata Chyła',
+      computedAverage: '3.00',
+      average: '3.00',
+      gradesCount: 4,
+      semester: [
+        [
+          { id: 901, value: '4+', numericValue: 4.5, details: { category: 'Kartkówka', weight: 1, date: '2026-09-25', teacher: 'Beata Chyła', comment: 'Słownictwo rozdział 1', inAverage: true } },
+          { id: 902, value: '2+', numericValue: 2.5, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-02', teacher: 'Beata Chyła', comment: 'Dialog w sklepie', inAverage: true } },
+          { id: 903, value: '2', numericValue: 2.0, details: { category: 'Sprawdzian', weight: 1, date: '2026-10-12', teacher: 'Beata Chyła', comment: 'Czasowniki nieregularne i przeszłe', inAverage: true } },
+          { id: 904, value: '-', numericValue: null, details: { category: 'Brak zadania', weight: 0, date: '2026-10-16', teacher: 'Beata Chyła', comment: 'Ćwiczenia gramatyczne', inAverage: false } }
+        ],
+        []
+      ],
+      sem1Grades: [
+        { id: 901, value: '4+', numericValue: 4.5, details: { category: 'Kartkówka', weight: 1, date: '2026-09-25', teacher: 'Beata Chyła', comment: 'Słownictwo rozdział 1', inAverage: true } },
+        { id: 902, value: '2+', numericValue: 2.5, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-02', teacher: 'Beata Chyła', comment: 'Dialog w sklepie', inAverage: true } },
+        { id: 903, value: '2', numericValue: 2.0, details: { category: 'Sprawdzian', weight: 1, date: '2026-10-12', teacher: 'Beata Chyła', comment: 'Czasowniki nieregularne i przeszłe', inAverage: true } },
+        { id: 904, value: '-', numericValue: null, details: { category: 'Brak zadania', weight: 0, date: '2026-10-16', teacher: 'Beata Chyła', comment: 'Ćwiczenia gramatyczne', inAverage: false } }
+      ],
+      sem2Grades: []
+    },
+    {
+      name: 'język polski',
+      teacher: 'Alicja Negowska',
+      computedAverage: '3.50',
+      average: '3.50',
+      gradesCount: 3,
+      semester: [
+        [
+          { id: 1001, value: '1', numericValue: 1.0, details: { category: 'Kartkówka', weight: 1, date: '2026-09-20', teacher: 'Alicja Negowska', comment: 'Znajomość treści lektury', inAverage: true } },
+          { id: 1002, value: '4', numericValue: 4.0, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-04', teacher: 'Alicja Negowska', comment: 'Analiza wiersza romantycznego', inAverage: true } },
+          { id: 1003, value: '5+', numericValue: 5.5, details: { category: 'Wypracowanie', weight: 1, date: '2026-10-14', teacher: 'Alicja Negowska', comment: 'Rozprawka problemowa — Konrad Wallenrod', inAverage: true } }
+        ],
+        []
+      ],
+      sem1Grades: [
+        { id: 1001, value: '1', numericValue: 1.0, details: { category: 'Kartkówka', weight: 1, date: '2026-09-20', teacher: 'Alicja Negowska', comment: 'Znajomość treści lektury', inAverage: true } },
+        { id: 1002, value: '4', numericValue: 4.0, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-04', teacher: 'Alicja Negowska', comment: 'Analiza wiersza romantycznego', inAverage: true } },
+        { id: 1003, value: '5+', numericValue: 5.5, details: { category: 'Wypracowanie', weight: 1, date: '2026-10-14', teacher: 'Alicja Negowska', comment: 'Rozprawka problemowa — Konrad Wallenrod', inAverage: true } }
+      ],
+      sem2Grades: []
+    },
+    {
+      name: 'lokalne sieci komputerowe',
+      teacher: 'Przemysław Wojnarowski',
+      computedAverage: '5.00',
+      average: '5.00',
+      gradesCount: 1,
+      semester: [
+        [
+          { id: 1101, value: '5', numericValue: 5.0, details: { category: 'Laboratorium', weight: 2, date: '2026-10-09', teacher: 'Przemysław Wojnarowski', comment: 'Konfiguracja routingu statycznego i RIP', inAverage: true } }
+        ],
+        []
+      ],
+      sem1Grades: [
+        { id: 1101, value: '5', numericValue: 5.0, details: { category: 'Laboratorium', weight: 2, date: '2026-10-09', teacher: 'Przemysław Wojnarowski', comment: 'Konfiguracja routingu statycznego i RIP', inAverage: true } }
+      ],
+      sem2Grades: []
+    },
+    {
+      name: 'matematyka',
+      teacher: 'Zbigniew Behr',
+      computedAverage: '3.67',
+      average: '3.67',
       gradesCount: 5,
       semester: [
         [
-          { id: 201, value: '4+', details: { category: 'Spr. Całki', weight: 3, date: '2026-05-12 11:20', teacher: 'prof. E. Nowacka', comment: 'Sprawdzian Rachunek Całkowy' } },
-          { id: 202, value: '5', details: { category: 'Kartkówka', weight: 2, date: '2026-04-25 10:10', teacher: 'prof. E. Nowacka' } },
-          { id: 203, value: '4', details: { category: 'Zadania', weight: 1, date: '2026-04-12 12:40', teacher: 'prof. E. Nowacka' } },
-          { id: 204, value: '5', details: { category: 'Aktywność', weight: 1, date: '2026-03-24 08:30', teacher: 'prof. E. Nowacka' } },
-          { id: 205, value: '4', details: { category: 'Kartkówka', weight: 1, date: '2026-03-05 09:00', teacher: 'prof. E. Nowacka' } }
+          { id: 1201, value: '3', numericValue: 3.0, details: { category: 'Sprawdzian', weight: 2, date: '2026-09-22', teacher: 'Zbigniew Behr', comment: 'Wzory skróconego mnożenia i równania kwadratowe', inAverage: true } },
+          { id: 1202, value: '5', numericValue: 5.0, details: { category: 'Kartkówka', weight: 1, date: '2026-09-30', teacher: 'Zbigniew Behr', comment: 'Postać kanoniczna i iloczynowa trójmianu', inAverage: true } },
+          { id: 1203, value: '5', numericValue: 5.0, details: { category: 'Praca na lekcji', weight: 1, date: '2026-10-05', teacher: 'Zbigniew Behr', comment: 'Zadania z parametrem', inAverage: true } },
+          { id: 1204, value: '3', numericValue: 3.0, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-12', teacher: 'Zbigniew Behr', comment: 'Wykres funkcji kwadratowej', inAverage: true } },
+          { id: 1205, value: '3', numericValue: 3.0, details: { category: 'Kartkówka', weight: 1, date: '2026-10-16', teacher: 'Zbigniew Behr', comment: 'Nierówności kwadratowe', inAverage: true } }
         ],
         []
       ],
       sem1Grades: [
-        { id: 201, value: '4+', details: { category: 'Spr. Całki', weight: 3, date: '2026-05-12 11:20', teacher: 'prof. E. Nowacka', comment: 'Sprawdzian Rachunek Całkowy' } },
-        { id: 202, value: '5', details: { category: 'Kartkówka', weight: 2, date: '2026-04-25 10:10', teacher: 'prof. E. Nowacka' } },
-        { id: 203, value: '4', details: { category: 'Zadania', weight: 1, date: '2026-04-12 12:40', teacher: 'prof. E. Nowacka' } },
-        { id: 204, value: '5', details: { category: 'Aktywność', weight: 1, date: '2026-03-24 08:30', teacher: 'prof. E. Nowacka' } },
-        { id: 205, value: '4', details: { category: 'Kartkówka', weight: 1, date: '2026-03-05 09:00', teacher: 'prof. E. Nowacka' } }
+        { id: 1201, value: '3', numericValue: 3.0, details: { category: 'Sprawdzian', weight: 2, date: '2026-09-22', teacher: 'Zbigniew Behr', comment: 'Wzory skróconego mnożenia i równania kwadratowe', inAverage: true } },
+        { id: 1202, value: '5', numericValue: 5.0, details: { category: 'Kartkówka', weight: 1, date: '2026-09-30', teacher: 'Zbigniew Behr', comment: 'Postać kanoniczna i iloczynowa trójmianu', inAverage: true } },
+        { id: 1203, value: '5', numericValue: 5.0, details: { category: 'Praca na lekcji', weight: 1, date: '2026-10-05', teacher: 'Zbigniew Behr', comment: 'Zadania z parametrem', inAverage: true } },
+        { id: 1204, value: '3', numericValue: 3.0, details: { category: 'Odpowiedź ustna', weight: 1, date: '2026-10-12', teacher: 'Zbigniew Behr', comment: 'Wykres funkcji kwadratowej', inAverage: true } },
+        { id: 1205, value: '3', numericValue: 3.0, details: { category: 'Kartkówka', weight: 1, date: '2026-10-16', teacher: 'Zbigniew Behr', comment: 'Nierówności kwadratowe', inAverage: true } }
       ],
       sem2Grades: []
     },
     {
-      name: 'Fizyka i Mechatronika',
-      teacher: 'mgr inż. T. Adamski',
-      computedAverage: '4.60',
-      average: '4.60',
-      gradesCount: 3,
-      semester: [
-        [
-          { id: 301, value: '5', details: { category: 'Lab Elektroniki', weight: 3, date: '2026-05-10 14:05', teacher: 'mgr inż. T. Adamski', comment: 'Lab Półprzewodniki i Bramki CMOS' } },
-          { id: 302, value: '4', details: { category: 'Termodynamika', weight: 2, date: '2026-04-15 13:10', teacher: 'mgr inż. T. Adamski' } },
-          { id: 303, value: '6', details: { category: 'Aktywność', weight: 1, date: '2026-03-20 14:20', teacher: 'mgr inż. T. Adamski' } }
-        ],
-        []
-      ],
-      sem1Grades: [
-        { id: 301, value: '5', details: { category: 'Lab Elektroniki', weight: 3, date: '2026-05-10 14:05', teacher: 'mgr inż. T. Adamski', comment: 'Lab Półprzewodniki i Bramki CMOS' } },
-        { id: 302, value: '4', details: { category: 'Termodynamika', weight: 2, date: '2026-04-15 13:10', teacher: 'mgr inż. T. Adamski' } },
-        { id: 303, value: '6', details: { category: 'Aktywność', weight: 1, date: '2026-03-20 14:20', teacher: 'mgr inż. T. Adamski' } }
-      ],
-      sem2Grades: []
-    },
-    {
-      name: 'Język Angielski C1 / Technical',
-      teacher: 'mgr K. Vance',
+      name: 'pracownia lokalnych sieci komputerowych',
+      teacher: 'Łukasz Kżyś',
       computedAverage: '5.00',
       average: '5.00',
-      gradesCount: 3,
+      gradesCount: 2,
       semester: [
         [
-          { id: 401, value: '5', details: { category: 'Tech Essay', weight: 3, date: '2026-05-15 08:50', teacher: 'mgr K. Vance', comment: 'Prezentacja LLM Architectures' } },
-          { id: 402, value: '5+', details: { category: 'Presentation', weight: 2, date: '2026-04-28 09:30', teacher: 'mgr K. Vance' } },
-          { id: 403, value: '6', details: { category: 'Terminology', weight: 1, date: '2026-03-15 08:45', teacher: 'mgr K. Vance' } }
+          { id: 1301, value: '5', numericValue: 5.0, details: { category: 'Ćwiczenia praktyczne', weight: 2, date: '2026-10-01', teacher: 'Łukasz Kżyś', comment: 'Zarabianie patchcordów RJ-45 w standardzie T568B', inAverage: true } },
+          { id: 1302, value: '5', numericValue: 5.0, details: { category: 'Sprawdzian praktyczny', weight: 2, date: '2026-10-15', teacher: 'Łukasz Kżyś', comment: 'Pomiary toru transmisyjnego miernikiem sieciowym', inAverage: true } }
         ],
         []
       ],
       sem1Grades: [
-        { id: 401, value: '5', details: { category: 'Tech Essay', weight: 3, date: '2026-05-15 08:50', teacher: 'mgr K. Vance', comment: 'Prezentacja LLM Architectures' } },
-        { id: 402, value: '5+', details: { category: 'Presentation', weight: 2, date: '2026-04-28 09:30', teacher: 'mgr K. Vance' } },
-        { id: 403, value: '6', details: { category: 'Terminology', weight: 1, date: '2026-03-15 08:45', teacher: 'mgr K. Vance' } }
+        { id: 1301, value: '5', numericValue: 5.0, details: { category: 'Ćwiczenia praktyczne', weight: 2, date: '2026-10-01', teacher: 'Łukasz Kżyś', comment: 'Zarabianie patchcordów RJ-45 w standardzie T568B', inAverage: true } },
+        { id: 1302, value: '5', numericValue: 5.0, details: { category: 'Sprawdzian praktyczny', weight: 2, date: '2026-10-15', teacher: 'Łukasz Kżyś', comment: 'Pomiary toru transmisyjnego miernikiem sieciowym', inAverage: true } }
       ],
       sem2Grades: []
     },
     {
-      name: 'Przedsiębiorczość i Zarządzanie',
-      teacher: 'dr D. Walczak',
-      computedAverage: '4.80',
-      average: '4.80',
-      gradesCount: 3,
+      name: 'pracownia systemów operacyjnych',
+      teacher: 'Sławomir Reszka',
+      computedAverage: null,
+      average: null,
+      gradesCount: 0,
+      semester: [[], []],
+      sem1Grades: [],
+      sem2Grades: []
+    },
+    {
+      name: 'pracownia urządzeń techniki komputerowej',
+      teacher: 'Przemysław Wojnarowski',
+      computedAverage: '5.00',
+      average: '5.00',
+      gradesCount: 1,
       semester: [
         [
-          { id: 501, value: '5', details: { category: 'Biznesplan', weight: 2, date: '2026-05-04 10:45', teacher: 'dr D. Walczak', comment: 'Model biznesowy SaaS' } },
-          { id: 502, value: '4+', details: { category: 'Analiza Rynku', weight: 2, date: '2026-04-18 11:15', teacher: 'dr D. Walczak' } },
-          { id: 503, value: '5', details: { category: 'Studium', weight: 1, date: '2026-03-22 10:00', teacher: 'dr D. Walczak' } }
+          { id: 1401, value: '5', numericValue: 5.0, details: { category: 'Montaż podzespołów', weight: 2, date: '2026-10-06', teacher: 'Przemysław Wojnarowski', comment: 'Montaż procesora i układu chłodzenia cieczą', inAverage: true } }
         ],
         []
       ],
       sem1Grades: [
-        { id: 501, value: '5', details: { category: 'Biznesplan', weight: 2, date: '2026-05-04 10:45', teacher: 'dr D. Walczak', comment: 'Model biznesowy SaaS' } },
-        { id: 502, value: '4+', details: { category: 'Analiza Rynku', weight: 2, date: '2026-04-18 11:15', teacher: 'dr D. Walczak' } },
-        { id: 503, value: '5', details: { category: 'Studium', weight: 1, date: '2026-03-22 10:00', teacher: 'dr D. Walczak' } }
+        { id: 1401, value: '5', numericValue: 5.0, details: { category: 'Montaż podzespołów', weight: 2, date: '2026-10-06', teacher: 'Przemysław Wojnarowski', comment: 'Montaż procesora i układu chłodzenia cieczą', inAverage: true } }
       ],
       sem2Grades: []
     },
     {
-      name: 'Algorytmy i Struktury Danych',
-      teacher: 'dr inż. R. Szymański',
-      computedAverage: '5.33',
-      average: '5.33',
-      gradesCount: 3,
+      name: 'religia',
+      teacher: 'Ks. Katecheta',
+      computedAverage: null,
+      average: null,
+      gradesCount: 0,
+      semester: [[], []],
+      sem1Grades: [],
+      sem2Grades: []
+    },
+    {
+      name: 'systemy operacyjne',
+      teacher: 'Przemysław Wojnarowski',
+      computedAverage: '5.00',
+      average: '5.00',
+      gradesCount: 2,
       semester: [
         [
-          { id: 601, value: '6', details: { category: 'Grafy / AVL', weight: 3, date: '2026-05-16 13:40', teacher: 'dr inż. R. Szymański', comment: 'Grafy i Drzewa AVL Kolokwium' } },
-          { id: 602, value: '5', details: { category: 'Big-O Kolokw.', weight: 2, date: '2026-04-20 14:10', teacher: 'dr inż. R. Szymański' } },
-          { id: 603, value: '5', details: { category: 'LeetCode Zad.', weight: 1, date: '2026-03-30 15:00', teacher: 'dr inż. R. Szymański' } }
+          { id: 1501, value: '5', numericValue: 5.0, details: { category: 'Kolokwium', weight: 2, date: '2026-10-07', teacher: 'Przemysław Wojnarowski', comment: 'Uprawnienia chmod, chown i system plików ext4', inAverage: true } },
+          { id: 1502, value: '-', numericValue: null, details: { category: 'Brak zadania', weight: 0, date: '2026-10-14', teacher: 'Przemysław Wojnarowski', comment: 'Ćwiczenie z potokami IPC', inAverage: false } }
         ],
         []
       ],
       sem1Grades: [
-        { id: 601, value: '6', details: { category: 'Grafy / AVL', weight: 3, date: '2026-05-16 13:40', teacher: 'dr inż. R. Szymański', comment: 'Grafy i Drzewa AVL Kolokwium' } },
-        { id: 602, value: '5', details: { category: 'Big-O Kolokw.', weight: 2, date: '2026-04-20 14:10', teacher: 'dr inż. R. Szymański' } },
-        { id: 603, value: '5', details: { category: 'LeetCode Zad.', weight: 1, date: '2026-03-30 15:00', teacher: 'dr inż. R. Szymański' } }
+        { id: 1501, value: '5', numericValue: 5.0, details: { category: 'Kolokwium', weight: 2, date: '2026-10-07', teacher: 'Przemysław Wojnarowski', comment: 'Uprawnienia chmod, chown i system plików ext4', inAverage: true } },
+        { id: 1502, value: '-', numericValue: null, details: { category: 'Brak zadania', weight: 0, date: '2026-10-14', teacher: 'Przemysław Wojnarowski', comment: 'Ćwiczenie z potokami IPC', inAverage: false } }
       ],
+      sem2Grades: []
+    },
+    {
+      name: 'urządzenia techniki komputerowej',
+      teacher: 'Bartosz Cembik',
+      computedAverage: '2.75',
+      average: '2.75',
+      gradesCount: 1,
+      semester: [
+        [
+          { id: 1601, value: '3-', numericValue: 2.75, details: { category: 'Sprawdzian', weight: 2, date: '2026-10-14', teacher: 'Bartosz Cembik', comment: 'Interfejsy pamięci RAM DDR4/DDR5 i magistrale PCIe', inAverage: true } }
+        ],
+        []
+      ],
+      sem1Grades: [
+        { id: 1601, value: '3-', numericValue: 2.75, details: { category: 'Sprawdzian', weight: 2, date: '2026-10-14', teacher: 'Bartosz Cembik', comment: 'Interfejsy pamięci RAM DDR4/DDR5 i magistrale PCIe', inAverage: true } }
+      ],
+      sem2Grades: []
+    },
+    {
+      name: 'wychowanie fizyczne',
+      teacher: 'Grzegorz Łysakowski',
+      computedAverage: null,
+      average: null,
+      gradesCount: 1,
+      semester: [
+        [
+          { id: 1701, value: '-', numericValue: null, details: { category: 'Strój / Aktywność', weight: 0, date: '2026-10-09', teacher: 'Grzegorz Łysakowski', comment: 'Zwolnienie lekarskie', inAverage: false } }
+        ],
+        []
+      ],
+      sem1Grades: [
+        { id: 1701, value: '-', numericValue: null, details: { category: 'Strój / Aktywność', weight: 0, date: '2026-10-09', teacher: 'Grzegorz Łysakowski', comment: 'Zwolnienie lekarskie', inAverage: false } }
+      ],
+      sem2Grades: []
+    },
+    {
+      name: 'zajęcia z wychowawcą',
+      teacher: 'Joanna Ziemba',
+      computedAverage: null,
+      average: null,
+      gradesCount: 0,
+      semester: [[], []],
+      sem1Grades: [],
       sem2Grades: []
     }
   ]
@@ -1186,7 +1419,7 @@ const GradesPage = () => {
                         return (
                           <div
                             key={g.id || gIdx}
-                            onClick={() => setSelectedGrade({ ...g, subjectName: subject.name })}
+                            onClick={() => setSelectedGrade({ ...g, subjectName: subject.name, teacher: subject.teacher })}
                             className="flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container-high hover:bg-surface-bright cursor-pointer transition-colors active:scale-[0.97]"
                             title={`Waga: ${w} • ${g.details?.category || 'Ocena'} - ${g.details?.comment || ''}`}
                           >
@@ -1470,6 +1703,12 @@ const GradesPage = () => {
                   <span className="text-outline text-[10px] block uppercase">Licz do średniej</span>
                   <span className="text-on-surface">
                     {selectedGrade.details?.inAverage === false ? 'Nie' : 'Tak'}
+                  </span>
+                </div>
+                <div className="col-span-2 pt-1 border-t border-outline-variant/10">
+                  <span className="text-outline text-[10px] block uppercase">Nauczyciel</span>
+                  <span className="text-on-surface font-medium">
+                    {selectedGrade.details?.teacher || selectedGrade.teacher || '—'}
                   </span>
                 </div>
               </div>
