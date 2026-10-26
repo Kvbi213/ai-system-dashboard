@@ -84,6 +84,7 @@ const ChatPage = () => {
   const [tokensMeta, setTokensMeta] = useState({ in: 1420, out: 388, cost: '$0.0004' });
   const [showClearToast, setShowClearToast] = useState(false);
   const [copyToast, setCopyToast] = useState(false);
+  const [copyToastError, setCopyToastError] = useState(false);
 
   const feedbackTimerRef = useRef(null);
   const copyToastTimerRef = useRef(null);
@@ -111,7 +112,7 @@ const ChatPage = () => {
 
   const setAllTools = (active) => {
     setToolsList(prev => {
-      if (!Array.isArray(prev)) return prev;
+      if (!Array.isArray(prev)) return [];
       return prev.map(t => ({ ...t, active }));
     });
   };
@@ -664,15 +665,32 @@ const ChatPage = () => {
   const handleQuickAction = (action) => {
     if (action === 'copy') {
       const copyPayload = "Sprawdziłem Twój dzisiejszy harmonogram. O 12:45 masz okienko (odwołana lekcja fizyki)...";
-      navigator.clipboard?.writeText(copyPayload).catch(err => {
-        console.warn('[ChatPage] Niepowodzenie zapisu do schowka:', err);
-      });
-      setCopyToast(true);
-      if (copyToastTimerRef.current) clearTimeout(copyToastTimerRef.current);
-      copyToastTimerRef.current = setTimeout(() => {
-        setCopyToast(false);
-        copyToastTimerRef.current = null;
-      }, COPY_TOAST_DURATION_MS);
+      if (!navigator.clipboard?.writeText) {
+        setCopyToastError(true);
+        if (copyToastTimerRef.current) clearTimeout(copyToastTimerRef.current);
+        copyToastTimerRef.current = setTimeout(() => {
+          setCopyToastError(false);
+          copyToastTimerRef.current = null;
+        }, COPY_TOAST_DURATION_MS);
+        return;
+      }
+      navigator.clipboard.writeText(copyPayload)
+        .then(() => {
+          setCopyToast(true);
+          setCopyToastError(false);
+        })
+        .catch(err => {
+          console.warn('[ChatPage] Niepowodzenie zapisu do schowka:', err);
+          setCopyToastError(true);
+        })
+        .finally(() => {
+          if (copyToastTimerRef.current) clearTimeout(copyToastTimerRef.current);
+          copyToastTimerRef.current = setTimeout(() => {
+            setCopyToast(false);
+            setCopyToastError(false);
+            copyToastTimerRef.current = null;
+          }, COPY_TOAST_DURATION_MS);
+        });
     } else if (action === 'timer') {
       window.location.hash = '#timer';
       alert('Stoper sesji został zainicjalizowany.');
@@ -1189,7 +1207,7 @@ const ChatPage = () => {
                     className="px-space-md py-space-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md flex items-center gap-1.5 transition-colors active:scale-95 border border-outline-variant/30" 
                   >
                     <span className="material-symbols-outlined text-[15px] text-outline">content_copy</span>
-                    <span>{copyToast ? 'Skopiowano!' : 'Kopiuj'}</span>
+                    <span>{copyToast ? 'Skopiowano!' : (copyToastError ? 'Błąd kopiowania' : 'Kopiuj')}</span>
                   </button>
                 </div>
               </div>
