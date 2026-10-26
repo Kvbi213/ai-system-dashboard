@@ -88,6 +88,7 @@ const ChatPage = () => {
 
   const feedbackTimerRef = useRef(null);
   const copyToastTimerRef = useRef(null);
+  const isCopyingLegacyRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -102,6 +103,15 @@ const ChatPage = () => {
 
   const TOOL_FEEDBACK_TIMEOUT_MS = 3000;
   const COPY_TOAST_DURATION_MS = 2000;
+
+  const showTransientFeedback = (message, duration = TOOL_FEEDBACK_TIMEOUT_MS) => {
+    setToolExecutionFeedback(message);
+    if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+    feedbackTimerRef.current = setTimeout(() => {
+      setToolExecutionFeedback(null);
+      feedbackTimerRef.current = null;
+    }, duration);
+  };
 
   const toggleToolCard = (id) => {
     setExpandedToolCards(prev => ({
@@ -123,14 +133,7 @@ const ChatPage = () => {
   const handleTestTool = (tool) => {
     try {
       if (!tool || typeof tool !== 'object') return;
-      if (feedbackTimerRef.current) {
-        clearTimeout(feedbackTimerRef.current);
-      }
-      setToolExecutionFeedback(`Uruchomiono test ${tool.name || 'narzędzia'}: Status 200 OK (${tool.latency || '0ms'})`);
-      feedbackTimerRef.current = setTimeout(() => {
-        setToolExecutionFeedback(null);
-        feedbackTimerRef.current = null;
-      }, TOOL_FEEDBACK_TIMEOUT_MS);
+      showTransientFeedback(`Uruchomiono test ${tool.name || 'narzędzia'}: Status 200 OK (${tool.latency || '0ms'})`);
     } catch (err) {
       console.error('[ChatPage] handleTestTool error:', err);
     }
@@ -687,6 +690,8 @@ const ChatPage = () => {
   };
 
   const performLegacyCopy = (text) => {
+    if (isCopyingLegacyRef.current) return false;
+    isCopyingLegacyRef.current = true;
     try {
       const textarea = document.createElement('textarea');
       textarea.value = text;
@@ -702,6 +707,8 @@ const ChatPage = () => {
     } catch (err) {
       console.warn('[ChatPage] Legacy copy exception:', err);
       return false;
+    } finally {
+      isCopyingLegacyRef.current = false;
     }
   };
 
@@ -726,19 +733,9 @@ const ChatPage = () => {
       }
     } else if (action === 'timer') {
       window.location.hash = '#timer';
-      setToolExecutionFeedback('Stoper sesji został zainicjalizowany.');
-      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
-      feedbackTimerRef.current = setTimeout(() => {
-        setToolExecutionFeedback(null);
-        feedbackTimerRef.current = null;
-      }, TOOL_FEEDBACK_TIMEOUT_MS);
+      showTransientFeedback('Stoper sesji został zainicjalizowany.');
     } else if (action === 'pushbullet') {
-      setToolExecutionFeedback('Plan treningowy i harmonogram wysłany na smartfon przez Pushbullet.');
-      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
-      feedbackTimerRef.current = setTimeout(() => {
-        setToolExecutionFeedback(null);
-        feedbackTimerRef.current = null;
-      }, TOOL_FEEDBACK_TIMEOUT_MS);
+      showTransientFeedback('Plan treningowy i harmonogram wysłany na smartfon przez Pushbullet.');
     }
   };
 

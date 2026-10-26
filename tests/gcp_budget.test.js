@@ -9,6 +9,12 @@ import {
 import { initDB } from '../modules/database.js';
 import { agentTools } from '../modules/ai/tools.js';
 
+// Mock Pushbullet service to avoid non-deterministic external network calls in CI
+vi.mock('../modules/services/pushbulletService.js', () => ({
+  sendPushNotificationClient: vi.fn().mockResolvedValue({ success: true, iden: 'mock_push_iden' }),
+  getPushbulletApiKey: vi.fn().mockReturnValue('mock_pushbullet_key')
+}));
+
 describe('Google Cloud Billing & Pub/Sub Budget Guard (omnidash-509607)', () => {
   beforeAll(async () => {
     await initDB();
