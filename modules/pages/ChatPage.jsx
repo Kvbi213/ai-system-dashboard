@@ -112,7 +112,10 @@ const ChatPage = () => {
 
   const setAllTools = (active) => {
     setToolsList(prev => {
-      if (!Array.isArray(prev)) return [];
+      if (!Array.isArray(prev)) {
+        console.error('[ChatPage] Warning: toolsList state corrupted or not initialized as Array', prev);
+        return [];
+      }
       return prev.map(t => ({ ...t, active }));
     });
   };
@@ -662,35 +665,45 @@ const ChatPage = () => {
     };
   }, []);
 
-  const handleQuickAction = (action) => {
+  const clearCopyTimer = () => {
+    if (copyToastTimerRef.current) {
+      clearTimeout(copyToastTimerRef.current);
+      copyToastTimerRef.current = null;
+    }
+  };
+
+  const triggerCopyFeedback = (hasError) => {
+    clearCopyTimer();
+    setCopyToast(!hasError);
+    setCopyToastError(hasError);
+    copyToastTimerRef.current = setTimeout(() => {
+      setCopyToast(false);
+      setCopyToastError(false);
+      clearCopyTimer();
+    }, COPY_TOAST_DURATION_MS);
+  };
+
+  const handleQuickAction = async (action) => {
     if (action === 'copy') {
       const copyPayload = "Sprawdziłem Twój dzisiejszy harmonogram. O 12:45 masz okienko (odwołana lekcja fizyki)...";
-      if (!navigator.clipboard?.writeText) {
-        setCopyToastError(true);
-        if (copyToastTimerRef.current) clearTimeout(copyToastTimerRef.current);
-        copyToastTimerRef.current = setTimeout(() => {
-          setCopyToastError(false);
-          copyToastTimerRef.current = null;
-        }, COPY_TOAST_DURATION_MS);
-        return;
+      try {
+        if (!navigator.clipboard?.writeText) {
+          const textarea = document.createElement('textarea');
+          textarea.value = copyPayload;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+        } else {
+          await navigator.clipboard.writeText(copyPayload);
+        }
+        triggerCopyFeedback(false);
+      } catch (err) {
+        console.warn('[ChatPage] Clipboard copy error:', err);
+        triggerCopyFeedback(true);
       }
-      navigator.clipboard.writeText(copyPayload)
-        .then(() => {
-          setCopyToast(true);
-          setCopyToastError(false);
-        })
-        .catch(err => {
-          console.warn('[ChatPage] Niepowodzenie zapisu do schowka:', err);
-          setCopyToastError(true);
-        })
-        .finally(() => {
-          if (copyToastTimerRef.current) clearTimeout(copyToastTimerRef.current);
-          copyToastTimerRef.current = setTimeout(() => {
-            setCopyToast(false);
-            setCopyToastError(false);
-            copyToastTimerRef.current = null;
-          }, COPY_TOAST_DURATION_MS);
-        });
     } else if (action === 'timer') {
       window.location.hash = '#timer';
       alert('Stoper sesji został zainicjalizowany.');
