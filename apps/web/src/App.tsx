@@ -7,22 +7,25 @@ import { MoreDrawerSheet } from './components/navigation/MoreDrawerSheet';
 
 import { DashboardPage } from './modules/dashboard/page';
 import { ChatPage } from './modules/chat/page';
-import { TimetablePage } from './modules/timetable/page';
+import { SchoolPage } from './modules/school/page';
 import { GradesPage } from './modules/grades/page';
 import { FinancePage } from './modules/finance/page';
 import { WorkoutsPage } from './modules/workouts/page';
 import { TrafficPage } from './modules/traffic/page';
+import { ServerPage } from './modules/server/page';
 import { SettingsPage } from './modules/settings/page';
 
 const ROUTE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/': { title: 'Pulpit Główny', subtitle: 'Centrum Operacyjne Edge v4.0' },
   '/chat': { title: 'Czat Asystenta AI', subtitle: 'Zero-Trust Reasoning & Tool Calling' },
+  '/school': { title: 'Librus Szkoła ZSE', subtitle: 'Plan lekcji, Oceny, Frekwencja i Terminarz' },
   '/timetable': { title: 'Plan Lekcji Synergia', subtitle: 'Technikum ZSE Starogard Gdański' },
   '/grades': { title: 'Oceny i Frekwencja', subtitle: 'Zintegrowany Dziennik Elektroniczny' },
-  '/finance': { title: 'Finanse 50/30/20', subtitle: 'Zarządzanie Budżetem i Oszczędnościami' },
-  '/workouts': { title: 'Trening FBW Poddasze', subtitle: 'Drążek, Dipy i Progresja Siłowa' },
+  '/finance': { title: 'Finanse 50/30/20', subtitle: 'Zarządzanie Budżetem, Abonamentami i Celami' },
+  '/workouts': { title: 'Trening FBW & Nawyki', subtitle: 'Drążek, Dipy, Streaki Dnia i Rekordy' },
   '/traffic': { title: 'Radary i Trasa', subtitle: 'CANARD Telemetria i Kamery GDDKiA' },
-  '/settings': { title: 'Ustawienia i Bezpieczeństwo', subtitle: 'Polityka CSP, Tokeny i Kontenery' }
+  '/server': { title: 'Infrastruktura Serwera', subtitle: 'Kontenery Docker, Mikr.us LXC i Kopia Zapasowa' },
+  '/settings': { title: 'Ustawienia i Bezpieczeństwo', subtitle: 'Polityka CSP Level 3, Tokeny i Klucze' }
 };
 
 export const App: React.FC = () => {
@@ -66,11 +69,13 @@ export const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/chat" element={<ChatPage />} />
-            <Route path="/timetable" element={<TimetablePage />} />
+            <Route path="/school" element={<SchoolPage />} />
+            <Route path="/timetable" element={<SchoolPage />} />
             <Route path="/grades" element={<GradesPage />} />
             <Route path="/finance" element={<FinancePage />} />
             <Route path="/workouts" element={<WorkoutsPage />} />
             <Route path="/traffic" element={<TrafficPage />} />
+            <Route path="/server" element={<ServerPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<DashboardPage />} />
           </Routes>

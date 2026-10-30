@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { EnvelopeOverview } from './components/EnvelopeOverview';
 import { TransactionList, TransactionItem } from './components/TransactionList';
-import { Plus, Wallet } from 'lucide-react';
+import { SubscriptionsManager } from './components/SubscriptionsManager';
+import { SavingsGoalCard } from './components/SavingsGoalCard';
+import { Plus, Wallet, CreditCard, Target, History } from 'lucide-react';
 
 const INITIAL_TX: TransactionItem[] = [
   { id: '1', title: 'Serwer Mikr.us LXC (odnowienie)', category: 'potrzeby', amount: -65.0, date: '29 paź' },
@@ -12,6 +14,7 @@ const INITIAL_TX: TransactionItem[] = [
 ];
 
 export const FinancePage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'envelopes' | 'transactions' | 'subscriptions' | 'goals'>('envelopes');
   const [transactions, setTransactions] = useState<TransactionItem[]>(INITIAL_TX);
   const [isAdding, setIsAdding] = useState(false);
   const [title, setTitle] = useState('');
@@ -34,65 +37,93 @@ export const FinancePage: React.FC = () => {
     setIsAdding(false);
   };
 
+  const tabs = [
+    { id: 'envelopes', label: 'Koperty 50/30/20', icon: Wallet },
+    { id: 'transactions', label: 'Wydatki i Rejestr', icon: History },
+    { id: 'subscriptions', label: 'Abonamenty', icon: CreditCard },
+    { id: 'goals', label: 'Cele i Oszczędności', icon: Target }
+  ] as const;
+
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
-      {/* Header Bar */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Wallet className="w-5 h-5 text-amber-600" />
-          <h2 className="text-base font-bold text-slate-900 tracking-tight">System Finansowy 50/30/20</h2>
-        </div>
-        <button
-          onClick={() => setIsAdding(!isAdding)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-600/20 active:scale-95 transition"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Dodaj wydatek</span>
-        </button>
+      {/* Category Sub-Tabs with Liquid Glass Pill Design */}
+      <div className="flex gap-1.5 p-1.5 rounded-2xl glass-panel shadow-sm overflow-x-auto scrollbar-none">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                isActive
+                  ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20 border border-sky-500'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+              }`}
+            >
+              <tab.icon className="w-4 h-4 shrink-0" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Add Form Accordion */}
-      {isAdding && (
-        <form onSubmit={handleAddTx} className="p-4 rounded-2xl glass-panel-elevated border-sky-300 space-y-3 shadow-lg">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <input
-              type="text"
-              placeholder="Tytuł wydatku..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-white border border-slate-300 text-sm text-slate-900 placeholder-slate-400"
-            />
-            <input
-              type="number"
-              placeholder="Kwota (PLN)..."
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-white border border-slate-300 text-sm text-slate-900 placeholder-slate-400"
-            />
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as any)}
-              className="px-3 py-2 rounded-xl bg-white border border-slate-300 text-sm text-slate-900 font-medium"
+      {/* Tab Panels */}
+      {activeTab === 'envelopes' && <EnvelopeOverview />}
+
+      {activeTab === 'transactions' && (
+        <div className="space-y-3">
+          <div className="flex justify-end">
+            <button
+              onClick={() => setIsAdding(!isAdding)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-600/20 active:scale-95 transition"
             >
-              <option value="potrzeby">50% Potrzeby</option>
-              <option value="zachcianki">30% Zachcianki</option>
-              <option value="oszczednosci">20% Oszczędności</option>
-            </select>
+              <Plus className="w-4 h-4" />
+              <span>Dodaj wydatek</span>
+            </button>
           </div>
-          <button
-            type="submit"
-            className="w-full py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition shadow-sm"
-          >
-            Zapisz transakcję
-          </button>
-        </form>
+
+          {isAdding && (
+            <form onSubmit={handleAddTx} className="p-4 rounded-2xl glass-panel-elevated border-sky-300 space-y-3 shadow-lg">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <input
+                  type="text"
+                  placeholder="Tytuł wydatku..."
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="px-3 py-2 rounded-xl bg-white border border-slate-300 text-sm text-slate-900 placeholder-slate-400"
+                />
+                <input
+                  type="number"
+                  placeholder="Kwota (PLN)..."
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="px-3 py-2 rounded-xl bg-white border border-slate-300 text-sm text-slate-900 placeholder-slate-400"
+                />
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as any)}
+                  className="px-3 py-2 rounded-xl bg-white border border-slate-300 text-sm text-slate-900 font-medium"
+                >
+                  <option value="potrzeby">50% Potrzeby</option>
+                  <option value="zachcianki">30% Zachcianki</option>
+                  <option value="oszczednosci">20% Oszczędności</option>
+                </select>
+              </div>
+              <button
+                type="submit"
+                className="w-full py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition shadow-sm"
+              >
+                Zapisz transakcję
+              </button>
+            </form>
+          )}
+
+          <TransactionList transactions={transactions} />
+        </div>
       )}
 
-      {/* Overview Cards */}
-      <EnvelopeOverview />
-
-      {/* Transactions List */}
-      <TransactionList transactions={transactions} />
+      {activeTab === 'subscriptions' && <SubscriptionsManager />}
+      {activeTab === 'goals' && <SavingsGoalCard />}
     </div>
   );
 };

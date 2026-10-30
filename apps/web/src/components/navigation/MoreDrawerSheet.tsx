@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { BottomActionSheet } from '../ui/BottomActionSheet';
-import { Wallet, Dumbbell, Radio, Sliders, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Dumbbell, Radio, Server, Sliders, ShieldCheck, ChevronRight } from 'lucide-react';
 
 interface MoreDrawerSheetProps {
   isOpen: boolean;
@@ -11,16 +11,9 @@ interface MoreDrawerSheetProps {
 export const MoreDrawerSheet: React.FC<MoreDrawerSheetProps> = ({ isOpen, onClose }) => {
   const extraNav = [
     {
-      to: '/finance',
-      label: 'Finanse 50/30/20',
-      desc: 'Koperty budżetowe, wydatki i saldo',
-      icon: Wallet,
-      color: 'text-amber-600 bg-amber-50 border-amber-200'
-    },
-    {
       to: '/workouts',
-      label: 'Trening FBW (Poddasze)',
-      desc: 'Drążek, dipy, progresja i serie',
+      label: 'Trening FBW & Nawyki',
+      desc: 'Drążek, dipy, streaki dnia i rekordy',
       icon: Dumbbell,
       color: 'text-emerald-600 bg-emerald-50 border-emerald-200'
     },
@@ -30,6 +23,13 @@ export const MoreDrawerSheet: React.FC<MoreDrawerSheetProps> = ({ isOpen, onClos
       desc: 'Kamery drogowe, utrudnienia GDDKiA',
       icon: Radio,
       color: 'text-rose-600 bg-rose-50 border-rose-200'
+    },
+    {
+      to: '/server',
+      label: 'Infrastruktura & Docker',
+      desc: 'Kontenery Mikr.us LXC, kopia danych',
+      icon: Server,
+      color: 'text-indigo-600 bg-indigo-50 border-indigo-200'
     },
     {
       to: '/settings',

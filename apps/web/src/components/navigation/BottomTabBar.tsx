@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutGrid, MessageSquare, Clock, GraduationCap, MoreHorizontal } from 'lucide-react';
+import { LayoutGrid, MessageSquare, GraduationCap, Wallet, MoreHorizontal } from 'lucide-react';
 
 interface BottomTabBarProps {
   onOpenMore: () => void;
@@ -10,8 +10,8 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ onOpenMore }) => {
   const navItems = [
     { to: '/', label: 'Pulpit', icon: LayoutGrid },
     { to: '/chat', label: 'Czat AI', icon: MessageSquare },
-    { to: '/timetable', label: 'Plan', icon: Clock },
-    { to: '/grades', label: 'Oceny', icon: GraduationCap }
+    { to: '/school', label: 'Szkoła', icon: GraduationCap },
+    { to: '/finance', label: 'Finanse', icon: Wallet }
   ];
 
   return (

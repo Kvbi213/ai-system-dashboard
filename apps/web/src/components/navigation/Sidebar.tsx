@@ -3,13 +3,13 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutGrid,
   MessageSquare,
-  Clock,
   GraduationCap,
   Wallet,
   Dumbbell,
   Radio,
   Sliders,
   ShieldCheck,
+  Server,
   Cpu
 } from 'lucide-react';
 
@@ -21,15 +21,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ systemStatus = 'nominal' }) =>
   const mainNav = [
     { to: '/', label: 'Pulpit', icon: LayoutGrid },
     { to: '/chat', label: 'Czat AI', icon: MessageSquare },
-    { to: '/timetable', label: 'Plan lekcji', icon: Clock },
-    { to: '/grades', label: 'Oceny Librus', icon: GraduationCap }
+    { to: '/school', label: 'Szkoła ZSE (Librus)', icon: GraduationCap },
+    { to: '/finance', label: 'Finanse 50/30/20', icon: Wallet }
   ];
 
   const secondaryNav = [
-    { to: '/finance', label: 'Finanse 50/30/20', icon: Wallet },
-    { to: '/workouts', label: 'Trening FBW', icon: Dumbbell },
+    { to: '/workouts', label: 'Trening & Nawyki', icon: Dumbbell },
     { to: '/traffic', label: 'Radary & Kamery', icon: Radio },
-    { to: '/settings', label: 'Ustawienia', icon: Sliders }
+    { to: '/server', label: 'Infrastruktura & Docker', icon: Server },
+    { to: '/settings', label: 'Ustawienia Zero-Trust', icon: Sliders }
   ];
 
   return (

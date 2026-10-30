@@ -1,11 +1,42 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AtticFBWTracker } from './components/AtticFBWTracker';
-import { Dumbbell, Flame, CheckCircle } from 'lucide-react';
+import { DailyHabitStreaks } from './components/DailyHabitStreaks';
+import { PersonalRecordsCard } from './components/PersonalRecordsCard';
+import { Dumbbell, Flame, Trophy, CheckCircle } from 'lucide-react';
 
 export const WorkoutsPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'fbw' | 'habits' | 'records'>('fbw');
+
+  const tabs = [
+    { id: 'fbw', label: 'Trening FBW Poddasze', icon: Dumbbell },
+    { id: 'habits', label: 'Nawyki i Streaki', icon: Flame },
+    { id: 'records', label: 'Rekordy Osobiste', icon: Trophy }
+  ] as const;
+
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
-      {/* Header Stats */}
+      {/* Category Sub-Tabs with Liquid Glass Pill Design */}
+      <div className="flex gap-2 p-1.5 rounded-2xl glass-panel shadow-sm">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all ${
+                isActive
+                  ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20 border border-sky-500'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+              }`}
+            >
+              <tab.icon className="w-4 h-4 shrink-0" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* KPI Overview Pills */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div className="p-3 rounded-2xl glass-panel flex items-center gap-3 shadow-sm">
           <div className="p-2 rounded-xl bg-amber-100 text-amber-700">
@@ -32,14 +63,16 @@ export const WorkoutsPage: React.FC = () => {
             <Dumbbell className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-semibold">Aktualny plan</p>
+            <p className="text-xs text-slate-500 font-semibold">Aktualny cykl</p>
             <p className="text-sm font-bold text-sky-800">FBW Podciąganie A</p>
           </div>
         </div>
       </div>
 
-      {/* Main FBW Tracker */}
-      <AtticFBWTracker />
+      {/* Tab Panels */}
+      {activeTab === 'fbw' && <AtticFBWTracker />}
+      {activeTab === 'habits' && <DailyHabitStreaks />}
+      {activeTab === 'records' && <PersonalRecordsCard />}
     </div>
   );
 };
