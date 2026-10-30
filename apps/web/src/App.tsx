@@ -28,6 +28,7 @@ const ROUTE_TITLES: Record<string, { title: string; subtitle: string }> = {
 export const App: React.FC = () => {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const location = useLocation();
+  const isChatRoute = location.pathname === '/chat';
 
   const currentRouteMeta = ROUTE_TITLES[location.pathname] || {
     title: 'OmniDash Hub',
@@ -35,7 +36,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen bg-slate-50 text-slate-800 font-sans antialiased selection:bg-sky-500/20 selection:text-sky-900 overflow-x-hidden">
+    <div className="relative flex h-[100dvh] w-full overflow-hidden bg-slate-50 text-slate-800 font-sans antialiased selection:bg-sky-500/20 selection:text-sky-900">
       {/* Ambient Liquid Gradient Blobs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-[15%] -left-[10%] w-[550px] h-[550px] rounded-full bg-gradient-to-br from-sky-200/40 via-cyan-100/30 to-transparent blur-3xl" />
@@ -47,14 +48,21 @@ export const App: React.FC = () => {
       <Sidebar />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen z-10">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden z-10">
         <AppHeader
           title={currentRouteMeta.title}
           subtitle={currentRouteMeta.subtitle}
         />
 
-        {/* Scrollable View Canvas with safe bottom padding for Mobile Dock */}
-        <main className="flex-1 p-3.5 sm:p-6 pb-28 md:pb-8 overflow-y-auto">
+        {/* Dynamic View Canvas: Chat is completely non-scrolling externally */}
+        <main
+          id="main-content"
+          className={`flex-1 min-h-0 w-full ${
+            isChatRoute
+              ? 'overflow-hidden flex flex-col p-2.5 sm:p-4 pb-20 md:pb-4'
+              : 'overflow-y-auto p-3.5 sm:p-6 pb-28 md:pb-8'
+          }`}
+        >
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/chat" element={<ChatPage />} />

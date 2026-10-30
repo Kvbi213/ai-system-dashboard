@@ -82,9 +82,12 @@ export const ChatPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-7.5rem)] md:h-[calc(100vh-5.5rem)] max-w-4xl mx-auto">
-      {/* Header Info Banner */}
-      <div className="flex items-center justify-between p-3 rounded-2xl glass-panel mb-3 text-xs shadow-sm">
+    <div
+      data-testid="chat-container"
+      className="flex-1 flex flex-col min-h-0 w-full max-w-4xl mx-auto h-full overflow-hidden"
+    >
+      {/* Header Info Banner - Non-scrolling fixed header */}
+      <div className="shrink-0 flex items-center justify-between p-3 rounded-2xl glass-panel mb-2 text-xs shadow-sm">
         <div className="flex items-center gap-2 text-slate-700 font-medium">
           <Sparkles className="w-4 h-4 text-sky-600" />
           <span>Silnik AI: Groq gpt-oss-120b / Edge Dispatcher</span>
@@ -95,8 +98,11 @@ export const ChatPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto space-y-4 pr-1 mb-3 scrollbar-thin">
+      {/* Messages Scroll Area - ONLY THIS INNER CONTAINER SCROLLS! */}
+      <div
+        data-testid="chat-messages-scroll-area"
+        className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-1 mb-2 scrollbar-thin"
+      >
         {messages.map((msg) => (
           <ChatMessageItem key={msg.id} message={msg} />
         ))}
@@ -109,8 +115,8 @@ export const ChatPage: React.FC = () => {
         <div ref={bottomRef} />
       </div>
 
-      {/* Chat Input Bar */}
-      <div className="pt-2 border-t border-slate-200/80">
+      {/* Chat Input Bar - Pinned at the bottom */}
+      <div className="shrink-0 pt-2 border-t border-slate-200/80">
         <ChatInputBar onSendMessage={handleSendMessage} isLoading={isLoading} />
       </div>
     </div>

@@ -85,3 +85,23 @@ Wraz z budową projektu od zera w lokalizacji `C:\Users\Jakub Lis\Desktop\01_PRO
   - Odświeżenie wszystkich 8 modułów: Pulpit, Czat AI, Plan lekcji, Oceny, Finanse 50/30/20, Trening FBW, Radary CANARD, Ustawienia Zero-Trust.
 - [+] **Weryfikacja Kompilacji:**
   - `tsc && vite build`: 2036 modułów przetransformowanych z kodem `0`.
+
+---
+
+### ## v4.0.0-alpha.3 — 2026-10-30 [FIX: CHAT VIEWPORT ISOLATION & E2E TESTING]
+**Status:** ZWERYFIKOWANO TESTEM E2E (PLAYWRIGHT CHROMIUM)  
+**Typ:** PATCH (Eliminacja Podwójnego Scrolla i Izolacja Widoku Czatu)  
+
+#### Zakres Zmian:
+- [-] **Eliminacja Podwójnego Scrolla na Stronie Czatu:**
+  - `apps/web/src/App.tsx`: Wprowadzono dynamiczne sterowanie kontenerem `<main>` na trasie `/chat`. Zablokowano przewijanie całej strony (`overflow: hidden`), wymuszając pełne dopasowanie do wysokości widoku `h-[100dvh]`.
+  - `apps/web/src/modules/chat/page.tsx`: Przekształcono widok czatu na `flex-1 min-h-0 flex flex-col overflow-hidden`.
+  - Pasek wprowadzania wiadomości i kasetka informacyjna zostały zablokowane na stałe (`shrink-0`), a przewijanie włączono wyłącznie dla listy wiadomości (`data-testid="chat-messages-scroll-area"`: `flex-1 min-h-0 overflow-y-auto`).
+- [+] **Automatyczny Test End-to-End (Playwright):**
+  - Utworzono test `tests/run-e2e.mjs` wykonujący automatyczną sesję użytkownika w przeglądarce Chromium (Chrome):
+    1. Weryfikacja braku przewijania strony (`window.scrollY == 0`, `mainScrollTop == 0`, `overflowY == 'hidden'`).
+    2. Interakcja z prompt chipem ("Jaki mam dzisiaj plan lekcji?") i odbiór odpowiedzi.
+    3. Wpisanie i wysłanie zapytania tekstowego z klawiatury ("Czy na trasie DK22 są aktywne radary?").
+    4. Weryfikacja niezależnego scrolla wewnątrz listy wiadomości (`canScroll == true`, `scrollTop > 0`).
+    5. Wykonanie zrzutu ekranu weryfikacyjnego: `apps/web/e2e-chat-verified.png`.
+  - Utworzono test regresji `tests/regression-check.mjs` potwierdzający, że pozostałe widoki zachowują standardowe przewijanie (`overflowY: auto`).
