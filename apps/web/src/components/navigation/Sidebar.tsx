@@ -12,7 +12,8 @@ import {
   Server,
   Cpu,
   ChevronDown,
-  ChevronsUpDown
+  ChevronsUpDown,
+  Globe
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -60,6 +61,7 @@ const NAV_CATEGORIES: NavCategory[] = [
     id: 'system',
     title: 'System i Administracja',
     items: [
+      { to: '/osint', label: 'OSINT & Telemetria IP', icon: Globe },
       { to: '/server', label: 'Infrastruktura Serwera', icon: Server },
       { to: '/settings', label: 'Ustawienia Zero-Trust', icon: Sliders }
     ]

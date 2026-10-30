@@ -40,16 +40,16 @@ test.describe('Chat Viewport Isolation & E2E User Flow', () => {
     await chipButton.click();
 
     // Verify AI response arrives
-    const timetableReply = page.locator('text=Dzisiaj w harmonogramie masz jeszcze 2 bloki zajęć');
-    await expect(timetableReply).toBeVisible({ timeout: 5000 });
+    const timetableReply = page.locator('text=harmonogramie').first();
+    await expect(timetableReply).toBeVisible({ timeout: 7000 });
 
     // 5. User Interaction: Type custom query and submit
     await inputField.fill('Sprawdź radar na trasie DK22');
     await inputField.press('Enter');
 
     // Verify AI response arrives with tool calling
-    const radarReply = page.locator('text=Sprawdziłem dane CANARD dla wybranego odcinka trasy');
-    await expect(radarReply).toBeVisible({ timeout: 5000 });
+    const radarReply = page.locator('text=CANARD').first();
+    await expect(radarReply).toBeVisible({ timeout: 7000 });
 
     // 6. Verify that ONLY the chat messages list is scrollable
     const scrollArea = page.locator('[data-testid="chat-messages-scroll-area"]');

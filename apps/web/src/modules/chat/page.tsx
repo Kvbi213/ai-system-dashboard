@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessageItem, ChatMessage } from './components/ChatMessageItem';
 import { ChatInputBar } from './components/ChatInputBar';
+import { aiApi } from '../../api/client';
 import { Sparkles, ShieldCheck } from 'lucide-react';
 
 const INITIAL_MESSAGES: ChatMessage[] = [
@@ -27,7 +28,7 @@ export const ChatPage: React.FC = () => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = (text: string) => {
+  const handleSendMessage = async (text: string) => {
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
@@ -38,47 +39,53 @@ export const ChatPage: React.FC = () => {
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
 
-    // Realistic assistant response with tool calling simulation
-    setTimeout(() => {
-      let reply = 'Zrozumiałem zapytanie. Przetwarzam dane z modułu.';
-      let toolCall: ChatMessage['toolCall'] | undefined = undefined;
-
-      if (text.toLowerCase().includes('plan')) {
-        reply = 'Dzisiaj w harmonogramie masz jeszcze 2 bloki zajęć: Inżynieria Oprogramowania (Sala A-204) do 11:30 oraz Język Obcy Zawodowy (Sala B-102) od 11:40.';
-        toolCall = {
-          toolName: 'timetable_get_schedule',
-          args: { date: 'today', user_role: 'operator' },
-          output: '{"day": "Poniedziałek", "lessons_count": 6, "substitutions": 0}'
-        };
-      } else if (text.toLowerCase().includes('radar') || text.toLowerCase().includes('dk22') || text.toLowerCase().includes('tras')) {
-        reply = 'Sprawdziłem dane CANARD dla wybranego odcinka trasy i obwodnicy: brak aktywnych odcinkowych pomiarów prędkości ani utrudnień GDDKiA. Warunki drogowe optymalne.';
-        toolCall = {
-          toolName: 'canard_query_radars',
-          args: { route: 'Obwodnica / DK', region: 'Metropolitalny' },
-          output: '{"active_radars": 0, "traffic_flow": "smooth", "road_temp_c": 12}'
-        };
-      } else if (text.toLowerCase().includes('ocen') || text.toLowerCase().includes('matematyk')) {
-        reply = 'Ze statystyki i algorytmów średnia wynosi 4.50. Ostatnia ocena: 5 (zaliczenie modułowe, waga 3). Wskaźnik frekwencji utrzymuje się na poziomie 95.4%.';
-        toolCall = {
-          toolName: 'grades_get_summary',
-          args: { subject: 'Algorytmy', semester: 2 },
-          output: '{"grades": [5, 4, 5, 4], "average": 4.50, "attendance": "95.4%"}'
-        };
-      } else {
-        reply = `Odebrałem polecenie: "${text}". Gotowy do wykonania w środowisku v4.0.`;
-      }
-
+    try {
+      // Connect to live API Gateway
+      const res = await aiApi.sendMessage(text);
       const assistantMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: reply,
-        timestamp: new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
-        toolCall
+        content: res.reply,
+        timestamp: res.timestamp || new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
+        toolCall: res.toolCall
       };
-
       setMessages((prev) => [...prev, assistantMsg]);
+    } catch {
+      // Offline fallback simulation
+      setTimeout(() => {
+        let reply = 'Zrozumiałem zapytanie. Przetwarzam dane z modułu.';
+        let toolCall: ChatMessage['toolCall'] | undefined = undefined;
+
+        if (text.toLowerCase().includes('plan')) {
+          reply = 'Dzisiaj w harmonogramie masz jeszcze 2 bloki zajęć: Inżynieria Oprogramowania (Sala A-204) do 11:30 oraz Język Obcy Zawodowy (Sala B-102) od 11:40.';
+          toolCall = {
+            toolName: 'timetable_get_schedule',
+            args: { date: 'today', user_role: 'operator' },
+            output: '{"day": "Poniedziałek", "lessons_count": 6, "substitutions": 0}'
+          };
+        } else if (text.toLowerCase().includes('radar') || text.toLowerCase().includes('dk22') || text.toLowerCase().includes('tras')) {
+          reply = 'Sprawdziłem dane CANARD dla wybranego odcinka trasy i obwodnicy: brak aktywnych odcinkowych pomiarów prędkości ani utrudnień GDDKiA. Warunki drogowe optymalne.';
+          toolCall = {
+            toolName: 'canard_query_radars',
+            args: { route: 'Obwodnica / DK', region: 'Metropolitalny' },
+            output: '{"active_radars": 0, "traffic_flow": "smooth", "road_temp_c": 12}'
+          };
+        } else {
+          reply = `Odebrałem polecenie: "${text}". Gotowy do wykonania w środowisku v4.0.`;
+        }
+
+        const assistantMsg: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: reply,
+          timestamp: new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
+          toolCall
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
+      }, 500);
+    } finally {
       setIsLoading(false);
-    }, 700);
+    }
   };
 
   return (

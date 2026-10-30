@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { CheckCircle2, Circle, Flame, Droplet, BookOpen, Code2, Sparkles } from 'lucide-react';
+import { workoutsApi } from '../../../api/client';
 
 export interface HabitItem {
   id: string;
@@ -35,6 +36,10 @@ export const DailyHabitStreaks: React.FC = () => {
         return h;
       })
     );
+
+    workoutsApi.toggleHabit(id).catch(() => {
+      // Local state already updated
+    });
   };
 
   return (

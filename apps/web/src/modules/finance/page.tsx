@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { EnvelopeOverview } from './components/EnvelopeOverview';
 import { TransactionList, TransactionItem } from './components/TransactionList';
 import { SubscriptionsManager } from './components/SubscriptionsManager';
 import { SavingsGoalCard } from './components/SavingsGoalCard';
 import { Plus, Wallet, CreditCard, Target, History } from 'lucide-react';
+import { financeApi } from '../../api/client';
 
 const INITIAL_TX: TransactionItem[] = [
   { id: '1', title: 'Serwer Mikr.us LXC (odnowienie)', category: 'potrzeby', amount: -65.0, date: '29 paź' },
@@ -21,20 +22,44 @@ export const FinancePage: React.FC = () => {
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState<'potrzeby' | 'zachcianki' | 'oszczednosci'>('potrzeby');
 
-  const handleAddTx = (e: React.FormEvent) => {
+  useEffect(() => {
+    financeApi.getTransactions()
+      .then(res => {
+        if (res?.transactions && res.transactions.length > 0) {
+          setTransactions(res.transactions);
+        }
+      })
+      .catch(() => {
+        // Fallback to INITIAL_TX
+      });
+  }, []);
+
+  const handleAddTx = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !amount) return;
+    const parsedAmount = -Math.abs(parseFloat(amount));
     const newTx: TransactionItem = {
       id: Date.now().toString(),
       title,
       category,
-      amount: -Math.abs(parseFloat(amount)),
+      amount: parsedAmount,
       date: 'Dzisiaj'
     };
     setTransactions([newTx, ...transactions]);
     setTitle('');
     setAmount('');
     setIsAdding(false);
+
+    try {
+      await financeApi.addTransaction({
+        title,
+        amount: parsedAmount,
+        envelope: category,
+        category: 'Inne'
+      });
+    } catch {
+      // Local transaction state already updated
+    }
   };
 
   const tabs = [

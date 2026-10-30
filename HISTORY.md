@@ -217,3 +217,35 @@ Wraz z budową projektu od zera w lokalizacji `C:\Users\Jakub Lis\Desktop\01_PRO
   - 20 testów zaliczonych, 2 planowo pominięte (testy dedykowane per platforma Desktop/Mobile), czas: 1.2 min, exit code: 0.
 
 
+---
+
+### ## v4.0.0-alpha.8 — 2026-10-30 [BACKEND API GATEWAY, WORKER DAEMON & FULL STACK E2E]
+**Status:** WDROŻONO I ZWERYFIKOWANO (16 UNIT + 3 WORKER + 24 PLAYWRIGHT E2E, EXIT CODE 0)  
+**Typ:** MAJOR (Kompletny Backend API Gateway w TypeScript, Background Worker Daemon, Dokeryzacja Multi-Container i Integracja Frontendu)  
+
+#### Zakres Zmian:
+- [+] **Nowy Backend API Gateway (`apps/api` na porcie 5000):**
+  - Implementacja w 100% TypeScript (Express TS) z architekturą Clean Domain.
+  - Wzmocnione bezpieczeństwo: `helmet`, ścisła biała lista CORS (`allowedOrigins`, zero `*`), Zero-Trust `authMiddleware` z nagłówkiem Bearer i bezpiecznym trybem `x-dev-bypass`.
+  - Relacyjny store `apps/api/src/db/store.ts` zgodny z Drizzle ORM, wymuszający izolację dzierżawy (`userId`) na każdym rekordzie (tasks, transactions, subscriptions, workouts, habits, radars).
+  - 10 modularnych routerów domenowych: `/api/auth`, `/api/system`, `/api/tasks`, `/api/finance`, `/api/workouts`, `/api/traffic`, `/api/school`, `/api/news`, `/api/ai` (ze streamingiem tokenów SSE i wywołaniami narzędziowymi `tool_call`), `/api/osint`, `/api/pushbullet`.
+  - Zestaw 16 testów jednostkowych i integracyjnych Vitest (`apps/api/tests/` zaliczone w 1.5s, exit code 0).
+- [+] **Dedykowany Background Worker Daemon (`apps/worker`):**
+  - Implementacja klienta WebSocket Pushbullet (`listener.ts`) z automatycznym wznawianiem połączenia (exponential backoff) oraz 60-sekundowym buforem deduplikacji zdarzeń.
+  - Inteligentny klasyfikator powiadomień SMS (`classifier.ts`): automatyczna detekcja transakcji bankowych (kwota, sklep, kategoria 50/30/20), notatek i alertów szkolnych.
+  - Harmonogram zadań cron (`scheduler.ts`) dla cyklicznej synchronizacji danych i resetowania streaków.
+  - Zestaw 3 testów jednostkowych Vitest (`apps/worker/tests/classifier.test.ts` zaliczone z kodem 0).
+- [+] **Integracja Frontendu (`apps/web`) i Nowy Moduł OSINT (`/osint`):**
+  - Utworzono uniwersalnego, bezpiecznego klienta API (`apps/web/src/api/client.ts`) z automatycznym fallbackiem offline.
+  - Podłączono czat AI do realnego endpointu rozumowania backendu (`aiApi.sendMessage`), obsługującego live harmonogram i zapytania o radary CANARD.
+  - Podłączono pulpit operacyjny do realnego API zadań (`tasksApi.getAll`, `create`, `toggle`, `delete`).
+  - Podłączono finanse (`financeApi`), nawyki treningowe (`workoutsApi`) oraz ticker newsów CERT (`newsApi`).
+  - Wdrożono nowy ekran wywiadu sieciowego OSINT (`apps/web/src/modules/osint/`): sprawdzanie rekordów DNS, geolokalizacja IP, ASN oraz weryfikator certyfikatów SSL ze scoringiem ryzyka.
+  - Dodano moduł OSINT do zwijanej nawigacji paska bocznego oraz mobilnego arkusza `MoreDrawerSheet`.
+- [+] **Dokeryzacja Multi-Container (`docker-compose.yml`):**
+  - Przygotowano zoptymalizowane, wieloetapowe obrazy Alpine: `apps/web/Dockerfile` (Nginx), `apps/api/Dockerfile` (Node 22 LTS) oraz `apps/worker/Dockerfile` (Node 22 LTS).
+  - Skonfigurowano orkiestrację `docker-compose.yml` łączącą usługi web, api, worker z bazą `omnidash-db` (PostgreSQL 16 Alpine) oraz buforem `omnidash-redis` (Redis 7 Alpine).
+- [+] **Rozszerzenie Zestawu Testów E2E Playwright (24 Testy):**
+  - Dodano test `10. OSINT & Telemetry (/osint) - DNS, ASN, SSL and Threat Score`.
+  - Zaktualizowano asercje testowe czatu pod kątem dynamicznych odpowiedzi z bramy API Gateway.
+  - Wynik wykonania: 22 passed, 2 skipped (platform-specific), 0 failed (exit code 0).

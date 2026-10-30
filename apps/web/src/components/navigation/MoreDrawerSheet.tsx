@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { BottomActionSheet } from '../ui/BottomActionSheet';
-import { Dumbbell, Radio, Server, Sliders, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Dumbbell, Radio, Server, Sliders, ShieldCheck, ChevronRight, Globe } from 'lucide-react';
 
 interface MoreDrawerSheetProps {
   isOpen: boolean;
@@ -23,6 +23,13 @@ export const MoreDrawerSheet: React.FC<MoreDrawerSheetProps> = ({ isOpen, onClos
       desc: 'Kamery drogowe, utrudnienia GDDKiA',
       icon: Radio,
       color: 'text-rose-600 bg-rose-50 border-rose-200'
+    },
+    {
+      to: '/osint',
+      label: 'OSINT & Telemetria Sieci',
+      desc: 'Wyszukiwanie domen, IP i certyfikaty SSL',
+      icon: Globe,
+      color: 'text-cyan-600 bg-cyan-50 border-cyan-200'
     },
     {
       to: '/server',

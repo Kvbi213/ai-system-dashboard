@@ -14,6 +14,7 @@ import { WorkoutsPage } from './modules/workouts/page';
 import { TrafficPage } from './modules/traffic/page';
 import { ServerPage } from './modules/server/page';
 import { SettingsPage } from './modules/settings/page';
+import { OsintPage } from './modules/osint/page';
 
 const ROUTE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/': { title: 'Pulpit Główny', subtitle: 'Centrum Operacyjne Edge v4.0' },
@@ -24,6 +25,7 @@ const ROUTE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/finance': { title: 'Finanse 50/30/20', subtitle: 'Zarządzanie Budżetem, Abonamentami i Celami' },
   '/workouts': { title: 'Trening FBW & Nawyki', subtitle: 'Kalistenika, Streaki Dnia i Rekordy' },
   '/traffic': { title: 'Monitoring Tras & Radary', subtitle: 'CANARD Telemetria i Kamery Drogowe GDDKiA' },
+  '/osint': { title: 'OSINT & Telemetria Sieci', subtitle: 'Lookup DNS, IP Reputacja i Weryfikacja SSL' },
   '/server': { title: 'Infrastruktura Serwera', subtitle: 'Kontenery Docker, Węzeł LXC i Kopia Zapasowa' },
   '/settings': { title: 'Ustawienia i Bezpieczeństwo', subtitle: 'Polityka CSP Level 3, Tenant i Klucze' }
 };
@@ -75,6 +77,7 @@ export const App: React.FC = () => {
             <Route path="/finance" element={<FinancePage />} />
             <Route path="/workouts" element={<WorkoutsPage />} />
             <Route path="/traffic" element={<TrafficPage />} />
+            <Route path="/osint" element={<OsintPage />} />
             <Route path="/server" element={<ServerPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<DashboardPage />} />

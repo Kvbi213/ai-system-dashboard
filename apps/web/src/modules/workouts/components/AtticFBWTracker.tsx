@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { Dumbbell, Plus, Minus, Timer, Check } from 'lucide-react';
+import { workoutsApi } from '../../../api/client';
 
 export interface ExerciseItem {
   id: string;
@@ -33,6 +34,10 @@ export const AtticFBWTracker: React.FC = () => {
     );
     // Start 90s rest timer
     setRestTimer(90);
+
+    workoutsApi.incrementSet(id).catch(() => {
+      // Local state already updated
+    });
   };
 
   const handleDecrementSet = (id: string) => {

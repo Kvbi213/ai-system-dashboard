@@ -233,4 +233,25 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
     await expect(toggleAllBtn).toBeVisible();
     await toggleAllBtn.click();
   });
+
+  test('10. OSINT & Telemetry (/osint) - DNS, ASN, SSL and Threat Score', async ({ page }) => {
+    await page.goto('/osint', { waitUntil: 'networkidle' });
+
+    // Verify search bar and input
+    const searchInput = page.locator('input[placeholder*="Wpisz domenę"]');
+    await expect(searchInput).toBeVisible();
+
+    // Verify KPI indicators
+    await expect(page.locator('text=Adres IPv4 / Anycast').first()).toBeVisible();
+    await expect(page.locator('text=Threat Score').first()).toBeVisible();
+    await expect(page.locator('text=Certyfikat SSL / TLS').first()).toBeVisible();
+
+    // Verify DNS records
+    await expect(page.locator('text=Rekordy Strefy DNS').first()).toBeVisible();
+    await expect(page.locator('text=Rekordy A (IPv4):').first()).toBeVisible();
+
+    // Perform lookup
+    await searchInput.fill('github.com');
+    await page.locator('button:has-text("Skanuj")').click();
+  });
 });

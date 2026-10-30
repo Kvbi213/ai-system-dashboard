@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Newspaper, ChevronRight } from 'lucide-react';
+import { newsApi } from '../../../api/client';
 
 interface NewsItem {
   id: string;
@@ -30,13 +31,26 @@ const DEFAULT_NEWS: NewsItem[] = [
 ];
 
 export const ITNewsTickerBar: React.FC = () => {
+  const [news, setNews] = useState<NewsItem[]>(DEFAULT_NEWS);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  useEffect(() => {
+    newsApi.getTicker()
+      .then(res => {
+        if (res?.news && res.news.length > 0) {
+          setNews(res.news);
+        }
+      })
+      .catch(() => {
+        // Fallback to DEFAULT_NEWS
+      });
+  }, []);
+
   const handleNext = () => {
-    setActiveIndex((prev) => (prev + 1) % DEFAULT_NEWS.length);
+    setActiveIndex((prev) => (prev + 1) % news.length);
   };
 
-  const current = DEFAULT_NEWS[activeIndex];
+  const current = news[activeIndex] || DEFAULT_NEWS[0];
 
   return (
     <div className="flex items-center justify-between p-3 rounded-2xl glass-panel shadow-sm">

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CurrentLessonHero } from './components/CurrentLessonHero';
 import { WeatherTrafficCapsule } from './components/WeatherTrafficCapsule';
 import { ExecutiveTodoWidget, TaskItem } from './components/ExecutiveTodoWidget';
 import { SystemTelemetryWidget } from './components/SystemTelemetryWidget';
 import { ITNewsTickerBar } from './components/ITNewsTickerBar';
 import { TodoSlideOverDrawer } from './components/TodoSlideOverDrawer';
+import { tasksApi } from '../../api/client';
 
 export const DashboardPage: React.FC = () => {
   const [tasks, setTasks] = useState<TaskItem[]>([
@@ -15,12 +16,30 @@ export const DashboardPage: React.FC = () => {
     { id: '5', title: 'Zweryfikować stan kontenerów Docker w Mikr.us', completed: false, priority: 'medium' }
   ]);
 
+  useEffect(() => {
+    tasksApi.getAll()
+      .then((res) => {
+        if (res.tasks && res.tasks.length > 0) {
+          setTasks(
+            res.tasks.map((t) => ({
+              id: t.id,
+              title: t.title,
+              completed: t.completed,
+              priority: (t.priority?.toLowerCase() || 'medium') as 'low' | 'medium' | 'high'
+            }))
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const [isTasksDrawerOpen, setIsTasksDrawerOpen] = useState(false);
 
   const handleToggleTask = (id: string) => {
     setTasks((prev) =>
       prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
     );
+    tasksApi.toggle(id).catch(() => {});
   };
 
   const handleAddTask = (title: string, priority: 'low' | 'medium' | 'high') => {
@@ -31,10 +50,12 @@ export const DashboardPage: React.FC = () => {
       priority
     };
     setTasks((prev) => [newTask, ...prev]);
+    tasksApi.create({ title, priority: priority.toUpperCase() }).catch(() => {});
   };
 
   const handleDeleteTask = (id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
+    tasksApi.delete(id).catch(() => {});
   };
 
   return (
