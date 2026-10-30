@@ -35,41 +35,41 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   }, []);
 
   return (
-    <header className="sticky top-0 z-20 w-full border-b border-slate-800/60 bg-slate-950/60 backdrop-blur-xl px-4 py-3 sm:px-6">
+    <header className="sticky top-0 z-20 w-full border-b border-white/80 bg-white/65 backdrop-blur-2xl px-4 py-3 sm:px-6 shadow-sm">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         {/* Left: View Title & Subtitle */}
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
               {title}
             </h1>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-700 border border-sky-200 shadow-sm">
               LIVE
             </span>
           </div>
-          {subtitle && <p className="text-xs text-slate-400 hidden sm:block">{subtitle}</p>}
+          {subtitle && <p className="text-xs text-slate-500 hidden sm:block font-medium">{subtitle}</p>}
         </div>
 
         {/* Right: Warsaw Live Clock, Telemetry Status, Action Triggers */}
         <div className="flex items-center gap-3 sm:gap-4">
           {/* Warsaw Clock */}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800/80 font-mono text-xs text-slate-300">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/80 border border-slate-200/80 font-mono text-xs text-slate-700 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-            <span className="text-slate-400">WARSZAWA:</span>
-            <span className="font-semibold text-sky-300">{timeStr || '--:--:--'}</span>
+            <span className="text-slate-500">WARSZAWA:</span>
+            <span className="font-bold text-sky-700">{timeStr || '--:--:--'}</span>
           </div>
 
           {/* Network Health Indicator */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900/40 border border-slate-800/60 text-xs text-emerald-400">
-            <Wifi className="w-3.5 h-3.5" />
-            <span className="hidden md:inline font-mono text-[11px]">EDGE ON</span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-50/80 border border-emerald-200/80 text-xs text-emerald-700 font-medium shadow-sm">
+            <Wifi className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="hidden md:inline font-mono text-[11px] font-bold">EDGE ON</span>
           </div>
 
           {/* Quick Tasks Slide-over trigger */}
           {onOpenTasksDrawer && (
             <button
               onClick={onOpenTasksDrawer}
-              className="relative p-2 rounded-xl bg-slate-900/60 border border-slate-800/80 text-slate-300 hover:text-white hover:border-sky-500/40 transition active:scale-95"
+              className="relative p-2 rounded-xl bg-white/80 border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:border-sky-300 transition active:scale-95 shadow-sm"
               aria-label="Otwórz zadania wykonawcze"
             >
               <Bell className="w-4 h-4" />
@@ -82,10 +82,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           )}
 
           {/* AI Status Badge */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-500/10 to-indigo-500/10 border border-sky-500/30 text-xs text-sky-300">
-            <Sparkles className="w-3.5 h-3.5 text-sky-400 animate-pulse" />
-            <span className="font-medium hidden sm:inline">AI Agent</span>
-            <span className="font-mono text-[10px] text-slate-400">v4</span>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-50 to-indigo-50 border border-sky-200/90 text-xs text-sky-800 shadow-sm">
+            <Sparkles className="w-3.5 h-3.5 text-sky-600 animate-pulse" />
+            <span className="font-semibold hidden sm:inline">AI Agent</span>
+            <span className="font-mono text-[10px] text-slate-500 font-bold">v4</span>
           </div>
         </div>
       </div>

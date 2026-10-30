@@ -84,13 +84,13 @@ export const ChatPage: React.FC = () => {
   return (
     <div className="flex flex-col h-[calc(100dvh-7.5rem)] md:h-[calc(100vh-5.5rem)] max-w-4xl mx-auto">
       {/* Header Info Banner */}
-      <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-900/40 border border-slate-800/60 mb-3 text-xs">
-        <div className="flex items-center gap-2 text-slate-300">
-          <Sparkles className="w-4 h-4 text-sky-400" />
+      <div className="flex items-center justify-between p-3 rounded-2xl glass-panel mb-3 text-xs shadow-sm">
+        <div className="flex items-center gap-2 text-slate-700 font-medium">
+          <Sparkles className="w-4 h-4 text-sky-600" />
           <span>Silnik AI: Groq gpt-oss-120b / Edge Dispatcher</span>
         </div>
-        <div className="flex items-center gap-1.5 text-emerald-400 font-mono text-[11px]">
-          <ShieldCheck className="w-3.5 h-3.5" />
+        <div className="flex items-center gap-1.5 text-emerald-700 font-mono text-[11px] font-bold bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
           <span>CSP-L3</span>
         </div>
       </div>
@@ -101,8 +101,8 @@ export const ChatPage: React.FC = () => {
           <ChatMessageItem key={msg.id} message={msg} />
         ))}
         {isLoading && (
-          <div className="flex items-center gap-2 p-3 rounded-2xl bg-slate-900/50 border border-slate-800/60 text-xs text-sky-400 w-fit">
-            <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping" />
+          <div className="flex items-center gap-2 p-3 rounded-2xl bg-white/90 border border-slate-200/90 text-xs text-sky-700 w-fit shadow-sm font-semibold">
+            <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping" />
             <span>AI generuje odpowiedź i weryfikuje narzędzia...</span>
           </div>
         )}
@@ -110,7 +110,7 @@ export const ChatPage: React.FC = () => {
       </div>
 
       {/* Chat Input Bar */}
-      <div className="pt-2 border-t border-slate-800/60">
+      <div className="pt-2 border-t border-slate-200/80">
         <ChatInputBar onSendMessage={handleSendMessage} isLoading={isLoading} />
       </div>
     </div>

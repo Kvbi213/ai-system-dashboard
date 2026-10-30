@@ -33,14 +33,14 @@ export const ExecutiveTodoWidget: React.FC<ExecutiveTodoWidgetProps> = ({
     <GlassCard className="p-4 flex flex-col justify-between" glow="none">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
+          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm">
             <CheckSquare className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
               Priorytety Dnia
             </h3>
-            <p className="text-sm font-bold text-slate-100">
+            <p className="text-sm font-bold text-slate-900">
               {completedCount} z {tasks.length} ukończone
             </p>
           </div>
@@ -53,7 +53,7 @@ export const ExecutiveTodoWidget: React.FC<ExecutiveTodoWidgetProps> = ({
               cx="24"
               cy="24"
               r={radius}
-              className="text-slate-800"
+              className="text-slate-200"
               strokeWidth="3.5"
               stroke="currentColor"
               fill="transparent"
@@ -62,7 +62,7 @@ export const ExecutiveTodoWidget: React.FC<ExecutiveTodoWidgetProps> = ({
               cx="24"
               cy="24"
               r={radius}
-              className="text-indigo-400 transition-all duration-500"
+              className="text-indigo-600 transition-all duration-500"
               strokeWidth="3.5"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
@@ -71,7 +71,7 @@ export const ExecutiveTodoWidget: React.FC<ExecutiveTodoWidgetProps> = ({
               fill="transparent"
             />
           </svg>
-          <span className="absolute text-[11px] font-mono font-bold text-indigo-300">
+          <span className="absolute text-[11px] font-mono font-bold text-indigo-700">
             {percent}%
           </span>
         </div>
@@ -83,16 +83,16 @@ export const ExecutiveTodoWidget: React.FC<ExecutiveTodoWidgetProps> = ({
           <div
             key={task.id}
             onClick={() => onToggleTask(task.id)}
-            className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/50 border border-slate-800/60 hover:border-slate-700 cursor-pointer transition"
+            className="flex items-center gap-2.5 p-2 rounded-xl bg-white/70 border border-slate-200/70 hover:border-slate-300 hover:bg-white cursor-pointer transition shadow-sm"
           >
             {task.completed ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             ) : (
-              <Circle className="w-4 h-4 text-slate-500 shrink-0" />
+              <Circle className="w-4 h-4 text-slate-400 shrink-0" />
             )}
             <span
-              className={`text-xs truncate ${
-                task.completed ? 'line-through text-slate-500' : 'text-slate-200'
+              className={`text-xs truncate font-medium ${
+                task.completed ? 'line-through text-slate-400' : 'text-slate-800'
               }`}
             >
               {task.title}
@@ -103,10 +103,10 @@ export const ExecutiveTodoWidget: React.FC<ExecutiveTodoWidgetProps> = ({
 
       <button
         onClick={onOpenDrawer}
-        className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 text-xs text-indigo-300 font-medium transition"
+        className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-white/80 hover:bg-white border border-slate-200/90 text-xs text-indigo-700 font-semibold transition shadow-sm"
       >
         <span>Zobacz wszystkie zadania</span>
-        <ChevronRight className="w-4 h-4 text-indigo-400" />
+        <ChevronRight className="w-4 h-4 text-indigo-600" />
       </button>
     </GlassCard>
   );

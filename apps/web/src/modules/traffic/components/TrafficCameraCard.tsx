@@ -26,17 +26,17 @@ export const TrafficCameraCard: React.FC = () => {
         <GlassCard key={node.id} className="p-4" glow="none">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-sky-400">
+              <div className="p-2 rounded-xl bg-sky-50 border border-sky-200 text-sky-700 shadow-sm">
                 <Camera className="w-5 h-5" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-bold text-slate-100">{node.location}</h4>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">
+                  <h4 className="text-sm font-bold text-slate-900">{node.location}</h4>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-bold border border-slate-200">
                     {node.road}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-500 mt-0.5 font-medium">
                   Limit: {node.speedLimitKmh} km/h • {node.lastUpdated}
                 </p>
               </div>
@@ -46,8 +46,8 @@ export const TrafficCameraCard: React.FC = () => {
               <Badge variant={node.status === 'online' ? 'success' : 'warning'}>
                 {node.status === 'online' ? 'Radar aktywny' : 'Utrudnienia'}
               </Badge>
-              <span className="text-[10px] text-slate-500 font-mono flex items-center gap-1">
-                <Radio className="w-3 h-3 text-emerald-400" />
+              <span className="text-[10px] text-slate-500 font-mono flex items-center gap-1 font-semibold">
+                <Radio className="w-3 h-3 text-emerald-600" />
                 CANARD Telemetry
               </span>
             </div>

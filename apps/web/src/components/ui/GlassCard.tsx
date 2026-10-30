@@ -11,10 +11,10 @@ export interface GlassCardProps extends HTMLMotionProps<'div'> {
 }
 
 const glowStyles: Record<GlassGlow, string> = {
-  sky: 'shadow-lg shadow-sky-500/5 border-sky-500/20',
-  emerald: 'shadow-lg shadow-emerald-500/5 border-emerald-500/20',
-  amber: 'shadow-lg shadow-amber-500/5 border-amber-500/20',
-  indigo: 'shadow-lg shadow-indigo-500/5 border-indigo-500/20',
+  sky: 'shadow-xl shadow-sky-500/10 border-sky-300/60 ring-1 ring-sky-400/20',
+  emerald: 'shadow-xl shadow-emerald-500/10 border-emerald-300/60 ring-1 ring-emerald-400/20',
+  amber: 'shadow-xl shadow-amber-500/10 border-amber-300/60 ring-1 ring-amber-400/20',
+  indigo: 'shadow-xl shadow-indigo-500/10 border-indigo-300/60 ring-1 ring-indigo-400/20',
   none: ''
 };
 

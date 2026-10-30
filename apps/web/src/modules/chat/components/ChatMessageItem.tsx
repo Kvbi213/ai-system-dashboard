@@ -34,8 +34,8 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message }) => 
       <div
         className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border shadow-sm ${
           isUser
-            ? 'bg-sky-600 border-sky-400 text-white'
-            : 'bg-slate-900 border-slate-700 text-sky-400'
+            ? 'bg-sky-600 border-sky-500 text-white shadow-sky-500/20'
+            : 'bg-white border-slate-200 text-sky-600 shadow-sm'
         }`}
       >
         {isUser ? <User className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
@@ -47,7 +47,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message }) => 
           className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
             isUser
               ? 'bg-sky-600 text-white rounded-tr-sm shadow-md shadow-sky-600/20'
-              : 'glass-card text-slate-100 rounded-tl-sm border-slate-800'
+              : 'glass-panel text-slate-800 rounded-tl-sm border-white/90 shadow-sm'
           }`}
         >
           {message.toolCall && (
@@ -58,18 +58,18 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message }) => 
             />
           )}
 
-          <div className="whitespace-pre-wrap">{message.content}</div>
+          <div className="whitespace-pre-wrap font-normal">{message.content}</div>
         </div>
 
         {/* Footer info: time & copy */}
-        <div className="flex items-center gap-2 mt-1 px-1 text-[10px] text-slate-500 font-mono">
+        <div className="flex items-center gap-2 mt-1 px-1 text-[10px] text-slate-400 font-mono">
           <span>{message.timestamp}</span>
           <button
             onClick={handleCopy}
-            className="opacity-0 group-hover:opacity-100 hover:text-slate-300 transition"
+            className="opacity-0 group-hover:opacity-100 hover:text-slate-700 transition"
             title="Kopiuj treść"
           >
-            {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+            {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
           </button>
         </div>
       </div>

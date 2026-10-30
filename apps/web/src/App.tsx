@@ -35,12 +35,19 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-950 text-slate-100 font-sans antialiased selection:bg-sky-500/30 selection:text-sky-200">
+    <div className="relative flex min-h-screen bg-slate-50 text-slate-800 font-sans antialiased selection:bg-sky-500/20 selection:text-sky-900 overflow-x-hidden">
+      {/* Ambient Liquid Gradient Blobs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-[15%] -left-[10%] w-[550px] h-[550px] rounded-full bg-gradient-to-br from-sky-200/40 via-cyan-100/30 to-transparent blur-3xl" />
+        <div className="absolute top-[25%] -right-[15%] w-[600px] h-[600px] rounded-full bg-gradient-to-bl from-indigo-200/35 via-purple-100/25 to-transparent blur-3xl" />
+        <div className="absolute -bottom-[15%] left-[25%] w-[550px] h-[550px] rounded-full bg-gradient-to-tr from-emerald-100/35 via-teal-100/25 to-transparent blur-3xl" />
+      </div>
+
       {/* Desktop Persistent Sidebar */}
       <Sidebar />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen z-10">
         <AppHeader
           title={currentRouteMeta.title}
           subtitle={currentRouteMeta.subtitle}

@@ -24,14 +24,14 @@ export const DaySelectorBar: React.FC<DaySelectorBarProps> = ({ selectedDay, onS
             onClick={() => onSelectDay(day.id)}
             className={`flex-1 min-w-[70px] py-2 px-3 rounded-2xl flex flex-col items-center justify-center transition-all ${
               isActive
-                ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/25 border border-sky-400'
-                : 'glass-card text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                ? 'bg-sky-600 text-white shadow-lg shadow-sky-600/25 border border-sky-500 font-bold'
+                : 'glass-panel text-slate-600 hover:text-slate-900 hover:border-slate-300'
             }`}
           >
-            <span className="text-xs font-bold tracking-tight">{day.label}</span>
+            <span className="text-xs tracking-tight">{day.label}</span>
             <span
               className={`text-[10px] mt-0.5 font-mono ${
-                isActive ? 'text-sky-100 font-semibold' : 'text-slate-500'
+                isActive ? 'text-sky-100 font-semibold' : 'text-slate-400'
               }`}
             >
               {day.date}

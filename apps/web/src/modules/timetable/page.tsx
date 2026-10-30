@@ -44,13 +44,13 @@ export const TimetablePage: React.FC = () => {
 
       {/* Meta header */}
       <div className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-2 text-xs text-slate-400">
-          <Calendar className="w-4 h-4 text-sky-400" />
+        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+          <Calendar className="w-4 h-4 text-sky-600" />
           <span>Synchronizacja z Librus Synergia</span>
-          <span className="font-mono text-slate-500">:: ZSE Starogard Gd.</span>
+          <span className="font-mono text-slate-400">:: ZSE Starogard Gd.</span>
         </div>
         <button
-          className="flex items-center gap-1 text-xs text-sky-400 hover:text-sky-300 transition"
+          className="flex items-center gap-1 text-xs text-sky-700 hover:text-sky-800 font-semibold transition"
           title="Odśwież plan lekcji"
         >
           <RefreshCw className="w-3.5 h-3.5" />
@@ -61,7 +61,7 @@ export const TimetablePage: React.FC = () => {
       {/* Lessons List */}
       <div className="space-y-2.5">
         {lessons.length === 0 ? (
-          <div className="text-center py-12 glass-card rounded-2xl text-slate-400 text-sm">
+          <div className="text-center py-12 glass-panel rounded-2xl text-slate-400 text-sm">
             Brak zajęć lekcyjnych w wybranym dniu.
           </div>
         ) : (

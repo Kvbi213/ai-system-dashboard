@@ -33,27 +33,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ systemStatus = 'nominal' }) =>
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-64 h-screen sticky top-0 border-r border-slate-800/80 bg-slate-950/70 backdrop-blur-2xl px-4 py-6 z-30 select-none">
+    <aside className="hidden md:flex flex-col w-64 h-screen sticky top-0 border-r border-white/80 bg-white/60 backdrop-blur-3xl px-4 py-6 z-30 select-none shadow-sm">
       {/* Brand Header */}
       <div className="flex items-center gap-3 px-2 mb-8">
-        <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-sky-500/20 border border-sky-400/30">
+        <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/25 border border-white/80">
           <ShieldCheck className="w-6 h-6 text-white" />
         </div>
         <div>
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-base tracking-tight text-white">OmniDash</span>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30 font-semibold">
+            <span className="font-bold text-base tracking-tight text-slate-900">OmniDash</span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-700 border border-sky-200 font-bold">
               v4.0
             </span>
           </div>
-          <p className="text-xs text-slate-400 font-mono">Kvbi213 Core Edge</p>
+          <p className="text-xs text-slate-500 font-mono">Kvbi213 Core Edge</p>
         </div>
       </div>
 
       {/* Main Navigation */}
       <div className="flex-1 space-y-6 overflow-y-auto pr-1">
         <div>
-          <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+          <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
             Główne moduły
           </p>
           <div className="space-y-1">
@@ -63,10 +63,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ systemStatus = 'nominal' }) =>
                 to={item.to}
                 end={item.to === '/'}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                  `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${
                     isActive
-                      ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30 shadow-sm shadow-sky-500/10'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                      ? 'bg-sky-500/15 text-sky-700 border border-sky-300/60 shadow-sm shadow-sky-100'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
                   }`
                 }
               >
@@ -78,7 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ systemStatus = 'nominal' }) =>
         </div>
 
         <div>
-          <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+          <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
             Zarządzanie i Narzędzia
           </p>
           <div className="space-y-1">
@@ -87,10 +87,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ systemStatus = 'nominal' }) =>
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                  `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${
                     isActive
-                      ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                      ? 'bg-sky-500/15 text-sky-700 border border-sky-300/60 shadow-sm shadow-sky-100'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
                   }`
                 }
               >
@@ -103,14 +103,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ systemStatus = 'nominal' }) =>
       </div>
 
       {/* Footer System Telemetry Capsule */}
-      <div className="pt-4 border-t border-slate-800/80">
-        <div className="p-3 rounded-2xl bg-slate-900/50 border border-slate-800/80 text-xs">
+      <div className="pt-4 border-t border-slate-200/80">
+        <div className="p-3 rounded-2xl bg-white/80 border border-white/90 shadow-sm text-xs">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="flex items-center gap-1.5 font-medium text-slate-300">
-              <Cpu className="w-3.5 h-3.5 text-sky-400" />
+            <span className="flex items-center gap-1.5 font-semibold text-slate-700">
+              <Cpu className="w-3.5 h-3.5 text-sky-600" />
               Status węzła
             </span>
-            <span className="flex items-center gap-1.5 text-[11px] font-mono text-emerald-400">
+            <span className="flex items-center gap-1.5 text-[11px] font-mono text-emerald-600 font-bold">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               {systemStatus === 'nominal' ? 'NOMINAL' : 'DEGRADED'}
             </span>

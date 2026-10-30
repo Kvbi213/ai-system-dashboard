@@ -39,23 +39,23 @@ export const ITNewsTickerBar: React.FC = () => {
   const current = DEFAULT_NEWS[activeIndex];
 
   return (
-    <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-900/40 border border-slate-800/60 backdrop-blur-md">
+    <div className="flex items-center justify-between p-3 rounded-2xl glass-panel shadow-sm">
       <div className="flex items-center gap-3 overflow-hidden">
-        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-sky-500/15 border border-sky-500/30 text-sky-400 text-[10px] font-bold uppercase tracking-wider shrink-0">
-          <Newspaper className="w-3 h-3" />
+        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-sky-100 border border-sky-200 text-sky-800 text-[10px] font-bold uppercase tracking-wider shrink-0 shadow-sm">
+          <Newspaper className="w-3 h-3 text-sky-700" />
           <span>{current.category}</span>
         </div>
         <div className="truncate">
-          <span className="text-xs text-slate-400 font-mono mr-1.5 font-medium">
+          <span className="text-xs text-slate-500 font-mono mr-1.5 font-bold">
             [{current.source}]
           </span>
-          <span className="text-xs text-slate-200 font-medium">{current.title}</span>
+          <span className="text-xs text-slate-800 font-semibold">{current.title}</span>
         </div>
       </div>
 
       <button
         onClick={handleNext}
-        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 shrink-0 ml-2 transition"
+        className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-white/80 shrink-0 ml-2 transition shadow-sm"
         title="Następny news"
       >
         <ChevronRight className="w-4 h-4" />

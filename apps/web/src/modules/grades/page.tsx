@@ -64,23 +64,23 @@ export const GradesPage: React.FC = () => {
       {/* Semester switch & header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <GraduationCap className="w-5 h-5 text-sky-400" />
-          <h2 className="text-base font-bold text-white tracking-tight">Oceny i Osiągnięcia</h2>
+          <GraduationCap className="w-5 h-5 text-sky-600" />
+          <h2 className="text-base font-bold text-slate-900 tracking-tight">Oceny i Osiągnięcia</h2>
         </div>
 
-        <div className="flex gap-1 p-1 rounded-xl bg-slate-900/60 border border-slate-800 text-xs">
+        <div className="flex gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs">
           <button
             onClick={() => setSemester(1)}
-            className={`px-3 py-1 rounded-lg transition font-medium ${
-              semester === 1 ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1 rounded-lg transition font-semibold ${
+              semester === 1 ? 'bg-white text-sky-700 shadow-sm border border-slate-200/60' : 'text-slate-500 hover:text-slate-900'
             }`}
           >
             Semestr 1
           </button>
           <button
             onClick={() => setSemester(2)}
-            className={`px-3 py-1 rounded-lg transition font-medium ${
-              semester === 2 ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1 rounded-lg transition font-semibold ${
+              semester === 2 ? 'bg-white text-sky-700 shadow-sm border border-slate-200/60' : 'text-slate-500 hover:text-slate-900'
             }`}
           >
             Semestr 2

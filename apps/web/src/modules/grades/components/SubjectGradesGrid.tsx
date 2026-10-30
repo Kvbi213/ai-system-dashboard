@@ -18,10 +18,10 @@ interface SubjectGradesGridProps {
 }
 
 const getGradeColor = (val: number) => {
-  if (val >= 5) return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
-  if (val === 4) return 'bg-sky-500/20 text-sky-300 border-sky-500/30';
-  if (val === 3) return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
-  return 'bg-rose-500/20 text-rose-300 border-rose-500/30';
+  if (val >= 5) return 'bg-emerald-50 text-emerald-800 border-emerald-200/90 shadow-sm';
+  if (val === 4) return 'bg-sky-50 text-sky-800 border-sky-200/90 shadow-sm';
+  if (val === 3) return 'bg-amber-50 text-amber-850 border-amber-200/90 shadow-sm';
+  return 'bg-rose-50 text-rose-800 border-rose-200/90 shadow-sm';
 };
 
 export const SubjectGradesGrid: React.FC<SubjectGradesGridProps> = ({ subjects }) => {
@@ -30,10 +30,10 @@ export const SubjectGradesGrid: React.FC<SubjectGradesGridProps> = ({ subjects }
       {subjects.map((sub) => (
         <GlassCard key={sub.id} className="p-4" glow="none">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-bold text-slate-100 tracking-tight">{sub.name}</h3>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono">
-              <span className="text-slate-400">Śr:</span>
-              <span className="font-bold text-sky-400">{sub.average.toFixed(2)}</span>
+            <h3 className="text-sm font-bold text-slate-900 tracking-tight">{sub.name}</h3>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-xs font-mono shadow-sm">
+              <span className="text-slate-400 font-semibold">Śr:</span>
+              <span className="font-bold text-sky-700">{sub.average.toFixed(2)}</span>
             </div>
           </div>
 
