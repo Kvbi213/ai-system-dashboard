@@ -1,0 +1,43 @@
+# Node dependencies
+node_modules/
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build artifacts
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# Environment variables & secrets (Zero-Client Exposure)
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+firebase-service-account.json
+
+# Database & local data
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+data/storage/
+
+# IDE & OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Testing & logs
+coverage/
+*.log
+.superpowers/
+
+# Temporary files
+tmp/
+scratch/
