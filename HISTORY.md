@@ -118,3 +118,40 @@ Wraz z budową projektu od zera w lokalizacji `C:\Users\Jakub Lis\Desktop\01_PRO
   - Skonfigurowano testy wieloplatformowe w dwóch profilach: `Desktop Chromium` oraz `Mobile Chrome (Pixel 7)` z automatycznym serwerem deweloperskim Vite.
   - Zdefiniowano standardowy plik specyfikacji `tests/chat-viewport-isolation.spec.ts` badający izolację widoku, brak zewnętrznego przewijania okna oraz symulację pełnej konwersacji użytkownika z asystentem AI.
   - Zintegrowano polecenie `pnpm test` uruchamiające oficjalny runner `playwright test`.
+
+---
+
+### ## v4.0.0-alpha.5 — 2026-10-30 [FULL FEATURE MIGRATION & PLAYWRIGHT UI APP]
+**Status:** WDROŻONO I ZWERYFIKOWANO  
+**Typ:** MINOR (Kompletna Migracja Funkcji Legacy do Zdecentralizowanych Hubów i Uruchomienie Playwright UI)  
+
+#### Zakres Zmian:
+- [+] **Pobranie Pełnego Playwright i Uruchomienie Interaktywnej Aplikacji UI:**
+  - Pobrano wszystkie silniki przeglądarek (Chromium, Firefox, WebKit) do pamięci lokalnej komputera.
+  - Uruchomiono serwer Playwright UI App w tle pod adresem: `http://127.0.0.1:4173`, umożliwiający operatorowi podgląd na żywo, nagrywanie kroków, inspekcję DOM i uruchamianie testów z interfejsu graficznego.
+- [+] **Przeniesienie Funkcji z Wersji Poprzedniej w Przejrzystym Podziale (Zero Monolitów):**
+  - **Hub Szkolny ZSE (`/school`):** Podział na 3 niezależne pod-zakładki:
+    1. *Plan lekcji* (przełącznik dni, zastępstwa, sale, nauczyciele).
+    2. *Oceny i Średnie* (średnia ważona GPA, oceny cząstkowe z wagami 1-3).
+    3. *Frekwencja i Terminarz* (procent obecności 95.4%, bilans godzin oraz terminarz sprawdzianów).
+  - **Hub Finansowy 50/30/20 (`/finance`):** Podział na 4 pod-zakładki:
+    1. *Koperty 50/30/20* (paski procentowe wydatków i wolne saldo).
+    2. *Wydatki i Rejestr* (lista transakcji, formularz dodawania wydatku).
+    3. *Stałe Abonamenty* (subskrypcje: Mikr.us 65 zł, PKP 160 zł, GitHub 45 zł, Internet).
+    4. *Cele Oszczędnościowe* (fundusz awaryjny i narzędzia dev z paskami realizacji).
+  - **Hub Treningu i Nawyków (`/workouts`):** Podział na 3 pod-zakładki:
+    1. *Trening FBW Poddasze* (drążek, dipy, progresja i timer przerw 90s).
+    2. *Nawyki Dnia* (streaki: woda 2.5L, fiszki niemiecki/angielski, git commit, czytanie).
+    3. *Rekordy Osobiste* (maksima siłowe: drążek 14 powt., dipy 22 powt.).
+  - **Hub Ruchu i OSINT (`/traffic`):** Podział na 3 pod-zakładki:
+    1. *Kamery GDDKiA* (monitoring wideo Starogard, Stanisławie, Swarożyn).
+    2. *Radary CANARD* (rejestr fotoradarów stacjonarnych i OPP DK22/A1).
+    3. *Trasy i Utrudnienia* (pomiary temperatury jezdni, alerty robót drogowych).
+  - **Hub Infrastruktury Serwerowej (`/server`):** Podział na 3 pod-zakładki:
+    1. *Kontenery Docker* (rejestr `omnidash-web`, `api`, `worker`, `db`, `redis` z CPU/RAM).
+    2. *Węzeł Mikr.us LXC* (specyfikacja Debian 12, Cloudflare tunnel QUIC, IPv6).
+    3. *Kopia i Baza Danych* (eksport stanu systemu do pliku JSON oraz snapshot tabel).
+- [+] **Rygor Architektoniczny:**
+  - Żaden plik komponentu nie przekracza 120 linii kodu.
+  - Zero placeholderów `// TODO`, pełne wdrożenie typowane.
+  - Playwright E2E: 4/4 testy zaliczone na profilu stacjonarnym i mobilnym.
