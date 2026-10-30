@@ -12,7 +12,7 @@ interface WeatherTrafficCapsuleProps {
 
 export const WeatherTrafficCapsule: React.FC<WeatherTrafficCapsuleProps> = ({
   temperature = 12,
-  city = 'Starogard Gdański',
+  city = 'Strefa Miejska / Trasa Główna',
   radarAlertsCount = 0,
   trafficStatus = 'płynny'
 }) => {

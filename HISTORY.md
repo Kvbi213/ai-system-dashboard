@@ -183,3 +183,37 @@ Wraz z budową projektu od zera w lokalizacji `C:\Users\Jakub Lis\Desktop\01_PRO
 - [+] **Aktywny Serwer Playwright UI App:**
   - Działa w tle pod adresem `http://127.0.0.1:4173/`. Operator ma dostęp do podglądu interaktywnego, drzewa snapshotów, osi czasu i odtwarzacza wideo.
 
+---
+
+### ## v4.0.0-alpha.7 — 2026-10-30 [COLLAPSIBLE SIDEBAR & DATA GENERALIZATION]
+**Status:** ZWERYFIKOWANO TESTAMI E2E (20 PASSED, 2 SKIPPED, EXIT CODE 0)  
+**Typ:** MINOR (Zwijane Kategorie Paska Bocznego i Pełne Uogólnienie Danych Podsystemów)  
+
+#### Zakres Zmian:
+- [+] **Interaktywne, Zwijane Kategorie Paska Bocznego (`Sidebar.tsx`):**
+  - Podział nawigacji bocznej na 4 logiczne grupy:
+    1. *Centrum Operacyjne* (Pulpit Główny, Czat Asystenta AI)
+    2. *Harmonogram i Finanse* (Harmonogram & Edukacja, Budżet 50/30/20)
+    3. *Aktywność i Pomiary* (Trening FBW & Nawyki, Monitoring Tras & Radary)
+    4. *System i Administracja* (Infrastruktura Serwera, Ustawienia Zero-Trust)
+  - Każda kategoria posiada interaktywny nagłówek z licznikiem modułów, animowaną ikonę `ChevronDown` obracającą się przy zwijaniu oraz płynną animację wysokości (`max-h-0` / `max-h-96`).
+  - Stan zwinięcia zapamiętywany w `localStorage` pod kluczem `omnidash_sidebar_collapsed_categories`.
+  - Mechanizm automatycznego rozwijania kategorii, jeśli aktywny adres URL odpowiada elementowi w danej sekcji.
+  - Przycisk globalnego zwijania/rozwijania wszystkich kategorii (`ChevronsUpDown`) w nagłówku paska bocznego.
+- [+] **Pełne Uogólnienie Danych w Modułach (Data Generalization):**
+  - Całkowita eliminacja prywatnych/indywidualnych odwołań personalnych na rzecz uniwersalnych szablonów:
+    - *Pulpit:* "Trwa blok zajęć", "Strefa Miejska / Trasa Główna", "Wykładowca prowadzący", "Pracownia A-204".
+    - *Czat AI:* Uniwersalne powitanie asystenta OmniDash, wzorcowe odpowiedzi dotyczące harmonogramu, monitoringu tras obwodnicy i ocen.
+    - *Edukacja:* "Wskaźnik Frekwencji Zajęć" (zamiast ZSE), "Harmonogram Główny".
+    - *Finanse:* "Hosting Chmurowy VPS (LXC)", "Bilet Okresowy / Transport", "Narzędzia Asystenta Dev / AI", "Łącze Światłowodowe".
+    - *Trening:* "Trening Siłowy FBW (Kalistenika)", "Dipy na poręczach (kalistenika)".
+    - *Ruch & Kamery:* Uogólnione węzły drogowe (Węzeł Miejski Północ, Węzeł Wschodni, Tranzytowy Południe, Strefa Miejska).
+    - *Ustawienia i Serwer:* Identyfikator dzierżawy i sesji `operator-system-core` / `Operator Systemu` (zamiast `kvbi213`).
+- [+] **Rozbudowa Pakietu Testów E2E (`apps/web/tests/full-gui-audit.spec.ts`):**
+  - Dodano test `9. Collapsible Sidebar Categories on Desktop` weryfikujący klikanie nagłówka, stan `aria-expanded`, ukrywanie linków oraz przycisk toggle-all.
+  - Zaktualizowano wszystkie asercje tekstowe do uogólnionych wzorców.
+  - Zabezpieczono selektory mobilne (`.glass-panel-elevated a[href="/workouts"]`) przed konfliktami trybu ścisłego (strict mode).
+- [+] **Wynik Weryfikacji Empirycznej:**
+  - 20 testów zaliczonych, 2 planowo pominięte (testy dedykowane per platforma Desktop/Mobile), czas: 1.2 min, exit code: 0.
+
+

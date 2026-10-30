@@ -13,10 +13,10 @@ export interface CameraNode {
 }
 
 const NODES: CameraNode[] = [
-  { id: 'c1', location: 'Starogard Gdański (Centrum)', road: 'DK22', status: 'online', speedLimitKmh: 50, lastUpdated: '1 min temu' },
-  { id: 'c2', location: 'Węzeł Stanisławie (Wjazd A1)', road: 'A1 / DW224', status: 'online', speedLimitKmh: 90, lastUpdated: '2 min temu' },
-  { id: 'c3', location: 'Węzeł Swarożyn', road: 'DK22 / A1', status: 'warning', speedLimitKmh: 70, lastUpdated: 'Prace drogowe' },
-  { id: 'c4', location: 'Czarna Woda (Odcinkowy pomiar)', road: 'DK22', status: 'online', speedLimitKmh: 50, lastUpdated: '5 min temu' }
+  { id: 'c1', location: 'Węzeł Miejski Północ (Kamera 01)', road: 'DK / Obwodnica', status: 'online', speedLimitKmh: 50, lastUpdated: '1 min temu' },
+  { id: 'c2', location: 'Węzeł Wschodni (Wjazd A1)', road: 'Autostrada A1 / DW', status: 'online', speedLimitKmh: 90, lastUpdated: '2 min temu' },
+  { id: 'c3', location: 'Węzeł Tranzytowy Południe', road: 'DK / A1', status: 'warning', speedLimitKmh: 70, lastUpdated: 'Prace drogowe' },
+  { id: 'c4', location: 'Odcinkowy Pomiar Zachód', road: 'DK / Trasa Główna', status: 'online', speedLimitKmh: 50, lastUpdated: '5 min temu' }
 ];
 
 export const TrafficCameraCard: React.FC = () => {

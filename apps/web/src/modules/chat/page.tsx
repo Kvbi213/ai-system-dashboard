@@ -8,11 +8,11 @@ const INITIAL_MESSAGES: ChatMessage[] = [
     id: '1',
     role: 'assistant',
     content:
-      'Cześć Jakub! Jestem asystentem OmniDash v4.0 działającym na architekturze Zero-Trust i serwerze Docker LXC. Mogę sprawdzić Twój plan lekcji, oceny w Librusie, sytuację na drogach DK22/A1 lub stan budżetu 50/30/20. W czym mogę Ci teraz pomóc?',
+      'Witaj! Jestem asystentem OmniDash v4.0 działającym na architekturze Zero-Trust i serwerze Docker LXC. Mogę zweryfikować Twój harmonogram zajęć dydaktycznych, postępy edukacyjne, status monitoringu tras CANARD lub bilans budżetu 50/30/20. W czym mogę Ci dzisiaj pomóc?',
     timestamp: '09:00',
     toolCall: {
       toolName: 'system_verify_edge_node',
-      args: { host: 'mikrus-lxc-01', port: 4000, secure: true },
+      args: { host: 'cloud-lxc-node', port: 4000, secure: true },
       output: '{"status": "online", "latency_ms": 18, "auth_provider": "google_identity"}'
     }
   }
@@ -44,25 +44,25 @@ export const ChatPage: React.FC = () => {
       let toolCall: ChatMessage['toolCall'] | undefined = undefined;
 
       if (text.toLowerCase().includes('plan')) {
-        reply = 'Dzisiaj w ZSE masz jeszcze 2 lekcje: Projektowanie Oprogramowania (Sala 204) do 11:30 oraz Język Angielski Zawodowy (Sala 102) od 11:40.';
+        reply = 'Dzisiaj w harmonogramie masz jeszcze 2 bloki zajęć: Inżynieria Oprogramowania (Sala A-204) do 11:30 oraz Język Obcy Zawodowy (Sala B-102) od 11:40.';
         toolCall = {
-          toolName: 'librus_get_timetable',
-          args: { date: 'today', user_id: 'kvbi213' },
+          toolName: 'timetable_get_schedule',
+          args: { date: 'today', user_role: 'operator' },
           output: '{"day": "Poniedziałek", "lessons_count": 6, "substitutions": 0}'
         };
-      } else if (text.toLowerCase().includes('radar') || text.toLowerCase().includes('dk22')) {
-        reply = 'Sprawdziłem dane CANARD dla Starogardu Gdańskiego i DK22: brak aktywnych odcinkowych pomiarów prędkości ani utrudnień GDDKiA na Twojej trasie. Warunki drogowe dobre.';
+      } else if (text.toLowerCase().includes('radar') || text.toLowerCase().includes('dk22') || text.toLowerCase().includes('tras')) {
+        reply = 'Sprawdziłem dane CANARD dla wybranego odcinka trasy i obwodnicy: brak aktywnych odcinkowych pomiarów prędkości ani utrudnień GDDKiA. Warunki drogowe optymalne.';
         toolCall = {
           toolName: 'canard_query_radars',
-          args: { route: 'DK22', city: 'Starogard Gd.' },
+          args: { route: 'Obwodnica / DK', region: 'Metropolitalny' },
           output: '{"active_radars": 0, "traffic_flow": "smooth", "road_temp_c": 12}'
         };
       } else if (text.toLowerCase().includes('ocen') || text.toLowerCase().includes('matematyk')) {
-        reply = 'Z matematyki Twoja średnia wynosi 4.50. Ostatnia ocena: 5 (sprawdzian z geometrii analitycznej, waga 3). Szczęśliwy numerek na dzisiaj to 21.';
+        reply = 'Ze statystyki i algorytmów średnia wynosi 4.50. Ostatnia ocena: 5 (zaliczenie modułowe, waga 3). Wskaźnik frekwencji utrzymuje się na poziomie 95.4%.';
         toolCall = {
-          toolName: 'librus_get_grades',
-          args: { subject: 'Matematyka', semester: 2 },
-          output: '{"grades": [5, 4, 5, 4], "average": 4.50, "lucky_number": 21}'
+          toolName: 'grades_get_summary',
+          args: { subject: 'Algorytmy', semester: 2 },
+          output: '{"grades": [5, 4, 5, 4], "average": 4.50, "attendance": "95.4%"}'
         };
       } else {
         reply = `Odebrałem polecenie: "${text}". Gotowy do wykonania w środowisku v4.0.`;

@@ -46,8 +46,8 @@ export const TimetablePage: React.FC = () => {
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
           <Calendar className="w-4 h-4 text-sky-600" />
-          <span>Synchronizacja z Librus Synergia</span>
-          <span className="font-mono text-slate-400">:: ZSE Starogard Gd.</span>
+          <span>Synchronizacja z Systemem Dydaktycznym</span>
+          <span className="font-mono text-slate-400">:: Harmonogram Główny</span>
         </div>
         <button
           className="flex items-center gap-1 text-xs text-sky-700 hover:text-sky-800 font-semibold transition"

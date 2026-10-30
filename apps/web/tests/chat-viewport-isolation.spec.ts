@@ -40,7 +40,7 @@ test.describe('Chat Viewport Isolation & E2E User Flow', () => {
     await chipButton.click();
 
     // Verify AI response arrives
-    const timetableReply = page.locator('text=Dzisiaj w ZSE masz jeszcze 2 lekcje');
+    const timetableReply = page.locator('text=Dzisiaj w harmonogramie masz jeszcze 2 bloki zajęć');
     await expect(timetableReply).toBeVisible({ timeout: 5000 });
 
     // 5. User Interaction: Type custom query and submit
@@ -48,7 +48,7 @@ test.describe('Chat Viewport Isolation & E2E User Flow', () => {
     await inputField.press('Enter');
 
     // Verify AI response arrives with tool calling
-    const radarReply = page.locator('text=Sprawdziłem dane CANARD dla Starogardu Gdańskiego');
+    const radarReply = page.locator('text=Sprawdziłem dane CANARD dla wybranego odcinka trasy');
     await expect(radarReply).toBeVisible({ timeout: 5000 });
 
     // 6. Verify that ONLY the chat messages list is scrollable

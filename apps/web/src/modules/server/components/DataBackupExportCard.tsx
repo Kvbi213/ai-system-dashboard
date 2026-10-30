@@ -10,7 +10,7 @@ export const DataBackupExportCard: React.FC = () => {
       system: 'OmniDash Reborn',
       version: 'v4.0.0',
       timestamp: new Date().toISOString(),
-      tenant: 'kvbi213-core-edge',
+      tenant: 'operator-system-core',
       modules: ['timetable', 'grades', 'finance_50_30_20', 'workouts_fbw', 'canard_traffic', 'ai_chat'],
       integrityCheck: 'SHA256:4b22c7f0b8d5e1a3e9c'
     };

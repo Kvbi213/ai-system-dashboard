@@ -13,7 +13,7 @@ export interface ExerciseItem {
 
 const INITIAL_EXERCISES: ExerciseItem[] = [
   { id: '1', name: 'Podciąganie na drążku (nachwyt)', sets: 4, reps: 8, weightKg: 0, completedSets: 2 },
-  { id: '2', name: 'Dipy na poręczach (poddasze)', sets: 4, reps: 10, weightKg: 5, completedSets: 1 },
+  { id: '2', name: 'Dipy na poręczach (kalistenika)', sets: 4, reps: 10, weightKg: 5, completedSets: 1 },
   { id: '3', name: 'Pompki na uchwytach z deficytem', sets: 3, reps: 15, weightKg: 0, completedSets: 0 },
   { id: '4', name: 'Wznosy nóg do drążka (brzuch)', sets: 3, reps: 12, weightKg: 0, completedSets: 0 }
 ];
@@ -49,8 +49,8 @@ export const AtticFBWTracker: React.FC = () => {
             <Dumbbell className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 tracking-tight">Trening FBW Poddasze</h3>
-            <p className="text-xs text-slate-500 font-medium">Drążek, dipy i kalistenika domowa</p>
+            <h3 className="text-sm font-bold text-slate-900 tracking-tight">Trening Siłowy FBW (Kalistenika)</h3>
+            <p className="text-xs text-slate-500 font-medium">Drążek, dipy i trening z masą własnego ciała</p>
           </div>
         </div>
 

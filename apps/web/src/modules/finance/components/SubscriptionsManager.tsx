@@ -14,10 +14,10 @@ export interface SubscriptionItem {
 }
 
 const SUBSCRIPTIONS: SubscriptionItem[] = [
-  { id: 's1', name: 'Serwer VPS Mikr.us (LXC)', category: 'Infrastruktura', costPln: 65.0, renewalDay: 28, icon: Server, status: 'active' },
-  { id: 's2', name: 'Bilet miesięczny PKP / Polregio', category: 'Transport ZSE', costPln: 160.0, renewalDay: 1, icon: Train, status: 'active' },
-  { id: 's3', name: 'GitHub Copilot Pro', category: 'Narzędzia Dev', costPln: 45.0, renewalDay: 15, icon: Code, status: 'active' },
-  { id: 's4', name: 'Światłowód Internet Domowy', category: 'Rachunki (50%)', costPln: 79.0, renewalDay: 10, icon: Wifi, status: 'active' }
+  { id: 's1', name: 'Hosting Chmurowy VPS (LXC)', category: 'Infrastruktura', costPln: 65.0, renewalDay: 28, icon: Server, status: 'active' },
+  { id: 's2', name: 'Bilet Okresowy / Transport', category: 'Mobilność i Dojazdy', costPln: 160.0, renewalDay: 1, icon: Train, status: 'active' },
+  { id: 's3', name: 'Narzędzia Asystenta Dev / AI', category: 'Narzędzia IT', costPln: 45.0, renewalDay: 15, icon: Code, status: 'active' },
+  { id: 's4', name: 'Łącze Światłowodowe / Internet', category: 'Rachunki Stałe', costPln: 79.0, renewalDay: 10, icon: Wifi, status: 'active' }
 ];
 
 export const SubscriptionsManager: React.FC = () => {

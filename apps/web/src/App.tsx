@@ -18,14 +18,14 @@ import { SettingsPage } from './modules/settings/page';
 const ROUTE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/': { title: 'Pulpit Główny', subtitle: 'Centrum Operacyjne Edge v4.0' },
   '/chat': { title: 'Czat Asystenta AI', subtitle: 'Zero-Trust Reasoning & Tool Calling' },
-  '/school': { title: 'Librus Szkoła ZSE', subtitle: 'Plan lekcji, Oceny, Frekwencja i Terminarz' },
-  '/timetable': { title: 'Plan Lekcji Synergia', subtitle: 'Technikum ZSE Starogard Gdański' },
-  '/grades': { title: 'Oceny i Frekwencja', subtitle: 'Zintegrowany Dziennik Elektroniczny' },
+  '/school': { title: 'Harmonogram & Edukacja', subtitle: 'Plan zajęć, Oceny, Frekwencja i Terminarz' },
+  '/timetable': { title: 'Harmonogram Zajęć', subtitle: 'Plan tygodniowy i sale dydaktyczne' },
+  '/grades': { title: 'Oceny i Frekwencja', subtitle: 'Panel wyników i frekwencji' },
   '/finance': { title: 'Finanse 50/30/20', subtitle: 'Zarządzanie Budżetem, Abonamentami i Celami' },
-  '/workouts': { title: 'Trening FBW & Nawyki', subtitle: 'Drążek, Dipy, Streaki Dnia i Rekordy' },
-  '/traffic': { title: 'Radary i Trasa', subtitle: 'CANARD Telemetria i Kamery GDDKiA' },
-  '/server': { title: 'Infrastruktura Serwera', subtitle: 'Kontenery Docker, Mikr.us LXC i Kopia Zapasowa' },
-  '/settings': { title: 'Ustawienia i Bezpieczeństwo', subtitle: 'Polityka CSP Level 3, Tokeny i Klucze' }
+  '/workouts': { title: 'Trening FBW & Nawyki', subtitle: 'Kalistenika, Streaki Dnia i Rekordy' },
+  '/traffic': { title: 'Monitoring Tras & Radary', subtitle: 'CANARD Telemetria i Kamery Drogowe GDDKiA' },
+  '/server': { title: 'Infrastruktura Serwera', subtitle: 'Kontenery Docker, Węzeł LXC i Kopia Zapasowa' },
+  '/settings': { title: 'Ustawienia i Bezpieczeństwo', subtitle: 'Polityka CSP Level 3, Tenant i Klucze' }
 };
 
 export const App: React.FC = () => {

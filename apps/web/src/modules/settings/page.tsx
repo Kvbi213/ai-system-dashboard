@@ -33,8 +33,8 @@ export const SettingsPage: React.FC = () => {
             <KeyRound className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs font-bold text-slate-800">Zalogowano jako Kvbi213</p>
-            <p className="text-[11px] text-slate-500 font-mono">Tenant ID: kvbi213-core-edge</p>
+            <p className="text-xs font-bold text-slate-800">Zalogowano jako Operator Systemu</p>
+            <p className="text-[11px] text-slate-500 font-mono">Tenant ID: operator-system-core</p>
           </div>
         </div>
 

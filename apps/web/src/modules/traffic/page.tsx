@@ -21,7 +21,7 @@ export const TrafficPage: React.FC = () => {
           <Radio className="w-5 h-5 text-rose-600" />
           <div>
             <h2 className="text-base font-bold text-slate-900 tracking-tight">Radary CANARD i Kamery GDDKiA</h2>
-            <p className="text-xs text-slate-500 font-medium">Monitoring trasy dom ↔ ZSE / Trójmiasto</p>
+            <p className="text-xs text-slate-500 font-medium">Monitoring korytarzy tranzytowych i tras miejskich</p>
           </div>
         </div>
 

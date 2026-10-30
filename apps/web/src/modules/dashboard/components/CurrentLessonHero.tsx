@@ -18,8 +18,8 @@ export const CurrentLessonHero: React.FC<CurrentLessonHeroProps> = ({
   status = 'in_progress',
   subject = 'Projektowanie Oprogramowania',
   timeRange = '10:45 - 11:30',
-  room = 'Pracownia 204',
-  teacher = 'inż. K. Wiśniewski',
+  room = 'Pracownia A-204',
+  teacher = 'Wykładowca prowadzący',
   remainingMinutes = 24,
   substitutionNote = null
 }) => {
@@ -33,7 +33,7 @@ export const CurrentLessonHero: React.FC<CurrentLessonHeroProps> = ({
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs font-bold uppercase tracking-wider text-sky-700">
-              {status === 'in_progress' ? 'Trwa lekcja w ZSE' : 'Następna lekcja'}
+              {status === 'in_progress' ? 'Trwa blok zajęć' : 'Następny blok zajęć'}
             </span>
           </div>
           <NavLink

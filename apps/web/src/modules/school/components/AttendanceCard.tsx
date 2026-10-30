@@ -25,8 +25,8 @@ export const AttendanceCard: React.FC<AttendanceProps> = ({
             <UserCheck className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 tracking-tight">Frekwencja w ZSE</h3>
-            <p className="text-xs text-slate-500 font-medium">Bieżący semestr szkolny</p>
+            <h3 className="text-sm font-bold text-slate-900 tracking-tight">Wskaźnik Frekwencji Zajęć</h3>
+            <p className="text-xs text-slate-500 font-medium">Bieżący semestr akademicki / dydaktyczny</p>
           </div>
         </div>
 

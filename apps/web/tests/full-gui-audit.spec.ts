@@ -66,7 +66,7 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
 
     // Switch to Frekwencja & Terminarz tab
     await page.locator('button:has-text("Frekwencja i Terminarz")').click();
-    await expect(page.locator('text=Frekwencja w ZSE').first()).toBeVisible();
+    await expect(page.locator('text=Wskaźnik Frekwencji').first()).toBeVisible();
     await expect(page.locator('text=95.4%')).toBeVisible();
     await expect(page.locator('text=Terminarz Sprawdzianów').first()).toBeVisible();
   });
@@ -97,8 +97,8 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
 
     // Switch to Subscriptions
     await page.locator('button:has-text("Abonamenty")').click();
-    await expect(page.locator('text=Serwer VPS Mikr.us (LXC)').first()).toBeVisible();
-    await expect(page.locator('text=GitHub Copilot Pro').first()).toBeVisible();
+    await expect(page.locator('text=Hosting Chmurowy VPS (LXC)').first()).toBeVisible();
+    await expect(page.locator('text=Narzędzia Asystenta Dev / AI').first()).toBeVisible();
 
     // Switch to Goals
     await page.locator('button:has-text("Cele i Oszczędności")').click();
@@ -109,7 +109,7 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
     await page.goto('/workouts', { waitUntil: 'networkidle' });
 
     // Default tab: FBW
-    await expect(page.getByRole('heading', { name: 'Trening FBW Poddasze' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Trening Siłowy FBW (Kalistenika)' })).toBeVisible();
     await expect(page.locator('text=Podciąganie na drążku').first()).toBeVisible();
 
     // Test incrementing set
@@ -135,8 +135,8 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
     await page.goto('/traffic', { waitUntil: 'networkidle' });
 
     // Default tab: Cameras
-    await expect(page.locator('text=Starogard Gdański (Centrum)').first()).toBeVisible();
-    await expect(page.locator('text=Węzeł Stanisławie (Wjazd A1)').first()).toBeVisible();
+    await expect(page.locator('text=Węzeł Miejski Północ').first()).toBeVisible();
+    await expect(page.locator('text=Węzeł Wschodni').first()).toBeVisible();
 
     // Switch to Radars
     await page.locator('button:has-text("Radary CANARD")').click();
@@ -175,7 +175,7 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
     await expect(page.getByRole('heading', { name: 'Audyt Architektury Zero-Trust' })).toBeVisible();
     await expect(page.locator('p.font-bold:has-text("Polityka CSP Level 3")')).toBeVisible();
     await expect(page.locator('p.font-bold:has-text("Autoryzacja Google Identity")')).toBeVisible();
-    await expect(page.locator('text=Zalogowano jako Kvbi213').first()).toBeVisible();
+    await expect(page.locator('text=Zalogowano jako Operator Systemu').first()).toBeVisible();
     await expect(page.locator('button:has-text("Wyloguj sesję Zero-Trust")')).toBeVisible();
   });
 
@@ -197,12 +197,40 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
     await expect(sheetTitle).toBeVisible();
 
     // Navigate to Trening & Nawyki from sheet
-    const workoutsLink = page.locator('a:has-text("Trening FBW & Nawyki")');
+    const workoutsLink = page.locator('.glass-panel-elevated a[href="/workouts"]');
     await workoutsLink.click();
 
     // Should navigate to /workouts and sheet should close
     await expect(page).toHaveURL('/workouts');
     await expect(sheetTitle).toBeHidden();
-    await expect(page.getByRole('heading', { name: 'Trening FBW Poddasze' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Trening Siłowy FBW (Kalistenika)' })).toBeVisible();
+  });
+
+  test('9. Collapsible Sidebar Categories on Desktop', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'Ten test dotyczy wyłącznie urządzeń stacjonarnych z panelem bocznym');
+
+    await page.goto('/', { waitUntil: 'networkidle' });
+
+    // Verify collapsible category headers exist
+    const categoryBtn = page.locator('button:has-text("Harmonogram i Finanse")');
+    await expect(categoryBtn).toBeVisible();
+
+    // Target link inside this category
+    const financeLink = page.locator('aside a:has-text("Budżet 50/30/20")');
+    await expect(financeLink).toBeVisible();
+
+    // Click to collapse category
+    await categoryBtn.click();
+    await expect(categoryBtn).toHaveAttribute('aria-expanded', 'false');
+
+    // Click to expand category again
+    await categoryBtn.click();
+    await expect(categoryBtn).toHaveAttribute('aria-expanded', 'true');
+    await expect(financeLink).toBeVisible();
+
+    // Test global collapse toggle button
+    const toggleAllBtn = page.locator('button[title*="Zwiń / Rozwiń"]');
+    await expect(toggleAllBtn).toBeVisible();
+    await toggleAllBtn.click();
   });
 });

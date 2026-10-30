@@ -8,7 +8,7 @@ export const WorkoutsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'fbw' | 'habits' | 'records'>('fbw');
 
   const tabs = [
-    { id: 'fbw', label: 'Trening FBW Poddasze', icon: Dumbbell },
+    { id: 'fbw', label: 'Trening FBW & Kalistenika', icon: Dumbbell },
     { id: 'habits', label: 'Nawyki i Streaki', icon: Flame },
     { id: 'records', label: 'Rekordy Osobiste', icon: Trophy }
   ] as const;

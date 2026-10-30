@@ -5,7 +5,7 @@ import { AlertTriangle, Thermometer, CloudRain, CheckCircle2 } from 'lucide-reac
 export const RouteAlertsCard: React.FC = () => {
   const routes = [
     {
-      name: 'Trasa Dom ↔ ZSE Starogard (DK22)',
+      name: 'Trasa Miejska Codzienna (Odcinek Północny DK)',
       distanceKm: 8.5,
       estimatedTimeMin: 14,
       condition: 'Płynny ruch bez zatorów',
@@ -13,10 +13,10 @@ export const RouteAlertsCard: React.FC = () => {
       hasAlert: false
     },
     {
-      name: 'Trasa Starogard ↔ Trójmiasto (A1 / DK91)',
+      name: 'Korytarz Tranzytowy Regionalny (Autostrada A1)',
       distanceKm: 58.0,
       estimatedTimeMin: 46,
-      condition: 'Zwężenie na węźle Swarożyn (roboty drogowe)',
+      condition: 'Zwężenie na pasie włączeniowym (roboty drogowe)',
       roadTemp: 12,
       hasAlert: true
     }

@@ -14,10 +14,10 @@ export interface RadarPoint {
 }
 
 const RADARS: RadarPoint[] = [
-  { id: 'r1', road: 'DK22', location: 'Starogard Gdański (ul. Zblewska)', type: 'stacjonarny', speedLimit: 50, deviceModel: 'Mesta Fusion RN', active: true },
-  { id: 'r2', road: 'DK22', location: 'Czarna Woda (odcinek leśny)', type: 'odcinkowy', speedLimit: 70, deviceModel: 'CANARD OPP v3', active: true },
-  { id: 'r3', road: 'A1', location: 'Węzeł Swarożyn / Pelplin', type: 'stacjonarny', speedLimit: 140, deviceModel: 'TraffiStar SR520', active: true },
-  { id: 'r4', road: 'DK91', location: 'Tczew (skrzyżowanie DK91 / DW224)', type: 'czerwone_swiatlo', speedLimit: 50, deviceModel: 'RedLight Camera', active: true }
+  { id: 'r1', road: 'DK / Obwodnica', location: 'Strefa Miejska (Aleja Główna)', type: 'stacjonarny', speedLimit: 50, deviceModel: 'Mesta Fusion RN', active: true },
+  { id: 'r2', road: 'DK22 / Region', location: 'Odcinek Leśny / Trasa Regionalna', type: 'odcinkowy', speedLimit: 70, deviceModel: 'CANARD OPP v3', active: true },
+  { id: 'r3', road: 'Autostrada A1', location: 'Węzeł Autostradowy Wschód', type: 'stacjonarny', speedLimit: 140, deviceModel: 'TraffiStar SR520', active: true },
+  { id: 'r4', road: 'DK / DW', location: 'Skrzyżowanie Tranzytowe Obwodnicy', type: 'czerwone_swiatlo', speedLimit: 50, deviceModel: 'RedLight Camera', active: true }
 ];
 
 export const SpeedCameraList: React.FC = () => {
