@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { BottomActionSheet } from '../ui/BottomActionSheet';
-import { Dumbbell, Radio, Server, Sliders, ShieldCheck, ChevronRight, Globe } from 'lucide-react';
+import { Dumbbell, Radio, Server, Sliders, ShieldCheck, ChevronRight, Globe, Cpu, BrainCircuit } from 'lucide-react';
 
 interface MoreDrawerSheetProps {
   isOpen: boolean;
@@ -10,6 +10,20 @@ interface MoreDrawerSheetProps {
 
 export const MoreDrawerSheet: React.FC<MoreDrawerSheetProps> = ({ isOpen, onClose }) => {
   const extraNav = [
+    {
+      to: '/widgets',
+      label: 'Widżety & Narzędzia',
+      desc: 'Hardware, rynek krypto, scratchpad notatek',
+      icon: Cpu,
+      color: 'text-amber-600 bg-amber-50 border-amber-200'
+    },
+    {
+      to: '/memory',
+      label: 'Pamięć Kognitywna AI',
+      desc: 'Dyrektywy systemowe i baza wiedzy',
+      icon: BrainCircuit,
+      color: 'text-purple-600 bg-purple-50 border-purple-200'
+    },
     {
       to: '/workouts',
       label: 'Trening FBW & Nawyki',

@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { ITNewsTickerBar } from './components/ITNewsTickerBar';
+import { DashboardKpiDeck } from './components/DashboardKpiDeck';
 import { CurrentLessonHero } from './components/CurrentLessonHero';
 import { WeatherTrafficCapsule } from './components/WeatherTrafficCapsule';
-import { ExecutiveTodoWidget, TaskItem } from './components/ExecutiveTodoWidget';
-import { SystemTelemetryWidget } from './components/SystemTelemetryWidget';
-import { ITNewsTickerBar } from './components/ITNewsTickerBar';
+import { DailyTimelineWidget } from './components/DailyTimelineWidget';
+import { QuickAiChatWidget } from './components/QuickAiChatWidget';
+import { OperationalNodesWidget } from './components/OperationalNodesWidget';
 import { TodoSlideOverDrawer } from './components/TodoSlideOverDrawer';
+import { TaskItem } from './components/ExecutiveTodoWidget';
 import { tasksApi } from '../../api/client';
 
 export const DashboardPage: React.FC = () => {
@@ -15,6 +18,7 @@ export const DashboardPage: React.FC = () => {
     { id: '4', title: 'Zaktualizować rejestr wydatków (koperta 50%)', completed: false, priority: 'low' },
     { id: '5', title: 'Zweryfikować stan kontenerów Docker w Mikr.us', completed: false, priority: 'medium' }
   ]);
+  const [isTasksDrawerOpen, setIsTasksDrawerOpen] = useState(false);
 
   useEffect(() => {
     tasksApi.getAll()
@@ -33,22 +37,13 @@ export const DashboardPage: React.FC = () => {
       .catch(() => {});
   }, []);
 
-  const [isTasksDrawerOpen, setIsTasksDrawerOpen] = useState(false);
-
   const handleToggleTask = (id: string) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
-    );
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)));
     tasksApi.toggle(id).catch(() => {});
   };
 
   const handleAddTask = (title: string, priority: 'low' | 'medium' | 'high') => {
-    const newTask: TaskItem = {
-      id: Date.now().toString(),
-      title,
-      completed: false,
-      priority
-    };
+    const newTask: TaskItem = { id: Date.now().toString(), title, completed: false, priority };
     setTasks((prev) => [newTask, ...prev]);
     tasksApi.create({ title, priority: priority.toUpperCase() }).catch(() => {});
   };
@@ -58,37 +53,39 @@ export const DashboardPage: React.FC = () => {
     tasksApi.delete(id).catch(() => {});
   };
 
+  const taskStats = {
+    total: tasks.length,
+    completed: tasks.filter((t) => t.completed).length,
+    pending: tasks.filter((t) => !t.completed).length,
+    percent: tasks.length > 0 ? Math.round((tasks.filter((t) => t.completed).length / tasks.length) * 100) : 0
+  };
+
   return (
     <div className="space-y-4 max-w-7xl mx-auto">
-      {/* Top Ticker */}
+      {/* 1. IT News Ticker */}
       <ITNewsTickerBar />
 
-      {/* Main Grid: Responsive layout for Phone, Tablet, Laptop */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Lesson Hero - spans 2 cols on desktop */}
-        <div className="md:col-span-2">
+      {/* 2. Top 4-KPI Deck */}
+      <DashboardKpiDeck taskStats={taskStats} onOpenTasks={() => setIsTasksDrawerOpen(true)} />
+
+      {/* 3. Core Lesson & Traffic Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2">
           <CurrentLessonHero />
         </div>
-
-        {/* Weather & Road radar */}
-        <div className="md:col-span-1">
+        <div className="lg:col-span-1">
           <WeatherTrafficCapsule />
         </div>
-
-        {/* Priority Executive Tasks */}
-        <div className="md:col-span-1">
-          <ExecutiveTodoWidget
-            tasks={tasks}
-            onToggleTask={handleToggleTask}
-            onOpenDrawer={() => setIsTasksDrawerOpen(true)}
-          />
-        </div>
-
-        {/* Edge Server Telemetry */}
-        <div className="md:col-span-1 lg:col-span-2">
-          <SystemTelemetryWidget />
-        </div>
       </div>
+
+      {/* 4. Timeline & Quick Chat Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <DailyTimelineWidget />
+        <QuickAiChatWidget />
+      </div>
+
+      {/* 5. Infrastructure Nodes Bar */}
+      <OperationalNodesWidget />
 
       {/* Slide-over sheet for full task management */}
       <TodoSlideOverDrawer

@@ -15,10 +15,14 @@ import { TrafficPage } from './modules/traffic/page';
 import { ServerPage } from './modules/server/page';
 import { SettingsPage } from './modules/settings/page';
 import { OsintPage } from './modules/osint/page';
+import { WidgetsPage } from './modules/widgets/page';
+import { MemoryPage } from './modules/memory/page';
 
 const ROUTE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/': { title: 'Pulpit Główny', subtitle: 'Centrum Operacyjne Edge v4.0' },
   '/chat': { title: 'Czat Asystenta AI', subtitle: 'Zero-Trust Reasoning & Tool Calling' },
+  '/widgets': { title: 'Widżety & Narzędzia Operacyjne', subtitle: 'Hardware, Notatnik, Rynek i Prompt Vault' },
+  '/memory': { title: 'Pamięć Kognitywna AI', subtitle: 'Dyrektywy Systemowe i Baza Faktów' },
   '/school': { title: 'Harmonogram & Edukacja', subtitle: 'Plan zajęć, Oceny, Frekwencja i Terminarz' },
   '/timetable': { title: 'Harmonogram Zajęć', subtitle: 'Plan tygodniowy i sale dydaktyczne' },
   '/grades': { title: 'Oceny i Frekwencja', subtitle: 'Panel wyników i frekwencji' },
@@ -71,6 +75,8 @@ export const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/chat" element={<ChatPage />} />
+            <Route path="/widgets" element={<WidgetsPage />} />
+            <Route path="/memory" element={<MemoryPage />} />
             <Route path="/school" element={<SchoolPage />} />
             <Route path="/timetable" element={<SchoolPage />} />
             <Route path="/grades" element={<GradesPage />} />

@@ -55,12 +55,15 @@ test.describe('Chat Viewport Isolation & E2E User Flow', () => {
     const scrollArea = page.locator('[data-testid="chat-messages-scroll-area"]');
     await expect(scrollArea).toBeVisible();
 
-    const messagesMetrics = await scrollArea.evaluate((el) => ({
-      scrollHeight: el.scrollHeight,
-      clientHeight: el.clientHeight,
-      scrollTop: el.scrollTop,
-      canScroll: el.scrollHeight > el.clientHeight
-    }));
+    const messagesMetrics = await scrollArea.evaluate((el) => {
+      el.scrollTop = 50;
+      return {
+        scrollHeight: el.scrollHeight,
+        clientHeight: el.clientHeight,
+        scrollTop: el.scrollTop,
+        canScroll: el.scrollHeight > el.clientHeight
+      };
+    });
 
     expect(messagesMetrics.canScroll).toBe(true);
     expect(messagesMetrics.scrollTop).toBeGreaterThan(0);

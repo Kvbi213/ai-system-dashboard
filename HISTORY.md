@@ -249,3 +249,37 @@ Wraz z budową projektu od zera w lokalizacji `C:\Users\Jakub Lis\Desktop\01_PRO
   - Dodano test `10. OSINT & Telemetry (/osint) - DNS, ASN, SSL and Threat Score`.
   - Zaktualizowano asercje testowe czatu pod kątem dynamicznych odpowiedzi z bramy API Gateway.
   - Wynik wykonania: 22 passed, 2 skipped (platform-specific), 0 failed (exit code 0).
+
+
+---
+
+### ## v4.0.0-alpha.9 — 2026-10-30 [SMART WIDGETS LAYOUT, TIMELINE, QUICK CHAT & COGNITIVE MEMORY]
+**Status:** WDROŻONO I ZWERYFIKOWANO (28 PLAYWRIGHT E2E, 16 UNIT, 3 WORKER, EXIT CODE 0)  
+**Typ:** MINOR (Inteligentna Rekompozycja Pulpitu, 4-Karty KPI, Oś Czasu Dnia, Szybki Czat AI, Hub Widżetów i Pamięć Kognitywna)  
+
+#### Zakres Zmian:
+- [+] **Rekompozycja Pulpitu Głównego (`apps/web/src/modules/dashboard/`):**
+  - Wdrożono górny deck 4 kart KPI (`DashboardKpiDeck.tsx`): Aktywność Zadań z animowanym pierścieniem SVG i drawera zadań, Sesja FBW Kalistenika z postępem serii, Budżet 50/30/20 z potrójnym paskiem kopert oraz Telemetria LPU ze stanem węzłów i modelem Groq.
+  - Wdrożono dobową oś czasu (`DailyTimelineWidget.tsx`): 5 bloków godzinowych z wskaźnikiem trwającego bloku "Trwa teraz" i salami dydaktycznymi.
+  - Wdrożono podręczny szybki czat AI (`QuickAiChatWidget.tsx`): bezpośrednie zapytania do Groq LPU ze wskaźnikami statusu i podglądem dialogu.
+  - Wdrożono pasek węzłów operacyjnych (`OperationalNodesWidget.tsx`): stan 5 mikroserwisów (API, Web, Worker, DB, Redis) z opóźnieniami w ms.
+  - Plik koordynatora `page.tsx` zachował rygor ≤90 linii.
+- [+] **Nowy Dedykowany Hub Widżetów & Narzędzi (`/widgets`):**
+  - `CryptoMarketCard.tsx`: Notowania BTC, ETH, SOL z ceną w PLN i USD, kursem NBP i natychmiastowym przelicznikiem walutowym.
+  - `HardwareMonitorCard.tsx`: Wykres obciążenia 8 rdzeni CPU z dynamicznym odczytem, RAM (4.2/16 GB), V8 Heap i temperaturą.
+  - `NetworkHealthCard.tsx`: Test pingu do Cloudflare 1.1.1.1, Google 8.8.8.8 i bramy API oraz weryfikator tunelu Zero-Trust.
+  - `QuickNotesCard.tsx`: Podręczny scratchpad notatek z natychmiastowym auto-save w localStorage, licznikiem słów i kopiowaniem do schowka.
+  - `TokenExpenseCard.tsx`: Monitor tokenów LLM (Groq GPT-OSS-120B / Gemini Flash) z bezpiecznikiem kosztowym 0.00 PLN.
+  - `PromptVaultCard.tsx`: Skarbiec promptów inżynieryjnych (Code Review, Refaktoryzacja SRP, Root Cause Debug) z kopiowaniem jednym kliknięciem.
+- [+] **Nowy Hub Pamięci Kognitywnej AI (`/memory`):**
+  - `SystemDirectivesCard.tsx`: Rejestr dyrektyw systemowych (Protokół Antigravity v4.0, Zero-Trust Sandboxing, Reguła 21 Obsidian Sync).
+  - `CognitiveFactsList.tsx`: Baza wiedzy i długoterminowej pamięci asystenta z formularzem dodawania i usuwania faktów.
+- [+] **Rozszerzenie Nawigacji i Routera:**
+  - Dodano trasy `/widgets` oraz `/memory` w `apps/web/src/App.tsx`.
+  - Zaktualizowano kategorie paska bocznego `Sidebar.tsx` (*Centrum Operacyjne* oraz *System i Administracja*).
+  - Zaktualizowano mobilny arkusz wysuwany `MoreDrawerSheet.tsx`.
+- [+] **Weryfikacja Playwright E2E (28 Testów):**
+  - Zaktualizowano test 1 (Pulpit) o weryfikację nowego KPI decku, osi czasu i szybkiego czatu.
+  - Dodano test 11: *Widgets & Modular Tools Hub (`/widgets`)*.
+  - Dodano test 12: *AI Cognitive Memory & Directives Hub (`/memory`)*.
+  - Wynik: 26 passed, 2 skipped (dedykowane per platforma Desktop/Mobile), 0 failed (exit code 0).

@@ -9,22 +9,24 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
     });
   });
 
-  test('1. Dashboard (Pulpit) - Widgets, Ticker, and Todo Drawer', async ({ page }) => {
+  test('1. Dashboard (Pulpit) - Widgets, Ticker, KPI Deck, Timeline and Todo Drawer', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
 
     // Verify main components are rendered
     await expect(page.locator('text=Projektowanie Oprogramowania').first()).toBeVisible();
     await expect(page.locator('text=CANARD Radary').first()).toBeVisible();
-    await expect(page.locator('text=Priorytety Dnia').first()).toBeVisible();
-    await expect(page.locator('text=Węzeł Produkcyjny').first()).toBeVisible();
+    await expect(page.locator('[data-testid="dashboard-kpi-deck"]').first()).toBeVisible();
+    await expect(page.locator('text=Oś Czasu Dnia (Timeline)').first()).toBeVisible();
+    await expect(page.locator('text=Szybki Czat Omni AI').first()).toBeVisible();
+    await expect(page.locator('text=Usługi i Węzły Operacyjne').first()).toBeVisible();
 
     // Test IT News Ticker click
     const nextTickerBtn = page.locator('button[title="Następny news"]');
     await expect(nextTickerBtn).toBeVisible();
     await nextTickerBtn.click();
 
-    // Test Todo Drawer: open drawer, add a new task, toggle it
-    const openDrawerBtn = page.locator('button:has-text("Zobacz wszystkie zadania")');
+    // Test Todo Drawer: open drawer via KPI deck, add a new task
+    const openDrawerBtn = page.locator('button:has-text("Zarządzaj")').first();
     await openDrawerBtn.click();
 
     const drawerTitle = page.locator('h3:has-text("Zadania Wykonawcze")');
@@ -253,5 +255,59 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
     // Perform lookup
     await searchInput.fill('github.com');
     await page.locator('button:has-text("Skanuj")').click();
+  });
+
+  test('11. Widgets & Modular Tools Hub (/widgets)', async ({ page }) => {
+    await page.goto('/widgets', { waitUntil: 'networkidle' });
+
+    // Verify main page and category pills
+    await expect(page.locator('[data-testid="widgets-hub-page"]')).toBeVisible();
+    await expect(page.locator('button:has-text("Wszystkie Widżety")')).toBeVisible();
+    await expect(page.locator('button:has-text("Hardware & Sieć")')).toBeVisible();
+    await expect(page.locator('button:has-text("Rynek & Krypto")')).toBeVisible();
+
+    // Verify hardware monitor & crypto
+    await expect(page.locator('text=Monitor Sprzętowy (Hardware)').first()).toBeVisible();
+    await expect(page.locator('text=Kondycja Sieci & Zero-Trust').first()).toBeVisible();
+    await expect(page.locator('text=Rynek Krypto & Walut (FX)').first()).toBeVisible();
+
+    // Test scratchpad typing & auto-save
+    const textarea = page.locator('textarea[placeholder*="Wpisz dowolne notatki"]');
+    await expect(textarea).toBeVisible();
+    await textarea.fill('Nowa notatka inżynieryjna w scratchpadzie');
+    await expect(page.locator('text=Zapisano').first()).toBeVisible();
+
+    // Test prompt vault copy
+    const copyBtn = page.locator('button:has-text("Kopiuj prompt")').first();
+    await expect(copyBtn).toBeVisible();
+  });
+
+  test('12. AI Cognitive Memory & Directives Hub (/memory)', async ({ page }) => {
+    await page.goto('/memory', { waitUntil: 'networkidle' });
+
+    // Verify main page
+    await expect(page.locator('[data-testid="memory-hub-page"]')).toBeVisible();
+
+    // Verify system directives
+    await expect(page.locator('text=Dyrektywy Systemowe Kognitywne').first()).toBeVisible();
+    await expect(page.locator('text=PROTOKÓŁ ANTIGRAVITY v4.0').first()).toBeVisible();
+    await expect(page.locator('text=100% Zgodności').first()).toBeVisible();
+
+    // Switch to facts tab
+    const factsTabBtn = page.locator('button:has-text("Baza Faktów & Pamięć AI")');
+    await factsTabBtn.click();
+
+    // Verify facts list
+    await expect(page.locator('text=Pamięć Długoterminowa (Fakty)').first()).toBeVisible();
+    await expect(page.locator('text=Apple Liquid Glass').first()).toBeVisible();
+
+    // Add new fact
+    const addFactBtn = page.locator('button:has-text("Dodaj fakt")');
+    await addFactBtn.click();
+    const factInput = page.locator('input[placeholder*="Treść faktu"]');
+    await factInput.fill('Fakt E2E: Wszystkie testy automatyczne są zielone');
+    await page.locator('button:has-text("Zapisz fakt w pamięci")').click();
+
+    await expect(page.locator('text=Fakt E2E: Wszystkie testy automatyczne są zielone').first()).toBeVisible();
   });
 });

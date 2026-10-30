@@ -13,7 +13,8 @@ import {
   Cpu,
   ChevronDown,
   ChevronsUpDown,
-  Globe
+  Globe,
+  BrainCircuit
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -38,7 +39,8 @@ const NAV_CATEGORIES: NavCategory[] = [
     title: 'Centrum Operacyjne',
     items: [
       { to: '/', label: 'Pulpit Główny', icon: LayoutGrid },
-      { to: '/chat', label: 'Czat Asystenta AI', icon: MessageSquare }
+      { to: '/chat', label: 'Czat Asystenta AI', icon: MessageSquare },
+      { to: '/widgets', label: 'Widżety & Narzędzia', icon: Cpu }
     ]
   },
   {
@@ -61,6 +63,7 @@ const NAV_CATEGORIES: NavCategory[] = [
     id: 'system',
     title: 'System i Administracja',
     items: [
+      { to: '/memory', label: 'Pamięć Kognitywna AI', icon: BrainCircuit },
       { to: '/osint', label: 'OSINT & Telemetria IP', icon: Globe },
       { to: '/server', label: 'Infrastruktura Serwera', icon: Server },
       { to: '/settings', label: 'Ustawienia Zero-Trust', icon: Sliders }
