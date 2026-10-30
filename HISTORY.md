@@ -155,3 +155,31 @@ Wraz z budową projektu od zera w lokalizacji `C:\Users\Jakub Lis\Desktop\01_PRO
   - Żaden plik komponentu nie przekracza 120 linii kodu.
   - Zero placeholderów `// TODO`, pełne wdrożenie typowane.
   - Playwright E2E: 4/4 testy zaliczone na profilu stacjonarnym i mobilnym.
+
+---
+
+### ## v4.0.0-alpha.6 — 2026-10-30 [PLAYWRIGHT UI VISUAL PREVIEW & FULL E2E SUITE AUDIT]
+**Status:** ZWERYFIKOWANO (19/19 PASSED, 1 SKIPPED, EXIT CODE 0)  
+**Typ:** MINOR (Aktywacja Pełnego Podglądu Wizualnego i Traces w Playwright UI + 20 Testów E2E)  
+
+#### Zakres Zmian:
+- [+] **Rozwiązanie Przyczyny Braku Podglądu w Panelu Playwright UI:**
+  - Zidentyfikowano przyczynę braku podglądu kroków i screencastów: domyślna konfiguracja posiadała `trace: 'on-first-retry'`, `video: 'off'` oraz `screenshot: 'only-on-failure'`, przez co przy przejściu testu za pierwszym razem Playwright nie generował artefaktów wizualnych w UI.
+  - Skonfigurowano w `playwright.config.ts`: `trace: 'on'`, `video: 'on'`, `screenshot: 'on'`, co aktywuje filmstrip, nagrania wideo klatka-po-klatce, drzewo DOM oraz podgląd live dla każdego uruchomionego testu.
+  - Wyregulowano limit współbieżności procesów na Windows (`workers: 2`, `timeout: 45s`), eliminując zacięcia i timeouty zapisu archiwów trace.
+- [+] **Kompletny Zestaw Testów E2E Całego GUI (`tests/full-gui-audit.spec.ts`):**
+  - Stworzono wyczerpujący audyt obejmujący 8 sekwencji testowych dla profili Desktop Chromium oraz Mobile Chrome (Pixel 7):
+    1. *Pulpit:* Widżety, IT news ticker, otwieranie i obsługa drawera zadań.
+    2. *Szkolny Hub ZSE:* Plan lekcji, przełączanie dni tygodnia, oceny, frekwencja, terminarz.
+    3. *Finanse:* Koperty 50/30/20, formularz rejestracji transakcji, subskrypcje, cele.
+    4. *Trening & Nawyki:* Serie FBW na poddaszu, odliczanie timera przerw, odznaczanie nawyków, rekordy.
+    5. *Ruch Drogowy:* Kamery GDDKiA, radary CANARD, alerty tras i temperatura jezdni.
+    6. *Infrastruktura Serwerowa:* Kontenery Docker, węzeł Mikr.us LXC, eksport kopii zapasowej.
+    7. *Ustawienia:* Audyt Zero-Trust, CSP Level 3, Google Identity, sesja użytkownika.
+    8. *Mobilna Nawigacja:* Dolny dock, otwieranie arkusza 'Więcej' i przechodzenie między modułami.
+- [+] **Wynik Weryfikacji Empirycznej:**
+  - 19 testów zaliczonych pomyślnie, 1 pominięty planowo (test dot. gestów mobilnych na profilu desktop).
+  - Czas wykonania: 1.0 minuty, exit code: 0.
+- [+] **Aktywny Serwer Playwright UI App:**
+  - Działa w tle pod adresem `http://127.0.0.1:4173/`. Operator ma dostęp do podglądu interaktywnego, drzewa snapshotów, osi czasu i odtwarzacza wideo.
+
