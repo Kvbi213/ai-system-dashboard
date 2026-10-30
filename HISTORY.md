@@ -69,3 +69,19 @@ Wraz z budową projektu od zera w lokalizacji `C:\Users\Jakub Lis\Desktop\01_PRO
 - [+] **Weryfikacja Budowania i Serwera:**
   - Pomyślna kompilacja TypeScript + Vite (`2036 modules transformed, exit code 0`).
   - Uruchomienie deweloperskiego serwera podglądu Vite na porcie 3000 (`http://localhost:3000/` oraz IP sieci lokalnej).
+
+---
+
+### ## v4.0.0-alpha.2 — 2026-10-30 [LIGHT LIQUID GLASS DESIGN]
+**Status:** WDROŻONO LOKALNIE (PORT 3000)  
+**Typ:** MINOR (Refaktoryzacja Wizualna: Styl Liquid Glass w Jasnej Tonacji)  
+
+#### Zakres Zmian:
+- [+] **Stylistyka Apple Liquid Glass (Jasna / Biała Porcelana):**
+  - Tło płótna: pastelowe, dynamicznie rozproszone plamy świetlne (ambient liquid mesh gradients: cyan, soft indigo, teal) w tle `bg-slate-50`.
+  - Panele szklane (`.glass-panel`, `.glass-panel-elevated`): wysoki stopień rozmycia akrylowego (`blur(28px) saturate(190%)`), krystaliczna półprzezroczysta biel (`rgba(255, 255, 255, 0.75)`), subtelne obramowanie z wewnętrznym zwierciadlanym refleksem (`inset 0 1px 1px 0 rgba(255, 255, 255, 0.95)`).
+  - Pasek dokujący (`.glass-dock`): mlecznobiały, unoszący się dok w stylu iOS z aksamitnym cieniem.
+  - Typografia i kontrast: głęboka, wyrazista czerń/grafit (`text-slate-900`, `text-slate-800`), nasycone ikony i czytelne etykiety (`text-slate-500`).
+  - Odświeżenie wszystkich 8 modułów: Pulpit, Czat AI, Plan lekcji, Oceny, Finanse 50/30/20, Trening FBW, Radary CANARD, Ustawienia Zero-Trust.
+- [+] **Weryfikacja Kompilacji:**
+  - `tsc && vite build`: 2036 modułów przetransformowanych z kodem `0`.
