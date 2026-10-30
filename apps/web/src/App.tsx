@@ -8,6 +8,7 @@ import { MoreDrawerSheet } from './components/navigation/MoreDrawerSheet';
 import { DashboardPage } from './modules/dashboard/page';
 import { ChatPage } from './modules/chat/page';
 import { SchoolPage } from './modules/school/page';
+import { PrivatePage } from './modules/private/page';
 import { GradesPage } from './modules/grades/page';
 import { FinancePage } from './modules/finance/page';
 import { WorkoutsPage } from './modules/workouts/page';
@@ -24,6 +25,7 @@ const ROUTE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/widgets': { title: 'Widżety & Narzędzia Operacyjne', subtitle: 'Hardware, Notatnik, Rynek i Prompt Vault' },
   '/memory': { title: 'Pamięć Kognitywna AI', subtitle: 'Dyrektywy Systemowe i Baza Faktów' },
   '/school': { title: 'Harmonogram & Edukacja', subtitle: 'Plan zajęć, Oceny, Frekwencja i Terminarz' },
+  '/private': { title: 'Strefa Prywatna', subtitle: 'Rutyny Dnia, Cele Osobiste i Dziennik' },
   '/timetable': { title: 'Harmonogram Zajęć', subtitle: 'Plan tygodniowy i sale dydaktyczne' },
   '/grades': { title: 'Oceny i Frekwencja', subtitle: 'Panel wyników i frekwencji' },
   '/finance': { title: 'Finanse 50/30/20', subtitle: 'Zarządzanie Budżetem, Abonamentami i Celami' },
@@ -78,6 +80,7 @@ export const App: React.FC = () => {
             <Route path="/widgets" element={<WidgetsPage />} />
             <Route path="/memory" element={<MemoryPage />} />
             <Route path="/school" element={<SchoolPage />} />
+            <Route path="/private" element={<PrivatePage />} />
             <Route path="/timetable" element={<SchoolPage />} />
             <Route path="/grades" element={<GradesPage />} />
             <Route path="/finance" element={<FinancePage />} />

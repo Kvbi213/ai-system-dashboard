@@ -1,47 +1,60 @@
-import React from 'react';
-import { SecurityCheckCard } from './components/SecurityCheckCard';
-import { Sliders, RefreshCw, KeyRound, LogOut } from 'lucide-react';
+import React, { useState } from 'react';
+import { Cpu, Volume2, Bot, MapPin, Bell, Smartphone, ShieldCheck } from 'lucide-react';
+import { KernelSettings } from './components/KernelSettings';
+import { VoiceTtsSettings } from './components/VoiceTtsSettings';
+import { AiModelSettings } from './components/AiModelSettings';
+import { GeoSettings } from './components/GeoSettings';
+import { NotificationSettings } from './components/NotificationSettings';
+import { ErgonomicsSettings } from './components/ErgonomicsSettings';
+import { SecurityDbSettings } from './components/SecurityDbSettings';
+
+type SettingsTab = 'kernel' | 'voice_tts' | 'ai_models' | 'geo_weather' | 'notifications' | 'ergonomics_ui' | 'database_cloud';
 
 export const SettingsPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<SettingsTab>('kernel');
+
+  const tabs = [
+    { id: 'kernel', label: 'Kernel & Motyw', icon: Cpu },
+    { id: 'voice_tts', label: 'Asystent TTS', icon: Volume2 },
+    { id: 'ai_models', label: 'Modele AI', icon: Bot },
+    { id: 'geo_weather', label: 'Geo & Radary', icon: MapPin },
+    { id: 'notifications', label: 'Powiadomienia', icon: Bell },
+    { id: 'ergonomics_ui', label: 'Ergonomia UI', icon: Smartphone },
+    { id: 'database_cloud', label: 'Baza & Audyt', icon: ShieldCheck }
+  ] as const;
+
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Sliders className="w-5 h-5 text-sky-600" />
-          <div>
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">
-              Ustawienia i Środowisko Systemu
-            </h2>
-            <p className="text-xs text-slate-500 font-mono">OmniDash Reborn v4.0.0 :: Mikr.us Node</p>
-          </div>
-        </div>
-
-        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 hover:text-slate-900 font-semibold transition shadow-sm">
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Odśwież stan</span>
-        </button>
+      {/* Settings Navigation Tabs */}
+      <div className="flex gap-1.5 p-1.5 rounded-2xl glass-panel shadow-sm overflow-x-auto scrollbar-none">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                isActive
+                  ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20 border border-sky-500'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+              }`}
+            >
+              <tab.icon className="w-3.5 h-3.5 shrink-0" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Security Zero-Trust Audit */}
-      <SecurityCheckCard />
-
-      {/* Cloud & Tenant Session */}
-      <div className="p-4 rounded-2xl glass-panel border-white/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-sky-50 text-sky-700 border border-sky-200 shadow-sm">
-            <KeyRound className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-slate-800">Zalogowano jako Operator Systemu</p>
-            <p className="text-[11px] text-slate-500 font-mono">Tenant ID: operator-system-core</p>
-          </div>
-        </div>
-
-        <button className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition active:scale-95 shadow-sm">
-          <LogOut className="w-4 h-4" />
-          <span>Wyloguj sesję Zero-Trust</span>
-        </button>
+      {/* Active Tab Content */}
+      <div className="space-y-4">
+        {activeTab === 'kernel' && <KernelSettings />}
+        {activeTab === 'voice_tts' && <VoiceTtsSettings />}
+        {activeTab === 'ai_models' && <AiModelSettings />}
+        {activeTab === 'geo_weather' && <GeoSettings />}
+        {activeTab === 'notifications' && <NotificationSettings />}
+        {activeTab === 'ergonomics_ui' && <ErgonomicsSettings />}
+        {activeTab === 'database_cloud' && <SecurityDbSettings />}
       </div>
     </div>
   );

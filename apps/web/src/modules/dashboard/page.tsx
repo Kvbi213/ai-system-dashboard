@@ -4,8 +4,6 @@ import { DashboardKpiDeck } from './components/DashboardKpiDeck';
 import { CurrentLessonHero } from './components/CurrentLessonHero';
 import { WeatherTrafficCapsule } from './components/WeatherTrafficCapsule';
 import { DailyTimelineWidget } from './components/DailyTimelineWidget';
-import { QuickAiChatWidget } from './components/QuickAiChatWidget';
-import { OperationalNodesWidget } from './components/OperationalNodesWidget';
 import { TodoSlideOverDrawer } from './components/TodoSlideOverDrawer';
 import { TaskItem } from './components/ExecutiveTodoWidget';
 import { tasksApi } from '../../api/client';
@@ -61,15 +59,15 @@ export const DashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 max-w-7xl mx-auto">
+    <div className="space-y-2.5 max-w-7xl mx-auto">
       {/* 1. IT News Ticker */}
       <ITNewsTickerBar />
 
-      {/* 2. Top 4-KPI Deck */}
+      {/* 2. Top 3-KPI Deck (Zadania, FBW, Budżet) */}
       <DashboardKpiDeck taskStats={taskStats} onOpenTasks={() => setIsTasksDrawerOpen(true)} />
 
       {/* 3. Core Lesson & Traffic Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
         <div className="lg:col-span-2">
           <CurrentLessonHero />
         </div>
@@ -78,14 +76,8 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Timeline & Quick Chat Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <DailyTimelineWidget />
-        <QuickAiChatWidget />
-      </div>
-
-      {/* 5. Infrastructure Nodes Bar */}
-      <OperationalNodesWidget />
+      {/* 4. Daily Timeline */}
+      <DailyTimelineWidget />
 
       {/* Slide-over sheet for full task management */}
       <TodoSlideOverDrawer

@@ -253,6 +253,49 @@ Wraz z budową projektu od zera w lokalizacji `C:\Users\Jakub Lis\Desktop\01_PRO
 
 ---
 
+### ## v4.0.0-alpha.10 — 2026-10-30 [ZERO-SCROLL DASHBOARD, PRIVATE HUB, WORKOUTS REST TIMER, FINANCE BUDGET EDITOR & 7-TAB SETTINGS]
+**Status:** WDROŻONO I ZWERYFIKOWANO (28 PLAYWRIGHT E2E, 16 UNIT, 3 WORKER, EXIT CODE 0)  
+**Typ:** MINOR (Rekompozycja Pulpitu bez Scrolla, Hub Prywatny, Automatyczny Timer Przerwy 1:30 w FBW, Modal Budżetu 50/30/20 i 7 Zakładek Ustawień)  
+
+#### Zakres Zmian:
+- [+] **Pulpit Operacyjny Dopasowany do Viewportu (Zero-Scroll):**
+  - Zredukowano górny deck KPI (`DashboardKpiDeck.tsx`) do 3 kart (*Aktywność Dnia*, *Sesja FBW*, *Budżet 50/30/20*), usunięto *Telemetrię & LPU*.
+  - Usunięto z pulpitu duże widżety: *Usługi i Węzły Operacyjne* oraz *Szybki Czat Omni AI*.
+  - Zastąpiono szybki czat elegancką, miniaturową pigułką `Czat AI ->` w nagłówku dobowej osi czasu (`DailyTimelineWidget.tsx`).
+  - Zacieśniono odstępy siatki do `space-y-2.5` i `gap-2.5`, dzięki czemu pulpit mieści się w standardowym oknie przeglądarki bez konieczności przewijania.
+- [+] **Likwidacja Bocznego Scrolla w Czacie AI (`ChatInputBar.tsx`):**
+  - Zastąpiono poziomy pasek przewijania (`overflow-x-auto`) naturalnym zawijaniem flexbox (`flex-wrap gap-1.5`).
+  - Rozszerzono pole wprowadzania promptu do pełnej szerokości kontenera bez obcinania chipów.
+- [+] **Nowy Hub Prywatny (`/private`):**
+  - `PrivateRoutinesCard.tsx`: Poranne i wieczorne protokoły nawyków z podziałem na kolumny i zapisem w `localStorage`.
+  - `PersonalGoalsCard.tsx`: Cele rozwojowe i projekty osobiste z paskami postępu, jednostkami i formularzem dodawania.
+  - `PrivateJournalCard.tsx`: Dziennik osobisty i autorefleksje z tagami nastroju, datami i pełnym formularzem wpisów.
+  - Koordynator `page.tsx` w rygorze ≤50 linii.
+- [+] **Rozbudowa Modułu Finansów (`/finance`):**
+  - `BudgetSettingsModal.tsx`: Edycja dochodu netto i procentowych proporcji Potrzeby/Zachcianki/Oszczędności ze strażnikiem sumy 100%.
+  - `SubscriptionsManager.tsx`: Pełny CRUD abonamentów (dodawanie, usuwanie, pauza/aktywacja) z dynamicznym przeliczaniem sumy miesięcznej.
+  - `SavingsGoalCard.tsx`: Pełny CRUD celów oszczędnościowych z przyciskiem szybkiej wpłaty (+100 zł) i kalkulacją brakującej kwoty.
+- [+] **Rozbudowa Treningów FBW i Nawyków (`/workouts`):**
+  - `AtticFBWTracker.tsx`: Dodano automatyczny start odliczania przerwy **1:30 (90 sekund)** w formacie `MM:SS` natychmiast po zaliczeniu serii ćwiczenia. Dodano możliwość edycji powtórzeń, serii, ciężaru, resetu oraz dodawania nowych ćwiczeń.
+  - `DailyHabitStreaks.tsx`: Formularz dodawania własnych nawyków z kategoriami oraz usuwanie zbędnych pozycji.
+  - `PersonalRecordsCard.tsx`: Rejestr i formularz wprowadzania rekordów życiowych (PR) z notatkami i datami.
+- [+] **Pełna Parity Panelu Ustawień (7 Zakładek w `/settings`):**
+  - `KernelSettings.tsx`: Przełącznik motywu (Liquid Light / Obsidian Dark), widoczność modułów paska bocznego i kreator Setup Wizard.
+  - `VoiceTtsSettings.tsx`: Wybór silnika TTS (Web Speech API, Edge, ElevenLabs), suwaki tempa i tonu głosu, przycisk testu syntezy mowy.
+  - `AiModelSettings.tsx`: Wybór modelu (Groq Llama 3.3 70B, Gemini Flash, Mixtral), temperatura inferencji, sejf klucza API z maskowaniem.
+  - `GeoSettings.tsx`: Koordynaty stacji bazowej, promień fotoradarów CANARD (km) i interwał odświeżania kamer drogowych.
+  - `NotificationSettings.tsx`: Pushbullet Access Token, alerty krytyczne i tryb ciszy nocnej DND z testem powiadomienia.
+  - `ErgonomicsSettings.tsx`: Suwak rozmycia akrylu (Backdrop Blur 0-32px), strefa kciuka oraz redukcja animacji.
+  - `SecurityDbSettings.tsx`: Audyt architektury Zero-Trust (CSP-L3), blokada PIN oraz pobieranie zrzutu bazy danych JSON.
+  - Koordynator `page.tsx` zachował rygor 58 linii.
+- [+] **Integracja Nawigacji i Testy E2E Playwright (30 Testów):**
+  - Trasa `/private` w `App.tsx`, paska bocznego `Sidebar.tsx` oraz arkusza `MoreDrawerSheet.tsx`.
+  - Zaktualizowano `full-gui-audit.spec.ts` o testy widoku pulpitu bez starych widżetów, testy timera 1:30, 7 zakładek ustawień oraz test 13 dla Strefy Prywatnej.
+  - Wynik testów Playwright: 28 passed, 2 skipped (platform-specific), 0 failed (exit code 0).
+
+
+---
+
 ### ## v4.0.0-alpha.9 — 2026-10-30 [SMART WIDGETS LAYOUT, TIMELINE, QUICK CHAT & COGNITIVE MEMORY]
 **Status:** WDROŻONO I ZWERYFIKOWANO (28 PLAYWRIGHT E2E, 16 UNIT, 3 WORKER, EXIT CODE 0)  
 **Typ:** MINOR (Inteligentna Rekompozycja Pulpitu, 4-Karty KPI, Oś Czasu Dnia, Szybki Czat AI, Hub Widżetów i Pamięć Kognitywna)  

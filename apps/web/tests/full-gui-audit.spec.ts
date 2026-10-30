@@ -9,7 +9,7 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
     });
   });
 
-  test('1. Dashboard (Pulpit) - Widgets, Ticker, KPI Deck, Timeline and Todo Drawer', async ({ page }) => {
+  test('1. Dashboard (Pulpit) - Viewport-fit Decluttered Layout without old chat & services widgets', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
 
     // Verify main components are rendered
@@ -17,8 +17,12 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
     await expect(page.locator('text=CANARD Radary').first()).toBeVisible();
     await expect(page.locator('[data-testid="dashboard-kpi-deck"]').first()).toBeVisible();
     await expect(page.locator('text=Oś Czasu Dnia (Timeline)').first()).toBeVisible();
-    await expect(page.locator('text=Szybki Czat Omni AI').first()).toBeVisible();
-    await expect(page.locator('text=Usługi i Węzły Operacyjne').first()).toBeVisible();
+    await expect(page.locator('text=Czat AI').first()).toBeVisible();
+
+    // Verify obsolete widgets were removed for viewport-fit
+    await expect(page.locator('text=Szybki Czat Omni AI')).toHaveCount(0);
+    await expect(page.locator('text=Usługi i Węzły Operacyjne')).toHaveCount(0);
+    await expect(page.locator('text=Telemetria & LPU')).toHaveCount(0);
 
     // Test IT News Ticker click
     const nextTickerBtn = page.locator('button[title="Następny news"]');
@@ -115,10 +119,10 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
     await expect(page.locator('text=Podciąganie na drążku').first()).toBeVisible();
 
     // Test incrementing set
-    const incrementBtn = page.locator('button:has(svg.lucide-plus)').first();
+    const incrementBtn = page.locator('button[title*="Zalicz serię"]').first();
     await incrementBtn.click();
-    // Rest timer should activate
-    await expect(page.locator('text=Przerwa: 90s')).toBeVisible();
+    // Rest timer should activate with MM:SS format (1:30)
+    await expect(page.locator('text=/Przerwa: 01:30|Przerwa: 01:29/')).toBeVisible();
 
     // Switch to Habits
     await page.locator('button:has-text("Nawyki i Streaki")').click();
@@ -171,14 +175,36 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
     await expect(page.locator('button:has-text("Eksportuj JSON")')).toBeVisible();
   });
 
-  test('7. Settings (/settings) - Zero-Trust Audit & Session', async ({ page }) => {
+  test('7. Settings (/settings) - Full 7-Tab Legacy Parity', async ({ page }) => {
     await page.goto('/settings', { waitUntil: 'networkidle' });
 
-    await expect(page.getByRole('heading', { name: 'Audyt Architektury Zero-Trust' })).toBeVisible();
-    await expect(page.locator('p.font-bold:has-text("Polityka CSP Level 3")')).toBeVisible();
-    await expect(page.locator('p.font-bold:has-text("Autoryzacja Google Identity")')).toBeVisible();
-    await expect(page.locator('text=Zalogowano jako Operator Systemu').first()).toBeVisible();
-    await expect(page.locator('button:has-text("Wyloguj sesję Zero-Trust")')).toBeVisible();
+    // Verify 7 navigation tabs exist
+    await expect(page.locator('button:has-text("Kernel & Motyw")')).toBeVisible();
+    await expect(page.locator('button:has-text("Asystent TTS")')).toBeVisible();
+    await expect(page.locator('button:has-text("Modele AI")')).toBeVisible();
+    await expect(page.locator('button:has-text("Geo & Radary")')).toBeVisible();
+    await expect(page.locator('button:has-text("Powiadomienia")')).toBeVisible();
+    await expect(page.locator('button:has-text("Ergonomia UI")')).toBeVisible();
+    await expect(page.locator('button:has-text("Baza & Audyt")')).toBeVisible();
+
+    // Default tab: Kernel
+    await expect(page.locator('text=Kernel & Jądro Systemu').first()).toBeVisible();
+    await expect(page.locator('text=Liquid Glass Light').first()).toBeVisible();
+
+    // Switch to TTS
+    await page.locator('button:has-text("Asystent TTS")').click();
+    await expect(page.locator('text=Synteza Mowy (TTS)').first()).toBeVisible();
+    await expect(page.locator('text=Web Speech API').first()).toBeVisible();
+
+    // Switch to AI Models
+    await page.locator('button:has-text("Modele AI")').click();
+    await expect(page.locator('text=Architektura Modeli AI & LPU').first()).toBeVisible();
+    await expect(page.locator('text=Llama 3.3 70B').first()).toBeVisible();
+
+    // Switch to Baza & Audyt
+    await page.locator('button:has-text("Baza & Audyt")').click();
+    await expect(page.locator('text=Bezpieczeństwo Zero-Trust & Baza Danych').first()).toBeVisible();
+    await expect(page.locator('main p:has-text("Polityka CSP Level 3")').first()).toBeVisible();
   });
 
   test('8. Mobile Navigation & More Drawer Sheet on Mobile (Pixel 7)', async ({ page, isMobile }) => {
@@ -309,5 +335,28 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
     await page.locator('button:has-text("Zapisz fakt w pamięci")').click();
 
     await expect(page.locator('text=Fakt E2E: Wszystkie testy automatyczne są zielone').first()).toBeVisible();
+  });
+
+  test('13. Private Hub (/private) - Routines, Goals, and Journal', async ({ page }) => {
+    await page.goto('/private', { waitUntil: 'networkidle' });
+
+    // Verify sub-tabs
+    await expect(page.locator('button:has-text("Rutyny i Nawyki Dnia")')).toBeVisible();
+    await expect(page.locator('button:has-text("Cele i Projekty Osobiste")')).toBeVisible();
+    await expect(page.locator('button:has-text("Dziennik i Refleksje")')).toBeVisible();
+
+    // Default tab: Routines
+    await expect(page.locator('text=Rutyny Dnia & Higiena Kognitywna').first()).toBeVisible();
+    await expect(page.locator('text=Szklanka wody z solą kłodawską').first()).toBeVisible();
+
+    // Switch to Goals
+    await page.locator('button:has-text("Cele i Projekty Osobiste")').click();
+    await expect(page.locator('text=Cele Osobiste & Projekty Rozwojowe').first()).toBeVisible();
+    await expect(page.locator('text=Designing Data-Intensive Apps').first()).toBeVisible();
+
+    // Switch to Journal
+    await page.locator('button:has-text("Dziennik i Refleksje")').click();
+    await expect(page.locator('text=Dziennik Osobisty & Refleksje').first()).toBeVisible();
+    await expect(page.locator('button:has-text("Nowy wpis")')).toBeVisible();
   });
 });

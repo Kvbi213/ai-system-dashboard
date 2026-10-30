@@ -14,7 +14,8 @@ import {
   ChevronDown,
   ChevronsUpDown,
   Globe,
-  BrainCircuit
+  BrainCircuit,
+  UserCheck
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -48,6 +49,7 @@ const NAV_CATEGORIES: NavCategory[] = [
     title: 'Harmonogram i Finanse',
     items: [
       { to: '/school', label: 'Harmonogram & Edukacja', icon: GraduationCap },
+      { to: '/private', label: 'Strefa Prywatna', icon: UserCheck },
       { to: '/finance', label: 'Budżet 50/30/20', icon: Wallet }
     ]
   },

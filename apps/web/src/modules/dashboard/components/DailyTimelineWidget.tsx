@@ -1,6 +1,7 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { GlassCard } from '../../../components/ui/GlassCard';
-import { Calendar, Clock, CheckCircle2, CircleDot } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, CircleDot, Sparkles, ArrowRight } from 'lucide-react';
 
 interface TimelineEvent {
   id: string;
@@ -20,23 +21,35 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
 ];
 
 export const DailyTimelineWidget: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
-    <GlassCard className="p-4 sm:p-5" glow="sky">
-      <div className="flex items-center justify-between mb-4">
+    <GlassCard className="p-3 sm:p-4" glow="sky">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-sky-100 text-sky-700 border border-sky-200 shadow-sm">
+          <div className="p-1.5 rounded-xl bg-sky-100 text-sky-700 border border-sky-200 shadow-sm">
             <Calendar className="w-4 h-4" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 tracking-tight">Oś Czasu Dnia (Timeline)</h3>
-            <p className="text-xs text-slate-500 font-medium">Harmonogram dobowy zsynchronizowany z bazą</p>
+            <p className="text-xs text-slate-500 font-medium">Harmonogram dobowy</p>
           </div>
         </div>
 
-        <span className="flex items-center gap-1 text-[11px] font-mono font-bold text-sky-800 bg-sky-50 px-2.5 py-1 rounded-xl border border-sky-200">
-          <Clock className="w-3.5 h-3.5 text-sky-600" />
-          Dziś: 5 bloków
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1 text-[11px] font-mono font-bold text-sky-800 bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-200">
+            <Clock className="w-3 h-3 text-sky-600" />
+            5 bloków
+          </span>
+          <button
+            onClick={() => navigate('/chat')}
+            className="flex items-center gap-1 text-[11px] font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-0.5 rounded-lg border border-indigo-200 shadow-xs transition"
+          >
+            <Sparkles className="w-3 h-3 text-indigo-600" />
+            <span>Czat AI</span>
+            <ArrowRight className="w-3 h-3" />
+          </button>
+        </div>
       </div>
 
       <div className="space-y-3 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">

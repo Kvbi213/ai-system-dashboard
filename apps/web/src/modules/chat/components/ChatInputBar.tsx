@@ -32,15 +32,15 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({ onSendMessage, isLoa
 
   return (
     <div className="w-full space-y-2">
-      {/* Quick Prompt Chips */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+      {/* Quick Prompt Chips - Wrapped, Zero Horizontal Scroll */}
+      <div className="flex flex-wrap gap-1.5 pb-1">
         {PROMPT_CHIPS.map((chip, idx) => (
           <button
             key={idx}
             onClick={() => onSendMessage(chip)}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/80 border border-slate-200/90 text-xs text-slate-700 hover:text-sky-700 hover:border-sky-300 whitespace-nowrap transition active:scale-95 shadow-sm font-medium"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/90 text-xs text-slate-700 hover:text-sky-700 hover:border-sky-300 transition active:scale-95 shadow-xs font-medium"
           >
-            <Sparkles className="w-3 h-3 text-sky-600" />
+            <Sparkles className="w-3 h-3 text-sky-600 shrink-0" />
             <span>{chip}</span>
           </button>
         ))}

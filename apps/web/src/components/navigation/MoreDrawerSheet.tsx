@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { BottomActionSheet } from '../ui/BottomActionSheet';
-import { Dumbbell, Radio, Server, Sliders, ShieldCheck, ChevronRight, Globe, Cpu, BrainCircuit } from 'lucide-react';
+import { Dumbbell, Radio, Server, Sliders, ShieldCheck, ChevronRight, Globe, Cpu, BrainCircuit, UserCheck } from 'lucide-react';
 
 interface MoreDrawerSheetProps {
   isOpen: boolean;
@@ -23,6 +23,13 @@ export const MoreDrawerSheet: React.FC<MoreDrawerSheetProps> = ({ isOpen, onClos
       desc: 'Dyrektywy systemowe i baza wiedzy',
       icon: BrainCircuit,
       color: 'text-purple-600 bg-purple-50 border-purple-200'
+    },
+    {
+      to: '/private',
+      label: 'Strefa Prywatna',
+      desc: 'Rutyny, cele osobiste i dziennik refleksji',
+      icon: UserCheck,
+      color: 'text-pink-600 bg-pink-50 border-pink-200'
     },
     {
       to: '/workouts',
