@@ -105,3 +105,16 @@ Wraz z budową projektu od zera w lokalizacji `C:\Users\Jakub Lis\Desktop\01_PRO
     4. Weryfikacja niezależnego scrolla wewnątrz listy wiadomości (`canScroll == true`, `scrollTop > 0`).
     5. Wykonanie zrzutu ekranu weryfikacyjnego: `apps/web/e2e-chat-verified.png`.
   - Utworzono test regresji `tests/regression-check.mjs` potwierdzający, że pozostałe widoki zachowują standardowe przewijanie (`overflowY: auto`).
+
+---
+
+### ## v4.0.0-alpha.4 — 2026-10-30 [PLAYWRIGHT TEST SUITE INTEGRATION]
+**Status:** ZWERYFIKOWANO (4/4 TESTY ZALICZONE)  
+**Typ:** MINOR (Oficjalny Standard Playwright Test Runner)  
+
+#### Zakres Zmian:
+- [+] **Konfiguracja Playwright (`playwright.config.ts`):**
+  - Zainstalowano silnik przeglądarki Chromium w środowisku lokalnym komputera (`playwright install chromium`).
+  - Skonfigurowano testy wieloplatformowe w dwóch profilach: `Desktop Chromium` oraz `Mobile Chrome (Pixel 7)` z automatycznym serwerem deweloperskim Vite.
+  - Zdefiniowano standardowy plik specyfikacji `tests/chat-viewport-isolation.spec.ts` badający izolację widoku, brak zewnętrznego przewijania okna oraz symulację pełnej konwersacji użytkownika z asystentem AI.
+  - Zintegrowano polecenie `pnpm test` uruchamiające oficjalny runner `playwright test`.
