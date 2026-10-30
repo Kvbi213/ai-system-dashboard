@@ -35,6 +35,8 @@ Thumbs.db
 
 # Testing & logs
 coverage/
+playwright-report/
+test-results/
 *.log
 .superpowers/
 
