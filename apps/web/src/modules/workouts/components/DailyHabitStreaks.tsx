@@ -11,8 +11,6 @@ export interface HabitItem {
   category: string;
 }
 
-const STORAGE_KEY = 'omnidash_habits';
-
 const INITIAL_HABITS: HabitItem[] = [
   { id: 'h1', title: 'Woda minimum 2.5 Litra', streakDays: 18, completedToday: true, category: 'Zdrowie' },
   { id: 'h2', title: 'Fiszki z języka niemieckiego [wymowa]', streakDays: 12, completedToday: true, category: 'Nauka' },
@@ -21,24 +19,31 @@ const INITIAL_HABITS: HabitItem[] = [
 ];
 
 export const DailyHabitStreaks: React.FC = () => {
-  const [habits, setHabits] = useState<HabitItem[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : INITIAL_HABITS;
-    } catch {
-      return INITIAL_HABITS;
-    }
-  });
-
+  const [habits, setHabits] = useState<HabitItem[]>(INITIAL_HABITS);
   const [isAdding, setIsAdding] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newCategory, setNewCategory] = useState('Dyscyplina');
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(habits));
-  }, [habits]);
+    workoutsApi.getHabits()
+      .then((res) => {
+        if (res?.habits && res.habits.length > 0) {
+          const mapped: HabitItem[] = res.habits.map((h: any) => ({
+            id: h.id,
+            title: h.title,
+            streakDays: h.streakDays || 0,
+            completedToday: !!h.completedToday,
+            category: 'Dyscyplina'
+          }));
+          setHabits(mapped);
+        }
+      })
+      .catch(() => {
+        // Fallback maintained
+      });
+  }, []);
 
-  const handleToggle = (id: string) => {
+  const handleToggle = async (id: string) => {
     setHabits((prev) =>
       prev.map((h) => {
         if (h.id === id) {
@@ -53,29 +58,55 @@ export const DailyHabitStreaks: React.FC = () => {
       })
     );
 
-    workoutsApi.toggleHabit(id).catch(() => {
+    try {
+      await workoutsApi.toggleHabit(id);
+    } catch {
       // Local state already updated
-    });
+    }
   };
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
-    const newHabit: HabitItem = {
-      id: Date.now().toString(),
-      title: newTitle.trim(),
-      streakDays: 0,
-      completedToday: false,
-      category: newCategory
-    };
-    setHabits([...habits, newHabit]);
+    const titleVal = newTitle.trim();
+
+    try {
+      const res = await workoutsApi.addHabit(titleVal);
+      if (res?.habit) {
+        setHabits((prev) => [
+          ...prev,
+          {
+            id: res.habit.id,
+            title: res.habit.title,
+            streakDays: res.habit.streakDays || 0,
+            completedToday: false,
+            category: newCategory
+          }
+        ]);
+      }
+    } catch {
+      const fallbackHabit: HabitItem = {
+        id: Date.now().toString(),
+        title: titleVal,
+        streakDays: 0,
+        completedToday: false,
+        category: newCategory
+      };
+      setHabits((prev) => [...prev, fallbackHabit]);
+    }
+
     setNewTitle('');
     setIsAdding(false);
   };
 
-  const handleDelete = (id: string, e: React.MouseEvent) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setHabits((prev) => prev.filter((h) => h.id !== id));
+    try {
+      await workoutsApi.deleteHabit(id);
+    } catch {
+      // Local state already updated
+    }
   };
 
   return (

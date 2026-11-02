@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { Trophy, TrendingUp, Calendar, Plus, Trash2 } from 'lucide-react';
+import { workoutsApi } from '../../../api/client';
 
 export interface RecordItem {
   id: string;
@@ -10,8 +11,6 @@ export interface RecordItem {
   extra: string;
 }
 
-const STORAGE_KEY = 'omnidash_personal_records';
-
 const INITIAL_RECORDS: RecordItem[] = [
   { id: 'pr1', exercise: 'Podciąganie na drążku (nachwyt)', record: '14 powtórzeń', date: '18 paź 2026', extra: 'Czysta forma bez bujania' },
   { id: 'pr2', exercise: 'Dipy na poręczach (kalistenika)', record: '22 powtórzenia', date: '22 paź 2026', extra: 'Masa ciała + głębokie zejście' },
@@ -20,45 +19,82 @@ const INITIAL_RECORDS: RecordItem[] = [
 ];
 
 export const PersonalRecordsCard: React.FC = () => {
-  const [records, setRecords] = useState<RecordItem[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : INITIAL_RECORDS;
-    } catch {
-      return INITIAL_RECORDS;
-    }
-  });
-
+  const [records, setRecords] = useState<RecordItem[]>(INITIAL_RECORDS);
   const [isAdding, setIsAdding] = useState(false);
   const [exercise, setExercise] = useState('');
   const [recordVal, setRecordVal] = useState('');
   const [extra, setExtra] = useState('');
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  }, [records]);
+    workoutsApi.getRecords()
+      .then((res) => {
+        if (res?.records && res.records.length > 0) {
+          const mapped: RecordItem[] = res.records.map((r: any, idx: number) => ({
+            id: r.id || `pr_${idx}`,
+            exercise: r.exercise,
+            record: r.record,
+            date: r.date || 'Aktualny',
+            extra: r.extra || 'Osobisty rekord życiowy'
+          }));
+          setRecords(mapped);
+        }
+      })
+      .catch(() => {
+        // Fallback maintained
+      });
+  }, []);
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!exercise.trim() || !recordVal.trim()) return;
-    const now = new Date();
-    const dateFormatted = `${now.getDate()} ${now.toLocaleString('pl-PL', { month: 'short' })} ${now.getFullYear()}`;
-    const newPr: RecordItem = {
-      id: Date.now().toString(),
-      exercise: exercise.trim(),
-      record: recordVal.trim(),
-      date: dateFormatted,
-      extra: extra.trim() || 'Osobisty rekord życiowy'
-    };
-    setRecords([newPr, ...records]);
+    const exName = exercise.trim();
+    const recStr = recordVal.trim();
+    const extraStr = extra.trim() || 'Osobisty rekord życiowy';
+
+    try {
+      const res = await workoutsApi.addRecord({
+        exercise: exName,
+        record: recStr,
+        extra: extraStr
+      });
+      if (res?.record) {
+        setRecords((prev) => [
+          {
+            id: `pr_${Date.now()}`,
+            exercise: res.record.exercise,
+            record: res.record.record,
+            date: res.record.date || 'Dzisiaj',
+            extra: res.record.extra || extraStr
+          },
+          ...prev.filter((r) => r.exercise.toLowerCase() !== exName.toLowerCase())
+        ]);
+      }
+    } catch {
+      const now = new Date();
+      const dateFormatted = `${now.getDate()} ${now.toLocaleString('pl-PL', { month: 'short' })} ${now.getFullYear()}`;
+      const newPr: RecordItem = {
+        id: Date.now().toString(),
+        exercise: exName,
+        record: recStr,
+        date: dateFormatted,
+        extra: extraStr
+      };
+      setRecords((prev) => [newPr, ...prev]);
+    }
+
     setExercise('');
     setRecordVal('');
     setExtra('');
     setIsAdding(false);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string, exerciseName: string) => {
     setRecords((prev) => prev.filter((r) => r.id !== id));
+    try {
+      await workoutsApi.deleteRecord(exerciseName);
+    } catch {
+      // Local state already updated
+    }
   };
 
   return (
@@ -133,7 +169,7 @@ export const PersonalRecordsCard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <p className="text-xs font-bold text-slate-900">{rec.exercise}</p>
                 <button
-                  onClick={() => handleDelete(rec.id)}
+                  onClick={() => handleDelete(rec.id, rec.exercise)}
                   className="text-slate-300 hover:text-rose-500 transition p-1"
                   title="Usuń rekord"
                 >

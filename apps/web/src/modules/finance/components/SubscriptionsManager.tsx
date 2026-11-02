@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { Badge } from '../../../components/ui/Badge';
 import { CreditCard, Calendar, Server, Plus, Trash2 } from 'lucide-react';
+import { financeApi } from '../../../api/client';
 
 export interface SubscriptionItem {
   id: string;
@@ -9,10 +10,8 @@ export interface SubscriptionItem {
   category: string;
   costPln: number;
   renewalDay: number;
-  status: 'active' | 'paused';
+  status: 'active' | 'paused' | 'pending';
 }
-
-const STORAGE_KEY = 'omnidash_finance_subscriptions';
 
 const DEFAULT_SUBS: SubscriptionItem[] = [
   { id: 's1', name: 'Hosting Chmurowy VPS (LXC)', category: 'Infrastruktura', costPln: 65.0, renewalDay: 28, status: 'active' },
@@ -22,50 +21,76 @@ const DEFAULT_SUBS: SubscriptionItem[] = [
 ];
 
 export const SubscriptionsManager: React.FC = () => {
-  const [subs, setSubs] = useState<SubscriptionItem[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : DEFAULT_SUBS;
-    } catch {
-      return DEFAULT_SUBS;
-    }
-  });
-
+  const [subs, setSubs] = useState<SubscriptionItem[]>(DEFAULT_SUBS);
   const [name, setName] = useState('');
   const [cost, setCost] = useState('');
-  const [category, setCategory] = useState('Narzędzia');
+  const [category, setCategory] = useState('Narzędzia IT');
   const [renewalDay, setRenewalDay] = useState('1');
   const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(subs));
-  }, [subs]);
+    financeApi.getSubscriptions()
+      .then((res) => {
+        if (res?.subscriptions && res.subscriptions.length > 0) {
+          setSubs(res.subscriptions);
+        }
+      })
+      .catch(() => {
+        // Fallback maintained
+      });
+  }, []);
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !cost) return;
-    const item: SubscriptionItem = {
-      id: Date.now().toString(),
-      name: name.trim(),
-      category,
-      costPln: Math.abs(parseFloat(cost)) || 0,
-      renewalDay: parseInt(renewalDay, 10) || 1,
-      status: 'active'
-    };
-    setSubs([...subs, item]);
+    const costPln = Math.abs(parseFloat(cost)) || 0;
+    const rDay = parseInt(renewalDay, 10) || 1;
+
+    try {
+      const res = await financeApi.addSubscription({
+        name: name.trim(),
+        category,
+        costPln,
+        renewalDay: rDay
+      });
+      if (res?.subscription) {
+        setSubs((prev) => [...prev, res.subscription]);
+      }
+    } catch {
+      const fallbackItem: SubscriptionItem = {
+        id: Date.now().toString(),
+        name: name.trim(),
+        category,
+        costPln,
+        renewalDay: rDay,
+        status: 'active'
+      };
+      setSubs((prev) => [...prev, fallbackItem]);
+    }
+
     setName('');
     setCost('');
     setIsAdding(false);
   };
 
-  const handleToggle = (id: string) => {
+  const handleToggle = async (id: string) => {
     setSubs((prev) =>
       prev.map((s) => (s.id === id ? { ...s, status: s.status === 'active' ? 'paused' : 'active' } : s))
     );
+    try {
+      await financeApi.toggleSubscription(id);
+    } catch {
+      // Local state already updated
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setSubs(subs.filter((s) => s.id !== id));
+  const handleDelete = async (id: string) => {
+    setSubs((prev) => prev.filter((s) => s.id !== id));
+    try {
+      await financeApi.deleteSubscription(id);
+    } catch {
+      // Local state already updated
+    }
   };
 
   const totalBurn = subs

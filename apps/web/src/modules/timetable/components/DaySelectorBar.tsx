@@ -15,14 +15,14 @@ const DAYS = [
 
 export const DaySelectorBar: React.FC<DaySelectorBarProps> = ({ selectedDay, onSelectDay }) => {
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+    <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
       {DAYS.map((day) => {
         const isActive = selectedDay === day.id;
         return (
           <button
             key={day.id}
             onClick={() => onSelectDay(day.id)}
-            className={`flex-1 min-w-[70px] py-2 px-3 rounded-2xl flex flex-col items-center justify-center transition-all ${
+            className={`py-2 px-1 sm:px-3 rounded-2xl flex flex-col items-center justify-center transition-all ${
               isActive
                 ? 'bg-sky-600 text-white shadow-lg shadow-sky-600/25 border border-sky-500 font-bold'
                 : 'glass-panel text-slate-600 hover:text-slate-900 hover:border-slate-300'

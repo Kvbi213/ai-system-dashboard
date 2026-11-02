@@ -24,14 +24,14 @@ export const WidgetsPage: React.FC = () => {
   return (
     <div className="space-y-4 max-w-7xl mx-auto" data-testid="widgets-hub-page">
       {/* Category Pills Header */}
-      <div className="flex gap-1.5 p-1.5 rounded-2xl glass-panel shadow-sm overflow-x-auto scrollbar-none">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1.5 rounded-2xl glass-panel shadow-sm">
         {filterButtons.map((btn) => {
           const isActive = filter === btn.id;
           return (
             <button
               key={btn.id}
               onClick={() => setFilter(btn.id)}
-              className={`flex-1 min-w-[130px] flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+              className={`flex items-center justify-center gap-1.5 py-2 px-2 sm:px-3 rounded-xl text-xs font-bold transition-all text-center ${
                 isActive
                   ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20 border border-sky-500'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'

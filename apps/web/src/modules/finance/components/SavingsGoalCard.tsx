@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { Target, ShieldCheck, Plus, Trash2, ArrowUpCircle } from 'lucide-react';
+import { financeApi } from '../../../api/client';
 
 export interface SavingsGoal {
   id: string;
   name: string;
   current: number;
   target: number;
-  category: string;
+  category?: string;
+  deadline?: string;
 }
-
-const STORAGE_KEY = 'omnidash_finance_savings_goals';
 
 const DEFAULT_GOALS: SavingsGoal[] = [
   { id: 'g1', name: 'Fundusz Awaryjny (Poduszka 3-mc)', current: 3200, target: 5000, category: 'Bezpieczeństwo' },
@@ -18,48 +18,88 @@ const DEFAULT_GOALS: SavingsGoal[] = [
 ];
 
 export const SavingsGoalCard: React.FC = () => {
-  const [goals, setGoals] = useState<SavingsGoal[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : DEFAULT_GOALS;
-    } catch {
-      return DEFAULT_GOALS;
-    }
-  });
-
+  const [goals, setGoals] = useState<SavingsGoal[]>(DEFAULT_GOALS);
   const [name, setName] = useState('');
   const [target, setTarget] = useState('');
   const [category, setCategory] = useState('Oszczędności');
   const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(goals));
-  }, [goals]);
+    financeApi.getGoals()
+      .then((res) => {
+        if (res?.goals && res.goals.length > 0) {
+          const mapped: SavingsGoal[] = res.goals.map((g: any) => ({
+            id: g.id,
+            name: g.name,
+            current: g.currentPln ?? g.current ?? 0,
+            target: g.targetPln ?? g.target ?? 1000,
+            category: 'Oszczędności',
+            deadline: g.deadline
+          }));
+          setGoals(mapped);
+        }
+      })
+      .catch(() => {
+        // Fallback maintained
+      });
+  }, []);
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !target) return;
-    const item: SavingsGoal = {
-      id: Date.now().toString(),
-      name: name.trim(),
-      current: 0,
-      target: Math.abs(parseFloat(target)) || 1000,
-      category
-    };
-    setGoals([...goals, item]);
+    const targetVal = Math.abs(parseFloat(target)) || 1000;
+
+    try {
+      const res = await financeApi.addGoal({
+        name: name.trim(),
+        targetPln: targetVal,
+        currentPln: 0,
+        deadline: '31 gru 2026'
+      });
+      if (res?.goal) {
+        const newGoal: SavingsGoal = {
+          id: res.goal.id,
+          name: res.goal.name,
+          current: res.goal.currentPln || 0,
+          target: res.goal.targetPln || targetVal,
+          category
+        };
+        setGoals((prev) => [...prev, newGoal]);
+      }
+    } catch {
+      const fallbackItem: SavingsGoal = {
+        id: Date.now().toString(),
+        name: name.trim(),
+        current: 0,
+        target: targetVal,
+        category
+      };
+      setGoals((prev) => [...prev, fallbackItem]);
+    }
+
     setName('');
     setTarget('');
     setIsAdding(false);
   };
 
-  const handleDeposit = (id: string, amount: number) => {
+  const handleDeposit = async (id: string, amount: number) => {
     setGoals((prev) =>
       prev.map((g) => (g.id === id ? { ...g, current: Math.min(g.target, g.current + amount) } : g))
     );
+    try {
+      await financeApi.depositGoal(id, amount);
+    } catch {
+      // Local state already updated
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setGoals(goals.filter((g) => g.id !== id));
+  const handleDelete = async (id: string) => {
+    setGoals((prev) => prev.filter((g) => g.id !== id));
+    try {
+      await financeApi.deleteGoal(id);
+    } catch {
+      // Local state already updated
+    }
   };
 
   return (

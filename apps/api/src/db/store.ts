@@ -1,105 +1,42 @@
-export interface TaskItem {
-  id: string;
-  userId: string;
-  title: string;
-  priority: 'HIGH' | 'MEDIUM' | 'LOW';
-  completed: boolean;
-  category: string;
-  createdAt: string;
-}
+import {
+  TaskItem,
+  TransactionItem,
+  SubscriptionItem,
+  SavingsGoal,
+  ExerciseItem,
+  HabitItem,
+  PersonalRecord,
+  TrafficCamera,
+  SpeedRadar,
+  LessonItem,
+  GradeItem,
+  RoutineItem,
+  PersonalGoalItem,
+  JournalEntry,
+  SchoolEvent
+} from './types.js';
 
-export interface TransactionItem {
-  id: string;
-  userId: string;
-  title: string;
-  amount: number;
-  envelope: 'NEEDS' | 'WANTS' | 'SAVINGS';
-  category: string;
-  date: string;
-  type: 'EXPENSE' | 'INCOME';
-}
+import {
+  SEED_TASKS,
+  SEED_TRANSACTIONS,
+  SEED_SUBSCRIPTIONS,
+  SEED_SAVINGS_GOALS,
+  SEED_EXERCISES,
+  SEED_HABITS,
+  SEED_RECORDS,
+  SEED_TRAFFIC_CAMERAS,
+  SEED_SPEED_RADARS,
+  SEED_TIMETABLE,
+  SEED_GRADES,
+  SEED_EVENTS,
+  SEED_ROUTINES,
+  SEED_PERSONAL_GOALS,
+  SEED_JOURNAL
+} from './seedData.js';
 
-export interface SubscriptionItem {
-  id: string;
-  name: string;
-  category: string;
-  costPln: number;
-  renewalDay: number;
-  status: 'active' | 'pending';
-}
+export * from './types.js';
 
-export interface SavingsGoal {
-  id: string;
-  name: string;
-  currentPln: number;
-  targetPln: number;
-  deadline: string;
-}
-
-export interface ExerciseItem {
-  id: string;
-  name: string;
-  sets: number;
-  reps: number;
-  weightKg: number;
-  completedSets: number;
-}
-
-export interface HabitItem {
-  id: string;
-  title: string;
-  streakDays: number;
-  completedToday: boolean;
-}
-
-export interface PersonalRecord {
-  exercise: string;
-  record: string;
-  date: string;
-  extra: string;
-}
-
-export interface TrafficCamera {
-  id: string;
-  location: string;
-  road: string;
-  status: 'online' | 'warning' | 'offline';
-  speedLimitKmh: number;
-  lastUpdated: string;
-}
-
-export interface SpeedRadar {
-  id: string;
-  road: string;
-  location: string;
-  type: 'stacjonarny' | 'odcinkowy' | 'czerwone_swiatlo';
-  speedLimit: number;
-  deviceModel: string;
-  active: boolean;
-}
-
-export interface LessonItem {
-  id: string;
-  order: number;
-  timeRange: string;
-  subject: string;
-  teacher: string;
-  classroom: string;
-  isSubstitution?: boolean;
-  substitutionNote?: string;
-  hasExam?: boolean;
-}
-
-export interface GradeItem {
-  id: string;
-  subject: string;
-  grade: number;
-  weight: number;
-  description: string;
-  date: string;
-}
-
-class DatabaseStore {
+export class DatabaseStore {
   private tasks: TaskItem[] = [];
   private transactions: TransactionItem[] = [];
   private subscriptions: SubscriptionItem[] = [];
@@ -111,91 +48,31 @@ class DatabaseStore {
   private speedRadars: SpeedRadar[] = [];
   private timetable: Record<number, LessonItem[]> = {};
   private grades: GradeItem[] = [];
+  private events: SchoolEvent[] = [];
+  private routines: RoutineItem[] = [];
+  private personalGoals: PersonalGoalItem[] = [];
+  private journal: JournalEntry[] = [];
 
   constructor() {
     this.seed();
   }
 
   public seed(): void {
-    this.tasks = [
-      { id: 't1', userId: 'operator-system-core', title: 'Wdrożyć architekturę monorepo v4.0.0', priority: 'HIGH', completed: true, category: 'Architektura', createdAt: '2026-10-30T09:00:00Z' },
-      { id: 't2', userId: 'operator-system-core', title: 'Skonfigurować bezpieczny CORS whitelist bez *', priority: 'HIGH', completed: true, category: 'Bezpieczeństwo', createdAt: '2026-10-30T09:30:00Z' },
-      { id: 't3', userId: 'operator-system-core', title: 'Podłączyć silnik agenta AI ze streamingiem SSE', priority: 'HIGH', completed: false, category: 'AI Engine', createdAt: '2026-10-30T10:00:00Z' }
-    ];
-
-    this.transactions = [
-      { id: 'tx1', userId: 'operator-system-core', title: 'Artykuły biurowe i książka techniczna', amount: 84.50, envelope: 'WANTS', category: 'Rozwój', date: 'Dzisiaj, 09:15', type: 'EXPENSE' },
-      { id: 'tx2', userId: 'operator-system-core', title: 'Abonament serwerowy VPS LXC', amount: 65.00, envelope: 'NEEDS', category: 'Infrastruktura', date: 'Wczoraj, 14:20', type: 'EXPENSE' },
-      { id: 'tx3', userId: 'operator-system-core', title: 'Wpłata na fundusz awaryjny', amount: 200.00, envelope: 'SAVINGS', category: 'Oszczędności', date: '28 paź 2026', type: 'EXPENSE' }
-    ];
-
-    this.subscriptions = [
-      { id: 's1', name: 'Hosting Chmurowy VPS (LXC)', category: 'Infrastruktura', costPln: 65.0, renewalDay: 28, status: 'active' },
-      { id: 's2', name: 'Bilet Okresowy / Transport', category: 'Mobilność i Dojazdy', costPln: 160.0, renewalDay: 1, status: 'active' },
-      { id: 's3', name: 'Narzędzia Asystenta Dev / AI', category: 'Narzędzia IT', costPln: 45.0, renewalDay: 15, status: 'active' },
-      { id: 's4', name: 'Łącze Światłowodowe / Internet', category: 'Rachunki Stałe', costPln: 79.0, renewalDay: 10, status: 'active' }
-    ];
-
-    this.savingsGoals = [
-      { id: 'g1', name: 'Fundusz Awaryjny (Poduszka 3m)', currentPln: 3200, targetPln: 5000, deadline: '31 gru 2026' },
-      { id: 'g2', name: 'Nowy Hardware Stacji Roboczej', currentPln: 1450, targetPln: 4000, deadline: '30 cze 2027' }
-    ];
-
-    this.exercises = [
-      { id: 'ex1', name: 'Podciąganie na drążku (nachwyt)', sets: 4, reps: 8, weightKg: 0, completedSets: 2 },
-      { id: 'ex2', name: 'Dipy na poręczach (kalistenika)', sets: 4, reps: 10, weightKg: 5, completedSets: 1 },
-      { id: 'ex3', name: 'Pompki na uchwytach z deficytem', sets: 3, reps: 15, weightKg: 0, completedSets: 0 },
-      { id: 'ex4', name: 'Wznosy nóg do drążka (brzuch)', sets: 3, reps: 12, weightKg: 0, completedSets: 0 }
-    ];
-
-    this.habits = [
-      { id: 'h1', title: 'Woda minimum 2.5 Litra', streakDays: 14, completedToday: true },
-      { id: 'h2', title: 'Fiszki językowe (15 minut)', streakDays: 9, completedToday: false },
-      { id: 'h3', title: 'Git commit i praca nad kodem', streakDays: 32, completedToday: true },
-      { id: 'h4', title: 'Czytanie dokumentacji / książki (20 min)', streakDays: 6, completedToday: false }
-    ];
-
-    this.records = [
-      { exercise: 'Podciąganie na drążku (nachwyt)', record: '14 powtórzeń', date: '18 paź 2026', extra: 'Czysta forma bez bujania' },
-      { exercise: 'Dipy na poręczach (kalistenika)', record: '22 powtórzenia', date: '22 paź 2026', extra: 'Masa ciała + głębokie zejście' },
-      { exercise: 'Dipy z obciążeniem zewnętrznym', record: '+15 kg x 6 powt.', date: '14 paź 2026', extra: 'Pas obciążeniowy' },
-      { exercise: 'Wznosy prostych nóg do drążka', record: '16 powtórzeń', date: '26 paź 2026', extra: 'Dotknięcie stóp do drążka' }
-    ];
-
-    this.trafficCameras = [
-      { id: 'c1', location: 'Węzeł Miejski Północ (Kamera 01)', road: 'DK / Obwodnica', status: 'online', speedLimitKmh: 50, lastUpdated: '1 min temu' },
-      { id: 'c2', location: 'Węzeł Wschodni (Wjazd A1)', road: 'Autostrada A1 / DW', status: 'online', speedLimitKmh: 90, lastUpdated: '2 min temu' },
-      { id: 'c3', location: 'Węzeł Tranzytowy Południe', road: 'DK / A1', status: 'warning', speedLimitKmh: 70, lastUpdated: 'Prace drogowe' },
-      { id: 'c4', location: 'Odcinkowy Pomiar Zachód', road: 'DK / Trasa Główna', status: 'online', speedLimitKmh: 50, lastUpdated: '5 min temu' }
-    ];
-
-    this.speedRadars = [
-      { id: 'r1', road: 'DK / Obwodnica', location: 'Strefa Miejska (Aleja Główna)', type: 'stacjonarny', speedLimit: 50, deviceModel: 'Mesta Fusion RN', active: true },
-      { id: 'r2', road: 'DK22 / Region', location: 'Odcinek Leśny / Trasa Regionalna', type: 'odcinkowy', speedLimit: 70, deviceModel: 'CANARD OPP v3', active: true },
-      { id: 'r3', road: 'Autostrada A1', location: 'Węzeł Autostradowy Wschód', type: 'stacjonarny', speedLimit: 140, deviceModel: 'TraffiStar SR520', active: true },
-      { id: 'r4', road: 'DK / DW', location: 'Skrzyżowanie Tranzytowe Obwodnicy', type: 'czerwone_swiatlo', speedLimit: 50, deviceModel: 'RedLight Camera', active: true }
-    ];
-
-    this.timetable = {
-      1: [
-        { id: '1', order: 1, timeRange: '08:00 - 08:45', subject: 'Matematyka', teacher: 'mgr A. Nowak', classroom: 'Sala 105' },
-        { id: '2', order: 2, timeRange: '08:55 - 09:40', subject: 'Język Polski', teacher: 'mgr B. Kowalska', classroom: 'Sala 210' },
-        { id: '3', order: 3, timeRange: '09:50 - 10:35', subject: 'Systemy Operacyjne', teacher: 'inż. K. Wiśniewski', classroom: 'Pracownia A-204' },
-        { id: '4', order: 4, timeRange: '10:45 - 11:30', subject: 'Projektowanie Oprogramowania', teacher: 'inż. K. Wiśniewski', classroom: 'Pracownia A-204' },
-        { id: '5', order: 5, timeRange: '11:40 - 12:25', subject: 'Język Obcy Zawodowy', teacher: 'mgr E. Lis', classroom: 'Sala 102' }
-      ],
-      2: [
-        { id: '6', order: 1, timeRange: '08:00 - 08:45', subject: 'Bazy Danych SQL', teacher: 'inż. M. Kamiński', classroom: 'Pracownia 202', hasExam: true },
-        { id: '7', order: 2, timeRange: '08:55 - 09:40', subject: 'Bazy Danych SQL', teacher: 'inż. M. Kamiński', classroom: 'Pracownia 202' }
-      ]
-    };
-
-    this.grades = [
-      { id: 'g1', subject: 'Projektowanie Oprogramowania', grade: 5, weight: 3, description: 'Projekt Monorepo v4.0', date: '28-10-2026' },
-      { id: 'g2', subject: 'Bazy Danych SQL', grade: 4, weight: 2, description: 'Relacje i indeksy', date: '24-10-2026' },
-      { id: 'g3', subject: 'Systemy Operacyjne', grade: 5, weight: 2, description: 'Konteneryzacja Docker', date: '21-10-2026' },
-      { id: 'g4', subject: 'Matematyka', grade: 4, weight: 3, description: 'Rachunek prawdopodobieństwa', date: '18-10-2026' }
-    ];
+    this.tasks = JSON.parse(JSON.stringify(SEED_TASKS));
+    this.transactions = JSON.parse(JSON.stringify(SEED_TRANSACTIONS));
+    this.subscriptions = JSON.parse(JSON.stringify(SEED_SUBSCRIPTIONS));
+    this.savingsGoals = JSON.parse(JSON.stringify(SEED_SAVINGS_GOALS));
+    this.exercises = JSON.parse(JSON.stringify(SEED_EXERCISES));
+    this.habits = JSON.parse(JSON.stringify(SEED_HABITS));
+    this.records = JSON.parse(JSON.stringify(SEED_RECORDS));
+    this.trafficCameras = JSON.parse(JSON.stringify(SEED_TRAFFIC_CAMERAS));
+    this.speedRadars = JSON.parse(JSON.stringify(SEED_SPEED_RADARS));
+    this.timetable = JSON.parse(JSON.stringify(SEED_TIMETABLE));
+    this.grades = JSON.parse(JSON.stringify(SEED_GRADES));
+    this.events = JSON.parse(JSON.stringify(SEED_EVENTS));
+    this.routines = JSON.parse(JSON.stringify(SEED_ROUTINES));
+    this.personalGoals = JSON.parse(JSON.stringify(SEED_PERSONAL_GOALS));
+    this.journal = JSON.parse(JSON.stringify(SEED_JOURNAL));
   }
 
   public reset(): void {
@@ -254,17 +131,86 @@ class DatabaseStore {
     return newTx;
   }
 
+  // Subscriptions CRUD
   public getSubscriptions(): SubscriptionItem[] {
     return this.subscriptions;
   }
 
+  public addSubscription(sub: Omit<SubscriptionItem, 'id'>): SubscriptionItem {
+    const newSub: SubscriptionItem = {
+      id: `sub_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      ...sub
+    };
+    this.subscriptions.push(newSub);
+    return newSub;
+  }
+
+  public deleteSubscription(id: string): boolean {
+    const len = this.subscriptions.length;
+    this.subscriptions = this.subscriptions.filter((s) => s.id !== id);
+    return this.subscriptions.length < len;
+  }
+
+  public toggleSubscription(id: string): SubscriptionItem | null {
+    const sub = this.subscriptions.find((s) => s.id === id);
+    if (!sub) return null;
+    sub.status = sub.status === 'active' ? 'pending' : 'active';
+    return sub;
+  }
+
+  // Savings Goals CRUD
   public getSavingsGoals(): SavingsGoal[] {
     return this.savingsGoals;
   }
 
-  // Workouts
+  public addSavingsGoal(goal: Omit<SavingsGoal, 'id'>): SavingsGoal {
+    const newGoal: SavingsGoal = {
+      id: `goal_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      ...goal
+    };
+    this.savingsGoals.push(newGoal);
+    return newGoal;
+  }
+
+  public deleteSavingsGoal(id: string): boolean {
+    const len = this.savingsGoals.length;
+    this.savingsGoals = this.savingsGoals.filter((g) => g.id !== id);
+    return this.savingsGoals.length < len;
+  }
+
+  public depositSavingsGoal(id: string, amount: number): SavingsGoal | null {
+    const goal = this.savingsGoals.find((g) => g.id === id);
+    if (!goal) return null;
+    goal.currentPln += amount;
+    return goal;
+  }
+
+  // Workouts CRUD
   public getExercises(): ExerciseItem[] {
     return this.exercises;
+  }
+
+  public addExercise(ex: Omit<ExerciseItem, 'id' | 'completedSets'>): ExerciseItem {
+    const newEx: ExerciseItem = {
+      id: `ex_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      completedSets: 0,
+      ...ex
+    };
+    this.exercises.push(newEx);
+    return newEx;
+  }
+
+  public deleteExercise(id: string): boolean {
+    const len = this.exercises.length;
+    this.exercises = this.exercises.filter((e) => e.id !== id);
+    return this.exercises.length < len;
+  }
+
+  public resetExercise(id: string): ExerciseItem | null {
+    const ex = this.exercises.find((e) => e.id === id);
+    if (!ex) return null;
+    ex.completedSets = 0;
+    return ex;
   }
 
   public incrementWorkoutSet(id: string): ExerciseItem | null {
@@ -276,8 +222,26 @@ class DatabaseStore {
     return ex;
   }
 
+  // Habits CRUD
   public getHabits(): HabitItem[] {
     return this.habits;
+  }
+
+  public addHabit(title: string): HabitItem {
+    const newHabit: HabitItem = {
+      id: `habit_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      title,
+      streakDays: 0,
+      completedToday: false
+    };
+    this.habits.push(newHabit);
+    return newHabit;
+  }
+
+  public deleteHabit(id: string): boolean {
+    const len = this.habits.length;
+    this.habits = this.habits.filter((h) => h.id !== id);
+    return this.habits.length < len;
   }
 
   public toggleHabit(id: string): HabitItem | null {
@@ -292,8 +256,25 @@ class DatabaseStore {
     return habit;
   }
 
+  // Records CRUD
   public getRecords(): PersonalRecord[] {
     return this.records;
+  }
+
+  public addRecord(record: PersonalRecord): PersonalRecord {
+    const existingIndex = this.records.findIndex((r) => r.exercise.toLowerCase() === record.exercise.toLowerCase());
+    if (existingIndex >= 0) {
+      this.records[existingIndex] = record;
+    } else {
+      this.records.unshift(record);
+    }
+    return record;
+  }
+
+  public deleteRecord(exercise: string): boolean {
+    const len = this.records.length;
+    this.records = this.records.filter((r) => r.exercise.toLowerCase() !== exercise.toLowerCase());
+    return this.records.length < len;
   }
 
   // Traffic
@@ -310,8 +291,16 @@ class DatabaseStore {
     return this.timetable[day] || [];
   }
 
+  public getAllTimetable(): Record<number, LessonItem[]> {
+    return this.timetable;
+  }
+
   public getGrades(): GradeItem[] {
     return this.grades;
+  }
+
+  public getEvents(): SchoolEvent[] {
+    return this.events;
   }
 
   public calculateGpa(): number {
@@ -324,6 +313,80 @@ class DatabaseStore {
       }
     }
     return sumWeight > 0 ? Number((sumProduct / sumWeight).toFixed(2)) : 0;
+  }
+
+  // Private Hub (Routines, Goals, Journal)
+  public getRoutines(): RoutineItem[] {
+    return this.routines;
+  }
+
+  public toggleRoutine(id: string): RoutineItem | null {
+    const rt = this.routines.find((r) => r.id === id);
+    if (!rt) return null;
+    rt.completed = !rt.completed;
+    return rt;
+  }
+
+  public addRoutine(routine: Omit<RoutineItem, 'id' | 'completed'>): RoutineItem {
+    const newRt: RoutineItem = {
+      id: `rt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      completed: false,
+      ...routine
+    };
+    this.routines.push(newRt);
+    return newRt;
+  }
+
+  public deleteRoutine(id: string): boolean {
+    const len = this.routines.length;
+    this.routines = this.routines.filter((r) => r.id !== id);
+    return this.routines.length < len;
+  }
+
+  public getPersonalGoals(): PersonalGoalItem[] {
+    return this.personalGoals;
+  }
+
+  public addPersonalGoal(goal: Omit<PersonalGoalItem, 'id'>): PersonalGoalItem {
+    const newGoal: PersonalGoalItem = {
+      id: `pg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      ...goal
+    };
+    this.personalGoals.push(newGoal);
+    return newGoal;
+  }
+
+  public updateGoalProgress(id: string, delta: number): PersonalGoalItem | null {
+    const goal = this.personalGoals.find((g) => g.id === id);
+    if (!goal) return null;
+    goal.current = Math.min(goal.target, Math.max(0, goal.current + delta));
+    return goal;
+  }
+
+  public deletePersonalGoal(id: string): boolean {
+    const len = this.personalGoals.length;
+    this.personalGoals = this.personalGoals.filter((g) => g.id !== id);
+    return this.personalGoals.length < len;
+  }
+
+  public getJournalEntries(): JournalEntry[] {
+    return this.journal;
+  }
+
+  public addJournalEntry(entry: Omit<JournalEntry, 'id' | 'date'>): JournalEntry {
+    const newEntry: JournalEntry = {
+      id: `j_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      date: 'Dzisiaj, ' + new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
+      ...entry
+    };
+    this.journal.unshift(newEntry);
+    return newEntry;
+  }
+
+  public deleteJournalEntry(id: string): boolean {
+    const len = this.journal.length;
+    this.journal = this.journal.filter((j) => j.id !== id);
+    return this.journal.length < len;
   }
 }
 

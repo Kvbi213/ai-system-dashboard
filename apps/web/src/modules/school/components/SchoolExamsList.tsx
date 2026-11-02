@@ -1,18 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { Badge } from '../../../components/ui/Badge';
 import { Calendar, BookOpen, AlertCircle } from 'lucide-react';
+import { schoolApi } from '../../../api/client';
 
 export interface ExamItem {
   id: string;
   date: string;
   subject: string;
-  type: 'sprawdzian' | 'kartkowka' | 'projekt';
+  type: 'sprawdzian' | 'kartkowka' | 'projekt' | 'absence';
   topic: string;
   classroom: string;
 }
 
-const UPCOMING_EXAMS: ExamItem[] = [
+const FALLBACK_EXAMS: ExamItem[] = [
   {
     id: 'e1',
     date: '31 paź (Wtorek)',
@@ -40,6 +41,28 @@ const UPCOMING_EXAMS: ExamItem[] = [
 ];
 
 export const SchoolExamsList: React.FC = () => {
+  const [exams, setExams] = useState<ExamItem[]>(FALLBACK_EXAMS);
+
+  useEffect(() => {
+    schoolApi.getEvents()
+      .then((res) => {
+        if (res?.events && res.events.length > 0) {
+          const mapped: ExamItem[] = res.events.map((ev: any) => ({
+            id: String(ev.id),
+            date: ev.date,
+            subject: ev.category || 'Wydarzenie',
+            type: ev.type === 'sprawdzian' ? 'sprawdzian' : ev.type === 'kartkowka' ? 'kartkowka' : 'projekt',
+            topic: ev.title,
+            classroom: ev.teacher ? `Nauczyciel: ${ev.teacher}` : 'Sala lekcyjna'
+          }));
+          setExams(mapped);
+        }
+      })
+      .catch(() => {
+        // Fallback maintained
+      });
+  }, []);
+
   return (
     <GlassCard className="p-4 sm:p-5" glow="none">
       <div className="flex items-center justify-between mb-4">
@@ -53,12 +76,12 @@ export const SchoolExamsList: React.FC = () => {
           </div>
         </div>
         <span className="text-xs font-mono font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-xl border border-indigo-200">
-          {UPCOMING_EXAMS.length} zaplanowane
+          {exams.length} zaplanowane
         </span>
       </div>
 
       <div className="space-y-3">
-        {UPCOMING_EXAMS.map((exam) => (
+        {exams.map((exam) => (
           <div
             key={exam.id}
             className="p-3.5 rounded-2xl bg-white/70 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"

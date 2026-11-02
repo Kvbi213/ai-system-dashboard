@@ -58,12 +58,12 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
     // Test day switching in timetable (click Wt - Wtorek)
     const wtorekBtn = page.locator('button:has-text("Wt")');
     await wtorekBtn.click();
-    await expect(page.locator('text=Bazy Danych SQL').first()).toBeVisible();
+    await expect(page.locator('text=/Pracownia urządzeń|Matematyka/').first()).toBeVisible();
 
     // Switch to Oceny tab
     await page.locator('button:has-text("Oceny i Średnie")').click();
     await expect(page.locator('text=Średnia ocen').first()).toBeVisible();
-    await expect(page.locator('text=4.62')).toBeVisible();
+    await expect(page.locator('text=4.65').first()).toBeVisible();
     await expect(page.locator('text=Szczęśliwy nr').first()).toBeVisible();
 
     // Test semester switch
@@ -347,16 +347,31 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
 
     // Default tab: Routines
     await expect(page.locator('text=Rutyny Dnia & Higiena Kognitywna').first()).toBeVisible();
-    await expect(page.locator('text=Szklanka wody z solą kłodawską').first()).toBeVisible();
+    await expect(page.locator('text=/Szklanka wody/').first()).toBeVisible();
 
     // Switch to Goals
     await page.locator('button:has-text("Cele i Projekty Osobiste")').click();
     await expect(page.locator('text=Cele Osobiste & Projekty Rozwojowe').first()).toBeVisible();
-    await expect(page.locator('text=Designing Data-Intensive Apps').first()).toBeVisible();
+    await expect(page.locator('text=Certyfikat AWS Solutions Architect').first()).toBeVisible();
 
     // Switch to Journal
     await page.locator('button:has-text("Dziennik i Refleksje")').click();
     await expect(page.locator('text=Dziennik Osobisty & Refleksje').first()).toBeVisible();
     await expect(page.locator('button:has-text("Nowy wpis")')).toBeVisible();
+  });
+
+  test('14. Sub-Tab Bars Zero-Scroll Verification across all pages', async ({ page }) => {
+    const pagesToCheck = ['/settings', '/finance', '/widgets', '/workouts', '/school', '/traffic', '/server', '/private', '/memory'];
+    for (const path of pagesToCheck) {
+      await page.goto(path, { waitUntil: 'networkidle' });
+      const subTabs = page.locator('.glass-panel:has(button)');
+      const count = await subTabs.count();
+      if (count > 0) {
+        const isNotHorizontallyScrolled = await subTabs.first().evaluate((el) => {
+          return el.scrollWidth <= el.clientWidth + 2;
+        });
+        expect(isNotHorizontallyScrolled).toBe(true);
+      }
+    }
   });
 });

@@ -1,41 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DaySelectorBar } from './components/DaySelectorBar';
 import { LessonCard, LessonItem } from './components/LessonCard';
 import { Calendar, RefreshCw } from 'lucide-react';
+import { schoolApi } from '../../api/client';
 
-const MOCK_TIMETABLE: Record<number, LessonItem[]> = {
+const FALLBACK_LESSONS: Record<number, LessonItem[]> = {
   1: [
-    { id: '1', order: 1, timeRange: '08:00 - 08:45', subject: 'Matematyka', teacher: 'mgr A. Nowak', classroom: 'Sala 105' },
-    { id: '2', order: 2, timeRange: '08:55 - 09:40', subject: 'Język Polski', teacher: 'mgr B. Kowalska', classroom: 'Sala 210' },
-    { id: '3', order: 3, timeRange: '09:50 - 10:35', subject: 'Systemy Operacyjne', teacher: 'inż. K. Wiśniewski', classroom: 'Pracownia 204' },
-    { id: '4', order: 4, timeRange: '10:45 - 11:30', subject: 'Projektowanie Oprogramowania', teacher: 'inż. K. Wiśniewski', classroom: 'Pracownia 204' },
-    { id: '5', order: 5, timeRange: '11:40 - 12:25', subject: 'Język Angielski Zawodowy', teacher: 'mgr E. Lis', classroom: 'Sala 102', isSubstitution: true, substitutionNote: 'Zastępstwo za mgr Zielińską' },
-    { id: '6', order: 6, timeRange: '12:45 - 13:30', subject: 'Wychowanie Fizyczne', teacher: 'mgr T. Lewandowski', classroom: 'Hala Sportowa' }
-  ],
-  2: [
-    { id: '7', order: 1, timeRange: '08:00 - 08:45', subject: 'Bazy Danych SQL', teacher: 'inż. M. Kamiński', classroom: 'Pracownia 202', hasExam: true },
-    { id: '8', order: 2, timeRange: '08:55 - 09:40', subject: 'Bazy Danych SQL', teacher: 'inż. M. Kamiński', classroom: 'Pracownia 202' },
-    { id: '9', order: 3, timeRange: '09:50 - 10:35', subject: 'Fizyka', teacher: 'dr J. Dąbrowski', classroom: 'Sala 301' },
-    { id: '10', order: 4, timeRange: '10:45 - 11:30', subject: 'Historia i Teraźniejszość', teacher: 'mgr O. Wójcik', classroom: 'Sala 112' }
-  ],
-  3: [
-    { id: '11', order: 1, timeRange: '08:55 - 09:40', subject: 'Informatyka Stosowana', teacher: 'inż. K. Wiśniewski', classroom: 'Pracownia 204' },
-    { id: '12', order: 2, timeRange: '09:50 - 10:35', subject: 'Matematyka Dyskretna', teacher: 'mgr A. Nowak', classroom: 'Sala 105' }
-  ],
-  4: [
-    { id: '13', order: 1, timeRange: '08:00 - 08:45', subject: 'Sieci Komputerowe Cisco', teacher: 'mgr inż. R. Pawlak', classroom: 'Pracownia 208' },
-    { id: '14', order: 2, timeRange: '08:55 - 09:40', subject: 'Sieci Komputerowe Cisco', teacher: 'mgr inż. R. Pawlak', classroom: 'Pracownia 208' },
-    { id: '15', order: 3, timeRange: '09:50 - 10:35', subject: 'Język Niemiecki', teacher: 'mgr U. Schmidt', classroom: 'Sala 104' }
-  ],
-  5: [
-    { id: '16', order: 1, timeRange: '08:00 - 08:45', subject: 'Pracownia Aplikacji Webowych', teacher: 'inż. K. Wiśniewski', classroom: 'Pracownia 204' },
-    { id: '17', order: 2, timeRange: '08:55 - 09:40', subject: 'Pracownia Aplikacji Webowych', teacher: 'inż. K. Wiśniewski', classroom: 'Pracownia 204' }
+    { id: '1', order: 1, timeRange: '08:50 - 09:35', subject: 'Informatyka', teacher: 'Becker Adam (2 TI gr.2)', classroom: 's. 04' },
+    { id: '2', order: 2, timeRange: '09:40 - 10:25', subject: 'Informatyka', teacher: 'Becker Adam (2 TI gr.2)', classroom: 's. 04' },
+    { id: '3', order: 3, timeRange: '10:40 - 11:25', subject: 'Biznes i zarządzanie', teacher: 'Sokół Paweł', classroom: 's. 0.2' },
+    { id: '4', order: 4, timeRange: '11:30 - 12:15', subject: 'Lokalne sieci komputerowe', teacher: 'Wojnarowski Przemysław', classroom: 's. 0.2' },
+    { id: '5', order: 5, timeRange: '12:20 - 13:05', subject: 'Język polski', teacher: 'Negowska Alicja', classroom: 's. 34' }
   ]
 };
 
 export const TimetablePage: React.FC = () => {
   const [selectedDay, setSelectedDay] = useState(1);
-  const lessons = MOCK_TIMETABLE[selectedDay] || [];
+  const [lessons, setLessons] = useState<LessonItem[]>(FALLBACK_LESSONS[1] || []);
+  const [loading, setLoading] = useState(false);
+
+  const loadTimetable = (day: number) => {
+    setLoading(true);
+    schoolApi.getTimetable(day)
+      .then((res) => {
+        if (res?.lessons) {
+          setLessons(res.lessons);
+        }
+      })
+      .catch(() => {
+        setLessons(FALLBACK_LESSONS[day] || []);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    loadTimetable(selectedDay);
+  }, [selectedDay]);
 
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
@@ -50,10 +52,12 @@ export const TimetablePage: React.FC = () => {
           <span className="font-mono text-slate-400">:: Harmonogram Główny</span>
         </div>
         <button
+          onClick={() => loadTimetable(selectedDay)}
+          disabled={loading}
           className="flex items-center gap-1 text-xs text-sky-700 hover:text-sky-800 font-semibold transition"
           title="Odśwież plan lekcji"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           <span className="hidden sm:inline">Odśwież</span>
         </button>
       </div>

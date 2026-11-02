@@ -14,7 +14,9 @@ financeRouter.get('/overview', (req: AuthenticatedRequest, res: Response) => {
     .filter((tx: TransactionItem) => tx.type === 'EXPENSE')
     .reduce((sum: number, tx: TransactionItem) => sum + tx.amount, 0);
 
-  const monthlyBurn = subscriptions.reduce((sum: number, sub: SubscriptionItem) => sum + sub.costPln, 0);
+  const monthlyBurn = subscriptions
+    .filter((sub: SubscriptionItem) => sub.status === 'active')
+    .reduce((sum: number, sub: SubscriptionItem) => sum + sub.costPln, 0);
 
   // 50/30/20 breakdown
   const needsSpent = transactions
@@ -73,10 +75,81 @@ financeRouter.post('/transactions', (req: AuthenticatedRequest, res: Response) =
   res.status(201).json({ transaction });
 });
 
+// Subscriptions Endpoints
 financeRouter.get('/subscriptions', (_req: AuthenticatedRequest, res: Response) => {
   res.json({ subscriptions: dbStore.getSubscriptions() });
 });
 
+financeRouter.post('/subscriptions', (req: AuthenticatedRequest, res: Response) => {
+  const { name, category, costPln, renewalDay } = req.body;
+  if (!name || isNaN(parseFloat(costPln))) {
+    res.status(400).json({ error: 'INVALID_SUBSCRIPTION', message: 'Nazwa oraz koszt są wymagane.' });
+    return;
+  }
+  const subscription = dbStore.addSubscription({
+    name: name.trim(),
+    category: category || 'Subskrypcje',
+    costPln: Math.abs(parseFloat(costPln)),
+    renewalDay: parseInt(renewalDay, 10) || 1,
+    status: 'active'
+  });
+  res.status(201).json({ subscription });
+});
+
+financeRouter.patch('/subscriptions/:id/toggle', (req: AuthenticatedRequest, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : String(req.params.id);
+  const updated = dbStore.toggleSubscription(id);
+  if (!updated) {
+    res.status(404).json({ error: 'NOT_FOUND', message: 'Subskrypcja nie została odnaleziona.' });
+    return;
+  }
+  res.json({ subscription: updated });
+});
+
+financeRouter.delete('/subscriptions/:id', (req: AuthenticatedRequest, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : String(req.params.id);
+  const success = dbStore.deleteSubscription(id);
+  res.json({ success });
+});
+
+// Goals Endpoints
 financeRouter.get('/goals', (_req: AuthenticatedRequest, res: Response) => {
   res.json({ goals: dbStore.getSavingsGoals() });
+});
+
+financeRouter.post('/goals', (req: AuthenticatedRequest, res: Response) => {
+  const { name, currentPln, targetPln, deadline } = req.body;
+  if (!name || isNaN(parseFloat(targetPln))) {
+    res.status(400).json({ error: 'INVALID_GOAL', message: 'Nazwa oraz cel finansowy są wymagane.' });
+    return;
+  }
+  const goal = dbStore.addSavingsGoal({
+    name: name.trim(),
+    currentPln: parseFloat(currentPln) || 0,
+    targetPln: Math.abs(parseFloat(targetPln)),
+    deadline: deadline || 'Koniec roku'
+  });
+  res.status(201).json({ goal });
+});
+
+financeRouter.post('/goals/:id/deposit', (req: AuthenticatedRequest, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : String(req.params.id);
+  const { amount } = req.body;
+  const parsedAmount = parseFloat(amount);
+  if (isNaN(parsedAmount) || parsedAmount <= 0) {
+    res.status(400).json({ error: 'INVALID_DEPOSIT', message: 'Niepoprawna kwota wpłaty.' });
+    return;
+  }
+  const updated = dbStore.depositSavingsGoal(id, parsedAmount);
+  if (!updated) {
+    res.status(404).json({ error: 'NOT_FOUND', message: 'Cel nie został odnaleziony.' });
+    return;
+  }
+  res.json({ goal: updated });
+});
+
+financeRouter.delete('/goals/:id', (req: AuthenticatedRequest, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : String(req.params.id);
+  const success = dbStore.deleteSavingsGoal(id);
+  res.json({ success });
 });

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { Target, Plus, Trash2, ArrowUpCircle } from 'lucide-react';
+import { privateApi } from '../../../api/client';
 
-interface PersonalGoal {
+export interface PersonalGoal {
   id: string;
   title: string;
   category: string;
@@ -10,8 +11,6 @@ interface PersonalGoal {
   target: number;
   unit: string;
 }
-
-const STORAGE_KEY = 'omnidash_private_goals';
 
 const DEFAULT_GOALS: PersonalGoal[] = [
   { id: '1', title: 'Książka: Designing Data-Intensive Apps', category: 'Dev', current: 240, target: 600, unit: 'stron' },
@@ -21,15 +20,7 @@ const DEFAULT_GOALS: PersonalGoal[] = [
 ];
 
 export const PersonalGoalsCard: React.FC = () => {
-  const [goals, setGoals] = useState<PersonalGoal[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : DEFAULT_GOALS;
-    } catch {
-      return DEFAULT_GOALS;
-    }
-  });
-
+  const [goals, setGoals] = useState<PersonalGoal[]>(DEFAULT_GOALS);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Rozwój');
   const [target, setTarget] = useState('100');
@@ -37,33 +28,86 @@ export const PersonalGoalsCard: React.FC = () => {
   const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(goals));
-  }, [goals]);
+    privateApi.getGoals()
+      .then((res) => {
+        if (res?.goals && res.goals.length > 0) {
+          const mapped: PersonalGoal[] = res.goals.map((g: any) => ({
+            id: g.id,
+            title: g.title,
+            category: g.category || 'Rozwój',
+            current: g.current || 0,
+            target: g.target || 100,
+            unit: g.unit || '%'
+          }));
+          setGoals(mapped);
+        }
+      })
+      .catch(() => {
+        // Fallback maintained
+      });
+  }, []);
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
-    const item: PersonalGoal = {
-      id: Date.now().toString(),
-      title: title.trim(),
-      category,
-      current: 0,
-      target: parseFloat(target) || 100,
-      unit
-    };
-    setGoals([...goals, item]);
+    const titleVal = title.trim();
+    const targetVal = parseFloat(target) || 100;
+
+    try {
+      const res = await privateApi.addGoal({
+        title: titleVal,
+        category,
+        current: 0,
+        target: targetVal,
+        unit
+      });
+      if (res?.goal) {
+        setGoals((prev) => [
+          ...prev,
+          {
+            id: res.goal.id,
+            title: res.goal.title,
+            category: res.goal.category || category,
+            current: res.goal.current || 0,
+            target: res.goal.target || targetVal,
+            unit: res.goal.unit || unit
+          }
+        ]);
+      }
+    } catch {
+      const item: PersonalGoal = {
+        id: Date.now().toString(),
+        title: titleVal,
+        category,
+        current: 0,
+        target: targetVal,
+        unit
+      };
+      setGoals((prev) => [...prev, item]);
+    }
+
     setTitle('');
     setIsAdding(false);
   };
 
-  const handleIncrement = (id: string) => {
+  const handleIncrement = async (id: string) => {
     setGoals((prev) =>
       prev.map((g) => (g.id === id ? { ...g, current: Math.min(g.target, g.current + 1) } : g))
     );
+    try {
+      await privateApi.updateGoalProgress(id, 1);
+    } catch {
+      // Local state already updated
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setGoals(goals.filter((g) => g.id !== id));
+  const handleDelete = async (id: string) => {
+    setGoals((prev) => prev.filter((g) => g.id !== id));
+    try {
+      await privateApi.deleteGoal(id);
+    } catch {
+      // Local state already updated
+    }
   };
 
   return (

@@ -1,26 +1,50 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { AlertTriangle, Thermometer, CloudRain, CheckCircle2 } from 'lucide-react';
+import { trafficApi } from '../../../api/client';
+
+export interface RouteAlertItem {
+  name: string;
+  distanceKm: number;
+  estimatedTimeMin: number;
+  condition: string;
+  roadTemp: number;
+  hasAlert: boolean;
+}
+
+const FALLBACK_ROUTES: RouteAlertItem[] = [
+  {
+    name: 'Trasa Miejska Codzienna (Odcinek Północny DK)',
+    distanceKm: 8.5,
+    estimatedTimeMin: 14,
+    condition: 'Płynny ruch bez zatorów',
+    roadTemp: 13,
+    hasAlert: false
+  },
+  {
+    name: 'Korytarz Tranzytowy Regionalny (Autostrada A1)',
+    distanceKm: 58.0,
+    estimatedTimeMin: 46,
+    condition: 'Zwężenie na pasie włączeniowym (roboty drogowe)',
+    roadTemp: 12,
+    hasAlert: true
+  }
+];
 
 export const RouteAlertsCard: React.FC = () => {
-  const routes = [
-    {
-      name: 'Trasa Miejska Codzienna (Odcinek Północny DK)',
-      distanceKm: 8.5,
-      estimatedTimeMin: 14,
-      condition: 'Płynny ruch bez zatorów',
-      roadTemp: 13,
-      hasAlert: false
-    },
-    {
-      name: 'Korytarz Tranzytowy Regionalny (Autostrada A1)',
-      distanceKm: 58.0,
-      estimatedTimeMin: 46,
-      condition: 'Zwężenie na pasie włączeniowym (roboty drogowe)',
-      roadTemp: 12,
-      hasAlert: true
-    }
-  ];
+  const [routes, setRoutes] = useState<RouteAlertItem[]>(FALLBACK_ROUTES);
+
+  useEffect(() => {
+    trafficApi.getAlerts()
+      .then((res) => {
+        if (res?.routes && res.routes.length > 0) {
+          setRoutes(res.routes);
+        }
+      })
+      .catch(() => {
+        // Fallback maintained
+      });
+  }, []);
 
   return (
     <GlassCard className="p-4 sm:p-5" glow="sky">

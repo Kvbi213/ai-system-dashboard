@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { Sun, Moon, CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react';
+import { privateApi } from '../../../api/client';
 
-interface RoutineItem {
+export interface RoutineItem {
   id: string;
   title: string;
   period: 'morning' | 'evening';
   completed: boolean;
 }
-
-const STORAGE_KEY = 'omnidash_private_routines';
 
 const DEFAULT_ROUTINES: RoutineItem[] = [
   { id: '1', title: 'Szklanka wody z solą kłodawską i cytryną', period: 'morning', completed: true },
@@ -21,45 +20,82 @@ const DEFAULT_ROUTINES: RoutineItem[] = [
 ];
 
 export const PrivateRoutinesCard: React.FC = () => {
-  const [routines, setRoutines] = useState<RoutineItem[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : DEFAULT_ROUTINES;
-    } catch {
-      return DEFAULT_ROUTINES;
-    }
-  });
-
+  const [routines, setRoutines] = useState<RoutineItem[]>(DEFAULT_ROUTINES);
   const [newTitle, setNewTitle] = useState('');
   const [newPeriod, setNewPeriod] = useState<'morning' | 'evening'>('morning');
   const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(routines));
-  }, [routines]);
+    privateApi.getRoutines()
+      .then((res) => {
+        if (res?.routines && res.routines.length > 0) {
+          const mapped: RoutineItem[] = res.routines.map((r: any) => ({
+            id: r.id,
+            title: r.title,
+            period: r.timeOfDay || r.period || 'morning',
+            completed: !!r.completed
+          }));
+          setRoutines(mapped);
+        }
+      })
+      .catch(() => {
+        // Fallback maintained
+      });
+  }, []);
 
-  const handleToggle = (id: string) => {
+  const handleToggle = async (id: string) => {
     setRoutines((prev) =>
       prev.map((r) => (r.id === id ? { ...r, completed: !r.completed } : r))
     );
+    try {
+      await privateApi.toggleRoutine(id);
+    } catch {
+      // Local state already updated
+    }
   };
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
-    const newItem: RoutineItem = {
-      id: Date.now().toString(),
-      title: newTitle.trim(),
-      period: newPeriod,
-      completed: false
-    };
-    setRoutines([...routines, newItem]);
+    const titleVal = newTitle.trim();
+
+    try {
+      const res = await privateApi.addRoutine({
+        title: titleVal,
+        timeOfDay: newPeriod
+      });
+      if (res?.routine) {
+        setRoutines((prev) => [
+          ...prev,
+          {
+            id: res.routine.id,
+            title: res.routine.title,
+            period: res.routine.timeOfDay || newPeriod,
+            completed: false
+          }
+        ]);
+      }
+    } catch {
+      const fallbackItem: RoutineItem = {
+        id: Date.now().toString(),
+        title: titleVal,
+        period: newPeriod,
+        completed: false
+      };
+      setRoutines((prev) => [...prev, fallbackItem]);
+    }
+
     setNewTitle('');
     setIsAdding(false);
   };
 
-  const handleDelete = (id: string) => {
-    setRoutines(routines.filter((r) => r.id !== id));
+  const handleDelete = async (id: string) => {
+    setRoutines((prev) => prev.filter((r) => r.id !== id));
+    try {
+      await privateApi.deleteRoutine(id);
+    } catch {
+      // Local state already updated
+    }
   };
 
   const morningItems = routines.filter((r) => r.period === 'morning');

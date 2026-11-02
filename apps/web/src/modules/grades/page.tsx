@@ -1,63 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GradeStatsSummary } from './components/GradeStatsSummary';
 import { SubjectGradesGrid, SubjectGradeItem } from './components/SubjectGradesGrid';
 import { GraduationCap } from 'lucide-react';
+import { schoolApi } from '../../api/client';
 
-const MOCK_SUBJECTS: SubjectGradeItem[] = [
+const FALLBACK_SUBJECTS: SubjectGradeItem[] = [
   {
     id: '1',
-    name: 'Projektowanie Oprogramowania',
-    average: 4.80,
-    grades: [
-      { id: 'g1', value: 5, weight: 3, category: 'Projekt końcowy architektury' },
-      { id: 'g2', value: 5, weight: 2, category: 'Wzorce projektowe OOP' },
-      { id: 'g3', value: 4, weight: 1, category: 'Aktywność' }
-    ]
+    name: 'Informatyka',
+    average: 6.00,
+    grades: [{ id: 'g1', value: 6, weight: 3, category: 'Sprawdzian Praktyczny Linux' }]
   },
   {
     id: '2',
-    name: 'Systemy Operacyjne i Sieci',
-    average: 4.67,
-    grades: [
-      { id: 'g4', value: 5, weight: 3, category: 'Sprawdzian: Skrypty Bash i uprawnienia' },
-      { id: 'g5', value: 4, weight: 2, category: 'Konfiguracja iptables' },
-      { id: 'g6', value: 5, weight: 1, category: 'Ćwiczenia laboratoryjne' }
-    ]
+    name: 'Systemy operacyjne',
+    average: 5.00,
+    grades: [{ id: 'g2', value: 5, weight: 3, category: 'Zarządzanie procesami i Docker' }]
   },
   {
     id: '3',
-    name: 'Bazy Danych SQL',
-    average: 4.75,
-    grades: [
-      { id: 'g7', value: 5, weight: 3, category: 'Złożone złączenia JOIN i indeksy B-Tree' },
-      { id: 'g8', value: 4, weight: 2, category: 'Triggery i procedury' },
-      { id: 'g9', value: 5, weight: 2, category: 'Transakcje ACID' }
-    ]
+    name: 'Lokalne sieci komputerowe',
+    average: 5.00,
+    grades: [{ id: 'g3', value: 5, weight: 3, category: 'Konfiguracja tras i VLAN' }]
   },
   {
     id: '4',
     name: 'Matematyka',
-    average: 4.50,
-    grades: [
-      { id: 'g10', value: 5, weight: 3, category: 'Geometria analityczna' },
-      { id: 'g11', value: 4, weight: 2, category: 'Rachunek prawdopodobieństwa' },
-      { id: 'g12', value: 4, weight: 2, category: 'Kartkówka' },
-      { id: 'g13', value: 5, weight: 1, category: 'Odpowiedź ustna' }
-    ]
-  },
-  {
-    id: '5',
-    name: 'Język Angielski Zawodowy',
-    average: 5.00,
-    grades: [
-      { id: 'g14', value: 5, weight: 3, category: 'Dokumentacja techniczna RFC' },
-      { id: 'g15', value: 5, weight: 2, category: 'Słownictwo Cloud & Security' }
-    ]
+    average: 4.00,
+    grades: [{ id: 'g4', value: 4, weight: 3, category: 'Wielomiany i funkcje' }]
   }
 ];
 
 export const GradesPage: React.FC = () => {
   const [semester, setSemester] = useState<1 | 2>(2);
+  const [subjects, setSubjects] = useState<SubjectGradeItem[]>(FALLBACK_SUBJECTS);
+  const [stats, setStats] = useState({ gpa: 4.32, luckyNumber: 21, threatsCount: 0, totalGrades: 16 });
+
+  useEffect(() => {
+    schoolApi.getGrades()
+      .then((res) => {
+        if (res?.grades && res.grades.length > 0) {
+          const mapped: SubjectGradeItem[] = res.grades.map((g: any) => ({
+            id: g.id,
+            name: g.subject,
+            average: g.grade,
+            grades: [{ id: g.id, value: g.grade, weight: g.weight, category: g.description }]
+          }));
+          setSubjects(mapped);
+          if (res.stats) {
+            setStats({
+              gpa: res.stats.gpa || 4.32,
+              luckyNumber: res.stats.luckyNumber || 21,
+              threatsCount: 0,
+              totalGrades: res.stats.totalGradesCount || mapped.length
+            });
+          }
+        }
+      })
+      .catch(() => {
+        // Fallback maintained
+      });
+  }, []);
 
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
@@ -89,10 +92,15 @@ export const GradesPage: React.FC = () => {
       </div>
 
       {/* Summary KPI Badges */}
-      <GradeStatsSummary />
+      <GradeStatsSummary
+        gpa={stats.gpa}
+        luckyNumber={stats.luckyNumber}
+        threatsCount={stats.threatsCount}
+        totalGrades={stats.totalGrades}
+      />
 
       {/* Subjects Grid */}
-      <SubjectGradesGrid subjects={MOCK_SUBJECTS} />
+      <SubjectGradesGrid subjects={subjects} />
     </div>
   );
 };

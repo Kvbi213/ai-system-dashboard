@@ -19,6 +19,7 @@ import { newsRouter } from './domains/news/router.js';
 import { aiRouter } from './domains/ai/router.js';
 import { osintRouter } from './domains/osint/router.js';
 import { pushbulletRouter } from './domains/pushbullet/router.js';
+import { privateRouter } from './domains/private/router.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -70,6 +71,7 @@ app.use('/api/news', newsRouter);
 app.use('/api/ai', aiRouter);
 app.use('/api/osint', osintRouter);
 app.use('/api/pushbullet', pushbulletRouter);
+app.use('/api/private', privateRouter);
 
 // Global Error Handler
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

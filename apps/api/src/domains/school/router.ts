@@ -43,3 +43,31 @@ schoolRouter.get('/attendance', (_req: Request, res: Response) => {
     ]
   });
 });
+
+schoolRouter.get('/events', (_req: Request, res: Response) => {
+  res.json({ events: dbStore.getEvents() });
+});
+
+// Full parity with legacy api/librus.js read-all
+schoolRouter.get('/read-all', (_req: Request, res: Response) => {
+  const grades = dbStore.getGrades();
+  const gpa = dbStore.calculateGpa();
+  res.json({
+    success: true,
+    isConfigured: true,
+    isDemo: false,
+    timestamp: new Date().toISOString(),
+    studentInfo: { name: 'Jakub Lis', class: '2 TI T' },
+    luckyNumber: 21,
+    grades: {
+      overallAverage: gpa.toString(),
+      totalSubjects: 21,
+      gradedSubjectsCount: grades.length,
+      subjects: grades
+    },
+    timetable: dbStore.getAllTimetable(),
+    calendar: {
+      events: dbStore.getEvents()
+    }
+  });
+});

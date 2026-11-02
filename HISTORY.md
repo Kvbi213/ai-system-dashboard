@@ -253,6 +253,41 @@ Wraz z budową projektu od zera w lokalizacji `C:\Users\Jakub Lis\Desktop\01_PRO
 
 ---
 
+### ## v4.0.0-alpha.11 — 2026-10-30 [FULL API INTEGRATION & NON-SCROLL SUB-TAB BARS]
+**Status:** WDROŻONO I ZWERYFIKOWANO (30 PLAYWRIGHT E2E, 24 VITEST API, 3 VITEST WORKER, EXIT CODE 0)  
+**Typ:** MINOR (Pełna Integracja API Backendowego, Zastąpienie Mocków Realnymi Danymi Librus/Finanse/Treningi/Prywatne, Likwidacja Scrolla we Wszystkich Paskach Podziału Tematycznego)  
+
+#### Zakres Zmian:
+- [+] **Eliminacja Poziomego Scrolla w Paskach Tematycznych (10 Modułów):**
+  - Zastąpiono `overflow-x-auto scrollbar-none` responsywnymi siatkami `grid` oraz `flex flex-wrap gap-1.5` w modułach: Ustawienia (`/settings`), Finanse (`/finance`), Widżety (`/widgets`), Treningi (`/workouts`), Szkoła (`/school`), Ruch drogowy (`/traffic`), Serwer (`/server`), Strefa prywatna (`/private`), Pamięć AI (`/memory`) oraz Pasek dni harmonogramu (`DaySelectorBar.tsx`).
+  - Gwarancja braku poziomego paska przewijania na ekranach mobilnych (Pixel 7) i stacjonarnych (zweryfikowano testem automatycznym E2E `Sub-Tab Bars Zero-Scroll Verification across all pages`).
+- [+] **Rozbudowa i Pełna Parity Bazy Danych Backendowej (`apps/api`):**
+  - Pełny tygodniowy plan lekcji Librusa (35 realnych lekcji Pon-Pt z nauczycielami, salami i przedmiotami technicznymi 2 TI).
+  - 16 realnych przedmiotów z ocenami z wersji archiwalnej (`Informatyka 6`, `Systemy operacyjne 5`, `Lokalne sieci komputerowe 5` itd. ze średnią GPA 4.65 i szczęśliwym numerkiem 21).
+  - Kalendarz wydarzeń i sprawdzianów (kartkówki, sprawdziany, nieobecności nauczycieli).
+  - Kompletny zestaw operacji CRUD: subskrypcje, cele oszczędnościowe z wpłatami, ćwiczenia treningowe z resetem, nawyki codzienne, rekordy PR, rutyny dnia, cele osobiste i wpisy w dzienniku.
+- [+] **Nowy Router Strefy Prywatnej (`/api/private`):**
+  - Obsługa rutyn porannych i wieczornych (`/routines`), celów rozwojowych (`/goals`) oraz wpisów refleksyjnych (`/journal`).
+  - Zarejestrowany w głównym punkcie wejściowym bramy `apps/api/src/index.ts`.
+- [+] **Rozbudowa Klienta API Frontendu (`apps/web/src/api/client.ts`):**
+  - W pełni typowane wywołania `schoolApi`, `financeApi`, `workoutsApi`, `privateApi`, `trafficApi`, `systemApi`.
+- [+] **Podpięcie Wszystkich Komponentów Frontendu do Realnego API:**
+  - `TimetablePage.tsx`: dynamiczne pobieranie planu dla dni 1-5 z `schoolApi.getTimetable(selectedDay)`.
+  - `GradesPage.tsx`: dynamiczne oceny i statystyki GPA z `schoolApi.getGrades()`.
+  - `AttendanceCard.tsx` i `SchoolExamsList.tsx`: live dane frekwencji i wydarzeń Librusa.
+  - `SubscriptionsManager.tsx` i `SavingsGoalCard.tsx`: live CRUD finansów przez `financeApi`.
+  - `AtticFBWTracker.tsx`, `DailyHabitStreaks.tsx`, `PersonalRecordsCard.tsx`: live treningi z automatycznym odliczaniem 90s przerwy.
+  - `TrafficCameraCard.tsx`, `SpeedCameraList.tsx`, `RouteAlertsCard.tsx`: live telemetria kamer i fotoradarów CANARD.
+  - `DockerContainersGrid.tsx` i `MikrusLxcTelemetry.tsx`: live telemetria kontenerów i serwera LXC.
+  - `PrivateRoutinesCard.tsx`, `PersonalGoalsCard.tsx`, `PrivateJournalCard.tsx`: live synchronizacja ze strefą prywatną backendu.
+- [+] **Kompletna Weryfikacja Jakościowa (One-Shot Parity):**
+  - 30 testów Playwright E2E zdanych (2 skipped platform-specific, 0 błędów).
+  - 24 testy Vitest API zdane (w tym dedykowany zestaw `parity_crud.test.ts`).
+  - 3 testy Vitest Worker zdane.
+  - Typecheck 100% OK we wszystkich pakietach (`apps/web`, `apps/api`, `apps/worker`).
+
+---
+
 ### ## v4.0.0-alpha.10 — 2026-10-30 [ZERO-SCROLL DASHBOARD, PRIVATE HUB, WORKOUTS REST TIMER, FINANCE BUDGET EDITOR & 7-TAB SETTINGS]
 **Status:** WDROŻONO I ZWERYFIKOWANO (28 PLAYWRIGHT E2E, 16 UNIT, 3 WORKER, EXIT CODE 0)  
 **Typ:** MINOR (Rekompozycja Pulpitu bez Scrolla, Hub Prywatny, Automatyczny Timer Przerwy 1:30 w FBW, Modal Budżetu 50/30/20 i 7 Zakładek Ustawień)  

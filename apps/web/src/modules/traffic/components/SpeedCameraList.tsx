@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { Badge } from '../../../components/ui/Badge';
 import { Radio, ShieldCheck, MapPin, Gauge } from 'lucide-react';
+import { trafficApi } from '../../../api/client';
 
 export interface RadarPoint {
   id: string;
@@ -13,7 +14,7 @@ export interface RadarPoint {
   active: boolean;
 }
 
-const RADARS: RadarPoint[] = [
+const FALLBACK_RADARS: RadarPoint[] = [
   { id: 'r1', road: 'DK / Obwodnica', location: 'Strefa Miejska (Aleja Główna)', type: 'stacjonarny', speedLimit: 50, deviceModel: 'Mesta Fusion RN', active: true },
   { id: 'r2', road: 'DK22 / Region', location: 'Odcinek Leśny / Trasa Regionalna', type: 'odcinkowy', speedLimit: 70, deviceModel: 'CANARD OPP v3', active: true },
   { id: 'r3', road: 'Autostrada A1', location: 'Węzeł Autostradowy Wschód', type: 'stacjonarny', speedLimit: 140, deviceModel: 'TraffiStar SR520', active: true },
@@ -21,6 +22,20 @@ const RADARS: RadarPoint[] = [
 ];
 
 export const SpeedCameraList: React.FC = () => {
+  const [radars, setRadars] = useState<RadarPoint[]>(FALLBACK_RADARS);
+
+  useEffect(() => {
+    trafficApi.getRadars()
+      .then((res) => {
+        if (res?.radars && res.radars.length > 0) {
+          setRadars(res.radars);
+        }
+      })
+      .catch(() => {
+        // Fallback maintained
+      });
+  }, []);
+
   return (
     <GlassCard className="p-4 sm:p-5" glow="none">
       <div className="flex items-center justify-between mb-4">
@@ -35,12 +50,12 @@ export const SpeedCameraList: React.FC = () => {
         </div>
 
         <span className="text-xs font-mono font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-xl border border-rose-200 shadow-sm">
-          {RADARS.length} stacje aktywne
+          {radars.length} stacje aktywne
         </span>
       </div>
 
       <div className="space-y-2.5">
-        {RADARS.map((radar) => (
+        {radars.map((radar) => (
           <div
             key={radar.id}
             className="flex items-center justify-between p-3 rounded-2xl bg-white/70 border border-slate-200/80 shadow-sm"

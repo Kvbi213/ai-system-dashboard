@@ -26,7 +26,7 @@ export const SettingsPage: React.FC = () => {
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
       {/* Settings Navigation Tabs */}
-      <div className="flex gap-1.5 p-1.5 rounded-2xl glass-panel shadow-sm overflow-x-auto scrollbar-none">
+      <div className="flex flex-wrap gap-1.5 p-1.5 rounded-2xl glass-panel shadow-sm">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (

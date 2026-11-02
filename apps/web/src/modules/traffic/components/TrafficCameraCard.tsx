@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { Badge } from '../../../components/ui/Badge';
 import { Camera, Radio } from 'lucide-react';
+import { trafficApi } from '../../../api/client';
 
 export interface CameraNode {
   id: string;
@@ -12,7 +13,7 @@ export interface CameraNode {
   lastUpdated: string;
 }
 
-const NODES: CameraNode[] = [
+const FALLBACK_NODES: CameraNode[] = [
   { id: 'c1', location: 'Węzeł Miejski Północ (Kamera 01)', road: 'DK / Obwodnica', status: 'online', speedLimitKmh: 50, lastUpdated: '1 min temu' },
   { id: 'c2', location: 'Węzeł Wschodni (Wjazd A1)', road: 'Autostrada A1 / DW', status: 'online', speedLimitKmh: 90, lastUpdated: '2 min temu' },
   { id: 'c3', location: 'Węzeł Tranzytowy Południe', road: 'DK / A1', status: 'warning', speedLimitKmh: 70, lastUpdated: 'Prace drogowe' },
@@ -20,9 +21,23 @@ const NODES: CameraNode[] = [
 ];
 
 export const TrafficCameraCard: React.FC = () => {
+  const [nodes, setNodes] = useState<CameraNode[]>(FALLBACK_NODES);
+
+  useEffect(() => {
+    trafficApi.getCameras()
+      .then((res) => {
+        if (res?.cameras && res.cameras.length > 0) {
+          setNodes(res.cameras);
+        }
+      })
+      .catch(() => {
+        // Fallback maintained
+      });
+  }, []);
+
   return (
     <div className="space-y-3">
-      {NODES.map((node) => (
+      {nodes.map((node) => (
         <GlassCard key={node.id} className="p-4" glow="none">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { BookOpen, Plus, Trash2, Calendar } from 'lucide-react';
+import { privateApi } from '../../../api/client';
 
-interface JournalEntry {
+export interface JournalEntry {
   id: string;
   date: string;
   title: string;
   content: string;
   mood: string;
 }
-
-const STORAGE_KEY = 'omnidash_private_journal';
 
 const DEFAULT_ENTRIES: JournalEntry[] = [
   {
@@ -30,42 +29,78 @@ const DEFAULT_ENTRIES: JournalEntry[] = [
 ];
 
 export const PrivateJournalCard: React.FC = () => {
-  const [entries, setEntries] = useState<JournalEntry[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : DEFAULT_ENTRIES;
-    } catch {
-      return DEFAULT_ENTRIES;
-    }
-  });
-
+  const [entries, setEntries] = useState<JournalEntry[]>(DEFAULT_ENTRIES);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [mood, setMood] = useState('Skupienie');
   const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-  }, [entries]);
+    privateApi.getJournal()
+      .then((res) => {
+        if (res?.entries && res.entries.length > 0) {
+          const mapped: JournalEntry[] = res.entries.map((j: any) => ({
+            id: j.id,
+            date: j.date || 'Dzisiaj',
+            title: j.title,
+            content: j.content,
+            mood: j.category || 'Refleksja'
+          }));
+          setEntries(mapped);
+        }
+      })
+      .catch(() => {
+        // Fallback maintained
+      });
+  }, []);
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) return;
-    const newEntry: JournalEntry = {
-      id: Date.now().toString(),
-      date: new Date().toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric' }),
-      title: title.trim(),
-      content: content.trim(),
-      mood
-    };
-    setEntries([newEntry, ...entries]);
+    const titleVal = title.trim();
+    const contentVal = content.trim();
+
+    try {
+      const res = await privateApi.addJournalEntry({
+        title: titleVal,
+        content: contentVal,
+        category: mood
+      });
+      if (res?.entry) {
+        setEntries((prev) => [
+          {
+            id: res.entry.id,
+            date: res.entry.date || 'Dzisiaj',
+            title: res.entry.title,
+            content: res.entry.content,
+            mood: res.entry.category || mood
+          },
+          ...prev
+        ]);
+      }
+    } catch {
+      const newEntry: JournalEntry = {
+        id: Date.now().toString(),
+        date: new Date().toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric' }),
+        title: titleVal,
+        content: contentVal,
+        mood
+      };
+      setEntries([newEntry, ...entries]);
+    }
+
     setTitle('');
     setContent('');
     setIsAdding(false);
   };
 
-  const handleDelete = (id: string) => {
-    setEntries(entries.filter((e) => e.id !== id));
+  const handleDelete = async (id: string) => {
+    setEntries((prev) => prev.filter((e) => e.id !== id));
+    try {
+      await privateApi.deleteJournalEntry(id);
+    } catch {
+      // Local state already updated
+    }
   };
 
   return (

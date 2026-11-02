@@ -1,8 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { Server, Activity, Network, HardDrive, Cpu } from 'lucide-react';
+import { systemApi } from '../../../api/client';
 
 export const MikrusLxcTelemetry: React.FC = () => {
+  const [telemetry, setTelemetry] = useState({
+    cpuPercent: 18,
+    loadAvg: '0.22',
+    memUsedMb: 382,
+    memTotalMb: 1024,
+    diskUsedGb: 4.8,
+    diskTotalGb: 15.0,
+    uptime: 'UPTIME 48D'
+  });
+
+  useEffect(() => {
+    systemApi.getStatus()
+      .then((res) => {
+        if (res?.system) {
+          setTelemetry({
+            cpuPercent: res.system.cpuUsagePercent ?? 18,
+            loadAvg: res.system.loadAverage ?? '0.22',
+            memUsedMb: res.system.memUsedMb ?? 382,
+            memTotalMb: res.system.memTotalMb ?? 1024,
+            diskUsedGb: res.system.diskUsedGb ?? 4.8,
+            diskTotalGb: res.system.diskTotalGb ?? 15.0,
+            uptime: res.system.uptime ? `UPTIME ${res.system.uptime}` : 'UPTIME 48D'
+          });
+        }
+      })
+      .catch(() => {
+        // Fallback maintained
+      });
+  }, []);
+
+  const ramPercent = Math.round((telemetry.memUsedMb / telemetry.memTotalMb) * 100);
+  const diskPercent = Math.round((telemetry.diskUsedGb / telemetry.diskTotalGb) * 100);
+
   return (
     <GlassCard className="p-4 sm:p-5" glow="sky">
       <div className="flex items-center justify-between mb-4">
@@ -18,7 +52,7 @@ export const MikrusLxcTelemetry: React.FC = () => {
 
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-700 font-mono shadow-sm">
           <Activity className="w-3.5 h-3.5 animate-pulse" />
-          <span>UPTIME 48D</span>
+          <span>{telemetry.uptime}</span>
         </div>
       </div>
 
@@ -28,10 +62,10 @@ export const MikrusLxcTelemetry: React.FC = () => {
             <span className="flex items-center gap-1 text-slate-600 font-semibold">
               <Cpu className="w-3.5 h-3.5 text-sky-600" /> Rdzeń CPU
             </span>
-            <span className="font-mono font-bold text-slate-900">18% (Load: 0.22)</span>
+            <span className="font-mono font-bold text-slate-900">{telemetry.cpuPercent}% (Load: {telemetry.loadAvg})</span>
           </div>
           <div className="w-full bg-slate-200/80 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-sky-500 h-full rounded-full" style={{ width: '18%' }} />
+            <div className="bg-sky-500 h-full rounded-full" style={{ width: `${telemetry.cpuPercent}%` }} />
           </div>
         </div>
 
@@ -40,10 +74,10 @@ export const MikrusLxcTelemetry: React.FC = () => {
             <span className="flex items-center gap-1 text-slate-600 font-semibold">
               <HardDrive className="w-3.5 h-3.5 text-indigo-600" /> Pamięć RAM
             </span>
-            <span className="font-mono font-bold text-slate-900">382 / 1024 MB</span>
+            <span className="font-mono font-bold text-slate-900">{telemetry.memUsedMb} / {telemetry.memTotalMb} MB</span>
           </div>
           <div className="w-full bg-slate-200/80 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-indigo-500 h-full rounded-full" style={{ width: '37%' }} />
+            <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${ramPercent}%` }} />
           </div>
         </div>
 
@@ -52,10 +86,10 @@ export const MikrusLxcTelemetry: React.FC = () => {
             <span className="flex items-center gap-1 text-slate-600 font-semibold">
               <HardDrive className="w-3.5 h-3.5 text-emerald-600" /> Dysk NVMe
             </span>
-            <span className="font-mono font-bold text-slate-900">4.8 / 15.0 GB</span>
+            <span className="font-mono font-bold text-slate-900">{telemetry.diskUsedGb} / {telemetry.diskTotalGb} GB</span>
           </div>
           <div className="w-full bg-slate-200/80 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-emerald-500 h-full rounded-full" style={{ width: '32%' }} />
+            <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${diskPercent}%` }} />
           </div>
         </div>
       </div>
