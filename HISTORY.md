@@ -361,3 +361,38 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - Dodano test 11: *Widgets & Modular Tools Hub (`/widgets`)*.
   - Dodano test 12: *AI Cognitive Memory & Directives Hub (`/memory`)*.
   - Wynik: 26 passed, 2 skipped (dedykowane per platforma Desktop/Mobile), 0 failed (exit code 0).
+
+---
+
+### ## v4.0.0-rc.1 — 2026-11-03 [SYSTEM UNIFICATION, PUSHBULLET DISPATCHER, LAB-ZERO RECALL, FINOPS & SSRF SHIELD]
+**Status:** WDROŻONO I ZWERYFIKOWANO (46 TESTÓW PLAYWRIGHT E2E, 29 TESTÓW UNIT API, 6 TESTÓW WORKER, EXIT CODE 0)  
+**Typ:** MAJOR / RC (Całościowa Unifikacja Systemowa, 6 Filarów Architektonicznych, Deterministyczny Dispatcher Pushbullet, Pamięć Lab-Zero, FinOps i Tarcza SSRF)
+
+#### Zakres Wdrożenia i Zmian:
+- [+] **Unifikacja Ergonomii UI/UX (Frontend):**
+  - `SubTabBar.tsx`: Wdrożenie współdzielonego, płynnego paska zakładek (liquid glass pill) z haptyką `navigator.vibrate(5)` w 9 modułach.
+  - `PageHeader.tsx`: Standaryzacja nagłówków executive ze szklaną kapsułą ikony, telemetrią, przyciskiem odświeżania `RefreshCw` i badge'em.
+  - `Badge.tsx`: Rozszerzenie o pełne wsparcie Dark Mode dla wszystkich wariantów kolorystycznych i alias `sky`.
+  - `Toast.tsx`: Reaktywny system szklanych mikro-powiadomień (`ToastProvider`, `useToast`, `<ToastContainer />`).
+  - `DailyTimelineWidget.tsx`: Usprawnienie dobowej osi czasu o przycisk `Skocz do teraz`, dynamiczny filtr `Od teraz` oraz precyzyjne auto-scrollowanie kontenera.
+  - Pełna spójność siatki laptopa (równe wysokości kart `h-full flex flex-col justify-between`).
+- [+] **Filar II — Deterministyczny Dispatcher Pushbullet (`apps/worker/src/pushbullet/dispatcher.ts`):**
+  - Kolejka priorytetyzowana (`CRITICAL` > `NORMAL` > `LOW`), token-bucket rate-limiter (max 12 pushy/min) oraz exponential backoff przy statusie HTTP 429.
+  - Podłączenie dispatchera do `SystemScheduler` i harmonogramowanie okna snu (20:00).
+- [+] **Filar III — Lokalna Pamięć Semantyczna Lab-Zero (`apps/api/src/domains/memory/`):**
+  - Gęsty wektorowy model cech n-gramowych (128 wymiarów) działający w 100% offline z rankingiem podobieństwa cosinusowego w czasie `<30ms`.
+  - Endpointy `/api/memory/recall`, `/facts`, `/status` oraz interaktywny widżet w `/settings`.
+- [+] **Filar IV — Obserwowalność Kosztowa & FinOps (`apps/api/src/domains/system/finopsCollector.ts`):**
+  - Telemetria zużycia tokenów LLM (Groq/OpenAI) oraz znaków syntezy mowy TTS (Fish Audio) z miesięcznym limitem 50 PLN.
+  - Detektor przerw w danych (*Coverage Gaps*) monitorujący cykle odpytywania Librusa, fotoradarów CANARD i serwera Mikr.us.
+- [+] **Filar V — Punkty Kontrolne Człowieka & Scorecard (`HumanCheckpointModal.tsx`):**
+  - Modal autoryzacji operacji krytycznych (budżet, OSINT, kernel) z 3-sekundowym countdownem bezpieczeństwa, audytem parametrów i haptyką.
+- [+] **Filar VI — Analityka Predykcyjna 50/30/20 & Write-Back (`BudgetPredictionCard.tsx`):**
+  - Model prognozowania wydatków z uwzględnieniem burn-rate i dni pozostałych w miesiącu oraz bezpośredni zapis zwrotny limitu kopert.
+- [+] **Filar VII — Tarcza Cyberbezpieczeństwa & Oś Incydentów (`ThreatMonitoringTimeline.tsx`):**
+  - Wizualna oś czasu wykrytych anomalii w czasie rzeczywistym i aktywna blokada SSRF dla pętli 127.0.0.1, RFC1918 i metadanych chmury.
+- [+] **Weryfikacja Empiryczna i Testy Regresyjne:**
+  - Playwright E2E: 38 passed w suicie głównej + 8 passed w teście dedykowanym (razem 46 passed na Desktop i Mobile).
+  - API Gateway Unit: 29 passed (exit code 0).
+  - Worker Unit: 6 passed (exit code 0).
+  - Web Bundle: `pnpm build` sukces (`built in 27s`).

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, type HTMLMotionProps } from 'framer-motion';
 
-export type GlassGlow = 'sky' | 'emerald' | 'amber' | 'indigo' | 'none';
+export type GlassGlow = 'sky' | 'emerald' | 'amber' | 'indigo' | 'rose' | 'purple' | 'none';
 
 export interface GlassCardProps extends HTMLMotionProps<'div'> {
   children: React.ReactNode;
@@ -15,6 +15,8 @@ const glowStyles: Record<GlassGlow, string> = {
   emerald: 'shadow-xl shadow-emerald-500/10 border-emerald-300/60 ring-1 ring-emerald-400/20',
   amber: 'shadow-xl shadow-amber-500/10 border-amber-300/60 ring-1 ring-amber-400/20',
   indigo: 'shadow-xl shadow-indigo-500/10 border-indigo-300/60 ring-1 ring-indigo-400/20',
+  rose: 'shadow-xl shadow-rose-500/10 border-rose-300/60 ring-1 ring-rose-400/20',
+  purple: 'shadow-xl shadow-purple-500/10 border-purple-300/60 ring-1 ring-purple-400/20',
   none: ''
 };
 

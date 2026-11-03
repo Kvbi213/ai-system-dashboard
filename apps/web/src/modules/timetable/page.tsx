@@ -10,7 +10,7 @@ const FALLBACK_LESSONS: Record<number, LessonItem[]> = {
     { id: 'mon_3', order: 3, timeRange: '09:40 - 10:25', subject: 'Informatyka', teacher: 'Becker Adam (2 TI gr.2)', classroom: 's. 04' },
     { id: 'mon_4', order: 4, timeRange: '10:40 - 11:25', subject: 'Biznes i zarządzanie', teacher: 'Sokół Paweł', classroom: 's. 0.2' },
     { id: 'mon_5', order: 5, timeRange: '11:30 - 12:15', subject: 'Lokalne sieci komputerowe', teacher: 'Wojnarowski Przemysław', classroom: 's. 0.2' },
-    { id: 'mon_6', order: 6, timeRange: '12:20 - 13:05', subject: 'Język polski', teacher: 'Negowska Alicja', classroom: 's. 34' }
+    { id: 'mon_6', order: 6, timeRange: '12:20 - 13:05', subject: 'Język polski', teacher: 'Niegowska Alicja', classroom: 's. 34' }
   ],
   2: [
     { id: 'tue_1', order: 1, timeRange: '08:00 - 08:45', subject: 'Pracownia urządzeń techniki komputerowej', teacher: 'Wojnarowski Przemysław (2TI-gr1)', classroom: 's. 0.1' },
@@ -37,8 +37,8 @@ const FALLBACK_LESSONS: Record<number, LessonItem[]> = {
   4: [
     { id: 'thu_2', order: 2, timeRange: '08:50 - 09:35', subject: 'Język angielski', teacher: 'Ziemba Joanna (j.ang 2 TI gr 1)', classroom: 's. 22' },
     { id: 'thu_3', order: 3, timeRange: '09:40 - 10:25', subject: 'Język angielski', teacher: 'Ziemba Joanna (j.ang 2 TI gr 1)', classroom: 's. 22' },
-    { id: 'thu_4', order: 4, timeRange: '10:40 - 11:25', subject: 'Pracownia lokalnych sieci komputerowych', teacher: 'Kryla Łukasz', classroom: 's. 1.16' },
-    { id: 'thu_5', order: 5, timeRange: '11:30 - 12:15', subject: 'Pracownia lokalnych sieci komputerowych', teacher: 'Kryla Łukasz', classroom: 's. 1.16' },
+    { id: 'thu_4', order: 4, timeRange: '10:40 - 11:25', subject: 'Pracownia lokalnych sieci komputerowych', teacher: 'Kryła Łukasz', classroom: 's. 1.16' },
+    { id: 'thu_5', order: 5, timeRange: '11:30 - 12:15', subject: 'Pracownia lokalnych sieci komputerowych', teacher: 'Kryła Łukasz', classroom: 's. 1.16' },
     { id: 'thu_6', order: 6, timeRange: '12:20 - 13:05', subject: 'Matematyka', teacher: 'Bahr Zbigniew', classroom: 's. 05' },
     { id: 'thu_7', order: 7, timeRange: '13:15 - 14:00', subject: 'Matematyka', teacher: 'Bahr Zbigniew', classroom: 's. 05' },
     { id: 'thu_8', order: 8, timeRange: '14:05 - 14:50', subject: 'Język angielski zawodowy', teacher: 'Ziemba Joanna (j. ang zaw. 2 TI gr 1)', classroom: 's. 22' }
@@ -49,8 +49,8 @@ const FALLBACK_LESSONS: Record<number, LessonItem[]> = {
     { id: 'fri_3', order: 3, timeRange: '09:40 - 10:25', subject: 'Język niemiecki', teacher: 'Chyła Beata (2TI/1)', classroom: 's. 21' },
     { id: 'fri_4', order: 4, timeRange: '10:40 - 11:25', subject: 'Język niemiecki', teacher: 'Chyła Beata (2TI/1)', classroom: 's. 21' },
     { id: 'fri_5', order: 5, timeRange: '11:30 - 12:15', subject: 'Chemia', teacher: 'Kolasińska Paulina', classroom: 's. 19' },
-    { id: 'fri_6', order: 6, timeRange: '12:20 - 13:05', subject: 'Język polski', teacher: 'Negowska Alicja', classroom: 's. 34' },
-    { id: 'fri_7', order: 7, timeRange: '13:15 - 14:00', subject: 'Język polski', teacher: 'Negowska Alicja', classroom: 's. 34' }
+    { id: 'fri_6', order: 6, timeRange: '12:20 - 13:05', subject: 'Język polski', teacher: 'Niegowska Alicja', classroom: 's. 34' },
+    { id: 'fri_7', order: 7, timeRange: '13:15 - 14:00', subject: 'Język polski', teacher: 'Niegowska Alicja', classroom: 's. 34' }
   ]
 };
 

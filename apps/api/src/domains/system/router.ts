@@ -1,8 +1,30 @@
 import { Router, Request, Response } from 'express';
 import os from 'os';
 import { dbStore } from '../../db/store.js';
+import { finOpsCollector } from './finopsCollector.js';
 
 export const systemRouter = Router();
+
+systemRouter.get('/finops', (_req: Request, res: Response) => {
+  res.json(finOpsCollector.getFinOpsSummary());
+});
+
+systemRouter.post('/finops/track', (req: Request, res: Response) => {
+  const { module, provider, inputUnits, outputUnits, costPln, durationMs } = req.body;
+  if (!module || !provider) {
+    res.status(400).json({ error: 'BAD_REQUEST', message: 'Wymagane pola module i provider.' });
+    return;
+  }
+  const metric = finOpsCollector.recordMetric({
+    module,
+    provider,
+    inputUnits: inputUnits || 0,
+    outputUnits: outputUnits || 0,
+    costPln: costPln || 0,
+    durationMs: durationMs || 0
+  });
+  res.status(201).json({ success: true, metric });
+});
 
 systemRouter.get('/health', (_req: Request, res: Response) => {
   res.json({

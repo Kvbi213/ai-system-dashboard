@@ -17,7 +17,7 @@ export const WeatherTrafficCapsule: React.FC<WeatherTrafficCapsuleProps> = ({
   trafficStatus = 'płynny'
 }) => {
   return (
-    <GlassCard className="p-4 flex flex-col justify-between w-full h-full" glow="sky">
+    <GlassCard className="p-4 sm:p-5 flex flex-col justify-between w-full h-full" glow="sky">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className="p-2 rounded-xl bg-sky-100 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 shadow-sm">

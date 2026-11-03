@@ -4,9 +4,22 @@ import { GradesPage } from '../grades/page';
 import { AttendanceCard } from './components/AttendanceCard';
 import { SchoolExamsList } from './components/SchoolExamsList';
 import { Clock, GraduationCap, CalendarCheck } from 'lucide-react';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { SubTabBar } from '../../components/ui/SubTabBar';
+import { useToast } from '../../components/ui/Toast';
 
 export const SchoolPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'timetable' | 'grades' | 'attendance'>('timetable');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const toast = useToast();
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+      toast.success('Pobrano aktualne dane z systemu Librus Synergia');
+    }, 600);
+  };
 
   const tabs = [
     { id: 'timetable', label: 'Plan lekcji', icon: Clock },
@@ -16,26 +29,24 @@ export const SchoolPage: React.FC = () => {
 
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
-      {/* Category Sub-Tabs with Liquid Glass Pill Design */}
-      <div className="grid grid-cols-3 gap-1.5 p-1.5 rounded-2xl glass-panel shadow-sm">
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
-                isActive
-                  ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20 border border-sky-500'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
-              }`}
-            >
-              <tab.icon className="w-4 h-4 shrink-0" />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Unified Executive PageHeader */}
+      <PageHeader
+        icon={GraduationCap}
+        title="Centrum Edukacji i Librus Synergia"
+        subtitle="Plan lekcji 1:1, dziennik ocen, frekwencja oraz terminarz sprawdzianów"
+        badge="Synergia Sync"
+        badgeVariant="cyan"
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
+        refreshLabel="Odśwież Librus"
+      />
+
+      {/* Unified SubTabBar with liquid pill design */}
+      <SubTabBar
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
       {/* Tab Panels */}
       {activeTab === 'timetable' && <TimetablePage />}

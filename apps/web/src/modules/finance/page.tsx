@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { EnvelopeOverview } from './components/EnvelopeOverview';
+import { BudgetPredictionCard } from './components/BudgetPredictionCard';
 import { TransactionList, TransactionItem } from './components/TransactionList';
 import { SubscriptionsManager } from './components/SubscriptionsManager';
 import { SavingsGoalCard } from './components/SavingsGoalCard';
 import { Plus, Wallet, CreditCard, Target, History } from 'lucide-react';
 import { financeApi } from '../../api/client';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { SubTabBar } from '../../components/ui/SubTabBar';
+import { useToast } from '../../components/ui/Toast';
 
 const INITIAL_TX: TransactionItem[] = [
   { id: '1', title: 'Serwer Mikr.us LXC (odnowienie)', category: 'potrzeby', amount: -65.0, date: '29 paź' },
@@ -21,6 +25,23 @@ export const FinancePage: React.FC = () => {
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState<'potrzeby' | 'zachcianki' | 'oszczednosci'>('potrzeby');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const toast = useToast();
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      const res = await financeApi.getTransactions();
+      if (res?.transactions && res.transactions.length > 0) {
+        setTransactions(res.transactions);
+      }
+      toast.success('Zaktualizowano dane finansowe');
+    } catch {
+      toast.error('Błąd synchronizacji finansów');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     financeApi.getTransactions()
@@ -46,13 +67,15 @@ export const FinancePage: React.FC = () => {
       date: 'Dzisiaj'
     };
     setTransactions([newTx, ...transactions]);
+    const addedTitle = title;
     setTitle('');
     setAmount('');
     setIsAdding(false);
+    toast.success(`Zapisano transakcję: ${addedTitle}`);
 
     try {
       await financeApi.addTransaction({
-        title,
+        title: addedTitle,
         amount: parsedAmount,
         envelope: category,
         category: 'Inne'
@@ -64,70 +87,77 @@ export const FinancePage: React.FC = () => {
 
   const tabs = [
     { id: 'envelopes', label: 'Koperty 50/30/20', icon: Wallet },
-    { id: 'transactions', label: 'Wydatki i Rejestr', icon: History },
+    { id: 'transactions', label: 'Wydatki i Rejestr', icon: History, count: transactions.length },
     { id: 'subscriptions', label: 'Abonamenty', icon: CreditCard },
     { id: 'goals', label: 'Cele i Oszczędności', icon: Target }
   ] as const;
 
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
-      {/* Category Sub-Tabs with Liquid Glass Pill Design */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1.5 rounded-2xl glass-panel shadow-sm">
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center justify-center gap-1.5 py-2 px-2 sm:px-3 rounded-xl text-xs font-bold transition-all text-center ${
-                isActive
-                  ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20 border border-sky-500'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
-              }`}
-            >
-              <tab.icon className="w-4 h-4 shrink-0" />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Unified Executive PageHeader */}
+      <PageHeader
+        icon={Wallet}
+        title="Finanse i Budżet 50/30/20"
+        subtitle="Zrównoważony podział dobowy :: Potrzeby 50%, Zachcianki 30%, Oszczędności 20%"
+        badge="Wydatki LIVE"
+        badgeVariant="cyan"
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
+        actions={
+          <button
+            onClick={() => setIsAdding(!isAdding)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-600/20 active:scale-95 transition"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Dodaj wydatek</span>
+          </button>
+        }
+      />
+
+      {/* Unified SubTabBar with liquid pill design */}
+      <SubTabBar
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
       {/* Tab Panels */}
-      {activeTab === 'envelopes' && <EnvelopeOverview />}
+      {activeTab === 'envelopes' && (
+        <div className="space-y-4">
+          <BudgetPredictionCard
+            totalSpent={1788}
+            totalLimit={5000}
+            needsSpent={1120}
+            wantsSpent={480}
+            savingsReserved={680}
+          />
+          <EnvelopeOverview />
+        </div>
+      )}
 
       {activeTab === 'transactions' && (
         <div className="space-y-3">
-          <div className="flex justify-end">
-            <button
-              onClick={() => setIsAdding(!isAdding)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-600/20 active:scale-95 transition"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Dodaj wydatek</span>
-            </button>
-          </div>
-
           {isAdding && (
-            <form onSubmit={handleAddTx} className="p-4 rounded-2xl glass-panel-elevated border-sky-300 space-y-3 shadow-lg">
+            <form onSubmit={handleAddTx} className="p-4 rounded-2xl glass-panel-elevated border border-sky-300 dark:border-sky-500/40 space-y-3 shadow-lg">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <input
                   type="text"
                   placeholder="Tytuł wydatku..."
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="px-3 py-2 rounded-xl bg-white border border-slate-300 text-sm text-slate-900 placeholder-slate-400"
+                  className="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500"
                 />
                 <input
                   type="number"
                   placeholder="Kwota (PLN)..."
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="px-3 py-2 rounded-xl bg-white border border-slate-300 text-sm text-slate-900 placeholder-slate-400"
+                  className="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500"
                 />
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value as any)}
-                  className="px-3 py-2 rounded-xl bg-white border border-slate-300 text-sm text-slate-900 font-medium"
+                  className="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white font-medium focus:outline-none focus:border-sky-500"
                 >
                   <option value="potrzeby">50% Potrzeby</option>
                   <option value="zachcianki">30% Zachcianki</option>
@@ -136,7 +166,7 @@ export const FinancePage: React.FC = () => {
               </div>
               <button
                 type="submit"
-                className="w-full py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition shadow-sm"
+                className="w-full py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition shadow-sm active:scale-98"
               >
                 Zapisz transakcję
               </button>

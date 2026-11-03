@@ -1,14 +1,18 @@
+import { PushbulletDispatcher } from '../pushbullet/dispatcher.js';
+
 export class SystemScheduler {
   private timers: NodeJS.Timeout[] = [];
   private apiGatewayUrl: string;
+  private dispatcher?: PushbulletDispatcher;
 
   // Master Clock & Continuous Drift-Compensated Chronometer
   private lastSyncedServerTimeMs: number = Date.now();
   private lastSyncTimestampMs: number = Date.now();
   private minuteTickCount: number = 0;
 
-  constructor(apiGatewayUrl = 'http://localhost:5000/api') {
+  constructor(apiGatewayUrl = 'http://localhost:5000/api', dispatcher?: PushbulletDispatcher) {
     this.apiGatewayUrl = apiGatewayUrl;
+    this.dispatcher = dispatcher;
   }
 
   public start(): void {
@@ -101,6 +105,11 @@ export class SystemScheduler {
     // Proaktywne okno dobowe (np. 3h przed planowanym snem 23:00 -> 20:00)
     if (hours === 20 && minutes === 0) {
       console.log('[*] HEALTH :: Osiągnięto godzinę 20:00 — okno ostatniego posiłku 3h przed planowanym snem (TASK-PB-02).');
+      this.dispatcher?.enqueue({
+        title: 'Higiena Snu: Ostatni posiłek (20:00)',
+        body: '3 godziny do snu (23:00). Zakończ przyjmowanie posiłków, zadbaj o nawodnienie i wyciszenie.',
+        priority: 'NORMAL'
+      });
     }
   }
 

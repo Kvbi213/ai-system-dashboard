@@ -99,14 +99,28 @@ function parseTimeRange(rawRange: string): { startMins: number; endMins: number 
 
 export const DailyTimelineWidget: React.FC = () => {
   const [events, setEvents] = useState<TimelineBlock[]>([]);
-  const [filterMode, setFilterMode] = useState<'all' | 'school' | 'private'>('all');
+  const [filterMode, setFilterMode] = useState<'all' | 'now' | 'school' | 'private'>('all');
   const currentEventRef = useRef<HTMLDivElement | null>(null);
+  const firstActiveRef = useRef<HTMLDivElement | null>(null);
+  const timelineContainerRef = useRef<HTMLDivElement | null>(null);
   const isRunningRef = useRef(false);
 
-  useEffect(() => {
-    if (currentEventRef.current) {
-      currentEventRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  const scrollToNow = () => {
+    if (timelineContainerRef.current) {
+      const target = currentEventRef.current || firstActiveRef.current;
+      if (target) {
+        const container = timelineContainerRef.current;
+        const targetOffset = target.offsetTop - container.offsetTop - 12;
+        container.scrollTo({ top: Math.max(0, targetOffset), behavior: 'smooth' });
+      }
     }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      scrollToNow();
+    }, 150);
+    return () => clearTimeout(timer);
   }, [events, filterMode]);
 
   useEffect(() => {
@@ -218,6 +232,7 @@ export const DailyTimelineWidget: React.FC = () => {
   const filteredEvents = useMemo(() => {
     return events.filter((e) => {
       if (filterMode === 'all') return true;
+      if (filterMode === 'now') return e.status === 'current' || e.status === 'upcoming';
       if (filterMode === 'school') return e.sourceType === 'school';
       if (filterMode === 'private') return e.sourceType === 'private';
       return true;
@@ -237,42 +252,66 @@ export const DailyTimelineWidget: React.FC = () => {
           </div>
         </div>
 
-        {/* Filtr Szkolne / Prywatne / Wszystkie */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800">
+        {/* Filtr Szkolne / Prywatne / Od teraz / Wszystkie + Skocz do teraz */}
+        <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
           <button
-            onClick={() => setFilterMode('all')}
-            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
-              filterMode === 'all'
-                ? 'bg-white dark:bg-slate-800 text-sky-700 dark:text-sky-300 shadow-xs border border-slate-200 dark:border-slate-700'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            onClick={scrollToNow}
+            title="Przewiń do bieżącego lub nadchodzącego bloku"
+            className="px-2 py-1 rounded-lg text-[10px] font-bold bg-sky-50 dark:bg-sky-950/70 hover:bg-sky-100 dark:hover:bg-sky-900 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 transition flex items-center gap-1 shadow-xs"
           >
-            Wszystkie ({events.length})
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
+            <span>Skocz do teraz</span>
           </button>
-          <button
-            onClick={() => setFilterMode('school')}
-            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
-              filterMode === 'school'
-                ? 'bg-sky-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            Szkolne
-          </button>
-          <button
-            onClick={() => setFilterMode('private')}
-            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
-              filterMode === 'private'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            Prywatne
-          </button>
+
+          <div className="flex items-center gap-1 p-0.5 rounded-xl bg-slate-100/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800">
+            <button
+              onClick={() => setFilterMode('all')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
+                filterMode === 'all'
+                  ? 'bg-white dark:bg-slate-800 text-sky-700 dark:text-sky-300 shadow-xs border border-slate-200 dark:border-slate-700'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              Wszystkie ({events.length})
+            </button>
+            <button
+              onClick={() => setFilterMode('now')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
+                filterMode === 'now'
+                  ? 'bg-sky-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              Od teraz ({events.filter((e) => e.status !== 'done').length})
+            </button>
+            <button
+              onClick={() => setFilterMode('school')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
+                filterMode === 'school'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              Szkolne
+            </button>
+            <button
+              onClick={() => setFilterMode('private')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
+                filterMode === 'private'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              Prywatne
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="space-y-2.5 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-300 dark:before:bg-slate-700 max-h-[380px] overflow-y-auto pr-1">
+      <div
+        ref={timelineContainerRef}
+        className="space-y-2.5 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-300 dark:before:bg-slate-700 max-h-[380px] overflow-y-auto pr-1"
+      >
         {filteredEvents.map((event) => {
           const isDone = event.status === 'done';
           const isCurrent = event.status === 'current';
@@ -280,7 +319,7 @@ export const DailyTimelineWidget: React.FC = () => {
           return (
             <div
               key={event.id}
-              ref={isCurrent ? currentEventRef : undefined}
+              ref={isCurrent ? currentEventRef : (event.status === 'upcoming' && !currentEventRef.current ? firstActiveRef : undefined)}
               className="relative flex items-start gap-3 pl-1 group"
             >
               {/* Node Indicator */}

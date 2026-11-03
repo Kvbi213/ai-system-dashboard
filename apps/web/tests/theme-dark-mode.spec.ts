@@ -36,7 +36,7 @@ test.describe('Theme & Dark Mode E2E Verification', () => {
     await page.goto('/settings', { waitUntil: 'networkidle' });
 
     // Click Kernel tab
-    const kernelTab = page.locator('button:has-text("Kernel")');
+    const kernelTab = page.locator('button[role="tab"]:has-text("Kernel")');
     if (await kernelTab.isVisible()) {
       await kernelTab.click();
     }

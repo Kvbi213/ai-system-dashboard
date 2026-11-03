@@ -1,13 +1,13 @@
 # ARCHITECTURE.md — REJESTR ARCHITEKTURY OMNIDASH REBORN
 > Dokument nadrzędny architektury systemu OmniDash Reborn.
 > Standard: Protokół Antigravity v4.0 (Deterministic Edition).
-> Status: AKTYWNY (v4.0.0-alpha.8) | Monorepo: `pnpm workspaces`
+> Status: AKTYWNY (v4.0.0-rc.1) | Monorepo: `pnpm workspaces`
 
 ---
 
 ## 1. STATUS SYSTEMU I METRYKI WYDANIA
 
-- **Wersja:** `v4.0.0-alpha.8`
+- **Wersja:** `v4.0.0-rc.1`
 - **Typ Architektury:** Domain-Driven Modular Monolith w kontenerach Docker Compose
 - **Standard Jakości:** 100% TypeScript (`strict: true`, zero `any`), Zero-Placeholder Policy
 - **Środowisko:** Node.js 22 LTS, Vite 6, React 19, TailwindCSS v4, Vitest, Playwright 1.50
@@ -36,28 +36,42 @@ $PROJECT_ROOT/OmniDash/
 │   ├── web/                        # [SPA Frontend] React 19, Tailwind v4, Liquid Glass
 │   │   ├── Dockerfile              # Multi-stage Nginx Alpine build
 │   │   ├── playwright.config.ts    # Konfiguracja audytu E2E (Desktop Chromium & Mobile Pixel 7)
-│   │   ├── tests/                  # Zestaw 24 testów Playwright E2E
+│   │   ├── tests/                  # Zestaw 46 testów Playwright E2E
 │   │   │   ├── chat-viewport-isolation.spec.ts
-│   │   │   └── full-gui-audit.spec.ts
+│   │   │   ├── full-gui-audit.spec.ts
+│   │   │   ├── ruler-wheel-and-timetable.spec.ts
+│   │   │   ├── finops-threats-prediction.spec.ts
+│   │   │   └── theme-dark-mode.spec.ts
 │   │   └── src/
 │   │       ├── api/client.ts       # Type-safe API Client z offline fallbackiem
 │   │       ├── components/         # Współdzielone prymitywy UI i nawigacji
-│   │       │   ├── ui/             # GlassCard, Badge, BottomActionSheet
+│   │       │   ├── ui/             # GlassCard, Badge, SubTabBar, PageHeader, Toast, HumanCheckpointModal, RulerWheelPicker
 │   │       │   └── navigation/     # Sidebar (zwijane kategorie), BottomTabBar, AppHeader, MoreDrawerSheet
 │   │       └── modules/            # Zdecentralizowane moduły domenowe (≤150 linii per plik)
-│   │           ├── dashboard/      # Pulpit operacyjny, widżety, drawer zadań, ticker CERT
+│   │           ├── dashboard/      # Pulpit operacyjny, widżety, drawer zadań, DailyTimelineWidget
 │   │           ├── chat/           # Asystent AI, strumieniowanie SSE, kasetki narzędziowe
-│   │           ├── school/         # Hub edukacyjny (plan, oceny, frekwencja, egzaminy)
-│   │           ├── timetable/      # Dedykowany plan lekcji z wyborem dnia
+│   │           ├── school/         # Hub edukacyjny (plan 1:1 Librus, oceny, frekwencja, egzaminy)
+│   │           ├── timetable/      # Dedykowany plan lekcji z wyborem dnia (pełna zgodność Synergia)
 │   │           ├── grades/         # Siatka ocen cząstkowych i średnia ważona GPA
-│   │           ├── finance/        # Budżet 50/30/20, rejestr wydatków, abonamenty, cele
-│   │           ├── workouts/       # Trening FBW, nawyki i rekordy osobiste
+│   │           ├── finance/        # Budżet 50/30/20, BudgetPredictionCard z Write-Back, abonamenty, cele
+│   │           ├── workouts/       # Trening FBW (AtticFBWTracker), RestTimerOverlay (OLED True Black), rekordy
 │   │           ├── traffic/        # Kamery GDDKiA, radary CANARD, alerty drogowe
-│   │           ├── osint/          # Inspekcja domen, DNS, ASN, certyfikaty SSL, scoring ryzyka
+│   │           ├── osint/          # Inspekcja domen, ThreatMonitoringTimeline (SSRF Shield), certyfikaty SSL
 │   │           ├── server/         # Telemetria kontenerów Docker, węzeł Mikr.us LXC, kopia zapasowa
-│   │           └── settings/       # Audyt Zero-Trust, CSP Level 3, JWT, sesja operatora
+│   │           └── settings/       # FinOpsAndMemoryCard (ai-cost-dashboard & Lab-Zero recall), Kernel, Motyw
 │   │
 │   ├── api/                        # [API Gateway] Port 5000, Zero-Trust, Drizzle Store
+│   │   └── src/
+│   │       ├── domains/
+│   │       │   ├── memory/         # Lab-Zero Semantic Recall Engine (128-dim dense embedding)
+│   │       │   ├── system/         # FinOpsCollector (kolektor tokenów AI & TTS, detektor coverage gaps)
+│   │       │   └── ...             # Domeny biznesowe (school, finance, workouts, traffic, osint)
+│   │
+│   └── worker/                     # [Background Worker] Daemon zadań w tle i synchronizacji
+│       └── src/
+│           ├── cron/               # SystemScheduler z synchronizacją czasu autorytatywnego co 1 min
+│           └── pushbullet/         # Deterministyczny PushbulletDispatcher (kolejka priorytetyzowana, rate-limiter)
+```
 │   │   ├── Dockerfile              # Node 22 Alpine production container
 │   │   ├── src/
 │   │   │   ├── index.ts            # Entrypoint serwera Express TS

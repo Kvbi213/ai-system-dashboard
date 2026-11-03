@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { PushbulletListener } from './pushbullet/websocketListener.js';
+import { PushbulletDispatcher } from './pushbullet/dispatcher.js';
 import { SystemScheduler } from './cron/scheduler.js';
 
 const PUSHBULLET_API_KEY = process.env.PUSHBULLET_API_KEY || '';
@@ -9,14 +10,17 @@ const API_GATEWAY_URL = process.env.API_GATEWAY_URL || 'http://localhost:5000/ap
 
 console.log('[*] INFO :: Uruchamianie daemona OmniDash Background Worker v4.0.0...');
 
+const dispatcher = new PushbulletDispatcher(PUSHBULLET_API_KEY);
 const listener = new PushbulletListener(PUSHBULLET_API_KEY, API_GATEWAY_URL);
-const scheduler = new SystemScheduler(API_GATEWAY_URL);
+const scheduler = new SystemScheduler(API_GATEWAY_URL, dispatcher);
 
+dispatcher.start();
 listener.start();
 scheduler.start();
 
 const shutdown = () => {
   console.log('[*] INFO :: Zatrzymywanie procesów tła...');
+  dispatcher.stop();
   listener.stop();
   scheduler.stop();
   process.exit(0);
