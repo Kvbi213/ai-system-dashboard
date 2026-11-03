@@ -12,6 +12,7 @@ export interface RulerWheelPickerProps {
   className?: string;
   compact?: boolean;
   pureBlack?: boolean;
+  accent?: 'cyan' | 'sky' | 'amber' | 'emerald';
 }
 
 // Singleton audio/haptics synth
@@ -73,6 +74,41 @@ class AudioHapticsService {
 
 const feedback = new AudioHapticsService();
 
+const ACCENT_STYLES = {
+  cyan: {
+    badge: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
+    number: 'text-cyan-400',
+    numberFast: 'text-cyan-300',
+    needleHead: 'bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,1)]',
+    needleLine: 'from-cyan-400 via-sky-400 to-blue-500 shadow-[0_0_10px_rgba(6,182,212,0.9)]',
+    tickTen: 'h-7 bg-cyan-400 shadow-[0_0_6px_rgba(6,182,212,0.6)]'
+  },
+  sky: {
+    badge: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
+    number: 'text-sky-400',
+    numberFast: 'text-sky-300',
+    needleHead: 'bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,1)]',
+    needleLine: 'from-sky-400 via-blue-400 to-indigo-500 shadow-[0_0_10px_rgba(56,189,248,0.9)]',
+    tickTen: 'h-7 bg-sky-400 shadow-[0_0_6px_rgba(56,189,248,0.6)]'
+  },
+  emerald: {
+    badge: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+    number: 'text-emerald-400',
+    numberFast: 'text-emerald-300',
+    needleHead: 'bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,1)]',
+    needleLine: 'from-emerald-400 via-teal-400 to-cyan-500 shadow-[0_0_10px_rgba(16,185,129,0.9)]',
+    tickTen: 'h-7 bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.6)]'
+  },
+  amber: {
+    badge: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+    number: 'text-amber-400',
+    numberFast: 'text-amber-300',
+    needleHead: 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,1)]',
+    needleLine: 'from-amber-400 via-amber-500 to-amber-600 shadow-[0_0_10px_rgba(245,158,11,1)]',
+    tickTen: 'h-7 bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.6)]'
+  }
+};
+
 export const RulerWheelPicker: React.FC<RulerWheelPickerProps> = ({
   min = 10,
   max = 300,
@@ -84,7 +120,8 @@ export const RulerWheelPicker: React.FC<RulerWheelPickerProps> = ({
   onChange,
   className = '',
   compact = false,
-  pureBlack = false
+  pureBlack = false,
+  accent = 'cyan'
 }) => {
   const isControlled = controlledValue !== undefined;
   const [internalValue, setInternalValue] = useState<number>(defaultValue);
@@ -99,6 +136,8 @@ export const RulerWheelPicker: React.FC<RulerWheelPickerProps> = ({
   const animationFrameRef = useRef<number | null>(null);
   const lastEmittedValueRef = useRef<number>(currentValue);
   const [isFastMoving, setIsFastMoving] = useState(false);
+
+  const colors = ACCENT_STYLES[accent] || ACCENT_STYLES.cyan;
 
   const tickSpacing = compact ? 12 : 14; // pixels per unit
   const visibleRadius = 24; // visible units left and right of center
@@ -281,7 +320,7 @@ export const RulerWheelPicker: React.FC<RulerWheelPickerProps> = ({
         <span className={`text-[11px] font-bold uppercase tracking-wider ${pureBlack ? 'text-neutral-400' : 'text-slate-400'}`}>
           {label}
         </span>
-        <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+        <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${colors.badge}`}>
           SNAP &amp; PHYSICS
         </span>
       </div>
@@ -290,7 +329,7 @@ export const RulerWheelPicker: React.FC<RulerWheelPickerProps> = ({
       <div className="flex flex-col items-center justify-center my-1">
         <div
           className={`text-5xl sm:text-6xl font-black font-mono tracking-tight tabular-nums transition-transform duration-75 ${
-            isFastMoving ? 'blur-[0.8px] scale-105 text-amber-300' : 'text-amber-400'
+            isFastMoving ? `blur-[0.8px] scale-105 ${colors.numberFast}` : colors.number
           }`}
           style={{ fontVariantNumeric: 'tabular-nums' }}
         >
@@ -316,10 +355,10 @@ export const RulerWheelPicker: React.FC<RulerWheelPickerProps> = ({
           maskImage: 'linear-gradient(to right, transparent, black 20%, black 80%, transparent)'
         }}
       >
-        {/* Central Indicator Marker (Amber/Orange needle with glow) */}
+        {/* Central Indicator Marker with dynamic needle glow */}
         <div className="absolute left-1/2 top-0 bottom-3 w-1 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center">
-          <div className="w-2.5 h-1.5 bg-amber-500 rounded-b-sm shadow-[0_0_10px_rgba(245,158,11,1)]" />
-          <div className="w-0.5 h-full bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 shadow-[0_0_10px_rgba(245,158,11,1)]" />
+          <div className={`w-2.5 h-1.5 rounded-b-sm ${colors.needleHead}`} />
+          <div className={`w-0.5 h-full bg-gradient-to-b ${colors.needleLine}`} />
         </div>
 
         {/* Dynamic Ruler Ticks projected in 3D cylindrical space */}
@@ -355,7 +394,7 @@ export const RulerWheelPicker: React.FC<RulerWheelPickerProps> = ({
                 <div
                   className={`w-0.5 rounded-full transition-colors ${
                     isTens
-                      ? 'h-7 bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.6)]'
+                      ? colors.tickTen
                       : isFives
                       ? pureBlack ? 'h-4 bg-neutral-300' : 'h-4 bg-slate-300'
                       : pureBlack ? 'h-2.5 bg-neutral-700' : 'h-2.5 bg-slate-600'

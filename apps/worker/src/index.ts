@@ -4,6 +4,9 @@ dotenv.config();
 import { PushbulletListener } from './pushbullet/websocketListener.js';
 import { PushbulletDispatcher } from './pushbullet/dispatcher.js';
 import { SystemScheduler } from './cron/scheduler.js';
+import { logDrain } from './telemetry/logDrain.js';
+
+export { logDrain };
 
 const PUSHBULLET_API_KEY = process.env.PUSHBULLET_API_KEY || '';
 const API_GATEWAY_URL = process.env.API_GATEWAY_URL || 'http://localhost:5000/api';

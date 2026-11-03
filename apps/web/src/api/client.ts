@@ -152,6 +152,17 @@ export const aiApi = {
     })
 };
 
+// Memory Domain (Lab-Zero Semantic Recall)
+export const memoryApi = {
+  recall: (query: string, limit = 4, minScore = 0.2) =>
+    apiFetch<{ query: string; results: { content: string; category: string; score: number }[]; latencyMs: number }>(
+      '/memory/recall',
+      { method: 'POST', body: JSON.stringify({ query, limit, minScore }) }
+    ),
+  getFacts: () => apiFetch<{ count: number; facts: any[] }>('/memory/facts'),
+  getStatus: () => apiFetch<any>('/memory/status')
+};
+
 // OSINT Domain
 export const osintApi = {
   lookup: (target: string) => apiFetch<any>(`/osint/lookup?target=${encodeURIComponent(target)}`)

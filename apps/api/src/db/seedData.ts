@@ -131,7 +131,7 @@ export const SEED_GRADES: GradeItem[] = [
   { id: 'gr1', subject: 'Informatyka', grade: 6, weight: 3, description: 'Sprawdzian Praktyczny Linux', date: '28-10-2026', teacher: 'Becker Adam' },
   { id: 'gr2', subject: 'Systemy operacyjne', grade: 5, weight: 3, description: 'Zarządzanie procesami i Docker', date: '26-10-2026', teacher: 'Wojnarowski Przemysław' },
   { id: 'gr3', subject: 'Lokalne sieci komputerowe', grade: 5, weight: 3, description: 'Konfiguracja tras i VLAN', date: '24-10-2026', teacher: 'Wojnarowski Przemysław' },
-  { id: 'gr4', subject: 'Pracownia LSK', grade: 5, weight: 2, description: 'Ćwiczenia switch i trunking', date: '22-10-2026', teacher: 'Kryla Łukasz' },
+  { id: 'gr4', subject: 'Pracownia LSK', grade: 5, weight: 2, description: 'Ćwiczenia switch i trunking', date: '22-10-2026', teacher: 'Kryła Łukasz' },
   { id: 'gr5', subject: 'Pracownia UTK', grade: 5, weight: 2, description: 'Montaż i diagnostyka podzespołów', date: '20-10-2026', teacher: 'Wojnarowski Przemysław' },
   { id: 'gr6', subject: 'Język angielski zawodowy', grade: 5, weight: 2, description: 'Słownictwo techniczne IT', date: '19-10-2026', teacher: 'Ziemba Joanna' },
   { id: 'gr7', subject: 'Edukacja obywatelska', grade: 5, weight: 1, description: 'Struktura organów państwa', date: '18-10-2026', teacher: 'Czarna Alicja' },
@@ -142,7 +142,7 @@ export const SEED_GRADES: GradeItem[] = [
   { id: 'gr12', subject: 'Biologia', grade: 4, weight: 2, description: 'Genetyka molekularna', date: '10-10-2026', teacher: 'Łukaszczyk-Wulgaris Joanna' },
   { id: 'gr13', subject: 'Matematyka', grade: 4, weight: 3, description: 'Wielomiany i funkcje kwadratowe', date: '08-10-2026', teacher: 'Bahr Zbigniew' },
   { id: 'gr14', subject: 'Język niemiecki', grade: 4, weight: 2, description: 'Czasy przeszłe Präteritum', date: '06-10-2026', teacher: 'Chyła Beata' },
-  { id: 'gr15', subject: 'Język polski', grade: 4, weight: 3, description: 'Analiza tekstu literackiego', date: '04-10-2026', teacher: 'Negowska Alicja' },
+  { id: 'gr15', subject: 'Język polski', grade: 4, weight: 3, description: 'Analiza tekstu literackiego', date: '04-10-2026', teacher: 'Niegowska Alicja' },
   { id: 'gr16', subject: 'Urządzenia techniki komputerowej', grade: 3, weight: 2, description: 'Architektura magistrali PCIe', date: '02-10-2026', teacher: 'Gembiak Bartosz' }
 ];
 

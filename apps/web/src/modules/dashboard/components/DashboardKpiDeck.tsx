@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { TrendingUp, Dumbbell, ArrowRight } from 'lucide-react';
+import { useWorkoutState } from '../../workouts/hooks/useWorkoutState';
 
 interface DashboardKpiDeckProps {
   taskStats: {
@@ -15,6 +16,7 @@ interface DashboardKpiDeckProps {
 
 export const DashboardKpiDeck: React.FC<DashboardKpiDeckProps> = ({ taskStats, onOpenTasks }) => {
   const navigate = useNavigate();
+  const { completedSets, totalSets, activeCycle } = useWorkoutState();
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 items-stretch" data-testid="dashboard-kpi-deck">
@@ -74,7 +76,7 @@ export const DashboardKpiDeck: React.FC<DashboardKpiDeckProps> = ({ taskStats, o
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Sesja FBW</span>
           <span className="text-[11px] font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/70 px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
-            Cykl A
+            {activeCycle.includes('A') ? 'Cykl A' : 'Cykl B'}
           </span>
         </div>
 
@@ -87,7 +89,7 @@ export const DashboardKpiDeck: React.FC<DashboardKpiDeckProps> = ({ taskStats, o
         </div>
 
         <div className="pt-2 flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800">
-          <span className="font-bold text-emerald-700 dark:text-emerald-400">3 / 14 serii</span>
+          <span className="font-bold text-emerald-700 dark:text-emerald-400">{completedSets} / {totalSets} serii</span>
           <button
             onClick={() => navigate('/workouts')}
             className="text-emerald-700 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-300 font-bold flex items-center gap-0.5 hover:underline"
@@ -108,15 +110,15 @@ export const DashboardKpiDeck: React.FC<DashboardKpiDeckProps> = ({ taskStats, o
         </div>
 
         <div className="my-2.5 space-y-1.5">
-          <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+          <div className="flex justify-between text-xs text-slate-600 dark:text-slate-300 font-medium">
             <span>Potrzeby 50%</span>
             <span>Zachc. 30%</span>
             <span>Oszcz. 20%</span>
           </div>
-          <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex shadow-inner">
-            <div className="h-full bg-sky-500" style={{ width: '50%' }}></div>
-            <div className="h-full bg-indigo-500" style={{ width: '30%' }}></div>
-            <div className="h-full bg-emerald-500" style={{ width: '20%' }}></div>
+          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 flex overflow-hidden">
+            <div className="bg-sky-500 h-2" style={{ width: '50%' }} title="Potrzeby: 50%" />
+            <div className="bg-indigo-500 h-2" style={{ width: '30%' }} title="Zachcianki: 30%" />
+            <div className="bg-emerald-500 h-2" style={{ width: '20%' }} title="Oszczędności: 20%" />
           </div>
         </div>
 
@@ -124,7 +126,7 @@ export const DashboardKpiDeck: React.FC<DashboardKpiDeckProps> = ({ taskStats, o
           <span>Wydatki: 1 780 zł</span>
           <button
             onClick={() => navigate('/finance')}
-            className="text-indigo-700 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 font-bold flex items-center gap-0.5 hover:underline"
+            className="text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-300 font-bold flex items-center gap-0.5 hover:underline"
           >
             <span>Budżet</span>
             <ArrowRight className="w-3 h-3" />

@@ -41,8 +41,8 @@ test.describe('RulerWheelPicker & Synergia Timetable Parity', () => {
     }
     await page.waitForTimeout(400);
 
-    // Verify OLED True Black overlay is visible with header
-    const overlayHeader = page.locator('text=REST INTERVAL :: LIVE COUNTDOWN');
+    // Verify Apple Liquid Glass overlay is visible with header
+    const overlayHeader = page.locator('text=PRZERWA MIĘDZY SERIAMI');
     await expect(overlayHeader).toBeVisible();
 
     // Verify "NASTĘPNA SERIA" card is present

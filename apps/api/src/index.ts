@@ -21,6 +21,8 @@ import { osintRouter } from './domains/osint/router.js';
 import { pushbulletRouter } from './domains/pushbullet/router.js';
 import { privateRouter } from './domains/private/router.js';
 import { memoryRouter } from './domains/memory/router.js';
+import { rulesRouter } from './domains/rules/router.js';
+import { mcpRouter } from './mcp/internalMcpServer.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -74,6 +76,8 @@ app.use('/api/osint', osintRouter);
 app.use('/api/pushbullet', pushbulletRouter);
 app.use('/api/private', privateRouter);
 app.use('/api/memory', memoryRouter);
+app.use('/api/rules', rulesRouter);
+app.use('/api/mcp', mcpRouter);
 
 // Global Error Handler
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

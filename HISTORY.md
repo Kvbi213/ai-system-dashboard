@@ -396,3 +396,38 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - API Gateway Unit: 29 passed (exit code 0).
   - Worker Unit: 6 passed (exit code 0).
   - Web Bundle: `pnpm build` sukces (`built in 27s`).
+
+---
+
+### ## v4.0.0-rc.2 — 2026-11-04 [ARCHITECTURE CONSOLIDATION, APPLE GLASS REST OVERLAY & ZERO-PLACEHOLDERS]
+**Status:** WYDANE I ZWERYFIKOWANE  
+**Typ:** MINOR (Konsolidacja Architektury v4.0.0, Redesign Apple Glass RestTimerOverlay, Likwidacja Placeholderów Treningu i Nawyków, Multi-Provider LLM Gateway, KeepHQ Rules Engine, Wewnętrzny Serwer MCP & Algorytm LogDrain)  
+**Cel:** Eliminacja niespójności wizualnej nakładki odpoczynku, dynamiczne powiązanie stanu treningów/nawyków z Pulpitem Głównym przez React 18+ `useSyncExternalStore`, łańcuch fallbacku AI oraz wdrożenie wzorców enterprise z otwartych ekosystemów.
+
+#### Zakres Wdrożenia i Zmian:
+- [+] **Modernizacja UI/UX `RestTimerOverlay` (Apple Liquid Glass):**
+  - Wyeliminowanie ostrej czerni AMOLED i neonowego bursztynu; adaptacja do standardu Apple Liquid Glass (`bg-slate-950/85 backdrop-blur-2xl border-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]`).
+  - Elegancka kapsuła akcji `bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600` z poświatą cyan/sky oraz status `PRZERWA MIĘDZY SERIAMI • LIVE`.
+  - Rozszerzenie komponentu `RulerWheelPicker.tsx` o dynamiczne akcenty kolorystyczne (`cyan`, `sky`, `amber`, `emerald`) z zachowaniem 3D cylindrical bend, snappingu, syntezy Web Audio i haptyki.
+- [+] **Likwidacja Wszystkich Placeholderów w Treningu i Nawykach (`useWorkoutState.ts`):**
+  - Wdrożenie współbieżnego, w 100% reaktywnego magazynu opartego o `useSyncExternalStore` z dwukierunkową synchronizacją `localStorage` oraz API backendu.
+  - Wycięcie zahardkodowanych wartości `"3 / 14 serii"` oraz `"4 dni z rzędu"` w `workouts/page.tsx` i `DashboardKpiDeck.tsx` na rzecz dynamicznych sum obliczanych w czasie rzeczywistym.
+  - Natychmiastowe odświeżanie stanu na kaflach Pulpitu Głównego po zaliczeniu serii w `AtticFBWTracker`.
+- [+] **Likwidacja Mocków w Ustawieniach & Korekta Danych Librus:**
+  - Podłączenie testu pamięci semantycznej w `FinOpsAndMemoryCard.tsx` bezpośrednio do `/api/memory/recall` (usunięcie atrap).
+  - Weryfikacja i poprawa nazwisk nauczycieli w `seedData.ts` (`Niegowska Alicja`, `Kryła Łukasz`).
+- [+] **Multi-Provider Fallback Chain & Guardrails Agenta (`RunbookHermes` & `Portkey`):**
+  - Implementacja `llmGateway.ts` z automatycznym przełączaniem: Groq (`llama-3.3-70b-versatile`) -> Gemini 2.0 Flash -> OpenAI (`gpt-4o-mini`) -> Lokalny asystent deterministyczny.
+  - Implementacja `IterationBudget` z twardym limitem 5 pętli ReAct i timeoutem 15s zapobiegającym nieskończonemu spalaniu tokenów.
+- [+] **Deklaratywny Silnik Reguł Automatyzacji (`keephq/keep` Pattern):**
+  - Implementacja `ruleEngine.ts` ze schematami Zod dla warunków (`eq`, `gt`, `lt`, `contains`) i akcji (`pushbullet_notify`, `log_alert`, `system_checkpoint`).
+  - Domyślne reguły dla stacji CANARD w promieniu 15 km, ocen poniżej 3 w Librus oraz ukończenia sesji FBW.
+  - Router `/api/rules` z obsługą dynamicznej ewaluacji zdarzeń.
+- [+] **Obserwowalność, Klastrowanie Drain & Wewnętrzny Serwer MCP (`SigNoz` & `Beszel`):**
+  - Implementacja algorytmu Drain (`logDrain.ts`) w workerze parametryzującego timestampy, IP, UUID i liczby do szablonów `pattern_id` z redukcją szumu >95%.
+  - Wewnętrzny serwer MCP (`internalMcpServer.ts` pod `/api/mcp`) udostępniający 4 narzędzia dla agentów AI: `get_system_metrics`, `query_timetable`, `get_active_alerts`, `trigger_workout_sync`.
+- [+] **Kompleksowa Weryfikacja Testowa (100% GREEN):**
+  - Playwright E2E: 46 scenariuszy testowych zaliczonych (38 main + 8 dedykowanych na Desktop i Mobile, 2 skipped).
+  - API Gateway Unit: 39 testów zaliczonych (exit code 0).
+  - Worker Unit: 8 testów zaliczonych (exit code 0).
+  - Łącznie: 93 testy automatyczne na zielono.

@@ -6,11 +6,13 @@ import { Dumbbell, Flame, Trophy, CheckCircle } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { SubTabBar } from '../../components/ui/SubTabBar';
 import { useToast } from '../../components/ui/Toast';
+import { useWorkoutState } from './hooks/useWorkoutState';
 
 export const WorkoutsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'fbw' | 'habits' | 'records'>('fbw');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const toast = useToast();
+  const { completedSets, totalSets, streakDays, activeCycle } = useWorkoutState();
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -54,7 +56,9 @@ export const WorkoutsPage: React.FC = () => {
           </div>
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Seria treningów</p>
-            <p className="text-sm font-bold text-slate-900 dark:text-white font-mono">4 dni z rzędu</p>
+            <p className="text-sm font-bold text-slate-900 dark:text-white font-mono">
+              {streakDays} {streakDays === 1 ? 'dzień' : 'dni'} z rzędu
+            </p>
           </div>
         </div>
 
@@ -64,7 +68,9 @@ export const WorkoutsPage: React.FC = () => {
           </div>
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Ukończone serie</p>
-            <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400 font-mono">3 / 14 serii</p>
+            <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400 font-mono">
+              {completedSets} / {totalSets} serii
+            </p>
           </div>
         </div>
 
@@ -74,7 +80,7 @@ export const WorkoutsPage: React.FC = () => {
           </div>
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Aktualny cykl</p>
-            <p className="text-sm font-bold text-sky-800 dark:text-sky-300">FBW Podciąganie A</p>
+            <p className="text-sm font-bold text-sky-800 dark:text-sky-300 truncate">{activeCycle}</p>
           </div>
         </div>
       </div>

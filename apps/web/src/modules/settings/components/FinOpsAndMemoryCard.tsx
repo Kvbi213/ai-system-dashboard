@@ -3,6 +3,7 @@ import { GlassCard } from '../../../components/ui/GlassCard';
 import { DollarSign, Brain, Search, CheckCircle2, Radio } from 'lucide-react';
 import { Badge } from '../../../components/ui/Badge';
 import { useToast } from '../../../components/ui/Toast';
+import { memoryApi } from '../../../api/client';
 
 export const FinOpsAndMemoryCard: React.FC = () => {
   const toast = useToast();
@@ -21,32 +22,25 @@ export const FinOpsAndMemoryCard: React.FC = () => {
     }
   ]);
 
-  const handleTestRecall = () => {
+  const handleTestRecall = async () => {
     if (!query.trim()) {
       toast.error('Wpisz zapytanie do lokalnej pamięci semantycznej.');
       return;
     }
     setIsSearching(true);
-    setTimeout(() => {
+    try {
+      const res = await memoryApi.recall(query.trim(), 4);
+      if (res?.results && res.results.length > 0) {
+        setRecallResults(res.results);
+        toast.success(`[+] Lab-Zero Recall: Odzyskano ${res.results.length} faktów w ${res.latencyMs || 8}ms.`);
+      } else {
+        toast.error('Brak dopasowań w lokalnej bazie wektorowej.');
+      }
+    } catch {
+      toast.error('Błąd połączenia z modułem Lab-Zero Semantic Memory.');
+    } finally {
       setIsSearching(false);
-      const lower = query.toLowerCase();
-      const mockMatches = [
-        {
-          category: lower.includes('sen') || lower.includes('posiłek') ? 'HABIT' : 'FINANCE',
-          content: lower.includes('sen')
-            ? 'Higiena snu: ostatni posiłek o 20:00 (3h przed snem), wyciszenie i czytanie o 22:15, sen docelowy o 23:00.'
-            : 'Reguła budżetowa 50/30/20: 50% potrzeby stałe, 30% zachcianki i kultura, 20% oszczędności i poduszka finansowa.',
-          score: 0.92
-        },
-        {
-          category: 'WORKOUT',
-          content: 'Trening siłowy FBW na strychu: drążek (nachwyt/chwyt neutralny), pompki na poręczach (dipy), tempo 3-0-1-0, przerwy 90-120s.',
-          score: 0.68
-        }
-      ];
-      setRecallResults(mockMatches);
-      toast.success(`[+] Lab-Zero Recall: Odzyskano ${mockMatches.length} faktów w 12ms.`);
-    }, 200);
+    }
   };
 
   return (

@@ -2,7 +2,7 @@ export interface UsageMetric {
   id: string;
   timestamp: string;
   module: 'ai_chat' | 'osint' | 'tts_speech' | 'pushbullet' | 'system';
-  provider: 'groq' | 'openai' | 'fish_audio' | 'edge_tts' | 'gcp';
+  provider: 'groq' | 'gemini' | 'openai' | 'fish_audio' | 'edge_tts' | 'gcp' | 'local';
   inputUnits: number; // tokens or characters
   outputUnits: number;
   costPln: number;

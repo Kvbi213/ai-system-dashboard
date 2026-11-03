@@ -122,7 +122,7 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
     const incrementBtn = page.locator('button[title*="Zalicz serię"]').first();
     await incrementBtn.click();
     // Rest timer overlay should activate
-    await expect(page.locator('text=REST INTERVAL :: LIVE COUNTDOWN').first()).toBeVisible();
+    await expect(page.locator('text=PRZERWA MIĘDZY SERIAMI').first()).toBeVisible();
 
     // Close or skip rest overlay so tabs become accessible
     const skipBtn = page.locator('button:has-text("Pomiń przerwę"), button:has-text("Zaczynaj serię"), button[title="Zamknij nakładkę"]').first();

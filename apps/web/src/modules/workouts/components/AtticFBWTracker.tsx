@@ -2,36 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { RestTimerOverlay, NextSetInfo } from './RestTimerOverlay';
 import { Dumbbell, Plus, Minus, Timer, Check, Settings, X, RotateCcw, SlidersHorizontal } from 'lucide-react';
+import { useWorkoutState, ExerciseItem } from '../hooks/useWorkoutState';
 import { workoutsApi } from '../../../api/client';
 
-export interface ExerciseItem {
-  id: string;
-  name: string;
-  sets: number;
-  reps: number;
-  weightKg: number;
-  completedSets: number;
-}
+export type { ExerciseItem };
 
-const STORAGE_KEY = 'omnidash_fbw_exercises';
 const REST_DURATION_KEY = 'omnidash_rest_duration';
 
-const INITIAL_EXERCISES: ExerciseItem[] = [
-  { id: '1', name: 'Podciąganie na drążku (nachwyt)', sets: 4, reps: 8, weightKg: 0, completedSets: 2 },
-  { id: '2', name: 'Dipy na poręczach (kalistenika)', sets: 4, reps: 10, weightKg: 5, completedSets: 1 },
-  { id: '3', name: 'Pompki na uchwytach z deficytem', sets: 3, reps: 15, weightKg: 0, completedSets: 0 },
-  { id: '4', name: 'Wznosy nóg do drążka (brzuch)', sets: 3, reps: 12, weightKg: 0, completedSets: 0 }
-];
-
 export const AtticFBWTracker: React.FC = () => {
-  const [exercises, setExercises] = useState<ExerciseItem[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : INITIAL_EXERCISES;
-    } catch {
-      return INITIAL_EXERCISES;
-    }
-  });
+  const {
+    exercises,
+    incrementSet,
+    decrementSet,
+    resetExercise,
+    addExercise,
+    removeExercise
+  } = useWorkoutState();
 
   const [targetRestDuration, setTargetRestDuration] = useState<number>(() => {
     try {
@@ -51,10 +37,6 @@ export const AtticFBWTracker: React.FC = () => {
   const [newSets, setNewSets] = useState('4');
   const [newReps, setNewReps] = useState('10');
   const [newWeight, setNewWeight] = useState('0');
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(exercises));
-  }, [exercises]);
 
   useEffect(() => {
     localStorage.setItem(REST_DURATION_KEY, targetRestDuration.toString());
@@ -152,16 +134,9 @@ export const AtticFBWTracker: React.FC = () => {
     const nextInfo = calculateNextSetInfo(id);
     setNextSetInfo(nextInfo);
 
-    setExercises((prev) =>
-      prev.map((ex) => {
-        if (ex.id === id && ex.completedSets < ex.sets) {
-          return { ...ex, completedSets: ex.completedSets + 1 };
-        }
-        return ex;
-      })
-    );
+    incrementSet(id);
 
-    // Launch Rest Timer & Open Animated OLED True Black Overlay
+    // Launch Rest Timer & Open Animated Apple Liquid Glass Overlay
     setRestTimer(targetRestDuration);
     setIsOverlayOpen(true);
 
@@ -171,32 +146,18 @@ export const AtticFBWTracker: React.FC = () => {
   };
 
   const handleDecrementSet = (id: string) => {
-    setExercises((prev) =>
-      prev.map((ex) => (ex.id === id && ex.completedSets > 0 ? { ...ex, completedSets: ex.completedSets - 1 } : ex))
-    );
-  };
-
-  const handleUpdateExercise = (id: string, updates: Partial<ExerciseItem>) => {
-    setExercises((prev) => prev.map((ex) => (ex.id === id ? { ...ex, ...updates } : ex)));
-  };
-
-  const handleDeleteExercise = (id: string) => {
-    setExercises((prev) => prev.filter((ex) => ex.id !== id));
-    if (editingId === id) setEditingId(null);
+    decrementSet(id);
   };
 
   const handleAddExercise = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim()) return;
-    const newEx: ExerciseItem = {
-      id: Date.now().toString(),
+    addExercise({
       name: newName.trim(),
       sets: Math.max(1, parseInt(newSets, 10) || 1),
       reps: Math.max(1, parseInt(newReps, 10) || 1),
-      weightKg: Math.max(0, parseFloat(newWeight) || 0),
-      completedSets: 0
-    };
-    setExercises([...exercises, newEx]);
+      weightKg: Math.max(0, parseFloat(newWeight) || 0)
+    });
     setNewName('');
     setIsAdding(false);
   };
@@ -209,7 +170,7 @@ export const AtticFBWTracker: React.FC = () => {
 
   return (
     <>
-      {/* Full Animated OLED True Black Rest Timer Overlay */}
+      {/* Full Animated Apple Liquid Glass Rest Timer Overlay */}
       <RestTimerOverlay
         isOpen={isOverlayOpen}
         secondsRemaining={restTimer !== null ? restTimer : targetRestDuration}
@@ -243,18 +204,18 @@ export const AtticFBWTracker: React.FC = () => {
           <div className="flex items-center gap-2">
             {/* Active Rest Countdown Badge (Clickable to re-open Overlay) */}
             {restTimer !== null ? (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 text-amber-800 dark:text-amber-300 font-mono text-xs font-bold shadow-sm animate-pulse">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/30 border border-sky-300 dark:border-sky-700/60 text-sky-800 dark:text-sky-300 font-mono text-xs font-bold shadow-sm animate-pulse">
                 <button
                   onClick={() => setIsOverlayOpen(true)}
                   className="flex items-center gap-1.5 hover:underline"
                   title="Otwórz pełną nakładkę licznika serii"
                 >
-                  <Timer className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 animate-spin" />
+                  <Timer className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 animate-spin" />
                   <span>Przerwa: {formatTimer(restTimer)}</span>
                 </button>
                 <button
                   onClick={() => setRestTimer((prev) => (prev ? prev + 15 : null))}
-                  className="text-[10px] text-amber-700 dark:text-amber-400 hover:text-amber-900 font-mono px-1 rounded hover:bg-amber-100 dark:hover:bg-amber-900/40 transition"
+                  className="text-[10px] text-sky-700 dark:text-sky-400 hover:text-sky-900 font-mono px-1 rounded hover:bg-sky-100 dark:hover:bg-sky-900/40 transition"
                   title="Dodaj 15 sekund"
                 >
                   +15s
@@ -398,34 +359,15 @@ export const AtticFBWTracker: React.FC = () => {
                 <div className="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">Serie:</span>
-                    <input
-                      type="number"
-                      min="1"
-                      value={ex.sets}
-                      onChange={(e) => handleUpdateExercise(ex.id, { sets: Math.max(1, parseInt(e.target.value, 10) || 1) })}
-                      className="w-12 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-mono"
-                    />
-                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 ml-1">Powt:</span>
-                    <input
-                      type="number"
-                      min="1"
-                      value={ex.reps}
-                      onChange={(e) => handleUpdateExercise(ex.id, { reps: Math.max(1, parseInt(e.target.value, 10) || 1) })}
-                      className="w-12 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-mono"
-                    />
-                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 ml-1">Kg:</span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.5"
-                      value={ex.weightKg}
-                      onChange={(e) => handleUpdateExercise(ex.id, { weightKg: Math.max(0, parseFloat(e.target.value) || 0) })}
-                      className="w-14 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-mono"
-                    />
+                    <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200">{ex.sets}</span>
+                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 ml-2">Powt:</span>
+                    <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200">{ex.reps}</span>
+                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 ml-2">Kg:</span>
+                    <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200">{ex.weightKg}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handleUpdateExercise(ex.id, { completedSets: 0 })}
+                      onClick={() => resetExercise(ex.id)}
                       className="text-[10px] text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-1 font-mono"
                       title="Zresetuj serie"
                     >
@@ -433,7 +375,7 @@ export const AtticFBWTracker: React.FC = () => {
                       <span>Reset</span>
                     </button>
                     <button
-                      onClick={() => handleDeleteExercise(ex.id)}
+                      onClick={() => removeExercise(ex.id)}
                       className="text-[10px] text-rose-500 hover:text-rose-700 font-bold"
                     >
                       Usuń
