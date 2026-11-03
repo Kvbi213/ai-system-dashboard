@@ -24,7 +24,7 @@ export const CurrentLessonHero: React.FC<CurrentLessonHeroProps> = ({
   substitutionNote = null
 }) => {
   return (
-    <GlassCard className="p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden" glow="sky">
+    <GlassCard className="p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden w-full h-full" glow="sky">
       {/* Decorative backdrop light */}
       <div className="absolute -top-16 -right-16 w-44 h-44 bg-sky-200/40 rounded-full blur-2xl pointer-events-none" />
 

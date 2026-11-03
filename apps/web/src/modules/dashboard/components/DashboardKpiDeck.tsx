@@ -17,9 +17,9 @@ export const DashboardKpiDeck: React.FC<DashboardKpiDeckProps> = ({ taskStats, o
   const navigate = useNavigate();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5" data-testid="dashboard-kpi-deck">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 items-stretch" data-testid="dashboard-kpi-deck">
       {/* KPI 1: Aktywność Zadań */}
-      <GlassCard className="p-3 sm:p-3.5 flex flex-col justify-between hover:shadow-md transition-all" glow="sky">
+      <GlassCard className="p-3 sm:p-3.5 flex flex-col justify-between hover:shadow-md transition-all w-full h-full" glow="sky">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Aktywność Dnia</span>
           <span className="flex items-center gap-1 text-[11px] font-bold font-mono text-sky-700 bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-200">
@@ -70,7 +70,7 @@ export const DashboardKpiDeck: React.FC<DashboardKpiDeckProps> = ({ taskStats, o
       </GlassCard>
 
       {/* KPI 2: Sesja Treningowa FBW */}
-      <GlassCard className="p-3 sm:p-3.5 flex flex-col justify-between hover:shadow-md transition-all" glow="emerald">
+      <GlassCard className="p-3 sm:p-3.5 flex flex-col justify-between hover:shadow-md transition-all w-full h-full" glow="emerald">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Sesja FBW</span>
           <span className="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
@@ -99,7 +99,7 @@ export const DashboardKpiDeck: React.FC<DashboardKpiDeckProps> = ({ taskStats, o
       </GlassCard>
 
       {/* KPI 3: Finanse Koperty 50/30/20 */}
-      <GlassCard className="p-3 sm:p-3.5 flex flex-col justify-between hover:shadow-md transition-all" glow="amber">
+      <GlassCard className="p-3 sm:p-3.5 flex flex-col justify-between hover:shadow-md transition-all w-full h-full" glow="amber">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Budżet 50/30/20</span>
           <span className="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
