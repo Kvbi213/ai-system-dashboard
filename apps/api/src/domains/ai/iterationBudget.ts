@@ -11,6 +11,11 @@ export class IterationBudgetExhaustedError extends Error {
   }
 }
 
+/**
+ * IterationBudget enforces execution step limits, wall-clock timeouts, and token consumption budgets.
+ * CONCURRENCY NOTICE: Designed for sequential execution per single LLM session context.
+ * Instances are single-threaded and not safe for concurrent shared access across asynchronous workers.
+ */
 export class IterationBudget {
   private readonly maxLoops: number;
   private readonly timeoutMs: number;
@@ -58,7 +63,9 @@ export class IterationBudget {
   }
 
   public recordTokens(tokensUsed: number): void {
-    if (tokensUsed <= 0) return;
+    if (tokensUsed < 0) {
+      throw new RangeError('[!] IterationBudget: tokensUsed cannot be a negative value.');
+    }
     this.accumulatedTokens += tokensUsed;
 
     if (this.maxTokens && this.accumulatedTokens > this.maxTokens) {

@@ -20,6 +20,13 @@ export interface LLMResponse {
   fallbackCount: number;
 }
 
+export class LLMTimeoutError extends Error {
+  constructor(message: string, public readonly provider: string) {
+    super(message);
+    this.name = 'LLMTimeoutError';
+  }
+}
+
 export interface GroqChatResponse {
   choices?: Array<{
     message?: {
@@ -99,8 +106,6 @@ export class LLMGateway {
         console.warn('[!] LLMGateway: Groq provider failed, initiating failover:', err);
         fallbackCount++;
       }
-    } else {
-      fallbackCount++;
     }
 
     // 2. Secondary: Gemini 2.0 Flash API
@@ -123,8 +128,6 @@ export class LLMGateway {
         console.warn('[!] LLMGateway: Gemini provider failed, initiating failover:', err);
         fallbackCount++;
       }
-    } else {
-      fallbackCount++;
     }
 
     // 3. Tertiary: OpenAI API
@@ -147,8 +150,6 @@ export class LLMGateway {
         console.warn('[!] LLMGateway: OpenAI provider failed, falling back to local core:', err);
         fallbackCount++;
       }
-    } else {
-      fallbackCount++;
     }
 
     // 4. Deterministic Local Executive Assistant Fallback
@@ -205,8 +206,11 @@ export class LLMGateway {
         }),
         signal: controller.signal
       });
-    } catch (networkErr) {
+    } catch (networkErr: any) {
       clearTimeout(timeout);
+      if (networkErr?.name === 'AbortError' || controller.signal.aborted) {
+        throw new LLMTimeoutError('Groq provider timed out (7000ms abort)', 'groq');
+      }
       throw new Error(`Groq fetch network error: ${networkErr instanceof Error ? networkErr.message : String(networkErr)}`);
     }
 
@@ -259,8 +263,11 @@ export class LLMGateway {
         }),
         signal: controller.signal
       });
-    } catch (networkErr) {
+    } catch (networkErr: any) {
       clearTimeout(timeout);
+      if (networkErr?.name === 'AbortError' || controller.signal.aborted) {
+        throw new LLMTimeoutError('Gemini provider timed out (7000ms abort)', 'gemini');
+      }
       throw new Error(`Gemini fetch network error: ${networkErr instanceof Error ? networkErr.message : String(networkErr)}`);
     }
 
@@ -319,8 +326,11 @@ export class LLMGateway {
         }),
         signal: controller.signal
       });
-    } catch (networkErr) {
+    } catch (networkErr: any) {
       clearTimeout(timeout);
+      if (networkErr?.name === 'AbortError' || controller.signal.aborted) {
+        throw new LLMTimeoutError('OpenAI provider timed out (7000ms abort)', 'openai');
+      }
       throw new Error(`OpenAI fetch network error: ${networkErr instanceof Error ? networkErr.message : String(networkErr)}`);
     }
 
