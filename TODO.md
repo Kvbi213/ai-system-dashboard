@@ -12,6 +12,7 @@
 |---|---|---|---|---|---|
 | `TASK-PB-01` | `apps/worker` + `apps/api` | Dwukierunkowy most czatu AI przez oficjalną aplikację Pushbullet | `[*] WYSOKI` | `v4.1.0` | `[~] ZAPLANOWANE` |
 | `TASK-PB-02` | `apps/worker` (Cron) | Proaktywny asystent zdrowotny: AI przypomnienie o posiłku 3h przed snem | `[*] WYSOKI` | `v4.1.0` | `[~] ZAPLANOWANE` |
+| `TASK-PB-03` | `apps/worker` (Cron) | Deterministyczny dispatch Pushbullet: powiadomienie o ukończeniu i następnym punkcie planu (szkoła/praca/prywatne) | `[*] WYSOKI` | `v4.1.0` | `[~] ZAPLANOWANE` |
 | `TASK-AUTH-01` | `apps/api` + `apps/web` | Firebase Multi-Auth (Google OAuth, E-mail Magic Link, SMS OTP) | `[!] KRYTYCZNY` | `v4.2.0` | `[~] ZAPLANOWANE` |
 | `TASK-JARVIS-01` | `apps/api` | Hybrydowy silnik LLM (Ollama Local-First + Groq LPU Fallback) | `[*] WYSOKI` | `v4.3.0` | `[~] ZAPLANOWANE` |
 
@@ -47,5 +48,30 @@
 
 ---
 
+### [*] TASK-PB-03: Deterministyczny Dispatcher Zdarzeń Dnia przez Pushbullet (Zero-LLM Fast Notification)
+- **Cel:** Natychmiastowe wysyłanie precyzyjnych powiadomień Pushbullet na smartfon po ukończeniu bieżącego punktu planu (lekcja szkolna, blok pracy, aktywność prywatna), informujących o godzinie zakończenia oraz szczegółach kolejnego zadania — bez kosztownego i zbędnego odpytywania modelu AI (czyste zapytanie bazodanowe i formatowanie szablonowe).
+- **Logika Deterministyczna i Priorytetowanie Czasowe:**
+  1. **Detekcja Zdarzenia Kończącego:** Worker w `apps/worker` monitoruje zakończenie aktywnego punktu w planie dnia (np. upływ godziny lekcyjnej z planu Librus/szkoła lub zakończenie slotu z harmonogramu prywatnego).
+  2. **Agregacja i Analiza Najbliższego Horyzontu (Min-Distance Scheduler):**
+     - System równolegle odpytuje bazę SQLite / REST API o najbliższe nadchodzące zdarzenia z obu kategorii:
+       - Kategoria A: Plan Szkolny / Praca (`timetable` / `school_events` / `work_tasks`).
+       - Kategoria B: Plan Osobisty / Prywatny (`private_events` / `personal_routine` / `habits`).
+     - Algorytm porównuje znaczniki czasowe (`start_time`) i wybiera zdarzenie, które jest bezwzględnie najbliższe w czasie (`min(delta_school, delta_private)`).
+  3. **Szablon Wiadomości (Zero-LLM Cost):**
+     - Sformatowanie zwartego komunikatu z podstawionymi zmiennymi:
+       `[+] Zakończono: [Nazwa_Zadania] o [HH:MM].`
+       `[>] Następnie: [Nazwa_Kolejnego_Zadania] ([KATEGORIA: SZKOŁA / PRYWATNE / PRACA])`
+       `[~] Czas: [HH:MM] - [HH:MM] | Lokalizacja / Sala: [Miejsce_Lub_Sala]`
+       `[*] Odstęp: za [X] min.`
+  4. **Ekspresowa Wysyłka:** Wysłanie powiadomienia push w <200ms przez Pushbullet API (`POST https://api.pushbullet.com/v2/pushes`). Zero zużycia tokenów LLM, stuprocentowa niezawodność i determinizm.
+- **Kryteria Akceptacji (DoD):**
+  - [ ] Prawidłowe wykrycie i powiadomienie dokładnie w minucie zakończenia bloku czasowego.
+  - [ ] Poprawne wyłonienie najbliższego punktu niezależnie od tego, czy pochodzi z terminarza szkolnego czy prywatnego.
+  - [ ] Wskazanie kategorii (prywatne vs szkolne/praca), dokładnego miejsca/sali oraz czasu do rozpoczęcia.
+  - [ ] Całkowity brak wywołań LLM (działanie wyłącznie w oparciu o czystą logikę TypeScript / SQLite).
+
+---
+
 ## 3. HISTORIA ZMIAN REJESTRU
 - **2026-11-02:** Dodano zadania `TASK-PB-01` (Dwukierunkowy czat AI Pushbullet) oraz `TASK-PB-02` (Proaktywne przypomnienia 3h przed snem) do rejestru sprintu `v4.1.0`.
+- **2026-11-03:** Dodano zadanie `TASK-PB-03` (Deterministyczny dispatcher powiadomień Pushbullet o zakończeniu i następnym punkcie planu: prywatne vs szkoła/praca bez LLM).
