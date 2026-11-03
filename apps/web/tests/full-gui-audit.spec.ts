@@ -13,11 +13,11 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
 
     // Verify main components are rendered
-    await expect(page.locator('text=Projektowanie Oprogramowania').first()).toBeVisible();
+    await expect(page.locator('[data-testid="current-lesson-hero"]').first()).toBeVisible();
     await expect(page.locator('text=CANARD Radary').first()).toBeVisible();
     await expect(page.locator('[data-testid="dashboard-kpi-deck"]').first()).toBeVisible();
     await expect(page.locator('text=Oś Czasu Dnia (Timeline)').first()).toBeVisible();
-    await expect(page.locator('text=Czat AI').first()).toBeVisible();
+    await expect(page.locator('a[href="/chat"]:visible').first()).toBeVisible();
 
     // Verify obsolete widgets were removed for viewport-fit
     await expect(page.locator('text=Szybki Czat Omni AI')).toHaveCount(0);

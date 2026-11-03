@@ -15,6 +15,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   pendingTasksCount = 2
 }) => {
   const [timeStr, setTimeStr] = useState<string>('');
+  const [dateStr, setDateStr] = useState<string>('');
 
   useEffect(() => {
     const updateTime = () => {
@@ -25,6 +26,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           hour: '2-digit',
           minute: '2-digit',
           second: '2-digit'
+        })
+      );
+      setDateStr(
+        now.toLocaleDateString('pl-PL', {
+          timeZone: 'Europe/Warsaw',
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short'
         })
       );
     };
@@ -52,10 +61,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         {/* Right: Warsaw Live Clock, Telemetry Status, Action Triggers */}
         <div className="flex items-center gap-3 sm:gap-4">
-          {/* Warsaw Clock */}
+          {/* Warsaw Clock & Current Day */}
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/80 border border-slate-200/80 font-mono text-xs text-slate-700 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-            <span className="text-slate-500">WARSZAWA:</span>
+            <span className="text-slate-500 font-bold uppercase">{dateStr || 'DZIŚ'}</span>
+            <span className="text-slate-300">|</span>
             <span className="font-bold text-sky-700">{timeStr || '--:--:--'}</span>
           </div>
 

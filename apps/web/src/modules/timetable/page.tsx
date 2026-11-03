@@ -15,7 +15,14 @@ const FALLBACK_LESSONS: Record<number, LessonItem[]> = {
 };
 
 export const TimetablePage: React.FC = () => {
-  const [selectedDay, setSelectedDay] = useState(1);
+  // Automatyczne wykrycie bieżącego dnia roboczego (1 = Pon, 2 = Wt, ..., 5 = Pt)
+  const currentDay = (() => {
+    const d = new Date().getDay();
+    if (d >= 1 && d <= 5) return d;
+    return 1; // Weekend przełącza domyślnie na poniedziałek
+  })();
+
+  const [selectedDay, setSelectedDay] = useState(currentDay);
   const [lessons, setLessons] = useState<LessonItem[]>(FALLBACK_LESSONS[1] || []);
   const [loading, setLoading] = useState(false);
 
