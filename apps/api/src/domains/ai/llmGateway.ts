@@ -20,7 +20,7 @@ export interface LLMResponse {
   fallbackCount: number;
 }
 
-interface GroqChatResponse {
+export interface GroqChatResponse {
   choices?: Array<{
     message?: {
       content?: string;
@@ -33,7 +33,7 @@ interface GroqChatResponse {
   };
 }
 
-interface GeminiChatResponse {
+export interface GeminiChatResponse {
   candidates?: Array<{
     content?: {
       parts?: Array<{
@@ -43,7 +43,7 @@ interface GeminiChatResponse {
   }>;
 }
 
-interface OpenAIChatResponse {
+export interface OpenAIChatResponse {
   choices?: Array<{
     message?: {
       content?: string;
@@ -84,6 +84,7 @@ export class LLMGateway {
       try {
         budget.recordStep();
         const res = await this.callGroq(options);
+        budget.recordTokens(res.tokensUsed.total);
         const durationMs = Date.now() - startTime;
         finOpsCollector.recordMetric({
           module: 'ai_chat',
@@ -98,6 +99,8 @@ export class LLMGateway {
         console.warn('[!] LLMGateway: Groq provider failed, initiating failover:', err);
         fallbackCount++;
       }
+    } else {
+      fallbackCount++;
     }
 
     // 2. Secondary: Gemini 2.0 Flash API
@@ -105,6 +108,7 @@ export class LLMGateway {
       try {
         budget.recordStep();
         const res = await this.callGemini(options);
+        budget.recordTokens(res.tokensUsed.total);
         const durationMs = Date.now() - startTime;
         finOpsCollector.recordMetric({
           module: 'ai_chat',
@@ -119,6 +123,8 @@ export class LLMGateway {
         console.warn('[!] LLMGateway: Gemini provider failed, initiating failover:', err);
         fallbackCount++;
       }
+    } else {
+      fallbackCount++;
     }
 
     // 3. Tertiary: OpenAI API
@@ -126,6 +132,7 @@ export class LLMGateway {
       try {
         budget.recordStep();
         const res = await this.callOpenAI(options);
+        budget.recordTokens(res.tokensUsed.total);
         const durationMs = Date.now() - startTime;
         finOpsCollector.recordMetric({
           module: 'ai_chat',
@@ -140,12 +147,17 @@ export class LLMGateway {
         console.warn('[!] LLMGateway: OpenAI provider failed, falling back to local core:', err);
         fallbackCount++;
       }
+    } else {
+      fallbackCount++;
     }
 
     // 4. Deterministic Local Executive Assistant Fallback
     budget.recordStep();
     const localRes = this.executeLocalAssistant(options.message);
     const durationMs = Date.now() - startTime;
+    const localTokens = options.message.length + localRes.reply.length;
+    budget.recordTokens(localTokens);
+
     finOpsCollector.recordMetric({
       module: 'ai_chat',
       provider: 'local',
@@ -160,7 +172,7 @@ export class LLMGateway {
       provider: 'local',
       model: 'omnidash-deterministic-core-v4',
       latencyMs: durationMs,
-      tokensUsed: { prompt: options.message.length, completion: localRes.reply.length, total: options.message.length + localRes.reply.length },
+      tokensUsed: { prompt: options.message.length, completion: localRes.reply.length, total: localTokens },
       toolCall: localRes.toolCall,
       fallbackCount
     };
@@ -170,8 +182,9 @@ export class LLMGateway {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 7000);
 
+    let response: Response;
     try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -192,40 +205,49 @@ export class LLMGateway {
         }),
         signal: controller.signal
       });
+    } catch (networkErr) {
+      clearTimeout(timeout);
+      throw new Error(`Groq fetch network error: ${networkErr instanceof Error ? networkErr.message : String(networkErr)}`);
+    }
 
+    try {
       if (!response.ok) {
         throw new Error(`Groq HTTP error ${response.status}: ${response.statusText}`);
       }
-
-      let data: GroqChatResponse;
-      try {
-        data = (await response.json()) as GroqChatResponse;
-      } catch (parseErr) {
-        throw new Error(`Failed to parse Groq response JSON: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`);
-      }
-
-      const choice = data.choices?.[0];
-      const reply = choice?.message?.content || 'Pomyślnie przetworzono polecenie.';
-      const usage = data.usage || { prompt_tokens: 150, completion_tokens: 80, total_tokens: 230 };
-
-      return {
-        reply,
-        provider: 'groq',
-        model: 'llama-3.3-70b-versatile',
-        tokensUsed: { prompt: usage.prompt_tokens, completion: usage.completion_tokens, total: usage.total_tokens }
-      };
+      return await this.parseGroqResponse(response);
     } finally {
       clearTimeout(timeout);
     }
+  }
+
+  private async parseGroqResponse(response: Response): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
+    let data: GroqChatResponse;
+    try {
+      data = (await response.json()) as GroqChatResponse;
+    } catch (parseErr) {
+      throw new Error(`Failed to parse Groq response JSON: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`);
+    }
+
+    const choice = data.choices?.[0];
+    const reply = choice?.message?.content || 'Pomyślnie przetworzono polecenie.';
+    const usage = data.usage || { prompt_tokens: 150, completion_tokens: 80, total_tokens: 230 };
+
+    return {
+      reply,
+      provider: 'groq',
+      model: 'llama-3.3-70b-versatile',
+      tokensUsed: { prompt: usage.prompt_tokens, completion: usage.completion_tokens, total: usage.total_tokens }
+    };
   }
 
   private async callGemini(options: LLMRequestOptions): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 7000);
 
+    let response: Response;
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${this.geminiApiKey}`;
-      const response = await fetch(url, {
+      response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -237,38 +259,47 @@ export class LLMGateway {
         }),
         signal: controller.signal
       });
+    } catch (networkErr) {
+      clearTimeout(timeout);
+      throw new Error(`Gemini fetch network error: ${networkErr instanceof Error ? networkErr.message : String(networkErr)}`);
+    }
 
+    try {
       if (!response.ok) {
         throw new Error(`Gemini HTTP error ${response.status}: ${response.statusText}`);
       }
-
-      let data: GeminiChatResponse;
-      try {
-        data = (await response.json()) as GeminiChatResponse;
-      } catch (parseErr) {
-        throw new Error(`Failed to parse Gemini response JSON: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`);
-      }
-
-      const candidate = data.candidates?.[0];
-      const reply = candidate?.content?.parts?.[0]?.text || 'Przetworzono polecenie w chmurze Gemini.';
-
-      return {
-        reply,
-        provider: 'gemini',
-        model: 'gemini-2.0-flash',
-        tokensUsed: { prompt: 160, completion: 90, total: 250 }
-      };
+      return await this.parseGeminiResponse(response);
     } finally {
       clearTimeout(timeout);
     }
+  }
+
+  private async parseGeminiResponse(response: Response): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
+    let data: GeminiChatResponse;
+    try {
+      data = (await response.json()) as GeminiChatResponse;
+    } catch (parseErr) {
+      throw new Error(`Failed to parse Gemini response JSON: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`);
+    }
+
+    const candidate = data.candidates?.[0];
+    const reply = candidate?.content?.parts?.[0]?.text || 'Przetworzono polecenie w chmurze Gemini.';
+
+    return {
+      reply,
+      provider: 'gemini',
+      model: 'gemini-2.0-flash',
+      tokensUsed: { prompt: 160, completion: 90, total: 250 }
+    };
   }
 
   private async callOpenAI(options: LLMRequestOptions): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 7000);
 
+    let response: Response;
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -288,31 +319,39 @@ export class LLMGateway {
         }),
         signal: controller.signal
       });
+    } catch (networkErr) {
+      clearTimeout(timeout);
+      throw new Error(`OpenAI fetch network error: ${networkErr instanceof Error ? networkErr.message : String(networkErr)}`);
+    }
 
+    try {
       if (!response.ok) {
         throw new Error(`OpenAI HTTP error ${response.status}: ${response.statusText}`);
       }
-
-      let data: OpenAIChatResponse;
-      try {
-        data = (await response.json()) as OpenAIChatResponse;
-      } catch (parseErr) {
-        throw new Error(`Failed to parse OpenAI response JSON: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`);
-      }
-
-      const choice = data.choices?.[0];
-      const reply = choice?.message?.content || 'Polecenie przetworzone przez silnik OpenAI.';
-      const usage = data.usage || { prompt_tokens: 180, completion_tokens: 95, total_tokens: 275 };
-
-      return {
-        reply,
-        provider: 'openai',
-        model: 'gpt-4o-mini',
-        tokensUsed: { prompt: usage.prompt_tokens, completion: usage.completion_tokens, total: usage.total_tokens }
-      };
+      return await this.parseOpenAIResponse(response);
     } finally {
       clearTimeout(timeout);
     }
+  }
+
+  private async parseOpenAIResponse(response: Response): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
+    let data: OpenAIChatResponse;
+    try {
+      data = (await response.json()) as OpenAIChatResponse;
+    } catch (parseErr) {
+      throw new Error(`Failed to parse OpenAI response JSON: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`);
+    }
+
+    const choice = data.choices?.[0];
+    const reply = choice?.message?.content || 'Polecenie przetworzone przez silnik OpenAI.';
+    const usage = data.usage || { prompt_tokens: 180, completion_tokens: 95, total_tokens: 275 };
+
+    return {
+      reply,
+      provider: 'openai',
+      model: 'gpt-4o-mini',
+      tokensUsed: { prompt: usage.prompt_tokens, completion: usage.completion_tokens, total: usage.total_tokens }
+    };
   }
 
   private executeLocalAssistant(message: string): { reply: string; toolCall?: { toolName: string; args: Record<string, unknown>; output: string } } {

@@ -10,11 +10,18 @@ describe('IterationBudget & LLMGateway Resilience Suite', () => {
     expect(() => budget.recordStep()).toThrow(IterationBudgetExhaustedError);
   });
 
-  it('throws IterationBudgetExhaustedError when maxTokens is exceeded', () => {
+  it('throws RangeError for non-positive budget parameters', () => {
+    expect(() => new IterationBudget({ maxLoops: 0 })).toThrow(RangeError);
+    expect(() => new IterationBudget({ maxLoops: -2 })).toThrow(RangeError);
+    expect(() => new IterationBudget({ timeoutMs: -100 })).toThrow(RangeError);
+    expect(() => new IterationBudget({ maxTokens: 0 })).toThrow(RangeError);
+    expect(() => new IterationBudget({ maxTokens: -50 })).toThrow(RangeError);
+  });
+
+  it('throws IterationBudgetExhaustedError when maxTokens is exceeded via recordTokens', () => {
     const budget = new IterationBudget({ maxLoops: 10, maxTokens: 500 });
-    budget.recordStep(200);
-    budget.recordStep(250);
-    expect(() => budget.recordStep(100)).toThrow(IterationBudgetExhaustedError);
+    budget.recordTokens(300);
+    expect(() => budget.recordTokens(250)).toThrow(IterationBudgetExhaustedError);
   });
 
   it('reports correct status including token accumulation', () => {
@@ -43,5 +50,7 @@ describe('IterationBudget & LLMGateway Resilience Suite', () => {
     expect(res.reply).toBeDefined();
     expect(res.tokensUsed).toBeDefined();
     expect(res.tokensUsed.total).toBeGreaterThan(0);
+    expect(res.provider).toBe('local');
+    expect(res.fallbackCount).toBeGreaterThanOrEqual(1);
   });
 });

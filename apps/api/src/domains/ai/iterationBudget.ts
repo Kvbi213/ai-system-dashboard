@@ -20,6 +20,16 @@ export class IterationBudget {
   private accumulatedTokens: number = 0;
 
   constructor(config: IterationBudgetConfig = {}) {
+    if (config.maxLoops !== undefined && config.maxLoops <= 0) {
+      throw new RangeError('[!] IterationBudget: maxLoops must be a positive integer (> 0).');
+    }
+    if (config.timeoutMs !== undefined && config.timeoutMs <= 0) {
+      throw new RangeError('[!] IterationBudget: timeoutMs must be a positive number (> 0).');
+    }
+    if (config.maxTokens !== undefined && config.maxTokens <= 0) {
+      throw new RangeError('[!] IterationBudget: maxTokens must be a positive integer (> 0).');
+    }
+
     this.maxLoops = config.maxLoops ?? 5;
     this.timeoutMs = config.timeoutMs ?? 15000;
     this.maxTokens = config.maxTokens;
@@ -28,7 +38,7 @@ export class IterationBudget {
 
   public recordStep(tokensUsed: number = 0): void {
     this.currentLoop += 1;
-    this.accumulatedTokens += tokensUsed;
+    this.recordTokens(tokensUsed);
 
     if (Date.now() - this.startTime > this.timeoutMs) {
       throw new IterationBudgetExhaustedError(
@@ -45,6 +55,11 @@ export class IterationBudget {
         this.maxLoops
       );
     }
+  }
+
+  public recordTokens(tokensUsed: number): void {
+    if (tokensUsed <= 0) return;
+    this.accumulatedTokens += tokensUsed;
 
     if (this.maxTokens && this.accumulatedTokens > this.maxTokens) {
       throw new IterationBudgetExhaustedError(
