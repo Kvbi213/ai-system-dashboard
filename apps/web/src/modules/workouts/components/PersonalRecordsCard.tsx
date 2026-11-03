@@ -101,17 +101,17 @@ export const PersonalRecordsCard: React.FC = () => {
     <GlassCard className="p-4 sm:p-5" glow="sky">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-sky-100 text-sky-700 border border-sky-200 shadow-sm">
+          <div className="p-2 rounded-xl bg-sky-100 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 shadow-sm">
             <Trophy className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 tracking-tight">Rekordy Siłowe i Osiągnięcia (PR)</h3>
-            <p className="text-xs text-slate-500 font-medium">Osobiste maksima w kalistenice</p>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Rekordy Siłowe i Osiągnięcia (PR)</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Osobiste maksima w kalistenice</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-1 text-xs text-sky-700 font-bold bg-sky-50 px-2.5 py-1 rounded-xl border border-sky-200 shadow-sm">
+          <div className="hidden sm:flex items-center gap-1 text-xs text-sky-700 dark:text-sky-300 font-bold bg-sky-50 dark:bg-sky-950/70 px-2.5 py-1 rounded-xl border border-sky-200 dark:border-sky-800 shadow-sm">
             <TrendingUp className="w-3.5 h-3.5" />
             <span>PROGRES</span>
           </div>
@@ -126,28 +126,28 @@ export const PersonalRecordsCard: React.FC = () => {
       </div>
 
       {isAdding && (
-        <form onSubmit={handleAdd} className="p-3 mb-3 rounded-xl bg-sky-50/70 border border-sky-200 space-y-2">
+        <form onSubmit={handleAdd} className="p-3 mb-3 rounded-xl bg-sky-50/70 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 space-y-2">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <input
               type="text"
               placeholder="Ćwiczenie (np. Muscle-up)..."
               value={exercise}
               onChange={(e) => setExercise(e.target.value)}
-              className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-xs text-slate-900"
+              className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
             />
             <input
               type="text"
               placeholder="Wynik (np. 5 powtórzeń)..."
               value={recordVal}
               onChange={(e) => setRecordVal(e.target.value)}
-              className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-xs text-slate-900"
+              className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
             />
             <input
               type="text"
               placeholder="Notatka / wariant..."
               value={extra}
               onChange={(e) => setExtra(e.target.value)}
-              className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-xs text-slate-900"
+              className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
             />
           </div>
           <button
@@ -163,24 +163,24 @@ export const PersonalRecordsCard: React.FC = () => {
         {records.map((rec) => (
           <div
             key={rec.id}
-            className="p-3.5 rounded-2xl bg-white/70 border border-slate-200/80 shadow-sm flex flex-col justify-between hover:bg-white transition"
+            className="p-3.5 rounded-2xl bg-white/70 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between hover:bg-white dark:hover:bg-slate-850 transition"
           >
             <div>
               <div className="flex items-center justify-between">
-                <p className="text-xs font-bold text-slate-900">{rec.exercise}</p>
+                <p className="text-xs font-bold text-slate-900 dark:text-white">{rec.exercise}</p>
                 <button
                   onClick={() => handleDelete(rec.id, rec.exercise)}
-                  className="text-slate-300 hover:text-rose-500 transition p-1"
+                  className="text-slate-400 hover:text-rose-500 transition p-1"
                   title="Usuń rekord"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <p className="text-base font-bold font-mono text-sky-800 mt-1">{rec.record}</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">{rec.extra}</p>
+              <p className="text-base font-bold font-mono text-sky-700 dark:text-sky-300 mt-1">{rec.record}</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{rec.extra}</p>
             </div>
 
-            <div className="flex items-center gap-1 text-[10px] text-slate-400 font-mono mt-3 pt-2 border-t border-slate-100">
+            <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-3 pt-2 border-t border-slate-100 dark:border-slate-800">
               <Calendar className="w-3 h-3 text-slate-400" />
               <span>Osiągnięto: {rec.date}</span>
             </div>

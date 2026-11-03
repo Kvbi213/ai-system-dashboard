@@ -16,6 +16,13 @@ export interface TimelineBlock {
 export const DailyTimelineWidget: React.FC = () => {
   const [events, setEvents] = useState<TimelineBlock[]>([]);
   const [filterMode, setFilterMode] = useState<'all' | 'school' | 'private'>('all');
+  const currentEventRef = React.useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (currentEventRef.current) {
+      currentEventRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [events, filterMode]);
 
   useEffect(() => {
     const fetchAndMergeSchedules = async () => {
@@ -102,39 +109,33 @@ export const DailyTimelineWidget: React.FC = () => {
           },
           {
             id: 'priv_5',
-            time: '20:00 - 20:30',
-            title: 'Ostatni posiłek dnia (3h przed planowanym snem)',
+            time: '22:15 - 22:45',
+            title: 'Wyciszenie, czytanie dokumentacji i higiena snu',
             category: 'PRYWATNE',
-            status: currentMinutes >= 1230 ? 'done' : (currentMinutes >= 1200 ? 'current' : 'upcoming'),
+            status: currentMinutes >= 1365 ? 'done' : (currentMinutes >= 1335 ? 'current' : 'upcoming'),
             sourceType: 'private',
-            startMins: 1200,
-            endMins: 1230
+            startMins: 1335,
+            endMins: 1365
           }
         ];
 
-        const routineBlocks: (TimelineBlock & { startMins: number; endMins: number })[] = [];
+        // Dołącz rutyny z API jeśli są dostępne
         if (privateRes?.routines && Array.isArray(privateRes.routines)) {
-          privateRes.routines.forEach((rt: any, idx: number) => {
-            const isMorning = rt.timeOfDay === 'morning';
-            const startMins = isMorning ? 420 + idx * 15 : 1260 + idx * 15;
+          privateRes.routines.forEach((r: any, idx: number) => {
+            const isMorning = r.timeOfDay === 'morning';
+            const startMins = isMorning ? (420 + idx * 15) : (1320 + idx * 15);
             const endMins = startMins + 15;
-            const sh = String(Math.floor(startMins / 60)).padStart(2, '0');
-            const sm = String(startMins % 60).padStart(2, '0');
-            const eh = String(Math.floor(endMins / 60)).padStart(2, '0');
-            const em = String(endMins % 60).padStart(2, '0');
+            const sh = Math.floor(startMins / 60).toString().padStart(2, '0');
+            const sm = (startMins % 60).toString().padStart(2, '0');
+            const eh = Math.floor(endMins / 60).toString().padStart(2, '0');
+            const em = (endMins % 60).toString().padStart(2, '0');
 
-            routineBlocks.push({
-              id: `priv_rt_${rt.id || idx}`,
+            basePrivateBlocks.push({
+              id: `routine_${r.id || idx}`,
               time: `${sh}:${sm} - ${eh}:${em}`,
-              title: rt.title,
+              title: r.title,
               category: 'PRYWATNE',
-              status: rt.completed
-                ? 'done'
-                : currentMinutes >= endMins
-                ? 'done'
-                : currentMinutes >= startMins
-                ? 'current'
-                : 'upcoming',
+              status: currentMinutes >= endMins ? 'done' : (currentMinutes >= startMins ? 'current' : 'upcoming'),
               sourceType: 'private',
               startMins,
               endMins
@@ -142,10 +143,8 @@ export const DailyTimelineWidget: React.FC = () => {
           });
         }
 
-        const privateBlocks = routineBlocks.length > 0 ? [...basePrivateBlocks, ...routineBlocks] : basePrivateBlocks;
-
-        // Scalenie i posortowanie chronologiczne
-        const merged = [...schoolBlocks, ...privateBlocks].sort((a, b) => a.startMins - b.startMins);
+        // Scal i posortuj chronologicznie według minut rozpoczęcia
+        const merged = [...schoolBlocks, ...basePrivateBlocks].sort((a, b) => a.startMins - b.startMins);
         setEvents(merged);
       } catch (e) {
         console.warn('[!] Nie udało się pobrać harmonogramów osi czasu:', e);
@@ -168,23 +167,23 @@ export const DailyTimelineWidget: React.FC = () => {
     <GlassCard className="p-3 sm:p-4" glow="sky">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-xl bg-sky-100 text-sky-700 border border-sky-200 shadow-sm">
+          <div className="p-1.5 rounded-xl bg-sky-100 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 shadow-sm">
             <Calendar className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 tracking-tight">Oś Czasu Dnia (Timeline)</h3>
-            <p className="text-xs text-slate-500 font-medium">Zsynchronizowany harmonogram dobowy</p>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Oś Czasu Dnia (Timeline)</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Zsynchronizowany harmonogram dobowy</p>
           </div>
         </div>
 
         {/* Filtr Szkolne / Prywatne / Wszystkie */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800">
           <button
             onClick={() => setFilterMode('all')}
             className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
               filterMode === 'all'
                 ? 'bg-white dark:bg-slate-800 text-sky-700 dark:text-sky-300 shadow-xs border border-slate-200 dark:border-slate-700'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             Wszystkie ({events.length})
@@ -194,7 +193,7 @@ export const DailyTimelineWidget: React.FC = () => {
             className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
               filterMode === 'school'
                 ? 'bg-sky-600 text-white shadow-xs'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             Szkolne
@@ -204,7 +203,7 @@ export const DailyTimelineWidget: React.FC = () => {
             className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
               filterMode === 'private'
                 ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             Prywatne
@@ -212,42 +211,48 @@ export const DailyTimelineWidget: React.FC = () => {
         </div>
       </div>
 
-      <div className="space-y-2.5 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800 max-h-[380px] overflow-y-auto pr-1">
+      <div className="space-y-2.5 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-300 dark:before:bg-slate-700 max-h-[380px] overflow-y-auto pr-1">
         {filteredEvents.map((event) => {
           const isDone = event.status === 'done';
           const isCurrent = event.status === 'current';
 
           return (
-            <div key={event.id} className="relative flex items-start gap-3 pl-1 group">
+            <div
+              key={event.id}
+              ref={isCurrent ? currentEventRef : undefined}
+              className="relative flex items-start gap-3 pl-1 group"
+            >
               {/* Node Indicator */}
               <div className="relative z-10 shrink-0 mt-0.5">
                 {isDone ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 bg-white dark:bg-slate-900 rounded-full" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 bg-white dark:bg-slate-900 rounded-full" />
                 ) : isCurrent ? (
                   <div className="relative flex items-center justify-center">
                     <span className="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-sky-400 opacity-75"></span>
-                    <CircleDot className="w-5 h-5 text-sky-600 bg-white dark:bg-slate-900 rounded-full relative" />
+                    <CircleDot className="w-5 h-5 text-sky-500 bg-white dark:bg-slate-900 rounded-full relative" />
                   </div>
                 ) : (
                   <div className="w-5 h-5 rounded-full bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center" />
                 )}
               </div>
 
-              {/* Event Content Box */}
+              {/* Event Content Box with high contrast */}
               <div
                 className={`flex-1 p-2.5 rounded-xl border transition-all ${
                   isCurrent
-                    ? 'bg-sky-50/90 dark:bg-sky-950/70 border-sky-300 dark:border-sky-500 shadow-sm ring-1 ring-sky-300/60'
+                    ? 'bg-sky-50 dark:bg-sky-950/80 border-sky-300 dark:border-sky-500 shadow-sm ring-1 ring-sky-300/60'
                     : isDone
-                    ? 'bg-slate-50/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800/80 opacity-75'
-                    : 'bg-white/70 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800/80 hover:bg-white dark:hover:bg-slate-850'
+                    ? 'bg-slate-50 dark:bg-slate-900/90 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-850'
+                    : 'bg-white dark:bg-slate-900/90 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400">{event.time}</span>
+                  <span className="text-[11px] font-mono font-bold text-slate-700 dark:text-slate-200">
+                    {event.time}
+                  </span>
                   <div className="flex items-center gap-1.5">
                     {event.room && (
-                      <span className="text-[10px] font-mono bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold">
+                      <span className="text-[10px] font-mono bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold">
                         {event.room}
                       </span>
                     )}
@@ -256,8 +261,8 @@ export const DailyTimelineWidget: React.FC = () => {
                         isCurrent
                           ? 'bg-sky-600 text-white'
                           : event.sourceType === 'school'
-                          ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800'
-                          : 'bg-indigo-100 dark:bg-indigo-950/80 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800'
+                          ? 'bg-sky-100 dark:bg-sky-900/60 text-sky-800 dark:text-sky-200 border border-sky-300 dark:border-sky-700'
+                          : 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-200 border border-indigo-300 dark:border-indigo-700'
                       }`}
                     >
                       {isCurrent ? 'Trwa teraz' : event.category}
@@ -265,7 +270,7 @@ export const DailyTimelineWidget: React.FC = () => {
                   </div>
                 </div>
 
-                <div className={`text-xs font-bold mt-1 ${isCurrent ? 'text-sky-950 dark:text-sky-200 font-extrabold' : 'text-slate-800 dark:text-slate-100'}`}>
+                <div className={`text-xs font-bold mt-1 ${isCurrent ? 'text-sky-950 dark:text-sky-100 font-extrabold' : 'text-slate-900 dark:text-white'}`}>
                   {event.title}
                 </div>
               </div>

@@ -38,12 +38,14 @@ export const SecurityCheckCard: React.FC = () => {
   return (
     <GlassCard className="p-4 sm:p-5" glow="sky">
       <div className="flex items-center gap-2 mb-4">
-        <ShieldCheck className="w-5 h-5 text-sky-600" />
+        <div className="p-2 rounded-xl bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 shadow-sm">
+          <ShieldCheck className="w-5 h-5" />
+        </div>
         <div>
-          <h3 className="text-sm font-bold text-slate-900 tracking-tight">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
             Audyt Architektury Zero-Trust
           </h3>
-          <p className="text-xs text-slate-500 font-medium">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             Weryfikacja wytycznych przeciwko podatnościom Vibe Codingu
           </p>
         </div>
@@ -53,15 +55,15 @@ export const SecurityCheckCard: React.FC = () => {
         {securityItems.map((item, idx) => (
           <div
             key={idx}
-            className="p-3 rounded-2xl bg-white/70 border border-slate-200/80 flex items-center justify-between shadow-sm"
+            className="p-3 rounded-2xl bg-white/70 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between shadow-sm transition hover:bg-white dark:hover:bg-slate-850"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-sky-50 border border-sky-200 text-sky-700">
+              <div className="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/70 border border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-300">
                 <item.icon className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-800">{item.title}</p>
-                <p className="text-[11px] text-slate-500 mt-0.5 font-medium">{item.desc}</p>
+                <p className="text-xs font-bold text-slate-800 dark:text-white">{item.title}</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">{item.desc}</p>
               </div>
             </div>
             <Badge variant={item.variant}>{item.status}</Badge>

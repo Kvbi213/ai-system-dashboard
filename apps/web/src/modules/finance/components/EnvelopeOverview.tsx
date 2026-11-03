@@ -46,7 +46,7 @@ export const EnvelopeOverview: React.FC = () => {
       spent: needsSpent,
       color: 'bg-sky-500',
       icon: ShieldCheck,
-      textColor: 'text-sky-700'
+      textColor: 'text-sky-700 dark:text-sky-400'
     },
     {
       label: `${config.wantsPercent}% Zachcianki (Książki, kawa, hobby)`,
@@ -54,7 +54,7 @@ export const EnvelopeOverview: React.FC = () => {
       spent: wantsSpent,
       color: 'bg-indigo-500',
       icon: Sparkles,
-      textColor: 'text-indigo-700'
+      textColor: 'text-indigo-700 dark:text-indigo-400'
     },
     {
       label: `${config.savingsPercent}% Oszczędności & Inwestycje`,
@@ -62,7 +62,7 @@ export const EnvelopeOverview: React.FC = () => {
       spent: savingsSpent,
       color: 'bg-emerald-500',
       icon: Heart,
-      textColor: 'text-emerald-700'
+      textColor: 'text-emerald-700 dark:text-emerald-400'
     }
   ];
 
@@ -70,26 +70,26 @@ export const EnvelopeOverview: React.FC = () => {
     <GlassCard className="p-4 sm:p-5" glow="sky">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-sky-100 text-sky-700 border border-sky-200 shadow-sm">
+          <div className="p-2 rounded-xl bg-sky-100 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 shadow-sm">
             <Wallet className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 tracking-tight">Koperty Budżetowe 50/30/20</h3>
-            <p className="text-xs text-slate-500 font-medium">Dochód: {config.monthlyIncome.toLocaleString('pl-PL')} PLN / mc</p>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Koperty Budżetowe 50/30/20</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Dochód: {config.monthlyIncome.toLocaleString('pl-PL')} PLN / mc</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:text-slate-900 shadow-xs transition"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white shadow-xs transition"
           >
-            <Sliders className="w-3.5 h-3.5 text-sky-600" />
+            <Sliders className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
             <span>Edytuj podział</span>
           </button>
           <div className="text-right">
             <p className="text-[10px] text-slate-400 font-medium font-mono">Wolne saldo</p>
-            <p className="text-sm font-bold font-mono text-emerald-700">{freeBalance.toFixed(2)} PLN</p>
+            <p className="text-sm font-bold font-mono text-emerald-700 dark:text-emerald-400">{freeBalance.toFixed(2)} PLN</p>
           </div>
         </div>
       </div>
@@ -98,17 +98,17 @@ export const EnvelopeOverview: React.FC = () => {
         {envelopes.map((env, idx) => {
           const percent = env.allocated > 0 ? Math.min(100, Math.round((env.spent / env.allocated) * 100)) : 0;
           return (
-            <div key={idx} className="p-3 rounded-2xl bg-white/70 border border-slate-200/80 shadow-sm">
+            <div key={idx} className="p-3 rounded-2xl bg-white/70 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-sm">
               <div className="flex items-center justify-between text-xs mb-1.5">
-                <div className="flex items-center gap-1.5 font-semibold text-slate-800">
+                <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-white">
                   <env.icon className={`w-3.5 h-3.5 ${env.textColor}`} />
                   <span>{env.label}</span>
                 </div>
-                <span className="font-mono font-bold text-slate-700">
+                <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
                   {env.spent} / {env.allocated} PLN ({percent}%)
                 </span>
               </div>
-              <div className="w-full bg-slate-200/80 rounded-full h-2 overflow-hidden border border-white">
+              <div className="w-full bg-slate-200/80 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-white dark:border-slate-700">
                 <div
                   className={`${env.color} h-full rounded-full transition-all duration-300 shadow-sm`}
                   style={{ width: `${percent}%` }}

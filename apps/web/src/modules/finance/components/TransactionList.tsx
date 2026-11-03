@@ -16,32 +16,34 @@ interface TransactionListProps {
 
 export const TransactionList: React.FC<TransactionListProps> = ({ transactions }) => {
   return (
-    <GlassCard className="p-4" glow="none">
-      <h3 className="text-sm font-bold text-slate-900 tracking-tight mb-3">Ostatnie operacje</h3>
+    <GlassCard className="p-4 sm:p-5" glow="none">
+      <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight mb-3">Ostatnie operacje</h3>
       <div className="space-y-2">
         {transactions.map((tx) => {
           const isIncome = tx.amount > 0;
           return (
             <div
               key={tx.id}
-              className="flex items-center justify-between p-2.5 rounded-xl bg-white/70 border border-slate-200/80 shadow-sm"
+              className="flex items-center justify-between p-2.5 rounded-xl bg-white/70 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-sm transition hover:bg-white dark:hover:bg-slate-850"
             >
               <div className="flex items-center gap-2.5">
                 <div
                   className={`p-1.5 rounded-lg ${
-                    isIncome ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                    isIncome
+                      ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300'
+                      : 'bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300'
                   }`}
                 >
                   {isIncome ? <ArrowDownLeft className="w-3.5 h-3.5" /> : <ArrowUpRight className="w-3.5 h-3.5" />}
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-800">{tx.title}</p>
-                  <p className="text-[10px] text-slate-500 capitalize font-medium">{tx.category} • {tx.date}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white">{tx.title}</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 capitalize font-medium">{tx.category} • {tx.date}</p>
                 </div>
               </div>
               <span
                 className={`text-xs font-mono font-bold ${
-                  isIncome ? 'text-emerald-700' : 'text-slate-900'
+                  isIncome ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-900 dark:text-slate-100'
                 }`}
               >
                 {isIncome ? `+${tx.amount.toFixed(2)}` : tx.amount.toFixed(2)} PLN

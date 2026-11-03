@@ -20,11 +20,11 @@ export const WeatherTrafficCapsule: React.FC<WeatherTrafficCapsuleProps> = ({
     <GlassCard className="p-4 flex flex-col justify-between w-full h-full" glow="sky">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-sky-100 text-sky-700 border border-sky-200 shadow-sm">
+          <div className="p-2 rounded-xl bg-sky-100 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 shadow-sm">
             <Compass className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Okolica i Trasa
             </h3>
             <p className="text-sm font-bold text-slate-900 dark:text-white">{city}</p>
@@ -38,7 +38,7 @@ export const WeatherTrafficCapsule: React.FC<WeatherTrafficCapsuleProps> = ({
 
       <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800">
         <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 shadow-sm">
-          <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+          <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <div>
             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">CANARD Radary</p>
             <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
@@ -48,7 +48,7 @@ export const WeatherTrafficCapsule: React.FC<WeatherTrafficCapsuleProps> = ({
         </div>
 
         <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 shadow-sm">
-          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+          <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
           <div>
             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">Ruch DK22 / A1</p>
             <div className="mt-0.5">

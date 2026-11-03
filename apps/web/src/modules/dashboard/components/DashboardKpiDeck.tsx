@@ -21,9 +21,9 @@ export const DashboardKpiDeck: React.FC<DashboardKpiDeckProps> = ({ taskStats, o
       {/* KPI 1: Aktywność Zadań */}
       <GlassCard className="p-3 sm:p-3.5 flex flex-col justify-between hover:shadow-md transition-all w-full h-full" glow="sky">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Aktywność Dnia</span>
-          <span className="flex items-center gap-1 text-[11px] font-bold font-mono text-sky-700 bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-200">
-            <TrendingUp className="w-3 h-3 text-sky-600" />
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Aktywność Dnia</span>
+          <span className="flex items-center gap-1 text-[11px] font-bold font-mono text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/70 px-2 py-0.5 rounded-lg border border-sky-200 dark:border-sky-800">
+            <TrendingUp className="w-3 h-3 text-sky-600 dark:text-sky-400" />
             {taskStats.percent}%
           </span>
         </div>
@@ -43,7 +43,7 @@ export const DashboardKpiDeck: React.FC<DashboardKpiDeckProps> = ({ taskStats, o
                 strokeWidth="3.5"
               />
               <path
-                className="text-sky-600 stroke-current transition-all duration-500"
+                className="text-sky-600 dark:text-sky-400 stroke-current transition-all duration-500"
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 fill="none"
                 strokeDasharray={`${taskStats.percent}, 100`}
@@ -82,7 +82,7 @@ export const DashboardKpiDeck: React.FC<DashboardKpiDeckProps> = ({ taskStats, o
           <div className="text-sm font-bold text-slate-900 dark:text-white truncate">FBW Kalistenika</div>
           <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
             <Dumbbell className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>Drążek & Dipy • 45 min</span>
+            <span>Drążek &amp; Dipy • 45 min</span>
           </div>
         </div>
 
