@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { Calendar, CheckCircle2, CircleDot } from 'lucide-react';
 import { schoolApi, privateApi } from '../../../api/client';
@@ -13,10 +13,95 @@ export interface TimelineBlock {
   sourceType: 'school' | 'private';
 }
 
+interface LessonItemDTO {
+  id?: string;
+  timeRange?: string;
+  time_start?: string;
+  time_end?: string;
+  subject?: string;
+  classroom?: string;
+  room?: string;
+}
+
+interface RoutineItemDTO {
+  id?: string;
+  title?: string;
+  timeOfDay?: 'morning' | 'evening';
+}
+
+const STATIC_PRIVATE_BLOCKS: {
+  id: string;
+  time: string;
+  title: string;
+  category: 'PRYWATNE' | 'SPORT' | 'LOGISTYKA';
+  startMins: number;
+  endMins: number;
+}[] = [
+  {
+    id: 'priv_1',
+    time: '06:30 - 07:15',
+    title: 'Poranny rozruch stawowy, nawodnienie i plan dnia',
+    category: 'PRYWATNE',
+    startMins: 390,
+    endMins: 435
+  },
+  {
+    id: 'priv_2',
+    time: '07:15 - 07:45',
+    title: 'Tranzyt, przegląd kamer i monitoring tras drogowych',
+    category: 'LOGISTYKA',
+    startMins: 435,
+    endMins: 465
+  },
+  {
+    id: 'priv_3',
+    time: '16:00 - 17:00',
+    title: 'Trening siłowy FBW na strychu (Drążek & Dipy)',
+    category: 'SPORT',
+    startMins: 960,
+    endMins: 1020
+  },
+  {
+    id: 'priv_4',
+    time: '19:30 - 20:30',
+    title: 'Przegląd finansów 50/30/20 & kognitywny sprint dev',
+    category: 'PRYWATNE',
+    startMins: 1170,
+    endMins: 1230
+  },
+  {
+    id: 'priv_5',
+    time: '22:15 - 22:45',
+    title: 'Wyciszenie, czytanie dokumentacji i higiena snu',
+    category: 'PRYWATNE',
+    startMins: 1335,
+    endMins: 1365
+  }
+];
+
+function computeStatus(currentMinutes: number, startMins: number, endMins: number): 'done' | 'current' | 'upcoming' {
+  if (currentMinutes >= endMins) return 'done';
+  if (currentMinutes >= startMins && currentMinutes < endMins) return 'current';
+  return 'upcoming';
+}
+
+function parseTimeRange(rawRange: string): { startMins: number; endMins: number } | null {
+  const parts = rawRange.split('-').map((s) => s.trim());
+  if (parts.length !== 2) return null;
+  const [sh, sm] = (parts[0] || '').split(':').map((n) => parseInt(n, 10));
+  const [eh, em] = (parts[1] || '').split(':').map((n) => parseInt(n, 10));
+  if (isNaN(sh) || isNaN(sm) || isNaN(eh) || isNaN(em)) return null;
+  return {
+    startMins: sh * 60 + sm,
+    endMins: eh * 60 + em
+  };
+}
+
 export const DailyTimelineWidget: React.FC = () => {
   const [events, setEvents] = useState<TimelineBlock[]>([]);
   const [filterMode, setFilterMode] = useState<'all' | 'school' | 'private'>('all');
-  const currentEventRef = React.useRef<HTMLDivElement | null>(null);
+  const currentEventRef = useRef<HTMLDivElement | null>(null);
+  const isRunningRef = useRef(false);
 
   useEffect(() => {
     if (currentEventRef.current) {
@@ -25,39 +110,43 @@ export const DailyTimelineWidget: React.FC = () => {
   }, [events, filterMode]);
 
   useEffect(() => {
-    const fetchAndMergeSchedules = async () => {
+    let isMounted = true;
+
+    const loadSchedules = async () => {
+      if (isRunningRef.current) return;
+      isRunningRef.current = true;
+
       const now = new Date();
       const day = now.getDay();
-      const currentDay = (day >= 1 && day <= 5) ? day : 1;
+      const isWeekend = day === 0 || day === 6;
+      const currentDay = isWeekend ? null : day;
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
       try {
-        // 1. Pobierz plan lekcji z API Librusa
-        const schoolRes = await schoolApi.getTimetable(currentDay).catch(() => null);
-        // 2. Pobierz rutyny/plan prywatny z API
-        const privateRes = await privateApi.getRoutines().catch(() => null);
+        const [schoolRes, privateRes] = await Promise.all([
+          currentDay ? schoolApi.getTimetable(currentDay).catch(() => null) : Promise.resolve(null),
+          privateApi.getRoutines().catch(() => null)
+        ]);
+
+        if (!isMounted) return;
 
         const schoolBlocks: (TimelineBlock & { startMins: number; endMins: number })[] = [];
-        if (schoolRes?.lessons && Array.isArray(schoolRes.lessons)) {
-          schoolRes.lessons.forEach((lesson: any, idx: number) => {
-            const timeRange = lesson.timeRange || `${lesson.time_start} - ${lesson.time_end}`;
-            const parts = timeRange.split('-').map((s: string) => s.trim());
-            const [sh, sm] = (parts[0] || '08:00').split(':').map((n: string) => parseInt(n, 10));
-            const [eh, em] = (parts[1] || '08:45').split(':').map((n: string) => parseInt(n, 10));
-            const startMins = sh * 60 + sm;
-            const endMins = eh * 60 + em;
-
-            let status: 'done' | 'current' | 'upcoming' = 'upcoming';
-            if (currentMinutes >= endMins) status = 'done';
-            else if (currentMinutes >= startMins && currentMinutes < endMins) status = 'current';
+        const rawLessons = (schoolRes as { lessons?: LessonItemDTO[] } | null)?.lessons;
+        if (Array.isArray(rawLessons)) {
+          rawLessons.forEach((lesson, idx) => {
+            const timeRange = lesson?.timeRange || `${lesson?.time_start || '08:00'} - ${lesson?.time_end || '08:45'}`;
+            const parsed = parseTimeRange(timeRange);
+            if (!parsed) return;
+            const { startMins, endMins } = parsed;
+            const status = computeStatus(currentMinutes, startMins, endMins);
 
             schoolBlocks.push({
-              id: `school_${idx}_${lesson.id || idx}`,
+              id: `school_${idx}_${lesson?.id || idx}`,
               time: timeRange,
-              title: lesson.subject,
+              title: lesson?.subject || 'Lekcja szkolna',
               category: 'SZKOŁA',
               status,
-              room: lesson.classroom || lesson.room,
+              room: lesson?.classroom || lesson?.room,
               sourceType: 'school',
               startMins,
               endMins
@@ -65,103 +154,75 @@ export const DailyTimelineWidget: React.FC = () => {
           });
         }
 
-        // Prywatne bloki dnia (stały cykl dobowy + nawyki)
-        const basePrivateBlocks: (TimelineBlock & { startMins: number; endMins: number })[] = [
-          {
-            id: 'priv_1',
-            time: '06:30 - 07:15',
-            title: 'Poranny rozruch stawowy, nawodnienie i plan dnia',
-            category: 'PRYWATNE',
-            status: currentMinutes >= 435 ? 'done' : (currentMinutes >= 390 ? 'current' : 'upcoming'),
-            sourceType: 'private',
-            startMins: 390,
-            endMins: 435
-          },
-          {
-            id: 'priv_2',
-            time: '07:15 - 07:45',
-            title: 'Tranzyt, przegląd kamer i monitoring tras drogowych',
-            category: 'LOGISTYKA',
-            status: currentMinutes >= 465 ? 'done' : (currentMinutes >= 435 ? 'current' : 'upcoming'),
-            sourceType: 'private',
-            startMins: 435,
-            endMins: 465
-          },
-          {
-            id: 'priv_3',
-            time: '16:00 - 17:00',
-            title: 'Trening siłowy FBW na strychu (Drążek & Dipy)',
-            category: 'SPORT',
-            status: currentMinutes >= 1020 ? 'done' : (currentMinutes >= 960 ? 'current' : 'upcoming'),
-            sourceType: 'private',
-            startMins: 960,
-            endMins: 1020
-          },
-          {
-            id: 'priv_4',
-            time: '19:30 - 20:30',
-            title: 'Przegląd finansów 50/30/20 & kognitywny sprint dev',
-            category: 'PRYWATNE',
-            status: currentMinutes >= 1230 ? 'done' : (currentMinutes >= 1170 ? 'current' : 'upcoming'),
-            sourceType: 'private',
-            startMins: 1170,
-            endMins: 1230
-          },
-          {
-            id: 'priv_5',
-            time: '22:15 - 22:45',
-            title: 'Wyciszenie, czytanie dokumentacji i higiena snu',
-            category: 'PRYWATNE',
-            status: currentMinutes >= 1365 ? 'done' : (currentMinutes >= 1335 ? 'current' : 'upcoming'),
-            sourceType: 'private',
-            startMins: 1335,
-            endMins: 1365
-          }
-        ];
+        const staticPrivateBlocks: (TimelineBlock & { startMins: number; endMins: number })[] = STATIC_PRIVATE_BLOCKS.map((b) => ({
+          id: b.id,
+          time: b.time,
+          title: b.title,
+          category: b.category,
+          status: computeStatus(currentMinutes, b.startMins, b.endMins),
+          sourceType: 'private' as const,
+          startMins: b.startMins,
+          endMins: b.endMins
+        }));
 
-        // Dołącz rutyny z API jeśli są dostępne
-        if (privateRes?.routines && Array.isArray(privateRes.routines)) {
-          privateRes.routines.forEach((r: any, idx: number) => {
-            const isMorning = r.timeOfDay === 'morning';
+        const routineBlocks: (TimelineBlock & { startMins: number; endMins: number })[] = [];
+        const rawRoutines = (privateRes as { routines?: RoutineItemDTO[] } | null)?.routines;
+        if (Array.isArray(rawRoutines)) {
+          rawRoutines.forEach((r, idx) => {
+            const isMorning = r?.timeOfDay === 'morning';
             const startMins = isMorning ? (420 + idx * 15) : (1320 + idx * 15);
             const endMins = startMins + 15;
             const sh = Math.floor(startMins / 60).toString().padStart(2, '0');
             const sm = (startMins % 60).toString().padStart(2, '0');
             const eh = Math.floor(endMins / 60).toString().padStart(2, '0');
             const em = (endMins % 60).toString().padStart(2, '0');
+            const status = computeStatus(currentMinutes, startMins, endMins);
 
-            basePrivateBlocks.push({
-              id: `routine_${r.id || idx}`,
+            routineBlocks.push({
+              id: `routine_${r?.id || idx}`,
               time: `${sh}:${sm} - ${eh}:${em}`,
-              title: r.title,
+              title: r?.title || 'Rutyna prywatna',
               category: 'PRYWATNE',
-              status: currentMinutes >= endMins ? 'done' : (currentMinutes >= startMins ? 'current' : 'upcoming'),
-              sourceType: 'private',
+              status,
+              sourceType: 'private' as const,
               startMins,
               endMins
             });
           });
         }
 
-        // Scal i posortuj chronologicznie według minut rozpoczęcia
-        const merged = [...schoolBlocks, ...basePrivateBlocks].sort((a, b) => a.startMins - b.startMins);
-        setEvents(merged);
+        const merged = [...schoolBlocks, ...staticPrivateBlocks, ...routineBlocks].sort(
+          (a, b) => a.startMins - b.startMins
+        );
+
+        if (isMounted) {
+          setEvents(merged);
+        }
       } catch (e) {
-        console.warn('[!] Nie udało się pobrać harmonogramów osi czasu:', e);
+        if (isMounted) {
+          console.warn('[!] Nie udało się pobrać harmonogramów osi czasu:', e);
+        }
+      } finally {
+        isRunningRef.current = false;
       }
     };
 
-    fetchAndMergeSchedules();
-    const interval = setInterval(fetchAndMergeSchedules, 60000);
-    return () => clearInterval(interval);
+    loadSchedules();
+    const interval = setInterval(loadSchedules, 60000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
-  const filteredEvents = events.filter((e) => {
-    if (filterMode === 'all') return true;
-    if (filterMode === 'school') return e.sourceType === 'school';
-    if (filterMode === 'private') return e.sourceType === 'private';
-    return true;
-  });
+  const filteredEvents = useMemo(() => {
+    return events.filter((e) => {
+      if (filterMode === 'all') return true;
+      if (filterMode === 'school') return e.sourceType === 'school';
+      if (filterMode === 'private') return e.sourceType === 'private';
+      return true;
+    });
+  }, [events, filterMode]);
 
   return (
     <GlassCard className="p-3 sm:p-4" glow="sky">
