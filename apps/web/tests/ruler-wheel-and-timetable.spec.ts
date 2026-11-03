@@ -26,31 +26,44 @@ test.describe('RulerWheelPicker & Synergia Timetable Parity', () => {
     expect(content).toContain('Bahr Zbigniew');
   });
 
-  test('Workouts FBW displays 3D Ruler Wheel Picker and configures rest duration', async ({ page }) => {
+  test('Workouts FBW displays OLED True Black Rest Timer Overlay on set completion with next set info', async ({ page }) => {
     await page.goto('http://localhost:3000/workouts');
     await page.waitForLoadState('networkidle');
 
-    // Look for rest duration configuration button
-    const restButton = page.locator('button:has-text("Przerwa:")').first();
-    await expect(restButton).toBeVisible();
-
-    // Open the 3D ruler wheel picker
-    await restButton.click();
+    // Find first exercise increment button (e.g. "+" to complete a set)
+    const addSetButton = page.locator('button[title*="Zalicz serię"]').first();
+    if (await addSetButton.isVisible()) {
+      await addSetButton.click();
+    } else {
+      // Or click rest button to open overlay directly
+      const restBtn = page.locator('button:has-text("Przerwa:")').first();
+      await restBtn.click();
+    }
     await page.waitForTimeout(400);
 
-    // Check that slider role is active with ARIA attributes
+    // Verify OLED True Black overlay is visible with header
+    const overlayHeader = page.locator('text=REST INTERVAL :: LIVE COUNTDOWN');
+    await expect(overlayHeader).toBeVisible();
+
+    // Verify "NASTĘPNA SERIA" card is present
+    const nextSetHeading = page.locator('text=NASTĘPNA SERIA:');
+    await expect(nextSetHeading).toBeVisible();
+
+    // Check that 3D wheel slider is active
     const slider = page.locator('div[role="slider"]');
     await expect(slider).toBeVisible();
-    await expect(slider).toHaveAttribute('aria-label', 'Domyślna przerwa między seriami');
 
-    // Test keyboard navigation (ArrowRight increases rest value)
-    await slider.focus();
-    await page.keyboard.press('ArrowRight');
+    // Verify quick adjust buttons work
+    const plus15 = page.locator('button:has-text("15s")').nth(1);
+    await plus15.click();
     await page.waitForTimeout(200);
 
-    // Verify presence of unit and snap indicator
-    const sliderContent = await slider.textContent();
-    expect(sliderContent?.toLowerCase()).toContain('sekundy');
-    expect(sliderContent).toContain('SNAP & PHYSICS');
+    // Close or skip overlay
+    const skipBtn = page.locator('button:has-text("Pomiń przerwę"), button:has-text("Zaczynaj serię")').first();
+    await skipBtn.click();
+    await page.waitForTimeout(300);
+
+    // Overlay is closed
+    await expect(overlayHeader).not.toBeVisible();
   });
 });

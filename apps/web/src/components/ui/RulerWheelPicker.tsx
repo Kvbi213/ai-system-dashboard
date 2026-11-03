@@ -11,6 +11,7 @@ export interface RulerWheelPickerProps {
   onChange?: (value: number) => void;
   className?: string;
   compact?: boolean;
+  pureBlack?: boolean;
 }
 
 // Singleton audio/haptics synth
@@ -82,7 +83,8 @@ export const RulerWheelPicker: React.FC<RulerWheelPickerProps> = ({
   label = 'Czas przerwy',
   onChange,
   className = '',
-  compact = false
+  compact = false,
+  pureBlack = false
 }) => {
   const isControlled = controlledValue !== undefined;
   const [internalValue, setInternalValue] = useState<number>(defaultValue);
@@ -100,6 +102,14 @@ export const RulerWheelPicker: React.FC<RulerWheelPickerProps> = ({
 
   const tickSpacing = compact ? 12 : 14; // pixels per unit
   const visibleRadius = 24; // visible units left and right of center
+
+  // Synchronize internal tracking with external controlled updates
+  useEffect(() => {
+    if (isControlled && !isDraggingRef.current) {
+      lastEmittedValueRef.current = controlledValue;
+      startValRef.current = controlledValue;
+    }
+  }, [controlledValue, isControlled]);
 
   const clampValue = useCallback((val: number) => {
     return Math.max(min, Math.min(max, Math.round(val / step) * step));
@@ -171,7 +181,7 @@ export const RulerWheelPicker: React.FC<RulerWheelPickerProps> = ({
     const dt = Math.max(1, now - lastTimeRef.current);
     const dx = e.clientX - startXRef.current;
     
-    // Instantaneous velocity in value units per frame using dt
+    // Instantaneous velocity in value units per frame
     const deltaUnits = -dx / tickSpacing;
     const speed = (e.movementX / dt) * 16.6;
     velocityRef.current = (speed / tickSpacing) * 2.5;
@@ -248,10 +258,14 @@ export const RulerWheelPicker: React.FC<RulerWheelPickerProps> = ({
     ticks.push(i);
   }
 
+  const baseContainerStyle = pureBlack
+    ? 'bg-black text-white border border-neutral-900 shadow-[0_0_30px_rgba(0,0,0,1)]'
+    : 'bg-slate-900/90 text-white border border-slate-800 shadow-xl';
+
   return (
     <div
       className={`relative select-none rounded-2xl p-4 sm:p-5 transition-colors ${
-        className || 'bg-slate-900/90 text-white border border-slate-800 shadow-xl'
+        className || baseContainerStyle
       }`}
       tabIndex={0}
       role="slider"
@@ -264,10 +278,10 @@ export const RulerWheelPicker: React.FC<RulerWheelPickerProps> = ({
     >
       {/* Top Header: Label */}
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+        <span className={`text-[11px] font-bold uppercase tracking-wider ${pureBlack ? 'text-neutral-400' : 'text-slate-400'}`}>
           {label}
         </span>
-        <span className="text-[10px] font-mono text-amber-400/90 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+        <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
           SNAP &amp; PHYSICS
         </span>
       </div>
@@ -275,14 +289,14 @@ export const RulerWheelPicker: React.FC<RulerWheelPickerProps> = ({
       {/* Numerical Display with motion blur / mechanical slot counter transition */}
       <div className="flex flex-col items-center justify-center my-1">
         <div
-          className={`text-4xl sm:text-5xl font-black font-mono tracking-tight tabular-nums transition-transform duration-75 ${
+          className={`text-5xl sm:text-6xl font-black font-mono tracking-tight tabular-nums transition-transform duration-75 ${
             isFastMoving ? 'blur-[0.8px] scale-105 text-amber-300' : 'text-amber-400'
           }`}
           style={{ fontVariantNumeric: 'tabular-nums' }}
         >
           {currentValue}
         </div>
-        <div className="text-xs font-semibold text-slate-400 mt-0.5 tracking-wider uppercase">
+        <div className={`text-xs font-semibold mt-0.5 tracking-wider uppercase ${pureBlack ? 'text-neutral-400' : 'text-slate-400'}`}>
           {unit}
         </div>
       </div>
@@ -298,14 +312,14 @@ export const RulerWheelPicker: React.FC<RulerWheelPickerProps> = ({
         className="relative h-24 w-full cursor-ew-resize touch-pan-y overflow-hidden mt-3"
         style={{
           perspective: '1000px',
-          WebkitMaskImage: 'linear-gradient(to right, transparent, black 22%, black 78%, transparent)',
-          maskImage: 'linear-gradient(to right, transparent, black 22%, black 78%, transparent)'
+          WebkitMaskImage: 'linear-gradient(to right, transparent, black 20%, black 80%, transparent)',
+          maskImage: 'linear-gradient(to right, transparent, black 20%, black 80%, transparent)'
         }}
       >
         {/* Central Indicator Marker (Amber/Orange needle with glow) */}
         <div className="absolute left-1/2 top-0 bottom-3 w-1 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center">
-          <div className="w-2.5 h-1.5 bg-amber-500 rounded-b-sm shadow-[0_0_8px_rgba(245,158,11,0.9)]" />
-          <div className="w-0.5 h-full bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 shadow-[0_0_8px_rgba(245,158,11,0.9)]" />
+          <div className="w-2.5 h-1.5 bg-amber-500 rounded-b-sm shadow-[0_0_10px_rgba(245,158,11,1)]" />
+          <div className="w-0.5 h-full bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 shadow-[0_0_10px_rgba(245,158,11,1)]" />
         </div>
 
         {/* Dynamic Ruler Ticks projected in 3D cylindrical space */}
@@ -341,16 +355,16 @@ export const RulerWheelPicker: React.FC<RulerWheelPickerProps> = ({
                 <div
                   className={`w-0.5 rounded-full transition-colors ${
                     isTens
-                      ? 'h-7 bg-amber-400 shadow-sm'
+                      ? 'h-7 bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.6)]'
                       : isFives
-                      ? 'h-4 bg-slate-300 dark:bg-slate-300'
-                      : 'h-2.5 bg-slate-500 dark:bg-slate-600'
+                      ? pureBlack ? 'h-4 bg-neutral-300' : 'h-4 bg-slate-300'
+                      : pureBlack ? 'h-2.5 bg-neutral-700' : 'h-2.5 bg-slate-600'
                   }`}
                 />
 
                 {/* Number label for tens */}
                 {isTens && (
-                  <span className="text-[10px] font-mono font-bold text-slate-300 mt-1.5 tabular-nums">
+                  <span className={`text-[10px] font-mono font-bold mt-1.5 tabular-nums ${pureBlack ? 'text-neutral-300' : 'text-slate-300'}`}>
                     {tickVal}
                   </span>
                 )}
@@ -361,9 +375,9 @@ export const RulerWheelPicker: React.FC<RulerWheelPickerProps> = ({
       </div>
 
       {/* Subtle bottom helper info */}
-      <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono mt-1 px-1">
+      <div className={`flex items-center justify-between text-[10px] font-mono mt-1 px-1 ${pureBlack ? 'text-neutral-500' : 'text-slate-500'}`}>
         <span>Min: {min}s</span>
-        <span className="text-slate-400">Przeciągnij lub użyj strzałek</span>
+        <span className={pureBlack ? 'text-neutral-400' : 'text-slate-400'}>Przeciągnij lub użyj strzałek</span>
         <span>Max: {max}s</span>
       </div>
     </div>
