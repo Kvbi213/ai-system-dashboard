@@ -75,49 +75,51 @@ export const SEED_SPEED_RADARS: SpeedRadar[] = [
   { id: 'r4', road: 'DK / DW', location: 'Skrzyżowanie Tranzytowe Obwodnicy', type: 'czerwone_swiatlo', speedLimit: 50, deviceModel: 'RedLight Camera', active: true }
 ];
 
-// Full 35 lessons for days 1-5 from legacy api/librus.js
+// Full lessons for days 1-5 verified 1:1 against Librus Synergia
 export const SEED_TIMETABLE: Record<number, LessonItem[]> = {
   1: [
-    { id: 'mon_1', order: 1, timeRange: '08:50 - 09:35', subject: 'Informatyka', teacher: 'Becker Adam (2 TI gr.2)', classroom: 's. 04' },
-    { id: 'mon_2', order: 2, timeRange: '09:40 - 10:25', subject: 'Informatyka', teacher: 'Becker Adam (2 TI gr.2)', classroom: 's. 04' },
-    { id: 'mon_3', order: 3, timeRange: '10:40 - 11:25', subject: 'Biznes i zarządzanie', teacher: 'Sokół Paweł', classroom: 's. 0.2' },
-    { id: 'mon_4', order: 4, timeRange: '11:30 - 12:15', subject: 'Lokalne sieci komputerowe', teacher: 'Wojnarowski Przemysław', classroom: 's. 0.2' },
-    { id: 'mon_5', order: 5, timeRange: '12:20 - 13:05', subject: 'Język polski', teacher: 'Negowska Alicja', classroom: 's. 34' }
+    { id: 'mon_2', order: 2, timeRange: '08:50 - 09:35', subject: 'Informatyka', teacher: 'Becker Adam (2 TI gr.2)', classroom: 's. 04' },
+    { id: 'mon_3', order: 3, timeRange: '09:40 - 10:25', subject: 'Informatyka', teacher: 'Becker Adam (2 TI gr.2)', classroom: 's. 04' },
+    { id: 'mon_4', order: 4, timeRange: '10:40 - 11:25', subject: 'Biznes i zarządzanie', teacher: 'Sokół Paweł', classroom: 's. 0.2' },
+    { id: 'mon_5', order: 5, timeRange: '11:30 - 12:15', subject: 'Lokalne sieci komputerowe', teacher: 'Wojnarowski Przemysław', classroom: 's. 0.2' },
+    { id: 'mon_6', order: 6, timeRange: '12:20 - 13:05', subject: 'Język polski', teacher: 'Negowska Alicja', classroom: 's. 34' }
   ],
   2: [
-    { id: 'tue_1', order: 1, timeRange: '08:00 - 08:45', subject: 'Pracownia urządzeń techniki komputerowej', teacher: 'Wojnarowski Przemysław', classroom: 's. 0.1' },
-    { id: 'tue_2', order: 2, timeRange: '08:50 - 09:35', subject: 'Pracownia urządzeń techniki komputerowej', teacher: 'Wojnarowski Przemysław', classroom: 's. 0.1' },
-    { id: 'tue_3', order: 3, timeRange: '09:40 - 10:25', subject: 'Zajęcia z wychowawcą', teacher: 'Ziemba Joanna', classroom: 's. 28' },
-    { id: 'tue_4', order: 4, timeRange: '10:40 - 11:25', subject: 'Wychowanie fizyczne', teacher: 'Łysakowski Grzegorz', classroom: 'Sala gimnastyczna' },
-    { id: 'tue_5', order: 5, timeRange: '11:30 - 12:15', subject: 'Wychowanie fizyczne', teacher: 'Łysakowski Grzegorz', classroom: 'Sala gimnastyczna' },
-    { id: 'tue_6', order: 6, timeRange: '12:20 - 13:05', subject: 'Matematyka', teacher: 'Behr Zbigniew', classroom: 's. 28' },
-    { id: 'tue_7', order: 7, timeRange: '13:15 - 14:00', subject: 'Matematyka', teacher: 'Behr Zbigniew', classroom: 's. 28' },
-    { id: 'tue_8', order: 8, timeRange: '14:05 - 14:50', subject: 'Pracownia lokalnych sieci komputerowych', teacher: 'Kżyś Łukasz', classroom: 's. 1.16' },
-    { id: 'tue_9', order: 9, timeRange: '14:55 - 15:40', subject: 'Pracownia lokalnych sieci komputerowych', teacher: 'Kżyś Łukasz', classroom: 's. 1.16' }
+    { id: 'tue_1', order: 1, timeRange: '08:00 - 08:45', subject: 'Pracownia urządzeń techniki komputerowej', teacher: 'Wojnarowski Przemysław (2TI-gr1)', classroom: 's. 0.1' },
+    { id: 'tue_2', order: 2, timeRange: '08:50 - 09:35', subject: 'Pracownia urządzeń techniki komputerowej', teacher: 'Wojnarowski Przemysław (2TI-gr1)', classroom: 's. 0.1' },
+    { id: 'tue_3', order: 3, timeRange: '09:40 - 10:25', subject: 'Zajęcia z wychowawcą', teacher: 'Ziemba Joanna', classroom: 's. 31' },
+    { id: 'tue_4', order: 4, timeRange: '10:40 - 11:25', subject: 'Wychowanie fizyczne', teacher: 'Łysakowski Grzegorz (Klasa 2 TI)', classroom: 'Sala gimnastyczna' },
+    { id: 'tue_5', order: 5, timeRange: '11:30 - 12:15', subject: 'Wychowanie fizyczne', teacher: 'Łysakowski Grzegorz (Klasa 2 TI)', classroom: 'Sala gimnastyczna' },
+    { id: 'tue_6', order: 6, timeRange: '12:20 - 13:05', subject: 'Pracownia systemów operacyjnych', teacher: 'Reszka Sławomir (2 TI gr1 PSO)', classroom: 's. 1.15' },
+    { id: 'tue_7', order: 7, timeRange: '13:15 - 14:00', subject: 'Pracownia systemów operacyjnych', teacher: 'Reszka Sławomir (2 TI gr1 PSO)', classroom: 's. 1.15' },
+    { id: 'tue_8', order: 8, timeRange: '14:05 - 14:50', subject: 'Edukacja zdrowotna', teacher: 'Spych Monika', classroom: 's. 38' },
+    { id: 'tue_9', order: 9, timeRange: '14:55 - 15:40', subject: 'Matematyka', teacher: 'Bahr Zbigniew', classroom: 's. 26' }
   ],
   3: [
-    { id: 'wed_1', order: 1, timeRange: '08:00 - 08:45', subject: 'Biologia', teacher: 'Łukaszczyk-Wulgaris Joanna', classroom: 's. 03' },
-    { id: 'wed_2', order: 2, timeRange: '08:50 - 09:35', subject: 'Biologia', teacher: 'Łukaszczyk-Wulgaris Joanna', classroom: 's. 03' },
+    { id: 'wed_1', order: 1, timeRange: '08:00 - 08:45', subject: 'Biologia', teacher: 'Łukaszczyk-Wulgaris Joanna', classroom: 's. 06' },
+    { id: 'wed_2', order: 2, timeRange: '08:50 - 09:35', subject: 'Biologia', teacher: 'Łukaszczyk-Wulgaris Joanna', classroom: 's. 06' },
     { id: 'wed_3', order: 3, timeRange: '09:40 - 10:25', subject: 'Systemy operacyjne', teacher: 'Wojnarowski Przemysław', classroom: 's. 1.2' },
     { id: 'wed_4', order: 4, timeRange: '10:40 - 11:25', subject: 'Systemy operacyjne', teacher: 'Wojnarowski Przemysław', classroom: 's. 1.2' },
-    { id: 'wed_5', order: 5, timeRange: '11:30 - 12:15', subject: 'Urządzenia techniki komputerowej', teacher: 'Cembik Bartosz', classroom: 's. 1.2' },
-    { id: 'wed_6', order: 6, timeRange: '12:20 - 13:05', subject: 'Urządzenia techniki komputerowej', teacher: 'Cembik Bartosz', classroom: 's. 1.2' },
-    { id: 'wed_7', order: 7, timeRange: '13:15 - 14:00', subject: 'Chemia', teacher: 'Kolasińska Paulina', classroom: 's. 03' },
-    { id: 'wed_8', order: 8, timeRange: '14:05 - 14:50', subject: 'Historia', teacher: 'Wardyn Wojciech', classroom: 's. 05' },
-    { id: 'wed_9', order: 9, timeRange: '14:55 - 15:40', subject: 'Matematyka', teacher: 'Behr Zbigniew', classroom: 's. 28' }
+    { id: 'wed_5', order: 5, timeRange: '11:30 - 12:15', subject: 'Urządzenia techniki komputerowej', teacher: 'Gembiak Bartosz', classroom: 's. 1.2' },
+    { id: 'wed_6', order: 6, timeRange: '12:20 - 13:05', subject: 'Urządzenia techniki komputerowej', teacher: 'Gembiak Bartosz', classroom: 's. 1.2' },
+    { id: 'wed_7', order: 7, timeRange: '13:15 - 14:00', subject: 'Chemia', teacher: 'Kolasińska Paulina', classroom: 's. 08' },
+    { id: 'wed_8', order: 8, timeRange: '14:05 - 14:50', subject: 'Historia', teacher: 'Wardyn Wojciech', classroom: 's. 06' },
+    { id: 'wed_9', order: 9, timeRange: '14:55 - 15:40', subject: 'Matematyka', teacher: 'Bahr Zbigniew', classroom: 's. 26' }
   ],
   4: [
-    { id: 'thu_1', order: 1, timeRange: '08:50 - 09:35', subject: 'Język angielski', teacher: 'Ziemba Joanna', classroom: 's. 22' },
-    { id: 'thu_2', order: 2, timeRange: '09:40 - 10:25', subject: 'Język angielski', teacher: 'Ziemba Joanna', classroom: 's. 22' },
-    { id: 'thu_3', order: 3, timeRange: '12:20 - 13:05', subject: 'Matematyka', teacher: 'Behr Zbigniew', classroom: 's. 05' },
-    { id: 'thu_4', order: 4, timeRange: '13:15 - 14:00', subject: 'Matematyka', teacher: 'Behr Zbigniew', classroom: 's. 05' },
-    { id: 'thu_5', order: 5, timeRange: '14:05 - 14:50', subject: 'Język angielski zawodowy', teacher: 'Ziemba Joanna', classroom: 's. 22' }
+    { id: 'thu_2', order: 2, timeRange: '08:50 - 09:35', subject: 'Język angielski', teacher: 'Ziemba Joanna (j.ang 2 TI gr 1)', classroom: 's. 22' },
+    { id: 'thu_3', order: 3, timeRange: '09:40 - 10:25', subject: 'Język angielski', teacher: 'Ziemba Joanna (j.ang 2 TI gr 1)', classroom: 's. 22' },
+    { id: 'thu_4', order: 4, timeRange: '10:40 - 11:25', subject: 'Pracownia lokalnych sieci komputerowych', teacher: 'Kryla Łukasz', classroom: 's. 1.16' },
+    { id: 'thu_5', order: 5, timeRange: '11:30 - 12:15', subject: 'Pracownia lokalnych sieci komputerowych', teacher: 'Kryla Łukasz', classroom: 's. 1.16' },
+    { id: 'thu_6', order: 6, timeRange: '12:20 - 13:05', subject: 'Matematyka', teacher: 'Bahr Zbigniew', classroom: 's. 05' },
+    { id: 'thu_7', order: 7, timeRange: '13:15 - 14:00', subject: 'Matematyka', teacher: 'Bahr Zbigniew', classroom: 's. 05' },
+    { id: 'thu_8', order: 8, timeRange: '14:05 - 14:50', subject: 'Język angielski zawodowy', teacher: 'Ziemba Joanna (j. ang zaw. 2 TI gr 1)', classroom: 's. 22' }
   ],
   5: [
     { id: 'fri_1', order: 1, timeRange: '08:00 - 08:45', subject: 'Edukacja obywatelska', teacher: 'Czarna Alicja', classroom: 's. 09' },
-    { id: 'fri_2', order: 2, timeRange: '08:50 - 09:35', subject: 'Wychowanie fizyczne', teacher: 'Łysakowski Grzegorz', classroom: 'Sala gimnastyczna' },
-    { id: 'fri_3', order: 3, timeRange: '09:40 - 10:25', subject: 'Język niemiecki', teacher: 'Chyła Beata', classroom: 's. 21' },
-    { id: 'fri_4', order: 4, timeRange: '10:40 - 11:25', subject: 'Język niemiecki', teacher: 'Chyła Beata', classroom: 's. 21' },
+    { id: 'fri_2', order: 2, timeRange: '08:50 - 09:35', subject: 'Wychowanie fizyczne', teacher: 'Łysakowski Grzegorz (Klasa 2 TI)', classroom: 'Sala gimnastyczna' },
+    { id: 'fri_3', order: 3, timeRange: '09:40 - 10:25', subject: 'Język niemiecki', teacher: 'Chyła Beata (2TI/1)', classroom: 's. 21' },
+    { id: 'fri_4', order: 4, timeRange: '10:40 - 11:25', subject: 'Język niemiecki', teacher: 'Chyła Beata (2TI/1)', classroom: 's. 21' },
     { id: 'fri_5', order: 5, timeRange: '11:30 - 12:15', subject: 'Chemia', teacher: 'Kolasińska Paulina', classroom: 's. 19' },
     { id: 'fri_6', order: 6, timeRange: '12:20 - 13:05', subject: 'Język polski', teacher: 'Negowska Alicja', classroom: 's. 34' },
     { id: 'fri_7', order: 7, timeRange: '13:15 - 14:00', subject: 'Język polski', teacher: 'Negowska Alicja', classroom: 's. 34' }
@@ -129,7 +131,7 @@ export const SEED_GRADES: GradeItem[] = [
   { id: 'gr1', subject: 'Informatyka', grade: 6, weight: 3, description: 'Sprawdzian Praktyczny Linux', date: '28-10-2026', teacher: 'Becker Adam' },
   { id: 'gr2', subject: 'Systemy operacyjne', grade: 5, weight: 3, description: 'Zarządzanie procesami i Docker', date: '26-10-2026', teacher: 'Wojnarowski Przemysław' },
   { id: 'gr3', subject: 'Lokalne sieci komputerowe', grade: 5, weight: 3, description: 'Konfiguracja tras i VLAN', date: '24-10-2026', teacher: 'Wojnarowski Przemysław' },
-  { id: 'gr4', subject: 'Pracownia LSK', grade: 5, weight: 2, description: 'Ćwiczenia switch i trunking', date: '22-10-2026', teacher: 'Kżyś Łukasz' },
+  { id: 'gr4', subject: 'Pracownia LSK', grade: 5, weight: 2, description: 'Ćwiczenia switch i trunking', date: '22-10-2026', teacher: 'Kryla Łukasz' },
   { id: 'gr5', subject: 'Pracownia UTK', grade: 5, weight: 2, description: 'Montaż i diagnostyka podzespołów', date: '20-10-2026', teacher: 'Wojnarowski Przemysław' },
   { id: 'gr6', subject: 'Język angielski zawodowy', grade: 5, weight: 2, description: 'Słownictwo techniczne IT', date: '19-10-2026', teacher: 'Ziemba Joanna' },
   { id: 'gr7', subject: 'Edukacja obywatelska', grade: 5, weight: 1, description: 'Struktura organów państwa', date: '18-10-2026', teacher: 'Czarna Alicja' },
@@ -138,10 +140,10 @@ export const SEED_GRADES: GradeItem[] = [
   { id: 'gr10', subject: 'Język angielski', grade: 5, weight: 3, description: 'Czytanie i esej zaawansowany', date: '14-10-2026', teacher: 'Ziemba Joanna' },
   { id: 'gr11', subject: 'Historia', grade: 4, weight: 2, description: 'Okres międzywojenny w Europie', date: '12-10-2026', teacher: 'Wardyn Wojciech' },
   { id: 'gr12', subject: 'Biologia', grade: 4, weight: 2, description: 'Genetyka molekularna', date: '10-10-2026', teacher: 'Łukaszczyk-Wulgaris Joanna' },
-  { id: 'gr13', subject: 'Matematyka', grade: 4, weight: 3, description: 'Wielomiany i funkcje kwadratowe', date: '08-10-2026', teacher: 'Behr Zbigniew' },
+  { id: 'gr13', subject: 'Matematyka', grade: 4, weight: 3, description: 'Wielomiany i funkcje kwadratowe', date: '08-10-2026', teacher: 'Bahr Zbigniew' },
   { id: 'gr14', subject: 'Język niemiecki', grade: 4, weight: 2, description: 'Czasy przeszłe Präteritum', date: '06-10-2026', teacher: 'Chyła Beata' },
   { id: 'gr15', subject: 'Język polski', grade: 4, weight: 3, description: 'Analiza tekstu literackiego', date: '04-10-2026', teacher: 'Negowska Alicja' },
-  { id: 'gr16', subject: 'Urządzenia techniki komputerowej', grade: 3, weight: 2, description: 'Architektura magistrali PCIe', date: '02-10-2026', teacher: 'Cembik Bartosz' }
+  { id: 'gr16', subject: 'Urządzenia techniki komputerowej', grade: 3, weight: 2, description: 'Architektura magistrali PCIe', date: '02-10-2026', teacher: 'Gembiak Bartosz' }
 ];
 
 export const SEED_EVENTS: SchoolEvent[] = [
