@@ -8,8 +8,8 @@ export const PushNotificationSchema = z.object({
   targetEmail: z.string().email().optional(),
   targetDeviceId: z.string().optional(),
   scheduledFor: z.number().optional(),
-  attempts: z.number().default(0),
-  maxAttempts: z.number().default(3),
+  attempts: z.number().int().min(0).default(0),
+  maxAttempts: z.number().int().min(1).default(3),
   createdAt: z.number().default(() => Date.now()),
   status: z.enum(['PENDING', 'SENT', 'FAILED', 'RATE_LIMITED']).default('PENDING')
 });
@@ -24,10 +24,23 @@ export class PushbulletDispatcher {
   private sentTimestamps: number[] = [];
   private isProcessing = false;
   private intervalTimer: NodeJS.Timeout | null = null;
+  private maxHistorySize = 100;
   private deliveredHistory: { id: string; title: string; sentAt: number; success: boolean }[] = [];
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
+  }
+
+  private sortQueue(): void {
+    const pWeight = { CRITICAL: 3, NORMAL: 2, LOW: 1 };
+    this.queue.sort((a, b) => pWeight[b.priority] - pWeight[a.priority]);
+  }
+
+  private recordHistory(entry: { id: string; title: string; sentAt: number; success: boolean }): void {
+    this.deliveredHistory.push(entry);
+    if (this.deliveredHistory.length > this.maxHistorySize) {
+      this.deliveredHistory.shift();
+    }
   }
 
   public start(tickMs = 3000): void {
@@ -46,7 +59,7 @@ export class PushbulletDispatcher {
   }
 
   public enqueue(notif: Omit<PushNotification, 'id' | 'attempts' | 'status' | 'createdAt' | 'maxAttempts'> & { id?: string; maxAttempts?: number }): PushNotification {
-    const item: PushNotification = {
+    const raw = {
       id: notif.id || `push_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       title: notif.title,
       body: notif.body,
@@ -55,19 +68,24 @@ export class PushbulletDispatcher {
       targetDeviceId: notif.targetDeviceId,
       scheduledFor: notif.scheduledFor,
       attempts: 0,
-      maxAttempts: notif.maxAttempts || 3,
+      maxAttempts: notif.maxAttempts ?? 3,
       createdAt: Date.now(),
-      status: 'PENDING'
+      status: 'PENDING' as const
     };
 
-    this.queue.push(item);
-    this.queue.sort((a, b) => {
-      const pWeight = { CRITICAL: 3, NORMAL: 2, LOW: 1 };
-      return pWeight[b.priority] - pWeight[a.priority];
-    });
+    const validationResult = PushNotificationSchema.safeParse(raw);
+    if (!validationResult.success) {
+      const issueMsg = validationResult.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
+      console.error(`[!] DISPATCHER :: Nieprawidłowe dane powiadomienia: ${issueMsg}`);
+      throw new Error(`[DISPATCHER_VALIDATION_ERROR] ${issueMsg}`);
+    }
 
-    console.log(`[*] DISPATCHER :: Zakolejkowano powiadomienie [${item.priority}] "${item.title}" (Kolejka: ${this.queue.length})`);
-    return item;
+    const validated = validationResult.data;
+    this.queue.push(validated);
+    this.sortQueue();
+
+    console.log(`[*] DISPATCHER :: Zakolejkowano powiadomienie [${validated.priority}] "${validated.title}" (Kolejka: ${this.queue.length})`);
+    return validated;
   }
 
   public async processQueue(): Promise<void> {
@@ -94,7 +112,7 @@ export class PushbulletDispatcher {
       if (!this.apiKey) {
         console.log(`[*] DISPATCHER [DEMO] :: Wysłano push "${item.title}" -> "${item.body}"`);
         item.status = 'SENT';
-        this.deliveredHistory.push({ id: item.id, title: item.title, sentAt: Date.now(), success: true });
+        this.recordHistory({ id: item.id, title: item.title, sentAt: Date.now(), success: true });
         this.sentTimestamps.push(Date.now());
         return;
       }
@@ -120,7 +138,7 @@ export class PushbulletDispatcher {
         if (res.ok) {
           item.status = 'SENT';
           this.sentTimestamps.push(Date.now());
-          this.deliveredHistory.push({ id: item.id, title: item.title, sentAt: Date.now(), success: true });
+          this.recordHistory({ id: item.id, title: item.title, sentAt: Date.now(), success: true });
           console.log(`[+] SUCCESS :: Pushbullet dostarczono [${item.id}] "${item.title}"`);
         } else if (res.status === 429) {
           item.status = 'RATE_LIMITED';
@@ -128,6 +146,7 @@ export class PushbulletDispatcher {
           if (item.attempts < item.maxAttempts) {
             item.scheduledFor = Date.now() + Math.pow(2, item.attempts) * 5000;
             this.queue.unshift(item);
+            this.sortQueue();
           }
         } else {
           throw new Error(`Pushbullet API Error: HTTP ${res.status}`);
@@ -137,9 +156,10 @@ export class PushbulletDispatcher {
         if (item.attempts < item.maxAttempts) {
           item.scheduledFor = Date.now() + Math.pow(2, item.attempts) * 3000;
           this.queue.push(item);
+          this.sortQueue();
         } else {
           item.status = 'FAILED';
-          this.deliveredHistory.push({ id: item.id, title: item.title, sentAt: Date.now(), success: false });
+          this.recordHistory({ id: item.id, title: item.title, sentAt: Date.now(), success: false });
         }
       }
     } finally {
