@@ -43,3 +43,10 @@ test-results/
 # Temporary files
 tmp/
 scratch/
+
+# Documentation filter (Only track canonical docs: README, TODO, HISTORY, ARCHITECTURE, and /docs/versions)
+docs/*
+!docs/versions/
+!docs/versions/*.md
+*.draft.md
+*.spec.md
