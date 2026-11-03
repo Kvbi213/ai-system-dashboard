@@ -11,7 +11,7 @@
 - **Typ Architektury:** Domain-Driven Modular Monolith w kontenerach Docker Compose
 - **Standard Jakości:** 100% TypeScript (`strict: true`, zero `any`), Zero-Placeholder Policy
 - **Środowisko:** Node.js 22 LTS, Vite 6, React 19, TailwindCSS v4, Vitest, Playwright 1.50
-- **Metryki Testowe:** 98 passed (46 Playwright E2E + 44 API Vitest + 8 Worker Vitest)
+- **Metryki Testowe:** 102 passed (46 Playwright E2E + 48 API Vitest + 8 Worker Vitest)
 - **Dostępne Porty Usług:**
   - `3000`: Frontend SPA (`apps/web` Vite Dev / Nginx Alpine)
   - `5000`: API Gateway (`apps/api` Express TS Zero-Trust)

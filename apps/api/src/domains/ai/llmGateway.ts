@@ -21,9 +21,37 @@ export interface LLMResponse {
 }
 
 export class LLMTimeoutError extends Error {
-  constructor(message: string, public readonly provider: string) {
+  public readonly provider: string;
+
+  constructor(message: string, provider: string) {
     super(message);
+    this.provider = provider;
     this.name = 'LLMTimeoutError';
+    Object.setPrototypeOf(this, new.target.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, LLMTimeoutError);
+    }
+  }
+}
+
+async function withTimeout<T>(
+  fn: (signal: AbortSignal) => Promise<T>,
+  ms: number,
+  provider: string
+): Promise<T> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ms);
+
+  try {
+    const result = await fn(controller.signal);
+    clearTimeout(timeout);
+    return result;
+  } catch (err: any) {
+    clearTimeout(timeout);
+    if (err?.name === 'AbortError' || controller.signal.aborted) {
+      throw new LLMTimeoutError(`${provider} provider timed out (${ms}ms abort)`, provider);
+    }
+    throw err;
   }
 }
 
@@ -180,48 +208,38 @@ export class LLMGateway {
   }
 
   private async callGroq(options: LLMRequestOptions): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 7000);
+    return await withTimeout(
+      async (signal) => {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${this.groqApiKey}`
+          },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages: [
+              {
+                role: 'system',
+                content: 'Jesteś asystentem wykonawczym OmniDash v4.0.0. Udzielasz zwięzłych, technicznych i bezpośrednich odpowiedzi inżynieryjnych w języku polskim.'
+              },
+              ...(options.history || []),
+              { role: 'user', content: options.message }
+            ],
+            temperature: options.temperature ?? 0.3,
+            max_tokens: options.maxTokens ?? 1024
+          }),
+          signal
+        });
 
-    let response: Response;
-    try {
-      response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.groqApiKey}`
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: [
-            {
-              role: 'system',
-              content: 'Jesteś asystentem wykonawczym OmniDash v4.0.0. Udzielasz zwięzłych, technicznych i bezpośrednich odpowiedzi inżynieryjnych w języku polskim.'
-            },
-            ...(options.history || []),
-            { role: 'user', content: options.message }
-          ],
-          temperature: options.temperature ?? 0.3,
-          max_tokens: options.maxTokens ?? 1024
-        }),
-        signal: controller.signal
-      });
-    } catch (networkErr: any) {
-      clearTimeout(timeout);
-      if (networkErr?.name === 'AbortError' || controller.signal.aborted) {
-        throw new LLMTimeoutError('Groq provider timed out (7000ms abort)', 'groq');
-      }
-      throw new Error(`Groq fetch network error: ${networkErr instanceof Error ? networkErr.message : String(networkErr)}`);
-    }
-
-    try {
-      if (!response.ok) {
-        throw new Error(`Groq HTTP error ${response.status}: ${response.statusText}`);
-      }
-      return await this.parseGroqResponse(response);
-    } finally {
-      clearTimeout(timeout);
-    }
+        if (!response.ok) {
+          throw new Error(`Groq HTTP error ${response.status}: ${response.statusText}`);
+        }
+        return await this.parseGroqResponse(response);
+      },
+      7000,
+      'groq'
+    );
   }
 
   private async parseGroqResponse(response: Response): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
@@ -245,40 +263,30 @@ export class LLMGateway {
   }
 
   private async callGemini(options: LLMRequestOptions): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 7000);
+    return await withTimeout(
+      async (signal) => {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${this.geminiApiKey}`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [{ text: `Kontekst: System OmniDash v4.0. Zwięzła odpowiedź inżynieryjna po polsku.\n\nZapytanie: ${options.message}` }]
+              }
+            ]
+          }),
+          signal
+        });
 
-    let response: Response;
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${this.geminiApiKey}`;
-      response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: `Kontekst: System OmniDash v4.0. Zwięzła odpowiedź inżynieryjna po polsku.\n\nZapytanie: ${options.message}` }]
-            }
-          ]
-        }),
-        signal: controller.signal
-      });
-    } catch (networkErr: any) {
-      clearTimeout(timeout);
-      if (networkErr?.name === 'AbortError' || controller.signal.aborted) {
-        throw new LLMTimeoutError('Gemini provider timed out (7000ms abort)', 'gemini');
-      }
-      throw new Error(`Gemini fetch network error: ${networkErr instanceof Error ? networkErr.message : String(networkErr)}`);
-    }
-
-    try {
-      if (!response.ok) {
-        throw new Error(`Gemini HTTP error ${response.status}: ${response.statusText}`);
-      }
-      return await this.parseGeminiResponse(response);
-    } finally {
-      clearTimeout(timeout);
-    }
+        if (!response.ok) {
+          throw new Error(`Gemini HTTP error ${response.status}: ${response.statusText}`);
+        }
+        return await this.parseGeminiResponse(response);
+      },
+      7000,
+      'gemini'
+    );
   }
 
   private async parseGeminiResponse(response: Response): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
@@ -301,47 +309,37 @@ export class LLMGateway {
   }
 
   private async callOpenAI(options: LLMRequestOptions): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 7000);
+    return await withTimeout(
+      async (signal) => {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${this.openaiApiKey}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              {
+                role: 'system',
+                content: 'Jesteś asystentem OmniDash v4.0. Odpowiadaj zwięźle i precyzyjnie po polsku.'
+              },
+              ...(options.history || []),
+              { role: 'user', content: options.message }
+            ],
+            temperature: options.temperature ?? 0.3
+          }),
+          signal
+        });
 
-    let response: Response;
-    try {
-      response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.openaiApiKey}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: 'Jesteś asystentem OmniDash v4.0. Odpowiadaj zwięźle i precyzyjnie po polsku.'
-            },
-            ...(options.history || []),
-            { role: 'user', content: options.message }
-          ],
-          temperature: options.temperature ?? 0.3
-        }),
-        signal: controller.signal
-      });
-    } catch (networkErr: any) {
-      clearTimeout(timeout);
-      if (networkErr?.name === 'AbortError' || controller.signal.aborted) {
-        throw new LLMTimeoutError('OpenAI provider timed out (7000ms abort)', 'openai');
-      }
-      throw new Error(`OpenAI fetch network error: ${networkErr instanceof Error ? networkErr.message : String(networkErr)}`);
-    }
-
-    try {
-      if (!response.ok) {
-        throw new Error(`OpenAI HTTP error ${response.status}: ${response.statusText}`);
-      }
-      return await this.parseOpenAIResponse(response);
-    } finally {
-      clearTimeout(timeout);
-    }
+        if (!response.ok) {
+          throw new Error(`OpenAI HTTP error ${response.status}: ${response.statusText}`);
+        }
+        return await this.parseOpenAIResponse(response);
+      },
+      7000,
+      'openai'
+    );
   }
 
   private async parseOpenAIResponse(response: Response): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
