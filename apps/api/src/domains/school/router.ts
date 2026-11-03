@@ -57,7 +57,7 @@ schoolRouter.get('/read-all', (_req: Request, res: Response) => {
     isConfigured: true,
     isDemo: false,
     timestamp: new Date().toISOString(),
-    studentInfo: { name: 'Jakub Lis', class: '2 TI T' },
+    studentInfo: { name: 'Operator', class: '2 TI T' },
     luckyNumber: 21,
     grades: {
       overallAverage: gpa.toString(),

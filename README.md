@@ -1,13 +1,13 @@
 # OMNIDASH REBORN (v4.0.0) — MANIFEST I STRATEGIA TRANSFORMACJI
-> Lokalizacja repozytorium: `C:\Users\Jakub Lis\Desktop\01_PROJEKTY\OmniDash`  
+> Ścieżka systemowa: `$PROJECT_ROOT/OmniDash`  
 > Data audytu i planowania: 2026-10-30  
-> Status: FAZA PLANOWANIA ARCHITEKTONICZNEGO [PLANNING]  
+> Status: AKTYWNY SYSTEM PRODUKCYJNY (v4.0.0 Monorepo)  
 > Standard wykonania: Protokół Antigravity v4.0 (Deterministic Edition)  
 
 ---
 
 ## 1. MISJA I CELE RESTRUKTURYZACJI
-Projekt **OmniDash** (wcześniej `AI system dashboard github` v3.4.0) to zintegrowany osobisty ekosystem operacyjno-asystencki łączący kognitywną inteligencję LLM (`openai/gpt-oss-120b`), telemetrię systemową w czasie rzeczywistym (SSE), zautomatyzowane śledzenie wydatków (Pushbullet WebSocket + reguła 50/30/20), integrację ze szkolnym systemem Librus Synergia (oceny, terminarz, odwołane lekcje, zastępstwa), wywiad OSINT i graf powiązań podmiotów, wywiad drogowy (CANARD/GITD + GDDKiA), nadzór budżetowy GCP Pub/Sub, rutynę treningową FBW na strychu oraz wielosilnikową syntezę mowy (Fish Audio + Edge TTS).
+Projekt **OmniDash** to zintegrowany osobisty ekosystem operacyjno-asystencki łączący kognitywną inteligencję LLM (`openai/gpt-oss-120b`), telemetrię systemową w czasie rzeczywistym (SSE), zautomatyzowane śledzenie wydatków (Pushbullet WebSocket + reguła 50/30/20), integrację ze szkolnym systemem Librus Synergia (oceny, terminarz, odwołane lekcje, zastępstwa), wywiad OSINT i graf powiązań podmiotów, wywiad drogowy (CANARD/GITD + GDDKiA), nadzór budżetowy GCP Pub/Sub, rutynę treningową FBW na strychu oraz wielosilnikową syntezę mowy (Fish Audio + Edge TTS).
 
 ### Diagnoza Wersji Legacy (v3.4.0):
 1. **Split-Brain Architektury:** Rozproszenie logiki pomiędzy frontendowy klient (`clientAiDispatcher.js` o wadze 154 KB), bezstanowe bramy Vercel Serverless (`/api/*`), a lokalny serwer Express (`core.server.js`). Prowadzi to do dublowania logiki narzędziowej i ryzyka wycieku promptów.
@@ -39,11 +39,9 @@ Projekt **OmniDash** (wcześniej `AI system dashboard github` v3.4.0) to zintegr
 
 ---
 
-## 3. SPIS DOKUMENTACJI W KATALOGU
-W tym katalogu (`C:\Users\Jakub Lis\Desktop\01_PROJEKTY\OmniDash`) wygenerowano pełną dokumentację transformacji:
+## 3. ARCHITEKTURA I SPECYFIKACJA SYSTEMOWA
+Pełna dokumentacja i specyfikacje podsystemów monorepo zostały zorganizowane w dedykowanych plikach architektury:
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md) — Topologia monorepo, architektura domenowa, podział portów i infrastruktura Docker.
+- [`HISTORY.md`](./HISTORY.md) — Niemutowalny rejestr wersji i changelog SemVer 2.0.0.
+- [`TODO.md`](./TODO.md) — Strategiczny rejestr zadań bieżącego sprintu (Pushbullet bridge, dispatching, integracje chmurowe).
 
-1. [`01_SYSTEM_AUDIT_I_INWENTARYZACJA.md`](file:///C:/Users/Jakub%20Lis/Desktop/01_PROJEKTY/OmniDash/01_SYSTEM_AUDIT_I_INWENTARYZACJA.md) — Dogłębny audyt kodu v3.4.0, inwentarz 15 modułów, tras API, tabel SQL i punktów tarcia.
-2. [`02_ARCHITEKTURA_NOWEGO_SYSTEMU.md`](file:///C:/Users/Jakub%20Lis/Desktop/01_PROJEKTY/OmniDash/02_ARCHITEKTURA_NOWEGO_SYSTEMU.md) — Architektura modularnego monolitu/monorepo, podział domenowy, kontrakty Zod i wybór stosu GUI.
-3. [`03_DOKERYZACJA_I_INFRASTRUKTURA.md`](file:///C:/Users/Jakub%20Lis/Desktop/01_PROJEKTY/OmniDash/03_DOKERYZACJA_I_INFRASTRUKTURA.md) — Kompletna specyfikacja Docker Compose, Dockerfiles multi-stage, sieć, wolumeny i healthchecki.
-4. [`04_MIGRACJA_LOGIKI_I_MODULOW.md`](file:///C:/Users/Jakub%20Lis/Desktop/01_PROJEKTY/OmniDash/04_MIGRACJA_LOGIKI_I_MODULOW.md) — Szczegółowe plany przepisania 15 podsystemów (AI, Librus, Finanse, OSINT, Ruch Drogowy, Treningi).
-5. [`05_PLAN_WDROZENIA_KROK_PO_KROKU.md`](file:///C:/Users/Jakub%20Lis/Desktop/01_PROJEKTY/OmniDash/05_PLAN_WDROZENIA_KROK_PO_KROKU.md) — Deterministyczny plan wdrożenia zgodny z metodologią TDD i standardem `/writing-plans`.

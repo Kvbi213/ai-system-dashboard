@@ -23,7 +23,7 @@
 ## 2. DRZEWO MONOREPO (TOPOLOGIA STRUKTURALNA)
 
 ```
-C:\Users\Jakub Lis\Desktop\01_PROJEKTY\OmniDash\
+$PROJECT_ROOT/OmniDash/
 ├── docker-compose.yml              # Multi-container orchestration (web, api, worker, db, redis)
 ├── pnpm-workspace.yaml             # Definicja obszarów roboczych pnpm
 ├── package.json                    # Skrypty globalne monorepo

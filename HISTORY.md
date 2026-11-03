@@ -13,7 +13,7 @@ W systemie Legacy (`AI system dashboard github` w wersjach v1.0.0 – v3.4.0) hi
 - **Brak atomowości:** Zmiany kosmetyczne mieszały się z krytycznymi łatkami bezpieczeństwa i dużymi refaktoryzacjami.
 
 **Decyzja Architektoniczna:**
-Wraz z budową projektu od zera w lokalizacji `C:\Users\Jakub Lis\Desktop\01_PROJEKTY\OmniDash`, zamykamy chaotyczną linię 3.x i ustanawiamy **Czysty Restart Wersjonowania**:
+Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chaotyczną linię 3.x i ustanawiamy **Czysty Restart Wersjonowania**:
 1. Nowy system startuje z wersją bazową **v4.0.0 (OmniDash Reborn)**.
 2. Każda kolejna wersja podlega ścisłemu SemVer:
    - **MAJOR (vX.0.0):** Przełomowa zmiana architektury, zmiana schematu bazy danych lub kontraktów API.
