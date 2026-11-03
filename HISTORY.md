@@ -431,3 +431,24 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - API Gateway Unit: 39 testów zaliczonych (exit code 0).
   - Worker Unit: 8 testów zaliczonych (exit code 0).
   - Łącznie: 93 testy automatyczne na zielono.
+
+
+---
+
+### ## v4.0.0-rc.3 — 2026-11-04 [GROQ SENIOR REVIEWER HARDENING & LLM GATEWAY RESILIENCE]
+**Status:** WYDANE I ZWERYFIKOWANE  
+**Typ:** PATCH (Audyt Groq Senior Reviewera gpt-oss-120b, Fail-Fast Input Validation, Typed Provider Interfaces, Bezpieczny Parser JSON, Twardy Limit Tokenów w IterationBudget)  
+**Cel:** Eliminacja wszystkich uwag blokujących z zewnętrznego code reviewera oraz rozszerzenie pokrycia testowego bramy LLM.
+
+#### Zakres Wdrożenia i Zmian:
+- [+] **Walidacja Wejścia Fail-Fast w `llmGateway.ts`:**
+  - Dodano asercję sprawdzającą obecność, typ oraz niepusty ciąg znaków parametru `options.message` przed inicjalizacją budżetu iteracji.
+  - Wprowadzono weryfikację `key?.trim()` dla poświadczeń dostawców `groqApiKey`, `geminiApiKey` i `openaiApiKey`.
+- [+] **Bezpieczne Parsowanie Odpowiedzi Dostawców & Typy Dedykowane:**
+  - Otoczenie wywołań `response.json()` blokami `try/catch` w celu eliminacji nieobsłużonych wyjątków parsowania (SyntaxError) przy błędach brzegowych proxy upstream (502/503/Cloudflare HTML).
+  - Wprowadzenie ścisłych interfejsów TypeScript: `GroqChatResponse`, `GeminiChatResponse`, `OpenAIChatResponse`.
+- [+] **Twarde Limity Tokenów w `IterationBudget`:**
+  - Dodano weryfikację `maxTokens` i rzucanie `IterationBudgetExhaustedError` w metodzie `recordStep(tokensUsed)`.
+- [+] **Nowy Zestaw Testów Jednostkowych (`llm_gateway.test.ts`):**
+  - Pokrycie testowe: przekroczenie limitu pętli, przekroczenie limitu tokenów, fail-fast przy pustej wiadomości oraz deterministyczny fallback lokalny.
+  - Łączna liczba testów jednostkowych API Gateway wzrosła z 39 do 44.

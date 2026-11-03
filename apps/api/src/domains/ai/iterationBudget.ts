@@ -14,6 +14,7 @@ export class IterationBudgetExhaustedError extends Error {
 export class IterationBudget {
   private readonly maxLoops: number;
   private readonly timeoutMs: number;
+  private readonly maxTokens?: number;
   private currentLoop: number = 0;
   private readonly startTime: number;
   private accumulatedTokens: number = 0;
@@ -21,6 +22,7 @@ export class IterationBudget {
   constructor(config: IterationBudgetConfig = {}) {
     this.maxLoops = config.maxLoops ?? 5;
     this.timeoutMs = config.timeoutMs ?? 15000;
+    this.maxTokens = config.maxTokens;
     this.startTime = Date.now();
   }
 
@@ -43,6 +45,14 @@ export class IterationBudget {
         this.maxLoops
       );
     }
+
+    if (this.maxTokens && this.accumulatedTokens > this.maxTokens) {
+      throw new IterationBudgetExhaustedError(
+        `[!] IterationBudget: Przekroczono limit tokenów sesji (${this.accumulatedTokens} > ${this.maxTokens}).`,
+        this.currentLoop,
+        this.maxLoops
+      );
+    }
   }
 
   public getStatus() {
@@ -51,7 +61,8 @@ export class IterationBudget {
       maxLoops: this.maxLoops,
       remainingLoops: Math.max(0, this.maxLoops - this.currentLoop),
       elapsedMs: Date.now() - this.startTime,
-      accumulatedTokens: this.accumulatedTokens
+      accumulatedTokens: this.accumulatedTokens,
+      maxTokens: this.maxTokens
     };
   }
 }

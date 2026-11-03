@@ -20,6 +20,42 @@ export interface LLMResponse {
   fallbackCount: number;
 }
 
+interface GroqChatResponse {
+  choices?: Array<{
+    message?: {
+      content?: string;
+    };
+  }>;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
+
+interface GeminiChatResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        text?: string;
+      }>;
+    };
+  }>;
+}
+
+interface OpenAIChatResponse {
+  choices?: Array<{
+    message?: {
+      content?: string;
+    };
+  }>;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
+
 export class LLMGateway {
   private readonly groqApiKey: string;
   private readonly geminiApiKey: string;
@@ -32,12 +68,19 @@ export class LLMGateway {
   }
 
   public async complete(options: LLMRequestOptions): Promise<LLMResponse> {
-    const budget = new IterationBudget({ maxLoops: options.maxLoops ?? 5 });
+    if (!options.message || typeof options.message !== 'string' || !options.message.trim()) {
+      throw new Error('LLMRequestOptions: message parameter is required and cannot be empty.');
+    }
+
+    const budget = new IterationBudget({
+      maxLoops: options.maxLoops ?? 5,
+      maxTokens: options.maxTokens
+    });
     const startTime = Date.now();
     let fallbackCount = 0;
 
     // 1. Primary: Groq API
-    if (this.groqApiKey) {
+    if (this.groqApiKey?.trim()) {
       try {
         budget.recordStep();
         const res = await this.callGroq(options);
@@ -58,7 +101,7 @@ export class LLMGateway {
     }
 
     // 2. Secondary: Gemini 2.0 Flash API
-    if (this.geminiApiKey) {
+    if (this.geminiApiKey?.trim()) {
       try {
         budget.recordStep();
         const res = await this.callGemini(options);
@@ -79,7 +122,7 @@ export class LLMGateway {
     }
 
     // 3. Tertiary: OpenAI API
-    if (this.openaiApiKey) {
+    if (this.openaiApiKey?.trim()) {
       try {
         budget.recordStep();
         const res = await this.callOpenAI(options);
@@ -154,7 +197,13 @@ export class LLMGateway {
         throw new Error(`Groq HTTP error ${response.status}: ${response.statusText}`);
       }
 
-      const data = await response.json() as any;
+      let data: GroqChatResponse;
+      try {
+        data = (await response.json()) as GroqChatResponse;
+      } catch (parseErr) {
+        throw new Error(`Failed to parse Groq response JSON: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`);
+      }
+
       const choice = data.choices?.[0];
       const reply = choice?.message?.content || 'Pomyślnie przetworzono polecenie.';
       const usage = data.usage || { prompt_tokens: 150, completion_tokens: 80, total_tokens: 230 };
@@ -193,7 +242,13 @@ export class LLMGateway {
         throw new Error(`Gemini HTTP error ${response.status}: ${response.statusText}`);
       }
 
-      const data = await response.json() as any;
+      let data: GeminiChatResponse;
+      try {
+        data = (await response.json()) as GeminiChatResponse;
+      } catch (parseErr) {
+        throw new Error(`Failed to parse Gemini response JSON: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`);
+      }
+
       const candidate = data.candidates?.[0];
       const reply = candidate?.content?.parts?.[0]?.text || 'Przetworzono polecenie w chmurze Gemini.';
 
@@ -238,7 +293,13 @@ export class LLMGateway {
         throw new Error(`OpenAI HTTP error ${response.status}: ${response.statusText}`);
       }
 
-      const data = await response.json() as any;
+      let data: OpenAIChatResponse;
+      try {
+        data = (await response.json()) as OpenAIChatResponse;
+      } catch (parseErr) {
+        throw new Error(`Failed to parse OpenAI response JSON: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`);
+      }
+
       const choice = data.choices?.[0];
       const reply = choice?.message?.content || 'Polecenie przetworzone przez silnik OpenAI.';
       const usage = data.usage || { prompt_tokens: 180, completion_tokens: 95, total_tokens: 275 };
