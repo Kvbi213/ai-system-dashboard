@@ -75,8 +75,40 @@ const NAV_CATEGORIES: NavCategory[] = [
 
 const STORAGE_KEY = 'omnidash_sidebar_collapsed_categories';
 
+const NAV_ROUTE_MAP: Record<string, string> = {
+  '/': 'dashboard',
+  '/chat': 'chat',
+  '/school': 'school',
+  '/private': 'private',
+  '/finance': 'finance',
+  '/workouts': 'workouts',
+  '/traffic': 'cameras'
+};
+
 export const Sidebar: React.FC<SidebarProps> = ({ systemStatus = 'nominal' }) => {
   const location = useLocation();
+
+  const [navVisible, setNavVisible] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem('omnidash_nav_visible');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    const handleNavChanged = () => {
+      try {
+        const saved = localStorage.getItem('omnidash_nav_visible');
+        if (saved) setNavVisible(JSON.parse(saved));
+      } catch {
+        // ignore
+      }
+    };
+    window.addEventListener('omnidash_nav_changed', handleNavChanged);
+    return () => window.removeEventListener('omnidash_nav_changed', handleNavChanged);
+  }, []);
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
     try {
@@ -164,6 +196,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ systemStatus = 'nominal' }) =>
       {/* Collapsible Categories Navigation */}
       <div className="flex-1 space-y-4 overflow-y-auto pr-1">
         {NAV_CATEGORIES.map((cat) => {
+          const visibleItems = cat.items.filter((item) => {
+            const key = NAV_ROUTE_MAP[item.to];
+            if (!key) return true;
+            return navVisible[key] !== false;
+          });
+          if (visibleItems.length === 0) return null;
           const isCollapsed = Boolean(collapsed[cat.id]);
           return (
             <div key={cat.id} className="rounded-2xl transition-all">
@@ -177,7 +215,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ systemStatus = 'nominal' }) =>
                 <div className="flex items-center gap-1.5">
                   <span>{cat.title}</span>
                   <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-slate-200/60 text-slate-600 font-mono font-semibold">
-                    {cat.items.length}
+                    {visibleItems.length}
                   </span>
                 </div>
                 <ChevronDown
@@ -193,7 +231,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ systemStatus = 'nominal' }) =>
                   isCollapsed ? 'max-h-0 opacity-0 overflow-hidden py-0' : 'max-h-96 opacity-100 py-1'
                 }`}
               >
-                {cat.items.map((item) => (
+                {visibleItems.map((item) => (
                   <NavLink
                     key={item.to}
                     to={item.to}

@@ -10,7 +10,7 @@
   }
 
   :root.dark {
-    --bg-canvas: #090d16;
+    --bg-canvas: #080d1a;
     color-scheme: dark;
   }
 
@@ -24,7 +24,7 @@
   }
 
   .dark body {
-    background-color: #090d16;
+    background-color: #080d1a;
     color: #f1f5f9;
   }
 }
@@ -65,36 +65,36 @@
 
 /* Obsidian Glassmorphism Utilities - Dark Mode */
 .dark .glass-panel {
-  background: rgba(15, 23, 42, 0.72);
+  background: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(28px) saturate(190%);
   -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 
-    0 10px 30px -5px rgba(0, 0, 0, 0.45),
-    0 2px 6px -1px rgba(0, 0, 0, 0.25),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.2);
+    0 10px 30px -5px rgba(0, 0, 0, 0.55),
+    0 2px 6px -1px rgba(0, 0, 0, 0.35),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.3);
 }
 
 .dark .glass-panel-elevated {
-  background: rgba(22, 33, 56, 0.82);
+  background: rgba(22, 33, 56, 0.88);
   backdrop-filter: blur(36px) saturate(200%);
   -webkit-backdrop-filter: blur(36px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: 
-    0 20px 45px -10px rgba(0, 0, 0, 0.55),
-    0 4px 12px -2px rgba(0, 0, 0, 0.35),
-    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.12);
+    0 20px 45px -10px rgba(0, 0, 0, 0.65),
+    0 4px 12px -2px rgba(0, 0, 0, 0.45),
+    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.14);
 }
 
 .dark .glass-dock {
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(15, 23, 42, 0.9);
   backdrop-filter: blur(32px) saturate(190%);
   -webkit-backdrop-filter: blur(32px) saturate(190%);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 
-    0 -10px 30px -5px rgba(0, 0, 0, 0.5),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.06);
+    0 -10px 30px -5px rgba(0, 0, 0, 0.6),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* Custom Safe-Area Utilities for iOS & Dynamic Island */
@@ -130,11 +130,11 @@
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
+  background: rgba(148, 163, 184, 0.25);
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.35);
+  background: rgba(148, 163, 184, 0.4);
 }
 
 /* Dark Mode High-Contrast Typography & Surface Inversions */
@@ -158,37 +158,98 @@
   color: #94a3b8;
 }
 
-.dark .bg-white {
-  background-color: rgba(30, 41, 59, 0.75);
+.dark .text-slate-400 {
+  color: #94a3b8;
 }
 
-.dark .bg-white\/80,
-.dark .bg-white\/70,
-.dark .bg-white\/65,
-.dark .bg-white\/60,
-.dark .bg-white\/50 {
-  background-color: rgba(15, 23, 42, 0.7);
+/* Background Inversions: all white & light slate classes become sleek translucent dark slate */
+.dark .bg-white,
+.dark [class*="bg-white"] {
+  background-color: rgba(15, 23, 42, 0.8);
 }
 
 .dark .bg-slate-50,
+.dark [class*="bg-slate-50"],
 .dark .bg-slate-100,
-.dark .bg-slate-100\/80 {
-  background-color: rgba(30, 41, 59, 0.55);
+.dark [class*="bg-slate-100"],
+.dark .bg-slate-200,
+.dark [class*="bg-slate-200"] {
+  background-color: rgba(30, 41, 59, 0.7);
 }
 
 .dark .border-slate-200,
-.dark .border-slate-200\/80,
+.dark [class*="border-slate-200"],
 .dark .border-slate-300,
-.dark .border-white\/80 {
-  border-color: rgba(255, 255, 255, 0.09);
+.dark [class*="border-slate-300"],
+.dark .border-white,
+.dark [class*="border-white"] {
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
+/* Active pills and badges in dark mode */
+.dark [class*="bg-sky-100"],
+.dark [class*="bg-sky-50"] {
+  background-color: rgba(12, 74, 110, 0.5);
+  color: #7dd3fc;
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.dark [class*="bg-emerald-100"],
+.dark [class*="bg-emerald-50"] {
+  background-color: rgba(6, 78, 59, 0.5);
+  color: #6ee7b7;
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+.dark [class*="bg-amber-100"],
+.dark [class*="bg-amber-50"] {
+  background-color: rgba(120, 53, 15, 0.5);
+  color: #fde68a;
+  border-color: rgba(251, 191, 36, 0.35);
+}
+
+.dark [class*="bg-purple-100"],
+.dark [class*="bg-purple-50"] {
+  background-color: rgba(88, 28, 135, 0.5);
+  color: #e9d5ff;
+  border-color: rgba(192, 132, 252, 0.35);
+}
+
+.dark [class*="bg-indigo-100"],
+.dark [class*="bg-indigo-50"] {
+  background-color: rgba(49, 46, 129, 0.5);
+  color: #c7d2fe;
+  border-color: rgba(129, 140, 248, 0.35);
+}
+
+.dark [class*="bg-pink-100"],
+.dark [class*="bg-pink-50"] {
+  background-color: rgba(131, 24, 67, 0.5);
+  color: #fbcfe8;
+  border-color: rgba(244, 114, 182, 0.35);
+}
+
+.dark [class*="bg-cyan-100"],
+.dark [class*="bg-cyan-50"] {
+  background-color: rgba(22, 78, 99, 0.5);
+  color: #a5f3fc;
+  border-color: rgba(34, 211, 238, 0.35);
+}
+
+.dark [class*="bg-rose-100"],
+.dark [class*="bg-rose-50"] {
+  background-color: rgba(136, 19, 55, 0.5);
+  color: #fecdd3;
+  border-color: rgba(251, 113, 133, 0.35);
+}
+
+/* Contrast fix for inputs and textareas in dark mode */
 .dark input:not([type="checkbox"]):not([type="radio"]),
 .dark textarea,
 .dark select {
-  background-color: rgba(15, 23, 42, 0.8) !important;
+  background-color: rgba(15, 23, 42, 0.9) !important;
   color: #f1f5f9 !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
 }
 
 .dark input::placeholder,

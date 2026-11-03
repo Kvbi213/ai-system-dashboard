@@ -2,11 +2,41 @@ import React, { useState } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { Smartphone, Sparkles, SlidersHorizontal, Hand, Check } from 'lucide-react';
 
+const DEFAULT_ERGO = {
+  blurPx: 16,
+  thumbZone: true,
+  reducedMotion: false,
+  compactDensity: true
+};
+
 export const ErgonomicsSettings: React.FC = () => {
-  const [blurPx, setBlurPx] = useState<number>(16);
-  const [thumbZone, setThumbZone] = useState<boolean>(true);
-  const [reducedMotion, setReducedMotion] = useState<boolean>(false);
-  const [compactDensity, setCompactDensity] = useState<boolean>(true);
+  const [ergo, setErgo] = useState(() => {
+    try {
+      const saved = localStorage.getItem('omnidash_ergonomics_settings');
+      return saved ? { ...DEFAULT_ERGO, ...JSON.parse(saved) } : DEFAULT_ERGO;
+    } catch {
+      return DEFAULT_ERGO;
+    }
+  });
+
+  const { blurPx, thumbZone, reducedMotion, compactDensity } = ergo;
+
+  const updateErgo = (key: keyof typeof DEFAULT_ERGO, val: any) => {
+    setErgo((prev: typeof DEFAULT_ERGO) => {
+      const updated = { ...prev, [key]: val };
+      try {
+        localStorage.setItem('omnidash_ergonomics_settings', JSON.stringify(updated));
+        if (key === 'blurPx') {
+          document.documentElement.style.setProperty('--glass-blur', `${val}px`);
+        } else if (key === 'reducedMotion') {
+          document.documentElement.classList.toggle('reduce-motion', val);
+        } else if (key === 'compactDensity') {
+          document.documentElement.classList.toggle('compact-density', val);
+        }
+      } catch {}
+      return updated;
+    });
+  };
 
   return (
     <GlassCard className="p-4 sm:p-5" glow="sky">
@@ -37,7 +67,7 @@ export const ErgonomicsSettings: React.FC = () => {
             max="32"
             step="2"
             value={blurPx}
-            onChange={(e) => setBlurPx(parseInt(e.target.value, 10))}
+            onChange={(e) => updateErgo('blurPx', parseInt(e.target.value, 10))}
             className="w-full accent-sky-600"
           />
           <div className="flex justify-between text-[10px] text-slate-400 font-mono mt-1">
@@ -48,51 +78,51 @@ export const ErgonomicsSettings: React.FC = () => {
         </div>
 
         <div className="space-y-2.5">
-          <div className="p-3 rounded-2xl bg-white/70 border border-slate-200 flex items-center justify-between shadow-sm">
+          <div className="p-3 rounded-2xl bg-white/70 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-3">
               <Hand className="w-4 h-4 text-emerald-600" />
               <div>
-                <p className="text-xs font-bold text-slate-800">Dolna Strefa Kciuka (Thumb Zone)</p>
-                <p className="text-[10px] text-slate-500">Przyciski akcji na smartfonie w zasięgu jednego kciuka</p>
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Dolna Strefa Kciuka (Thumb Zone)</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">Przyciski akcji na smartfonie w zasięgu jednego kciuka</p>
               </div>
             </div>
             <button
-              onClick={() => setThumbZone(!thumbZone)}
+              onClick={() => updateErgo('thumbZone', !thumbZone)}
               className={`px-3 py-1 rounded-xl text-xs font-bold font-mono transition ${
-                thumbZone ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-100 text-slate-500'
+                thumbZone ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
               }`}
             >
               {thumbZone ? 'WŁĄCZONE' : 'WYŁĄCZONE'}
             </button>
           </div>
 
-          <div className="p-3 rounded-2xl bg-white/70 border border-slate-200 flex items-center justify-between shadow-sm">
+          <div className="p-3 rounded-2xl bg-white/70 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-3">
               <SlidersHorizontal className="w-4 h-4 text-purple-600" />
               <div>
-                <p className="text-xs font-bold text-slate-800">Zwarty Układ Pulpitu (Zero-Scroll Viewport)</p>
-                <p className="text-[10px] text-slate-500">Dopasowanie siatki widżetów do pionowej przestrzeni ekranu</p>
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Zwarty Układ Pulpitu (Zero-Scroll Viewport)</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">Dopasowanie siatki widżetów do pionowej przestrzeni ekranu</p>
               </div>
             </div>
             <button
-              onClick={() => setCompactDensity(!compactDensity)}
+              onClick={() => updateErgo('compactDensity', !compactDensity)}
               className={`px-3 py-1 rounded-xl text-xs font-bold font-mono transition ${
-                compactDensity ? 'bg-sky-100 text-sky-800 border border-sky-300' : 'bg-slate-100 text-slate-500'
+                compactDensity ? 'bg-sky-100 text-sky-800 border border-sky-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
               }`}
             >
               {compactDensity ? 'AKTYWNY' : 'STANDARD'}
             </button>
           </div>
 
-          <div className="p-3 rounded-2xl bg-white/70 border border-slate-200 flex items-center justify-between shadow-sm">
+          <div className="p-3 rounded-2xl bg-white/70 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between shadow-sm">
             <div>
-              <p className="text-xs font-bold text-slate-800">Ograniczenie Animacji (Reduced Motion)</p>
-              <p className="text-[10px] text-slate-500">Wyłączenie przejść spring i optymalizacja FPS na słabszych CPU</p>
+              <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Ograniczenie Animacji (Reduced Motion)</p>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400">Wyłączenie przejść spring i optymalizacja FPS na słabszych CPU</p>
             </div>
             <button
-              onClick={() => setReducedMotion(!reducedMotion)}
+              onClick={() => updateErgo('reducedMotion', !reducedMotion)}
               className={`px-3 py-1 rounded-xl text-xs font-bold font-mono transition ${
-                reducedMotion ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-slate-100 text-slate-500'
+                reducedMotion ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
               }`}
             >
               {reducedMotion ? 'WŁĄCZONE' : 'WYŁĄCZONE'}

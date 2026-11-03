@@ -2,16 +2,58 @@ import React, { useState } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { Bot, Key, Eye, EyeOff, Save, Check } from 'lucide-react';
 
+const DEFAULT_AI = {
+  model: 'llama-3.3-70b' as 'llama-3.3-70b' | 'gemini-2.5-flash' | 'mixtral-8x7b',
+  temperature: 0.7,
+  apiKey: 'gsk_live_99a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4'
+};
+
 export const AiModelSettings: React.FC = () => {
-  const [model, setModel] = useState<'llama-3.3-70b' | 'gemini-2.5-flash' | 'mixtral-8x7b'>('llama-3.3-70b');
-  const [temperature, setTemperature] = useState<number>(0.7);
+  const [aiState, setAiState] = useState(() => {
+    try {
+      const saved = localStorage.getItem('omnidash_ai_settings');
+      return saved ? { ...DEFAULT_AI, ...JSON.parse(saved) } : DEFAULT_AI;
+    } catch {
+      return DEFAULT_AI;
+    }
+  });
+
+  const { model, temperature, apiKey } = aiState;
   const [apiKeyMasked, setApiKeyMasked] = useState<boolean>(true);
-  const [apiKey, setApiKey] = useState<string>('gsk_live_99a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4');
   const [isSaved, setIsSaved] = useState<boolean>(false);
 
+  const setModel = (m: typeof model) => {
+    setAiState((prev: typeof DEFAULT_AI) => {
+      const updated = { ...prev, model: m };
+      try {
+        localStorage.setItem('omnidash_ai_settings', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const setTemperature = (t: number) => {
+    setAiState((prev: typeof DEFAULT_AI) => {
+      const updated = { ...prev, temperature: t };
+      try {
+        localStorage.setItem('omnidash_ai_settings', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const setApiKey = (k: string) => {
+    setAiState((prev: typeof DEFAULT_AI) => ({ ...prev, apiKey: k }));
+  };
+
   const handleSave = () => {
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2500);
+    try {
+      localStorage.setItem('omnidash_ai_settings', JSON.stringify(aiState));
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2500);
+    } catch {
+      // ignore
+    }
   };
 
   return (

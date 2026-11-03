@@ -126,7 +126,7 @@ export const CurrentLessonHero: React.FC<CurrentLessonHeroProps> = (props) => {
                 lessonData.status === 'in_progress' ? 'bg-emerald-500 animate-pulse' : 'bg-sky-500'
               }`}
             />
-            <span className="text-xs font-bold uppercase tracking-wider text-sky-700">
+            <span className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-400">
               {lessonData.status === 'in_progress'
                 ? 'Trwa blok zajęć (Librus)'
                 : lessonData.status === 'upcoming'
@@ -136,14 +136,14 @@ export const CurrentLessonHero: React.FC<CurrentLessonHeroProps> = (props) => {
           </div>
           <NavLink
             to="/school"
-            className="flex items-center gap-1 text-xs text-slate-500 hover:text-sky-700 font-semibold transition"
+            className="flex items-center gap-1 text-xs text-slate-500 hover:text-sky-700 dark:hover:text-sky-400 font-semibold transition"
           >
             <span>Plan</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
           </NavLink>
         </div>
 
-        <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight leading-snug">
+        <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight leading-snug">
           {lessonData.subject}
         </h2>
 
@@ -153,37 +153,37 @@ export const CurrentLessonHero: React.FC<CurrentLessonHeroProps> = (props) => {
           </div>
         )}
 
-        <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-3 text-xs text-slate-600">
-          <div className="flex items-center gap-1.5 font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-200/60 shadow-sm">
-            <Clock className="w-3.5 h-3.5 text-sky-600" />
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-3 text-xs text-slate-600 dark:text-slate-300">
+          <div className="flex items-center gap-1.5 font-mono font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/70 px-2 py-0.5 rounded-lg border border-sky-200/60 dark:border-sky-800 shadow-sm">
+            <Clock className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
             <span>{lessonData.timeRange}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <MapPin className="w-3.5 h-3.5 text-slate-400" />
-            <span className="font-medium text-slate-700">{lessonData.room}</span>
+            <span className="font-medium text-slate-700 dark:text-slate-200">{lessonData.room}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <UserCheck className="w-3.5 h-3.5 text-slate-400" />
-            <span className="font-medium text-slate-700">{lessonData.teacher}</span>
+            <span className="font-medium text-slate-700 dark:text-slate-200">{lessonData.teacher}</span>
           </div>
         </div>
       </div>
 
       {/* Progress & Remaining Time Capsule */}
-      <div className="mt-4 pt-3 border-t border-slate-200/80 flex items-center justify-between">
+      <div className="mt-4 pt-3 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center font-bold text-xs text-sky-700 font-mono shadow-sm">
+          <div className="w-9 h-9 rounded-2xl bg-sky-50 dark:bg-sky-950/70 border border-sky-200 dark:border-sky-800 flex items-center justify-center font-bold text-xs text-sky-700 dark:text-sky-300 font-mono shadow-sm">
             {lessonData.remainingMinutes}m
           </div>
           <div>
             <p className="text-[11px] text-slate-400 font-medium">
               {lessonData.status === 'in_progress' ? 'Do dzwonka pozostało' : 'Czas do rozpoczęcia'}
             </p>
-            <p className="text-xs font-bold text-slate-800">{lessonData.remainingMinutes} minut</p>
+            <p className="text-xs font-bold text-slate-800 dark:text-slate-100">{lessonData.remainingMinutes} minut</p>
           </div>
         </div>
 
-        <div className="w-28 sm:w-36 bg-slate-200/80 rounded-full h-2 overflow-hidden border border-white">
+        <div className="w-28 sm:w-36 bg-slate-200/80 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-white/60 dark:border-slate-700">
           <div
             className="bg-gradient-to-r from-sky-500 to-indigo-600 h-full rounded-full transition-all duration-500 shadow-sm"
             style={{ width: `${Math.min(100, Math.max(10, ((45 - lessonData.remainingMinutes) / 45) * 100))}%` }}

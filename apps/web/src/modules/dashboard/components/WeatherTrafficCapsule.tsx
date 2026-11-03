@@ -27,30 +27,30 @@ export const WeatherTrafficCapsule: React.FC<WeatherTrafficCapsuleProps> = ({
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
               Okolica i Trasa
             </h3>
-            <p className="text-sm font-bold text-slate-900">{city}</p>
+            <p className="text-sm font-bold text-slate-900 dark:text-white">{city}</p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/90 border border-slate-200/90 text-sky-700 font-mono text-sm font-bold shadow-sm">
-          <CloudRain className="w-4 h-4 text-sky-600" />
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/90 dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700 text-sky-700 dark:text-sky-300 font-mono text-sm font-bold shadow-sm">
+          <CloudRain className="w-4 h-4 text-sky-600 dark:text-sky-400" />
           <span>{temperature}°C</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/80">
-        <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 border border-slate-200/80 shadow-sm">
+      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800">
+        <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 shadow-sm">
           <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
           <div>
-            <p className="text-[10px] text-slate-500 font-semibold">CANARD Radary</p>
-            <p className="text-xs font-bold text-emerald-700">
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">CANARD Radary</p>
+            <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
               {radarAlertsCount === 0 ? 'Brak fotoradarów' : `${radarAlertsCount} aktywne`}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 border border-slate-200/80 shadow-sm">
+        <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 shadow-sm">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
           <div>
-            <p className="text-[10px] text-slate-500 font-semibold">Ruch DK22 / A1</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">Ruch DK22 / A1</p>
             <div className="mt-0.5">
               <Badge variant={trafficStatus === 'płynny' ? 'success' : 'warning'}>
                 {trafficStatus}

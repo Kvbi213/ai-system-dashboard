@@ -30,14 +30,14 @@ export const DashboardKpiDeck: React.FC<DashboardKpiDeckProps> = ({ taskStats, o
 
         <div className="my-2.5 flex items-center justify-between">
           <div>
-            <div className="text-2xl font-black text-slate-900 font-mono tracking-tight">{taskStats.percent}%</div>
-            <span className="text-xs text-slate-500 font-medium">Ukończono {taskStats.completed} z {taskStats.total}</span>
+            <div className="text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">{taskStats.percent}%</div>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Ukończono {taskStats.completed} z {taskStats.total}</span>
           </div>
           {/* SVG Progress Ring */}
           <div className="relative w-11 h-11 shrink-0">
             <svg className="w-11 h-11 -rotate-90" viewBox="0 0 36 36">
               <path
-                className="text-slate-200 stroke-current"
+                className="text-slate-200 dark:text-slate-700 stroke-current"
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 fill="none"
                 strokeWidth="3.5"
@@ -51,17 +51,17 @@ export const DashboardKpiDeck: React.FC<DashboardKpiDeckProps> = ({ taskStats, o
                 strokeWidth="3.5"
               />
             </svg>
-            <span className="absolute inset-0 flex items-center justify-center font-mono text-[10px] font-bold text-sky-700">
+            <span className="absolute inset-0 flex items-center justify-center font-mono text-[10px] font-bold text-sky-700 dark:text-sky-300">
               {taskStats.completed}/{taskStats.total}
             </span>
           </div>
         </div>
 
-        <div className="pt-2 flex items-center justify-between text-[11px] font-mono text-slate-500 border-t border-slate-100">
+        <div className="pt-2 flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800">
           <span>Oczekujące: {taskStats.pending}</span>
           <button
             onClick={onOpenTasks}
-            className="text-sky-700 hover:text-sky-900 font-bold flex items-center gap-0.5 hover:underline"
+            className="text-sky-700 dark:text-sky-400 hover:text-sky-900 dark:hover:text-sky-300 font-bold flex items-center gap-0.5 hover:underline"
           >
             <span>Zarządzaj</span>
             <ArrowRight className="w-3 h-3" />
@@ -72,25 +72,25 @@ export const DashboardKpiDeck: React.FC<DashboardKpiDeckProps> = ({ taskStats, o
       {/* KPI 2: Sesja Treningowa FBW */}
       <GlassCard className="p-3 sm:p-3.5 flex flex-col justify-between hover:shadow-md transition-all w-full h-full" glow="emerald">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Sesja FBW</span>
-          <span className="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Sesja FBW</span>
+          <span className="text-[11px] font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/70 px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
             Cykl A
           </span>
         </div>
 
         <div className="my-2.5">
-          <div className="text-sm font-bold text-slate-900 truncate">FBW Kalistenika</div>
-          <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-500 font-medium">
-            <Dumbbell className="w-3.5 h-3.5 text-emerald-600" />
+          <div className="text-sm font-bold text-slate-900 dark:text-white truncate">FBW Kalistenika</div>
+          <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
+            <Dumbbell className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             <span>Drążek & Dipy • 45 min</span>
           </div>
         </div>
 
-        <div className="pt-2 flex items-center justify-between text-[11px] font-mono text-slate-500 border-t border-slate-100">
-          <span className="font-bold text-emerald-700">3 / 14 serii</span>
+        <div className="pt-2 flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800">
+          <span className="font-bold text-emerald-700 dark:text-emerald-400">3 / 14 serii</span>
           <button
             onClick={() => navigate('/workouts')}
-            className="text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-0.5 hover:underline"
+            className="text-emerald-700 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-300 font-bold flex items-center gap-0.5 hover:underline"
           >
             <span>Dziennik</span>
             <ArrowRight className="w-3 h-3" />
@@ -101,30 +101,30 @@ export const DashboardKpiDeck: React.FC<DashboardKpiDeckProps> = ({ taskStats, o
       {/* KPI 3: Finanse Koperty 50/30/20 */}
       <GlassCard className="p-3 sm:p-3.5 flex flex-col justify-between hover:shadow-md transition-all w-full h-full" glow="amber">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Budżet 50/30/20</span>
-          <span className="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Budżet 50/30/20</span>
+          <span className="text-[11px] font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/70 px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
             +3 420 zł
           </span>
         </div>
 
         <div className="my-2.5 space-y-1.5">
-          <div className="flex items-center justify-between text-[10px] text-slate-500 font-medium">
+          <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 font-medium">
             <span>Potrzeby 50%</span>
             <span>Zachc. 30%</span>
             <span>Oszcz. 20%</span>
           </div>
-          <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden flex shadow-inner">
+          <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex shadow-inner">
             <div className="h-full bg-sky-500" style={{ width: '50%' }}></div>
             <div className="h-full bg-indigo-500" style={{ width: '30%' }}></div>
             <div className="h-full bg-emerald-500" style={{ width: '20%' }}></div>
           </div>
         </div>
 
-        <div className="pt-2 flex items-center justify-between text-[11px] font-mono text-slate-500 border-t border-slate-100">
+        <div className="pt-2 flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800">
           <span>Wydatki: 1 780 zł</span>
           <button
             onClick={() => navigate('/finance')}
-            className="text-indigo-700 hover:text-indigo-900 font-bold flex items-center gap-0.5 hover:underline"
+            className="text-indigo-700 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 font-bold flex items-center gap-0.5 hover:underline"
           >
             <span>Budżet</span>
             <ArrowRight className="w-3 h-3" />

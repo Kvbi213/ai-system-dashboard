@@ -4,8 +4,24 @@ import { Badge } from '../../../components/ui/Badge';
 import { ShieldCheck, Download, Database, Lock, Key, Check } from 'lucide-react';
 
 export const SecurityDbSettings: React.FC = () => {
-  const [pinLockEnabled, setPinLockEnabled] = useState(false);
+  const [pinLockEnabled, setPinLockEnabled] = useState(() => {
+    try {
+      return localStorage.getItem('omnidash_pin_lock') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [backupDownloaded, setBackupDownloaded] = useState(false);
+
+  const togglePinLock = () => {
+    setPinLockEnabled((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('omnidash_pin_lock', next ? 'true' : 'false');
+      } catch {}
+      return next;
+    });
+  };
 
   const handleExportBackup = () => {
     const backupData = {
@@ -70,9 +86,9 @@ export const SecurityDbSettings: React.FC = () => {
         <div className="pt-2 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setPinLockEnabled(!pinLockEnabled)}
+              onClick={togglePinLock}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold font-mono transition flex items-center gap-1.5 ${
-                pinLockEnabled ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-100 text-slate-600'
+                pinLockEnabled ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
               }`}
             >
               <Lock className="w-3.5 h-3.5" />

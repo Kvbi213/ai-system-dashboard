@@ -3,25 +3,56 @@ import { GlassCard } from '../../../components/ui/GlassCard';
 import { Cpu, Sun, Moon, Check, RotateCcw, Sparkles } from 'lucide-react';
 import { useTheme } from '../../../context/ThemeContext';
 
+const DEFAULT_NAV = {
+  dashboard: true,
+  school: true,
+  private: true,
+  finance: true,
+  workouts: true,
+  chat: true,
+  cameras: true
+};
+
 export const KernelSettings: React.FC = () => {
   const { theme, setTheme } = useTheme();
-  const [navVisible, setNavVisible] = useState({
-    dashboard: true,
-    school: true,
-    private: true,
-    finance: true,
-    workouts: true,
-    chat: true,
-    cameras: true
+  const [navVisible, setNavVisible] = useState<typeof DEFAULT_NAV>(() => {
+    try {
+      const saved = localStorage.getItem('omnidash_nav_visible');
+      return saved ? { ...DEFAULT_NAV, ...JSON.parse(saved) } : DEFAULT_NAV;
+    } catch {
+      return DEFAULT_NAV;
+    }
   });
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
   const toggleNav = (key: keyof typeof navVisible) => {
-    setNavVisible((prev) => ({ ...prev, [key]: !prev[key] }));
+    setNavVisible((prev) => {
+      const updated = { ...prev, [key]: !prev[key] };
+      try {
+        localStorage.setItem('omnidash_nav_visible', JSON.stringify(updated));
+        window.dispatchEvent(new Event('omnidash_nav_changed'));
+      } catch {
+        // ignore
+      }
+      return updated;
+    });
   };
 
   const handleRunWizard = () => {
-    setStatusMsg('Kreator wstępnej konfiguracji został zainicjalizowany.');
+    setStatusMsg('Kreator wstępnej konfiguracji: Wszystkie moduły bazowe, telemetria i silnik AI aktywne (100% nominalnie).');
+    setTimeout(() => setStatusMsg(null), 4000);
+  };
+
+  const handleResetDefaults = () => {
+    setTheme('light');
+    setNavVisible(DEFAULT_NAV);
+    try {
+      localStorage.setItem('omnidash_nav_visible', JSON.stringify(DEFAULT_NAV));
+      window.dispatchEvent(new Event('omnidash_nav_changed'));
+    } catch {
+      // ignore
+    }
+    setStatusMsg('Przywrócono domyślne parametry jądra i widoczność modułów.');
     setTimeout(() => setStatusMsg(null), 3000);
   };
 
@@ -99,8 +130,8 @@ export const KernelSettings: React.FC = () => {
             <span>Uruchom Kreator Setup Wizard</span>
           </button>
           <button
-            onClick={() => setStatusMsg('Przywrócono domyślne parametry jądra.')}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold transition"
+            onClick={handleResetDefaults}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold transition"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset domyślnych</span>

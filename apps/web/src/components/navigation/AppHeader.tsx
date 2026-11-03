@@ -46,7 +46,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   }, []);
 
   return (
-    <header className="sticky top-0 z-20 w-full border-b border-white/80 bg-white/65 backdrop-blur-2xl px-4 py-3 sm:px-6 shadow-sm">
+    <header className="sticky top-0 z-20 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#080d1a]/95 backdrop-blur-xl px-4 py-3 sm:px-6 shadow-sm transition-colors duration-200">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         {/* Left: View Title & Subtitle */}
         <div className="flex flex-col">

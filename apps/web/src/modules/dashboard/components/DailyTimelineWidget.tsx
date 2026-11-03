@@ -178,13 +178,13 @@ export const DailyTimelineWidget: React.FC = () => {
         </div>
 
         {/* Filtr Szkolne / Prywatne / Wszystkie */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100/80 border border-slate-200">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
           <button
             onClick={() => setFilterMode('all')}
             className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
               filterMode === 'all'
-                ? 'bg-white text-sky-700 shadow-xs border border-slate-200'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-white dark:bg-slate-800 text-sky-700 dark:text-sky-300 shadow-xs border border-slate-200 dark:border-slate-700'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
             Wszystkie ({events.length})
@@ -194,7 +194,7 @@ export const DailyTimelineWidget: React.FC = () => {
             className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
               filterMode === 'school'
                 ? 'bg-sky-600 text-white shadow-xs'
-                : 'text-slate-500 hover:text-slate-800'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
             Szkolne
@@ -204,7 +204,7 @@ export const DailyTimelineWidget: React.FC = () => {
             className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
               filterMode === 'private'
                 ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-500 hover:text-slate-800'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
             Prywatne
@@ -212,7 +212,7 @@ export const DailyTimelineWidget: React.FC = () => {
         </div>
       </div>
 
-      <div className="space-y-2.5 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 max-h-[380px] overflow-y-auto pr-1">
+      <div className="space-y-2.5 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800 max-h-[380px] overflow-y-auto pr-1">
         {filteredEvents.map((event) => {
           const isDone = event.status === 'done';
           const isCurrent = event.status === 'current';
@@ -222,14 +222,14 @@ export const DailyTimelineWidget: React.FC = () => {
               {/* Node Indicator */}
               <div className="relative z-10 shrink-0 mt-0.5">
                 {isDone ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 bg-white rounded-full" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 bg-white dark:bg-slate-900 rounded-full" />
                 ) : isCurrent ? (
                   <div className="relative flex items-center justify-center">
                     <span className="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-sky-400 opacity-75"></span>
-                    <CircleDot className="w-5 h-5 text-sky-600 bg-white rounded-full relative" />
+                    <CircleDot className="w-5 h-5 text-sky-600 bg-white dark:bg-slate-900 rounded-full relative" />
                   </div>
                 ) : (
-                  <div className="w-5 h-5 rounded-full bg-white border-2 border-slate-300 flex items-center justify-center" />
+                  <div className="w-5 h-5 rounded-full bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center" />
                 )}
               </div>
 
@@ -237,17 +237,17 @@ export const DailyTimelineWidget: React.FC = () => {
               <div
                 className={`flex-1 p-2.5 rounded-xl border transition-all ${
                   isCurrent
-                    ? 'bg-sky-50/90 border-sky-300 shadow-sm ring-1 ring-sky-300/60'
+                    ? 'bg-sky-50/90 dark:bg-sky-950/70 border-sky-300 dark:border-sky-500 shadow-sm ring-1 ring-sky-300/60'
                     : isDone
-                    ? 'bg-slate-50/70 border-slate-200 opacity-75'
-                    : 'bg-white/70 border-slate-200 hover:bg-white'
+                    ? 'bg-slate-50/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800/80 opacity-75'
+                    : 'bg-white/70 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800/80 hover:bg-white dark:hover:bg-slate-850'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-mono font-bold text-slate-500">{event.time}</span>
+                  <span className="text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400">{event.time}</span>
                   <div className="flex items-center gap-1.5">
                     {event.room && (
-                      <span className="text-[10px] font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200 text-slate-700 font-bold">
+                      <span className="text-[10px] font-mono bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold">
                         {event.room}
                       </span>
                     )}
@@ -256,8 +256,8 @@ export const DailyTimelineWidget: React.FC = () => {
                         isCurrent
                           ? 'bg-sky-600 text-white'
                           : event.sourceType === 'school'
-                          ? 'bg-sky-100 text-sky-800 border border-sky-200'
-                          : 'bg-indigo-100 text-indigo-800 border border-indigo-200'
+                          ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800'
+                          : 'bg-indigo-100 dark:bg-indigo-950/80 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800'
                       }`}
                     >
                       {isCurrent ? 'Trwa teraz' : event.category}
@@ -265,7 +265,7 @@ export const DailyTimelineWidget: React.FC = () => {
                   </div>
                 </div>
 
-                <div className={`text-xs font-bold mt-1 ${isCurrent ? 'text-sky-950 font-extrabold' : 'text-slate-800'}`}>
+                <div className={`text-xs font-bold mt-1 ${isCurrent ? 'text-sky-950 dark:text-sky-200 font-extrabold' : 'text-slate-800 dark:text-slate-100'}`}>
                   {event.title}
                 </div>
               </div>
