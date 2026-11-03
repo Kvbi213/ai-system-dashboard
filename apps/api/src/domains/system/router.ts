@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import os from 'os';
+import { dbStore } from '../../db/store.js';
 
 export const systemRouter = Router();
 
@@ -10,6 +11,33 @@ systemRouter.get('/health', (_req: Request, res: Response) => {
     version: '4.0.0',
     uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString()
+  });
+});
+
+systemRouter.get('/time', (_req: Request, res: Response) => {
+  const now = new Date();
+  res.json({
+    timestamp: now.toISOString(),
+    epochMs: now.getTime(),
+    localTime: now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+    localDate: now.toLocaleDateString('pl-PL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Warsaw',
+    offsetMinutes: -now.getTimezoneOffset()
+  });
+});
+
+systemRouter.post('/reset', (_req: Request, res: Response) => {
+  dbStore.reset();
+  res.json({
+    success: true,
+    message: 'Baza danych została zresetowana do kanonicznego stanu zerowego z danymi Librus (oceny, plan lekcji, kalendarz).',
+    timestamp: new Date().toISOString(),
+    stats: {
+      timetableDays: Object.keys(dbStore.getAllTimetable()).length,
+      gradedSubjects: dbStore.getGrades().length,
+      events: dbStore.getEvents().length,
+      gpa: dbStore.calculateGpa()
+    }
   });
 });
 
