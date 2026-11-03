@@ -50,6 +50,7 @@ describe('IterationBudget & LLMGateway Resilience Suite', () => {
     expect(err).toBeInstanceOf(LLMTimeoutError);
     expect(err.name).toBe('LLMTimeoutError');
     expect(err.provider).toBe('groq');
+    expect(err.code).toBe('LLM_TIMEOUT');
   });
 
   it('LLMGateway throws fail-fast error when message is empty or whitespace', async () => {

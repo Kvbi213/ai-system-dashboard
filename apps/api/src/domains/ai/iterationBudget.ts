@@ -62,9 +62,16 @@ export class IterationBudget {
     }
   }
 
+  /**
+   * Records token consumption and checks against maxTokens.
+   * Passing 0 tokens is a valid no-op. Passing negative values throws RangeError.
+   */
   public recordTokens(tokensUsed: number): void {
     if (tokensUsed < 0) {
       throw new RangeError('[!] IterationBudget: tokensUsed cannot be a negative value.');
+    }
+    if (tokensUsed === 0) {
+      return;
     }
     this.accumulatedTokens += tokensUsed;
 

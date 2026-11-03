@@ -20,11 +20,15 @@ export interface LLMResponse {
   fallbackCount: number;
 }
 
+/**
+ * Custom error thrown when an upstream LLM provider exceeds the timeout window.
+ */
 export class LLMTimeoutError extends Error {
   public readonly provider: string;
+  public readonly code: string = 'LLM_TIMEOUT';
 
-  constructor(message: string, provider: string) {
-    super(message);
+  constructor(message: string, provider: string, options?: { cause?: unknown }) {
+    super(message, options);
     this.provider = provider;
     this.name = 'LLMTimeoutError';
     Object.setPrototypeOf(this, new.target.prototype);
@@ -34,6 +38,10 @@ export class LLMTimeoutError extends Error {
   }
 }
 
+/**
+ * Executes an asynchronous function with an AbortSignal timeout.
+ * Guaranteed to clear timer on both success and rejection, converting aborts into LLMTimeoutError.
+ */
 async function withTimeout<T>(
   fn: (signal: AbortSignal) => Promise<T>,
   ms: number,
@@ -49,7 +57,7 @@ async function withTimeout<T>(
   } catch (err: any) {
     clearTimeout(timeout);
     if (err?.name === 'AbortError' || controller.signal.aborted) {
-      throw new LLMTimeoutError(`${provider} provider timed out (${ms}ms abort)`, provider);
+      throw new LLMTimeoutError(`${provider} provider timed out (${ms}ms abort)`, provider, { cause: err });
     }
     throw err;
   }
