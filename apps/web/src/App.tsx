@@ -47,12 +47,12 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="relative flex h-[100dvh] w-full overflow-hidden bg-slate-50 text-slate-800 font-sans antialiased selection:bg-sky-500/20 selection:text-sky-900">
+    <div className="relative flex h-[100dvh] w-full overflow-hidden bg-slate-50 dark:bg-[#070b12] text-slate-800 dark:text-slate-100 font-sans antialiased selection:bg-sky-500/20 selection:text-sky-900 transition-colors duration-200">
       {/* Ambient Liquid Gradient Blobs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-[15%] -left-[10%] w-[550px] h-[550px] rounded-full bg-gradient-to-br from-sky-200/40 via-cyan-100/30 to-transparent blur-3xl" />
-        <div className="absolute top-[25%] -right-[15%] w-[600px] h-[600px] rounded-full bg-gradient-to-bl from-indigo-200/35 via-purple-100/25 to-transparent blur-3xl" />
-        <div className="absolute -bottom-[15%] left-[25%] w-[550px] h-[550px] rounded-full bg-gradient-to-tr from-emerald-100/35 via-teal-100/25 to-transparent blur-3xl" />
+        <div className="absolute -top-[15%] -left-[10%] w-[550px] h-[550px] rounded-full bg-gradient-to-br from-sky-200/40 via-cyan-100/30 to-transparent dark:from-sky-900/20 dark:via-cyan-900/10 blur-3xl transition-opacity duration-300" />
+        <div className="absolute top-[25%] -right-[15%] w-[600px] h-[600px] rounded-full bg-gradient-to-bl from-indigo-200/35 via-purple-100/25 to-transparent dark:from-indigo-900/20 dark:via-purple-900/10 blur-3xl transition-opacity duration-300" />
+        <div className="absolute -bottom-[15%] left-[25%] w-[550px] h-[550px] rounded-full bg-gradient-to-tr from-emerald-100/35 via-teal-100/25 to-transparent dark:from-emerald-900/15 dark:via-teal-900/10 blur-3xl transition-opacity duration-300" />
       </div>
 
       {/* Desktop Persistent Sidebar */}

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { Cpu, Sun, Moon, Check, RotateCcw, Sparkles } from 'lucide-react';
+import { useTheme } from '../../../context/ThemeContext';
 
 export const KernelSettings: React.FC = () => {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const { theme, setTheme } = useTheme();
   const [navVisible, setNavVisible] = useState({
     dashboard: true,
     school: true,
@@ -46,20 +47,20 @@ export const KernelSettings: React.FC = () => {
               onClick={() => setTheme('light')}
               className={`p-3 rounded-2xl border flex items-center justify-center gap-2.5 text-xs font-bold transition shadow-sm ${
                 theme === 'light'
-                  ? 'bg-sky-50 border-sky-300 text-sky-800 ring-2 ring-sky-400/20'
-                  : 'bg-white/70 border-slate-200 text-slate-600 hover:bg-white'
+                  ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-300 dark:border-sky-600 text-sky-800 dark:text-sky-300 ring-2 ring-sky-400/20'
+                  : 'bg-white/70 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800'
               }`}
             >
               <Sun className="w-4 h-4 text-amber-500" />
               <span>Liquid Glass Light</span>
-              {theme === 'light' && <Check className="w-3.5 h-3.5 ml-auto text-sky-600" />}
+              {theme === 'light' && <Check className="w-3.5 h-3.5 ml-auto text-sky-600 dark:text-sky-400" />}
             </button>
             <button
               onClick={() => setTheme('dark')}
               className={`p-3 rounded-2xl border flex items-center justify-center gap-2.5 text-xs font-bold transition shadow-sm ${
                 theme === 'dark'
-                  ? 'bg-slate-900 border-slate-800 text-white ring-2 ring-slate-800/20'
-                  : 'bg-white/70 border-slate-200 text-slate-600 hover:bg-white'
+                  ? 'bg-slate-900 border-slate-700 text-white ring-2 ring-sky-400/30'
+                  : 'bg-white/70 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800'
               }`}
             >
               <Moon className="w-4 h-4 text-sky-400" />

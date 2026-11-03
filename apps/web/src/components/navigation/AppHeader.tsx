@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, Sparkles, Bell } from 'lucide-react';
+import { Wifi, Sparkles, Bell, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 interface AppHeaderProps {
   title?: string;
@@ -14,6 +15,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenTasksDrawer,
   pendingTasksCount = 2
 }) => {
+  const { theme, toggleTheme } = useTheme();
   const [timeStr, setTimeStr] = useState<string>('');
   const [dateStr, setDateStr] = useState<string>('');
 
@@ -74,6 +76,21 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             <Wifi className="w-3.5 h-3.5 text-emerald-600" />
             <span className="hidden md:inline font-mono text-[11px] font-bold">EDGE ON</span>
           </div>
+
+          {/* Theme Toggle Button */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Przełącz na motyw jasny' : 'Przełącz na motyw ciemny'}
+            className="p-2 rounded-xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-sky-300 dark:hover:border-sky-500 transition active:scale-95 shadow-sm"
+            aria-label="Przełącz motyw"
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-4 h-4 text-amber-400" />
+            ) : (
+              <Moon className="w-4 h-4 text-slate-600" />
+            )}
+          </button>
 
           {/* Quick Tasks Slide-over trigger */}
           {onOpenTasksDrawer && (
