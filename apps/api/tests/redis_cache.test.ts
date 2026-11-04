@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { RedisCache, InvalidCacheKeyError } from '../src/core/redisCache.js';
+import { RedisCache, InvalidCacheKeyError, CacheSerializationError } from '../src/core/redisCache.js';
 
 describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
   let cache: RedisCache;
@@ -94,13 +94,22 @@ describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
     await expect(cache.del('invalid\nkey')).rejects.toThrow(InvalidCacheKeyError);
     await expect(cache.set('', 'empty')).rejects.toThrow(InvalidCacheKeyError);
 
-    const tooLongKey = 'a'.repeat(300);
+    // Limit długości z uwzględnieniem prefiksu
+    const tooLongKey = 'a'.repeat(250);
     await expect(cache.set(tooLongKey, 'overflow')).rejects.toThrow(InvalidCacheKeyError);
 
     // Wzorzec z dozwolonymi wildcardami przechodzi
     await expect(cache.invalidatePattern('valid:*')).resolves.toBeUndefined();
     // Wzorzec z nielegalnymi znakami rzuca błąd
     await expect(cache.invalidatePattern('invalid*pattern\n')).rejects.toThrow(InvalidCacheKeyError);
+  });
+
+  it('rzuca CacheSerializationError przy próbie zapisu obiektów ze strukturą cykliczną lub undefined', async () => {
+    const cyclicObj: any = {};
+    cyclicObj.self = cyclicObj;
+
+    await expect(cache.set('cyclic:key', cyclicObj)).rejects.toThrow(CacheSerializationError);
+    await expect(cache.set('undefined:key', undefined)).rejects.toThrow(CacheSerializationError);
   });
 
   it('bezpiecznie ignoruje i usuwa uszkodzone wartości JSON bez rzucania niespójnego wyjątku', async () => {

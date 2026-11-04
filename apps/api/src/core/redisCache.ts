@@ -7,6 +7,13 @@ export class InvalidCacheKeyError extends Error {
   }
 }
 
+export class CacheSerializationError extends Error {
+  constructor(message: string) {
+    super(`[CacheSerializationError] ${message}`);
+    this.name = 'CacheSerializationError';
+  }
+}
+
 export interface RedisCacheOptions {
   redisUrl?: string;
   fallbackOnly?: boolean;
@@ -20,7 +27,7 @@ interface CacheItem {
   expiresAt: number | null;
 }
 
-const MAX_KEY_LENGTH = 256;
+const MAX_TOTAL_KEY_LENGTH = 256;
 const SINGLE_KEY_REGEX = /^[A-Za-z0-9:_\-\.\/]+$/;
 const PATTERN_KEY_REGEX = /^[A-Za-z0-9:_\-\.\/\*\?]+$/;
 
@@ -70,7 +77,7 @@ export class RedisCache {
     const now = Date.now();
     let purgedCount = 0;
     for (const [key, item] of this.inMemoryCache.entries()) {
-      if (item.expiresAt !== null && now > item.expiresAt) {
+      if (item && item.expiresAt !== null && now > item.expiresAt) {
         this.inMemoryCache.delete(key);
         purgedCount++;
       }
@@ -82,10 +89,12 @@ export class RedisCache {
     if (typeof key !== 'string' || key.trim().length === 0) {
       throw new InvalidCacheKeyError(key, 'Klucz pamięci podręcznej musi być niepustym ciągiem znaków');
     }
-    if (key.length > MAX_KEY_LENGTH) {
+
+    const maxRawKeyLength = MAX_TOTAL_KEY_LENGTH - this.keyPrefix.length;
+    if (key.length > maxRawKeyLength) {
       throw new InvalidCacheKeyError(
         key,
-        `Długość klucza (${key.length}) przekracza dopuszczalny limit ${MAX_KEY_LENGTH} znaków`
+        `Długość klucza (${key.length}) wraz z prefiksem ("${this.keyPrefix}") przekracza dopuszczalny limit ${MAX_TOTAL_KEY_LENGTH} znaków`
       );
     }
 
@@ -172,7 +181,7 @@ export class RedisCache {
 
     // In-Memory Fallback
     const item = this.inMemoryCache.get(prefixedKey);
-    if (!item) return null;
+    if (!item || typeof item.value !== 'string') return null;
 
     if (item.expiresAt !== null && Date.now() > item.expiresAt) {
       this.inMemoryCache.delete(prefixedKey);
@@ -190,8 +199,17 @@ export class RedisCache {
   public async set(key: string, value: any, ttlSeconds?: number): Promise<void> {
     this.validateKey(key, false);
 
+    let serialized: string;
+    try {
+      serialized = JSON.stringify(value);
+      if (serialized === undefined) {
+        throw new Error('Wartość jest undefined i nie może zostać zserializowana');
+      }
+    } catch (err: any) {
+      throw new CacheSerializationError(`Nie można zserializować wartości dla klucza "${key}": ${err.message}`);
+    }
+
     const prefixedKey = this.formatKey(key);
-    const serialized = JSON.stringify(value);
 
     if (this.isRedisConnected && this.redisClient) {
       try {
