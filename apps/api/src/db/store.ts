@@ -390,7 +390,8 @@ export class DatabaseStore {
           teacher: e.teacher || undefined,
           description: e.description || undefined,
           time: e.time || undefined,
-          subject: e.subject || undefined
+          subject: e.subject || undefined,
+          info: e.info || e.title || undefined
         }));
 
         // Połącz wydarzenia z zachowaniem unikalności ID

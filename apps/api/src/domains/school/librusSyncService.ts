@@ -104,14 +104,17 @@ export async function syncLibrusData(): Promise<LibrusSyncResult> {
 
           for (const ev of nested) {
             const evDate = parseLibrusDate(ev.date || ev.day) || `${now.getFullYear()}-${String(currentMonth).padStart(2, '0')}-01`;
+            const numericId = Number(ev.id);
+            const finalId = Number.isFinite(numericId) && numericId > 0 ? numericId : (ev.id !== undefined ? String(ev.id) : `event_${flatList.length + 1}`);
             flatList.push({
-              id: ev.id !== undefined ? String(ev.id) : `event_${flatList.length + 1}`,
+              id: finalId,
               title: ev.title || 'Wydarzenie szkolne',
               day: evDate,
               date: evDate,
               time: ev.time || undefined,
               teacher: ev.teacher || undefined,
-              category: ev.category || 'Terminarz Librus'
+              category: ev.category || 'Terminarz Librus',
+              info: ev.info || ev.title || undefined
             });
           }
         }

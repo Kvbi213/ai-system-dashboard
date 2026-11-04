@@ -110,6 +110,7 @@ export interface SchoolEvent {
   description?: string;
   time?: string;
   subject?: string;
+  info?: string;
 }
 
 export interface SingleGradeDetail {
