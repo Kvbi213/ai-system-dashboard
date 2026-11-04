@@ -28,12 +28,37 @@ const DEFAULT_ENTRIES: JournalEntry[] = [
   }
 ];
 
+const JOURNAL_CACHE_KEY = 'omnidash_private_journal_v4';
+
+function getInitialJournal(): JournalEntry[] {
+  if (typeof window === 'undefined') return DEFAULT_ENTRIES;
+  try {
+    const raw = localStorage.getItem(JOURNAL_CACHE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {
+    // Ignore cache error
+  }
+  return DEFAULT_ENTRIES;
+}
+
 export const PrivateJournalCard: React.FC = () => {
-  const [entries, setEntries] = useState<JournalEntry[]>(DEFAULT_ENTRIES);
+  const [entries, setEntries] = useState<JournalEntry[]>(getInitialJournal);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [mood, setMood] = useState('Skupienie');
   const [isAdding, setIsAdding] = useState(false);
+
+  const saveJournal = (updated: JournalEntry[]) => {
+    setEntries(updated);
+    try {
+      localStorage.setItem(JOURNAL_CACHE_KEY, JSON.stringify(updated));
+    } catch {
+      // Ignore
+    }
+  };
 
   useEffect(() => {
     privateApi.getJournal()
@@ -46,7 +71,7 @@ export const PrivateJournalCard: React.FC = () => {
             content: j.content,
             mood: j.category || 'Refleksja'
           }));
-          setEntries(mapped);
+          saveJournal(mapped);
         }
       })
       .catch(() => {
@@ -67,7 +92,7 @@ export const PrivateJournalCard: React.FC = () => {
         category: mood
       });
       if (res?.entry) {
-        setEntries((prev) => [
+        const nextList: JournalEntry[] = [
           {
             id: res.entry.id,
             date: res.entry.date || 'Dzisiaj',
@@ -75,8 +100,9 @@ export const PrivateJournalCard: React.FC = () => {
             content: res.entry.content,
             mood: res.entry.category || mood
           },
-          ...prev
-        ]);
+          ...entries
+        ];
+        saveJournal(nextList);
       }
     } catch {
       const newEntry: JournalEntry = {
@@ -86,7 +112,7 @@ export const PrivateJournalCard: React.FC = () => {
         content: contentVal,
         mood
       };
-      setEntries([newEntry, ...entries]);
+      saveJournal([newEntry, ...entries]);
     }
 
     setTitle('');
@@ -95,7 +121,8 @@ export const PrivateJournalCard: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    setEntries((prev) => prev.filter((e) => e.id !== id));
+    const nextList = entries.filter((e) => e.id !== id);
+    saveJournal(nextList);
     try {
       await privateApi.deleteJournalEntry(id);
     } catch {

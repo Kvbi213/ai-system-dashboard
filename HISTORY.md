@@ -506,3 +506,36 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - API Gateway Vitest: 64 passed (10 plików testowych, 100% green).
   - Worker Vitest: 8 passed (3 pliki testowe, 100% green).
   - Web Build: `tsc && vite build` — 0 błędów, kod 0.
+
+
+---
+
+### ## v4.0.0-rc.6 — 2026-11-04 [RESILIENT REDIS CACHE, PERSISTENCE & LIBRUS GROUND TRUTH INTEGRATION]
+**Status:** WYDANE I ZWERYFIKOWANE  
+**Typ:** PERFORMANCE / BUGFIX / PERSISTENCE (Warstwa Cache Redis z In-Memory Failover, Trwała Persystencja Dyskowa w DatabaseStore, Pełna Integracja librusGroundTruth.json, Dedykowany Router Kalendarza /api/calendar, Natychmiastowe Ładowanie Osi Czasu SWR oraz Likwidacja Resetu Stanu w Strefie Prywatnej)  
+**Cel:** Wyeliminowanie powolnego ładowania danych na osi czasu, zapewnienie trwałej persystencji modyfikacji w strefie prywatnej i kalendarzu, wdrożenie resilientnego buforowania Redis oraz autorytatywne parsowanie i grupowanie ocen i wydarzeń ze snapshotu Librus Synergia.
+
+#### Zakres Wdrożenia i Zmian:
+- [+] **Resilientna Warstwa Cache Redis (`apps/api/src/core/redisCache.ts`):**
+  - Obsługa klienta `ioredis` z automatycznym, natychmiastowym przełączeniem na in-memory TTL cache (LRU / Map) przy braku aktywnego kontenera Redis.
+  - Zero-blocking: zerowe zawieszanie pętli zdarzeń, fail-fast w <300 ms, metody `get`, `set`, `del`, `getOrSet`, `invalidatePattern`, `getStats`.
+- [+] **Trwała Persystencja Dyskowa w `DatabaseStore` (`apps/api/src/db/store.ts`):**
+  - Automatyczne utrwalanie stanu mutacji (zadania, transakcje, subskrypcje, cele, nawyki, rutyny, wydarzenia, dziennik) w `data/store_state.json`.
+  - Wczytywanie utrwalonego stanu przy restarcie instancji bez utraty danych wprowadzonych przez operatora.
+- [+] **Integracja Snapshotu Ground Truth Librus Synergia (`librusGroundTruth.json`):**
+  - Parsowanie 21 rzeczywistych przedmiotów ze wszystkimi ocenami cząstkowymi, wagami, kategoriami, nauczycielami i datami.
+  - Wyliczanie rzeczywistej średniej ważonej (GPA: 3.38) i obsługa podziału na Semestr 1 i Semestr 2.
+  - Zasilenie bazy 37 rzeczywistymi wydarzeniami szkolnymi oraz 12 dynamicznymi wpisami na bieżący miesiąc (listopad 2026).
+- [+] **Dedykowany Router Kalendarza (`apps/api/src/domains/calendar/router.ts`):**
+  - Nowe endpointy REST: `GET /api/calendar/events` (z buforem Redis 300s), `POST /api/calendar/events`, `DELETE /api/calendar/events/:id`.
+  - Zarejestrowano `/api/calendar` w `apps/api/src/index.ts`.
+- [+] **Optymalizacja GUI i Natychmiastowy Render SWR we Frontendzie SPA (`apps/web`):**
+  - `DailyTimelineWidget.tsx`: Wdrożenie buforowania `localStorage` (SWR) — natychmiastowe wyświetlanie harmonogramu dobowego bez pustego ekranu i migotania layoutu.
+  - `PrivateRoutinesCard.tsx`, `PersonalGoalsCard.tsx`, `PrivateJournalCard.tsx`: Wdrożenie buforowania w `localStorage` zsynchronizowanego z API, eliminacja resetu do danych domyślnych po przeładowaniu strony.
+  - `MonthGridCalendar.tsx` & `CalendarPage.tsx`: Połączenie z `/api/calendar/events`, kropkowe wskaźniki wydarzeń na siatce miesiąca, obsługa listopada 2026 i agendy dnia.
+  - `GradesPage.tsx` & `SubjectGradesGrid.tsx`: Inteligentne grupowanie ocen per przedmiot, przełącznik semestrów, podgląd szczegółowych metadanych ocen w dymkach tooltip.
+- [+] **Weryfikacja Empiryczna:**
+  - API Gateway Vitest: 89 passed (13 plików testowych, 100% green).
+  - Worker Vitest: 8 passed (3 pliki testowe, 100% green).
+  - Playwright E2E: 52 passed (2 skipped, 100% green).
+  - Web Build: `tsc && vite build` — 0 błędów, kod 0.

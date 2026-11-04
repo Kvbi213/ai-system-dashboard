@@ -26,6 +26,7 @@ firebase-service-account.json
 *.sqlite-wal
 *.sqlite-shm
 data/storage/
+apps/api/data/
 
 # IDE & OS files
 .DS_Store

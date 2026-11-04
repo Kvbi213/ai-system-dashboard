@@ -1,3 +1,7 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 import {
   TaskItem,
   TransactionItem,
@@ -13,7 +17,9 @@ import {
   RoutineItem,
   PersonalGoalItem,
   JournalEntry,
-  SchoolEvent
+  SchoolEvent,
+  SubjectWithGrades,
+  SingleGradeDetail
 } from './types.js';
 
 import {
@@ -36,6 +42,24 @@ import {
 
 export * from './types.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+function parseGradeValue(raw: string | number): number {
+  if (typeof raw === 'number') return raw;
+  const str = String(raw).trim();
+  if (str.endsWith('+')) {
+    const base = parseFloat(str.slice(0, -1));
+    return isNaN(base) ? 0 : base + 0.5;
+  }
+  if (str.endsWith('-')) {
+    const base = parseFloat(str.slice(0, -1));
+    return isNaN(base) ? 0 : Math.max(1, base - 0.25);
+  }
+  const val = parseFloat(str);
+  return isNaN(val) ? 0 : val;
+}
+
 export class DatabaseStore {
   private tasks: TaskItem[] = [];
   private transactions: TransactionItem[] = [];
@@ -48,6 +72,7 @@ export class DatabaseStore {
   private speedRadars: SpeedRadar[] = [];
   private timetable: Record<number, LessonItem[]> = {};
   private grades: GradeItem[] = [];
+  private subjectsWithGrades: SubjectWithGrades[] = [];
   private events: SchoolEvent[] = [];
   private routines: RoutineItem[] = [];
   private personalGoals: PersonalGoalItem[] = [];
@@ -55,6 +80,69 @@ export class DatabaseStore {
 
   constructor() {
     this.seed();
+    this.loadFromDisk();
+  }
+
+  private getPersistencePath(): string {
+    const custom = process.env.STORE_PERSISTENCE_PATH;
+    if (custom) return custom;
+    const dataDir = path.resolve(process.cwd(), 'data');
+    if (!fs.existsSync(dataDir)) {
+      try {
+        fs.mkdirSync(dataDir, { recursive: true });
+      } catch {
+        // Ignoruj błąd tworzenia katalogu
+      }
+    }
+    return path.join(dataDir, 'store_state.json');
+  }
+
+  public persist(): void {
+    if (process.env.NODE_ENV === 'test' && !process.env.STORE_PERSISTENCE_PATH) {
+      return;
+    }
+    try {
+      const p = this.getPersistencePath();
+      const payload = {
+        tasks: this.tasks,
+        transactions: this.transactions,
+        subscriptions: this.subscriptions,
+        savingsGoals: this.savingsGoals,
+        exercises: this.exercises,
+        habits: this.habits,
+        records: this.records,
+        events: this.events,
+        routines: this.routines,
+        personalGoals: this.personalGoals,
+        journal: this.journal
+      };
+      fs.writeFileSync(p, JSON.stringify(payload, null, 2), 'utf8');
+    } catch (err) {
+      console.warn('[!] Ostrzeżenie zapisu persystencji stanu store:', err);
+    }
+  }
+
+  public loadFromDisk(): boolean {
+    try {
+      const p = this.getPersistencePath();
+      if (!fs.existsSync(p)) return false;
+      const raw = fs.readFileSync(p, 'utf8');
+      const data = JSON.parse(raw);
+      if (Array.isArray(data.tasks)) this.tasks = data.tasks;
+      if (Array.isArray(data.transactions)) this.transactions = data.transactions;
+      if (Array.isArray(data.subscriptions)) this.subscriptions = data.subscriptions;
+      if (Array.isArray(data.savingsGoals)) this.savingsGoals = data.savingsGoals;
+      if (Array.isArray(data.exercises)) this.exercises = data.exercises;
+      if (Array.isArray(data.habits)) this.habits = data.habits;
+      if (Array.isArray(data.records)) this.records = data.records;
+      if (Array.isArray(data.events) && data.events.length > 0) this.events = data.events;
+      if (Array.isArray(data.routines) && data.routines.length > 0) this.routines = data.routines;
+      if (Array.isArray(data.personalGoals) && data.personalGoals.length > 0) this.personalGoals = data.personalGoals;
+      if (Array.isArray(data.journal) && data.journal.length > 0) this.journal = data.journal;
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   public seed(): void {
@@ -73,10 +161,150 @@ export class DatabaseStore {
     this.routines = JSON.parse(JSON.stringify(SEED_ROUTINES));
     this.personalGoals = JSON.parse(JSON.stringify(SEED_PERSONAL_GOALS));
     this.journal = JSON.parse(JSON.stringify(SEED_JOURNAL));
+
+    // Ładowanie i wzbogacanie autorytatywnych danych z librusGroundTruth.json
+    this.loadLibrusGroundTruth();
+  }
+
+  private loadLibrusGroundTruth(): void {
+    try {
+      const groundTruthPath = path.join(__dirname, 'librusGroundTruth.json');
+      if (!fs.existsSync(groundTruthPath)) return;
+
+      const raw = fs.readFileSync(groundTruthPath, 'utf8');
+      const data = JSON.parse(raw);
+
+      // 1. Parsowanie Przedmiotów i Ocen
+      if (data.grades && Array.isArray(data.grades.subjects)) {
+        const parsedSubjects: SubjectWithGrades[] = [];
+        const flatGrades: GradeItem[] = [];
+
+        data.grades.subjects.forEach((sub: any, sIdx: number) => {
+          const subGrades: SingleGradeDetail[] = [];
+
+          // Semestr 1
+          if (Array.isArray(sub.sem1Grades)) {
+            sub.sem1Grades.forEach((g: any, gIdx: number) => {
+              const val = parseGradeValue(g.numericValue || g.value);
+              const weight = g.details?.weight !== undefined ? Number(g.details.weight) : 1;
+              const cat = g.details?.category || 'Brak kategorii';
+              const dt = g.details?.date || 'Październik 2026';
+              const tch = g.details?.teacher || '';
+              const gId = String(g.id || `gt_sem1_${sIdx}_${gIdx}`);
+
+              subGrades.push({
+                id: gId,
+                value: val,
+                weight,
+                category: cat,
+                date: dt,
+                teacher: tch,
+                semester: 1
+              });
+
+              flatGrades.push({
+                id: gId,
+                subject: sub.name,
+                grade: val,
+                weight,
+                description: cat,
+                date: dt,
+                teacher: tch
+              });
+            });
+          }
+
+          // Semestr 2
+          if (Array.isArray(sub.sem2Grades)) {
+            sub.sem2Grades.forEach((g: any, gIdx: number) => {
+              const val = parseGradeValue(g.numericValue || g.value);
+              const weight = g.details?.weight !== undefined ? Number(g.details.weight) : 1;
+              const cat = g.details?.category || 'Brak kategorii';
+              const dt = g.details?.date || 'Listopad 2026';
+              const tch = g.details?.teacher || '';
+              const gId = String(g.id || `gt_sem2_${sIdx}_${gIdx}`);
+
+              subGrades.push({
+                id: gId,
+                value: val,
+                weight,
+                category: cat,
+                date: dt,
+                teacher: tch,
+                semester: 2
+              });
+
+              flatGrades.push({
+                id: gId,
+                subject: sub.name,
+                grade: val,
+                weight,
+                description: cat,
+                date: dt,
+                teacher: tch
+              });
+            });
+          }
+
+          let weightedSum = 0;
+          let weightTotal = 0;
+          for (const sg of subGrades) {
+            if (sg.weight > 0) {
+              weightedSum += sg.value * sg.weight;
+              weightTotal += sg.weight;
+            }
+          }
+          const computedAvg = weightTotal > 0 ? Number((weightedSum / weightTotal).toFixed(2)) : Number(sub.tempAverage || sub.sem1Avg || 0);
+
+          parsedSubjects.push({
+            id: `sub_${sIdx}_${sub.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+            name: sub.name,
+            average: computedAvg,
+            semester1Average: sub.sem1Avg ? Number(sub.sem1Avg) : undefined,
+            semester2Average: sub.sem2Avg ? Number(sub.sem2Avg) : undefined,
+            grades: subGrades
+          });
+        });
+
+        if (parsedSubjects.length > 0) {
+          this.subjectsWithGrades = parsedSubjects;
+        }
+        if (flatGrades.length > 0) {
+          this.grades = flatGrades;
+        }
+      }
+
+      // 2. Parsowanie Wydarzeń Kalendarza
+      if (data.calendar && Array.isArray(data.calendar.events)) {
+        const gtEvents: SchoolEvent[] = data.calendar.events.map((e: any) => ({
+          id: String(e.id),
+          date: e.date,
+          type: (e.type === 'sprawdzian' ? 'sprawdzian' : e.type === 'kartkowka' ? 'kartkowka' : e.type === 'absence' ? 'absence' : 'inne') as any,
+          category: e.category || 'Wydarzenie szkolne',
+          title: e.title || 'Wydarzenie Librus',
+          teacher: e.teacher || undefined,
+          description: e.description || undefined,
+          time: e.time || undefined,
+          subject: e.subject || undefined
+        }));
+
+        // Połącz wydarzenia z zachowaniem unikalności ID
+        const existingIds = new Set(this.events.map((ev) => String(ev.id)));
+        for (const gte of gtEvents) {
+          if (!existingIds.has(gte.id)) {
+            this.events.push(gte);
+            existingIds.add(gte.id);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[!] Nie udało się wczytać librusGroundTruth.json:', err);
+    }
   }
 
   public reset(): void {
     this.seed();
+    this.persist();
   }
 
   // Tasks
@@ -95,6 +323,7 @@ export class DatabaseStore {
       createdAt: new Date().toISOString()
     };
     this.tasks.push(newTask);
+    this.persist();
     return newTask;
   }
 
@@ -102,6 +331,7 @@ export class DatabaseStore {
     const task = this.tasks.find((t) => t.id === id && t.userId === userId);
     if (!task) return null;
     task.completed = !task.completed;
+    this.persist();
     return task;
   }
 
@@ -112,13 +342,16 @@ export class DatabaseStore {
     if (updates.priority !== undefined) task.priority = updates.priority;
     if (updates.category !== undefined) task.category = updates.category;
     if (updates.completed !== undefined) task.completed = updates.completed;
+    this.persist();
     return task;
   }
 
   public deleteTask(userId: string, id: string): boolean {
     const initialLen = this.tasks.length;
     this.tasks = this.tasks.filter((t) => !(t.id === id && t.userId === userId));
-    return this.tasks.length < initialLen;
+    const deleted = this.tasks.length < initialLen;
+    if (deleted) this.persist();
+    return deleted;
   }
 
   // Transactions
@@ -138,13 +371,16 @@ export class DatabaseStore {
       date: 'Przed chwilą'
     };
     this.transactions.unshift(newTx);
+    this.persist();
     return newTx;
   }
 
   public deleteTransaction(userId: string, id: string): boolean {
     const len = this.transactions.length;
     this.transactions = this.transactions.filter((t) => !(t.id === id && t.userId === userId));
-    return this.transactions.length < len;
+    const deleted = this.transactions.length < len;
+    if (deleted) this.persist();
+    return deleted;
   }
 
   public transferFunds(
@@ -183,7 +419,6 @@ export class DatabaseStore {
       });
       return { expenseTx, incomeTx };
     } catch (err) {
-      // Atomic compensation / rollback of the first leg
       try {
         this.deleteTransaction(expenseTx.id);
       } catch (rollbackErr) {
@@ -204,19 +439,23 @@ export class DatabaseStore {
       ...sub
     };
     this.subscriptions.push(newSub);
+    this.persist();
     return newSub;
   }
 
   public deleteSubscription(id: string): boolean {
     const len = this.subscriptions.length;
     this.subscriptions = this.subscriptions.filter((s) => s.id !== id);
-    return this.subscriptions.length < len;
+    const deleted = this.subscriptions.length < len;
+    if (deleted) this.persist();
+    return deleted;
   }
 
   public toggleSubscription(id: string): SubscriptionItem | null {
     const sub = this.subscriptions.find((s) => s.id === id);
     if (!sub) return null;
     sub.status = sub.status === 'active' ? 'pending' : 'active';
+    this.persist();
     return sub;
   }
 
@@ -231,19 +470,23 @@ export class DatabaseStore {
       ...goal
     };
     this.savingsGoals.push(newGoal);
+    this.persist();
     return newGoal;
   }
 
   public deleteSavingsGoal(id: string): boolean {
     const len = this.savingsGoals.length;
     this.savingsGoals = this.savingsGoals.filter((g) => g.id !== id);
-    return this.savingsGoals.length < len;
+    const deleted = this.savingsGoals.length < len;
+    if (deleted) this.persist();
+    return deleted;
   }
 
   public depositSavingsGoal(id: string, amount: number): SavingsGoal | null {
     const goal = this.savingsGoals.find((g) => g.id === id);
     if (!goal) return null;
     goal.currentPln += amount;
+    this.persist();
     return goal;
   }
 
@@ -259,19 +502,23 @@ export class DatabaseStore {
       ...ex
     };
     this.exercises.push(newEx);
+    this.persist();
     return newEx;
   }
 
   public deleteExercise(id: string): boolean {
     const len = this.exercises.length;
     this.exercises = this.exercises.filter((e) => e.id !== id);
-    return this.exercises.length < len;
+    const deleted = this.exercises.length < len;
+    if (deleted) this.persist();
+    return deleted;
   }
 
   public resetExercise(id: string): ExerciseItem | null {
     const ex = this.exercises.find((e) => e.id === id);
     if (!ex) return null;
     ex.completedSets = 0;
+    this.persist();
     return ex;
   }
 
@@ -280,6 +527,7 @@ export class DatabaseStore {
     if (!ex) return null;
     if (ex.completedSets < ex.sets) {
       ex.completedSets += 1;
+      this.persist();
     }
     return ex;
   }
@@ -297,13 +545,16 @@ export class DatabaseStore {
       completedToday: false
     };
     this.habits.push(newHabit);
+    this.persist();
     return newHabit;
   }
 
   public deleteHabit(id: string): boolean {
     const len = this.habits.length;
     this.habits = this.habits.filter((h) => h.id !== id);
-    return this.habits.length < len;
+    const deleted = this.habits.length < len;
+    if (deleted) this.persist();
+    return deleted;
   }
 
   public toggleHabit(id: string): HabitItem | null {
@@ -315,6 +566,7 @@ export class DatabaseStore {
     } else if (habit.streakDays > 0) {
       habit.streakDays -= 1;
     }
+    this.persist();
     return habit;
   }
 
@@ -330,13 +582,16 @@ export class DatabaseStore {
     } else {
       this.records.unshift(record);
     }
+    this.persist();
     return record;
   }
 
   public deleteRecord(exercise: string): boolean {
     const len = this.records.length;
     this.records = this.records.filter((r) => r.exercise.toLowerCase() !== exercise.toLowerCase());
-    return this.records.length < len;
+    const deleted = this.records.length < len;
+    if (deleted) this.persist();
+    return deleted;
   }
 
   // Traffic
@@ -361,6 +616,47 @@ export class DatabaseStore {
     return this.grades;
   }
 
+  public getSubjectsWithGrades(): SubjectWithGrades[] {
+    if (this.subjectsWithGrades.length > 0) {
+      return this.subjectsWithGrades;
+    }
+    // Fallback: zgrupuj z this.grades
+    const map = new Map<string, SingleGradeDetail[]>();
+    for (const g of this.grades) {
+      const list = map.get(g.subject) || [];
+      list.push({
+        id: g.id,
+        value: g.grade,
+        weight: g.weight,
+        category: g.description,
+        date: g.date,
+        teacher: g.teacher
+      });
+      map.set(g.subject, list);
+    }
+
+    const result: SubjectWithGrades[] = [];
+    let idx = 1;
+    for (const [name, grades] of map.entries()) {
+      let sumProduct = 0;
+      let sumWeight = 0;
+      for (const gr of grades) {
+        if (gr.weight > 0) {
+          sumProduct += gr.value * gr.weight;
+          sumWeight += gr.weight;
+        }
+      }
+      const avg = sumWeight > 0 ? Number((sumProduct / sumWeight).toFixed(2)) : 0;
+      result.push({
+        id: `subj_${idx++}`,
+        name,
+        average: avg,
+        grades
+      });
+    }
+    return result;
+  }
+
   public getEvents(): SchoolEvent[] {
     return this.events;
   }
@@ -371,13 +667,16 @@ export class DatabaseStore {
       ...event
     };
     this.events.unshift(newEvent);
+    this.persist();
     return newEvent;
   }
 
   public deleteSchoolEvent(id: string | number): boolean {
     const len = this.events.length;
     this.events = this.events.filter((e) => String(e.id) !== String(id));
-    return this.events.length < len;
+    const deleted = this.events.length < len;
+    if (deleted) this.persist();
+    return deleted;
   }
 
   public calculateGpa(): number {
@@ -401,6 +700,7 @@ export class DatabaseStore {
     const rt = this.routines.find((r) => r.id === id);
     if (!rt) return null;
     rt.completed = !rt.completed;
+    this.persist();
     return rt;
   }
 
@@ -411,13 +711,16 @@ export class DatabaseStore {
       ...routine
     };
     this.routines.push(newRt);
+    this.persist();
     return newRt;
   }
 
   public deleteRoutine(id: string): boolean {
     const len = this.routines.length;
     this.routines = this.routines.filter((r) => r.id !== id);
-    return this.routines.length < len;
+    const deleted = this.routines.length < len;
+    if (deleted) this.persist();
+    return deleted;
   }
 
   public getPersonalGoals(): PersonalGoalItem[] {
@@ -430,6 +733,7 @@ export class DatabaseStore {
       ...goal
     };
     this.personalGoals.push(newGoal);
+    this.persist();
     return newGoal;
   }
 
@@ -437,13 +741,16 @@ export class DatabaseStore {
     const goal = this.personalGoals.find((g) => g.id === id);
     if (!goal) return null;
     goal.current = Math.min(goal.target, Math.max(0, goal.current + delta));
+    this.persist();
     return goal;
   }
 
   public deletePersonalGoal(id: string): boolean {
     const len = this.personalGoals.length;
     this.personalGoals = this.personalGoals.filter((g) => g.id !== id);
-    return this.personalGoals.length < len;
+    const deleted = this.personalGoals.length < len;
+    if (deleted) this.persist();
+    return deleted;
   }
 
   public getJournalEntries(): JournalEntry[] {
@@ -457,13 +764,16 @@ export class DatabaseStore {
       ...entry
     };
     this.journal.unshift(newEntry);
+    this.persist();
     return newEntry;
   }
 
   public deleteJournalEntry(id: string): boolean {
     const len = this.journal.length;
     this.journal = this.journal.filter((j) => j.id !== id);
-    return this.journal.length < len;
+    const deleted = this.journal.length < len;
+    if (deleted) this.persist();
+    return deleted;
   }
 }
 

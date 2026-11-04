@@ -19,11 +19,36 @@ const DEFAULT_ROUTINES: RoutineItem[] = [
   { id: '6', title: 'Podsumowanie zrealizowanych zadań w dzienniku', period: 'evening', completed: false }
 ];
 
+const ROUTINES_CACHE_KEY = 'omnidash_private_routines_v4';
+
+function getInitialRoutines(): RoutineItem[] {
+  if (typeof window === 'undefined') return DEFAULT_ROUTINES;
+  try {
+    const raw = localStorage.getItem(ROUTINES_CACHE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {
+    // Ignore cache error
+  }
+  return DEFAULT_ROUTINES;
+}
+
 export const PrivateRoutinesCard: React.FC = () => {
-  const [routines, setRoutines] = useState<RoutineItem[]>(DEFAULT_ROUTINES);
+  const [routines, setRoutines] = useState<RoutineItem[]>(getInitialRoutines);
   const [newTitle, setNewTitle] = useState('');
   const [newPeriod, setNewPeriod] = useState<'morning' | 'evening'>('morning');
   const [isAdding, setIsAdding] = useState(false);
+
+  const saveRoutines = (updated: RoutineItem[]) => {
+    setRoutines(updated);
+    try {
+      localStorage.setItem(ROUTINES_CACHE_KEY, JSON.stringify(updated));
+    } catch {
+      // Ignore
+    }
+  };
 
   useEffect(() => {
     privateApi.getRoutines()
@@ -35,7 +60,7 @@ export const PrivateRoutinesCard: React.FC = () => {
             period: r.timeOfDay || r.period || 'morning',
             completed: !!r.completed
           }));
-          setRoutines(mapped);
+          saveRoutines(mapped);
         }
       })
       .catch(() => {
@@ -44,9 +69,8 @@ export const PrivateRoutinesCard: React.FC = () => {
   }, []);
 
   const handleToggle = async (id: string) => {
-    setRoutines((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, completed: !r.completed } : r))
-    );
+    const updated = routines.map((r) => (r.id === id ? { ...r, completed: !r.completed } : r));
+    saveRoutines(updated);
     try {
       await privateApi.toggleRoutine(id);
     } catch {
@@ -65,15 +89,16 @@ export const PrivateRoutinesCard: React.FC = () => {
         timeOfDay: newPeriod
       });
       if (res?.routine) {
-        setRoutines((prev) => [
-          ...prev,
+        const nextList: RoutineItem[] = [
+          ...routines,
           {
             id: res.routine.id,
             title: res.routine.title,
             period: res.routine.timeOfDay || newPeriod,
             completed: false
           }
-        ]);
+        ];
+        saveRoutines(nextList);
       }
     } catch {
       const fallbackItem: RoutineItem = {
@@ -82,7 +107,7 @@ export const PrivateRoutinesCard: React.FC = () => {
         period: newPeriod,
         completed: false
       };
-      setRoutines((prev) => [...prev, fallbackItem]);
+      saveRoutines([...routines, fallbackItem]);
     }
 
     setNewTitle('');
@@ -90,7 +115,8 @@ export const PrivateRoutinesCard: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    setRoutines((prev) => prev.filter((r) => r.id !== id));
+    const nextList = routines.filter((r) => r.id !== id);
+    saveRoutines(nextList);
     try {
       await privateApi.deleteRoutine(id);
     } catch {

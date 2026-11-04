@@ -103,10 +103,33 @@ export interface GradeItem {
 export interface SchoolEvent {
   id: string;
   date: string;
-  type: 'absence' | 'kartkowka' | 'sprawdzian' | 'inne';
+  type: 'absence' | 'kartkowka' | 'sprawdzian' | 'inne' | 'exam' | 'custom' | string;
   category: string;
   title: string;
   teacher?: string;
+  description?: string;
+  time?: string;
+  subject?: string;
+}
+
+export interface SingleGradeDetail {
+  id: string;
+  value: number;
+  weight: number;
+  category: string;
+  date?: string;
+  teacher?: string;
+  comment?: string;
+  semester?: 1 | 2;
+}
+
+export interface SubjectWithGrades {
+  id: string;
+  name: string;
+  average: number;
+  semester1Average?: number;
+  semester2Average?: number;
+  grades: SingleGradeDetail[];
 }
 
 export interface RoutineItem {

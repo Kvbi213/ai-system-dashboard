@@ -5,10 +5,26 @@ import { SubTabBar } from '../../components/ui/SubTabBar';
 import { MonthGridCalendar, CalendarEventItem } from './components/MonthGridCalendar';
 import { EventModal } from './components/EventModal';
 import { useToast } from '../../components/ui/Toast';
-import { schoolApi, calendarApi } from '../../api/client';
+import { calendarApi } from '../../api/client';
+
+const CALENDAR_CACHE_KEY = 'omnidash_calendar_events_v4';
+
+function getInitialCalendarEvents(): CalendarEventItem[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(CALENDAR_CACHE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {
+    // Ignore error
+  }
+  return [];
+}
 
 export const CalendarPage: React.FC = () => {
-  const [events, setEvents] = useState<CalendarEventItem[]>([]);
+  const [events, setEvents] = useState<CalendarEventItem[]>(getInitialCalendarEvents);
   const [activeTab, setActiveTab] = useState<'all' | 'exams' | 'absences'>('all');
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,9 +34,14 @@ export const CalendarPage: React.FC = () => {
   const fetchEvents = async () => {
     setIsRefreshing(true);
     try {
-      const res = await schoolApi.getEvents();
+      const res = await calendarApi.getEvents();
       if (res && res.events) {
         setEvents(res.events);
+        try {
+          localStorage.setItem(CALENDAR_CACHE_KEY, JSON.stringify(res.events));
+        } catch {
+          // Ignore
+        }
       }
     } catch (err: any) {
       console.warn('[!] Błąd pobierania wydarzeń kalendarza:', err);

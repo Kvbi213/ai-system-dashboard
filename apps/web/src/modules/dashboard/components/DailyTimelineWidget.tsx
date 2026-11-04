@@ -97,8 +97,44 @@ function parseTimeRange(rawRange: string): { startMins: number; endMins: number 
   };
 }
 
+const TIMELINE_CACHE_KEY = 'omnidash_timeline_cache_v4';
+
+function getInitialTimeline(): TimelineBlock[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(TIMELINE_CACHE_KEY);
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map((b: any) => {
+          const p = parseTimeRange(b.time);
+          return {
+            ...b,
+            status: p ? computeStatus(currentMinutes, p.startMins, p.endMins) : b.status
+          };
+        });
+      }
+    }
+
+    // Natychmiastowy fallback na bazowe bloki z wyliczonym statusem czasu
+    return STATIC_PRIVATE_BLOCKS.map((b) => ({
+      id: b.id,
+      time: b.time,
+      title: b.title,
+      category: b.category,
+      status: computeStatus(currentMinutes, b.startMins, b.endMins),
+      sourceType: 'private' as const
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export const DailyTimelineWidget: React.FC = () => {
-  const [events, setEvents] = useState<TimelineBlock[]>([]);
+  const [events, setEvents] = useState<TimelineBlock[]>(getInitialTimeline);
   const [filterMode, setFilterMode] = useState<'all' | 'now' | 'school' | 'private'>('all');
   const currentEventRef = useRef<HTMLDivElement | null>(null);
   const firstActiveRef = useRef<HTMLDivElement | null>(null);
@@ -211,6 +247,11 @@ export const DailyTimelineWidget: React.FC = () => {
 
         if (isMounted) {
           setEvents(merged);
+          try {
+            localStorage.setItem(TIMELINE_CACHE_KEY, JSON.stringify(merged));
+          } catch {
+            // Ignoruj błędy zapisu cache w przeglądarce
+          }
         }
       } catch (e) {
         if (isMounted) {
@@ -240,7 +281,7 @@ export const DailyTimelineWidget: React.FC = () => {
   }, [events, filterMode]);
 
   return (
-    <GlassCard className="p-3 sm:p-4" glow="sky">
+    <GlassCard className="p-3 sm:p-4" glow="sky" data-testid="timeline-widget">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-xl bg-sky-100 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 shadow-sm">

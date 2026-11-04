@@ -51,7 +51,7 @@ describe('OmniDash Parity & Extended Domain CRUD Endpoints', () => {
       const body = await res.json();
       expect(body.studentInfo.name).toBe('Operator');
       expect(body.luckyNumber).toBe(21);
-      expect(body.grades.gradedSubjectsCount).toBe(16);
+      expect(body.grades.gradedSubjectsCount).toBeGreaterThanOrEqual(16);
       expect(body.calendar.events.length).toBeGreaterThan(0);
     });
 

@@ -152,7 +152,20 @@ export const SEED_EVENTS: SchoolEvent[] = [
   { id: 'ev3', date: '2026-10-21', type: 'kartkowka', category: 'Kartkówka', title: 'Kartkówka: Biologia', teacher: 'Łukaszczyk-Wulgaris Joanna' },
   { id: 'ev4', date: '2026-10-21', type: 'sprawdzian', category: 'Sprawdzian', title: 'Sprawdzian: Biologia', teacher: 'Łukaszczyk-Wulgaris Joanna' },
   { id: 'ev5', date: '2026-10-28', type: 'kartkowka', category: 'Kartkówka', title: 'Kartkówka: Chemia', teacher: 'Kolasińska Paulina' },
-  { id: 'ev6', date: '2026-10-29', type: 'sprawdzian', category: 'Sprawdzian', title: 'Sprawdzian: Język niemiecki', teacher: 'Chyła Beata' }
+  { id: 'ev6', date: '2026-10-29', type: 'sprawdzian', category: 'Sprawdzian', title: 'Sprawdzian: Język niemiecki', teacher: 'Chyła Beata' },
+  // Listopad 2026 (Bieżący miesiąc)
+  { id: 'ev_nov1', date: '2026-11-01', type: 'inne', category: 'Wydarzenie szkolne', title: 'Wszystkich Świętych (dzień wolny)', teacher: 'Szkoła' },
+  { id: 'ev_nov2', date: '2026-11-02', type: 'kartkowka', category: 'Kartkówka', title: 'Kartkówka: Kontenery Docker i sieć bridge', teacher: 'Gembiak Bartosz', subject: 'Informatyka' },
+  { id: 'ev_nov3', date: '2026-11-04', type: 'inne', category: 'Wydarzenie osobiste', title: 'Przegląd architektury API & Weryfikacja Terminarza v4', teacher: 'Operator', description: 'Audyt wydajności i synchronizacja modułów' },
+  { id: 'ev_nov4', date: '2026-11-05', type: 'kartkowka', category: 'Kartkówka', title: 'Kartkówka: Funkcje logarytmiczne i wykładnicze', teacher: 'Bahr Zbigniew', subject: 'Matematyka' },
+  { id: 'ev_nov5', date: '2026-11-06', type: 'absence', category: 'Nieobecność nauczyciela', title: 'Nieobecność: Prabucki Andrzej (cały dzień)', teacher: 'Prabucki Andrzej' },
+  { id: 'ev_nov6', date: '2026-11-09', type: 'sprawdzian', category: 'Sprawdzian', title: 'Sprawdzian: Biznes i zarządzanie (Strategie rynkowe)', teacher: 'Sokół Paweł', subject: 'Biznes i zarządzanie', time: 'Lekcja 4' },
+  { id: 'ev_nov7', date: '2026-11-11', type: 'inne', category: 'Wydarzenie szkolne', title: 'Narodowe Święto Niepodległości (dzień wolny)', teacher: 'Szkoła' },
+  { id: 'ev_nov8', date: '2026-11-12', type: 'sprawdzian', category: 'Sprawdzian', title: 'Sprawdzian: Język niemiecki (Słownictwo techniczne IT)', teacher: 'Chyła Beata', subject: 'Język niemiecki' },
+  { id: 'ev_nov9', date: '2026-11-16', type: 'kartkowka', category: 'Kartkówka', title: 'Kartkówka: Chemia (Reakcje redoks)', teacher: 'Kolasińska Paulina', subject: 'Chemia' },
+  { id: 'ev_nov10', date: '2026-11-18', type: 'sprawdzian', category: 'Sprawdzian', title: 'Sprawdzian: Lokalne sieci komputerowe (Routing OSPF)', teacher: 'Gembiak Bartosz', subject: 'Sieci komputerowe' },
+  { id: 'ev_nov11', date: '2026-11-20', type: 'inne', category: 'Wydarzenie szkolne', title: 'Turniej sportowy: Międzyszkolna liga siatkówki', teacher: 'Katedra WF' },
+  { id: 'ev_nov12', date: '2026-11-25', type: 'sprawdzian', category: 'Sprawdzian', title: 'Sprawdzian: Systemy operacyjne (Pamięć wirtualna i stronicowanie)', teacher: 'Gembiak Bartosz', subject: 'Systemy operacyjne' }
 ];
 
 export const SEED_ROUTINES: RoutineItem[] = [

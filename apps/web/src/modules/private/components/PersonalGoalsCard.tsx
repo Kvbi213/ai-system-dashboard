@@ -19,13 +19,38 @@ const DEFAULT_GOALS: PersonalGoal[] = [
   { id: '4', title: 'Kalistenika: Muscle-up na drążku', category: 'Sport', current: 3, target: 5, unit: 'etapów' }
 ];
 
+const GOALS_CACHE_KEY = 'omnidash_private_goals_v4';
+
+function getInitialGoals(): PersonalGoal[] {
+  if (typeof window === 'undefined') return DEFAULT_GOALS;
+  try {
+    const raw = localStorage.getItem(GOALS_CACHE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {
+    // Ignore cache error
+  }
+  return DEFAULT_GOALS;
+}
+
 export const PersonalGoalsCard: React.FC = () => {
-  const [goals, setGoals] = useState<PersonalGoal[]>(DEFAULT_GOALS);
+  const [goals, setGoals] = useState<PersonalGoal[]>(getInitialGoals);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Rozwój');
   const [target, setTarget] = useState('100');
   const [unit, setUnit] = useState('%');
   const [isAdding, setIsAdding] = useState(false);
+
+  const saveGoals = (updated: PersonalGoal[]) => {
+    setGoals(updated);
+    try {
+      localStorage.setItem(GOALS_CACHE_KEY, JSON.stringify(updated));
+    } catch {
+      // Ignore
+    }
+  };
 
   useEffect(() => {
     privateApi.getGoals()
@@ -39,7 +64,7 @@ export const PersonalGoalsCard: React.FC = () => {
             target: g.target || 100,
             unit: g.unit || '%'
           }));
-          setGoals(mapped);
+          saveGoals(mapped);
         }
       })
       .catch(() => {
@@ -62,8 +87,8 @@ export const PersonalGoalsCard: React.FC = () => {
         unit
       });
       if (res?.goal) {
-        setGoals((prev) => [
-          ...prev,
+        const nextList: PersonalGoal[] = [
+          ...goals,
           {
             id: res.goal.id,
             title: res.goal.title,
@@ -72,7 +97,8 @@ export const PersonalGoalsCard: React.FC = () => {
             target: res.goal.target || targetVal,
             unit: res.goal.unit || unit
           }
-        ]);
+        ];
+        saveGoals(nextList);
       }
     } catch {
       const item: PersonalGoal = {
@@ -83,7 +109,7 @@ export const PersonalGoalsCard: React.FC = () => {
         target: targetVal,
         unit
       };
-      setGoals((prev) => [...prev, item]);
+      saveGoals([...goals, item]);
     }
 
     setTitle('');
@@ -91,9 +117,8 @@ export const PersonalGoalsCard: React.FC = () => {
   };
 
   const handleIncrement = async (id: string) => {
-    setGoals((prev) =>
-      prev.map((g) => (g.id === id ? { ...g, current: Math.min(g.target, g.current + 1) } : g))
-    );
+    const updated = goals.map((g) => (g.id === id ? { ...g, current: Math.min(g.target, g.current + 1) } : g));
+    saveGoals(updated);
     try {
       await privateApi.updateGoalProgress(id, 1);
     } catch {
@@ -102,7 +127,8 @@ export const PersonalGoalsCard: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    setGoals((prev) => prev.filter((g) => g.id !== id));
+    const nextList = goals.filter((g) => g.id !== id);
+    saveGoals(nextList);
     try {
       await privateApi.deleteGoal(id);
     } catch {

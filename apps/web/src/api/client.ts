@@ -185,15 +185,14 @@ export const pushbulletApi = {
 
 // Calendar Domain
 export const calendarApi = {
-  getEvents: () => apiFetch<{ events: any[] }>('/school/events'),
+  getEvents: () => apiFetch<{ events: any[]; total?: number }>('/calendar/events'),
   addEvent: (data: { title: string; date: string; category?: string; description?: string }) =>
-    apiFetch<{ success: boolean; event: any }>('/mcp/call', {
+    apiFetch<{ success: boolean; event: any }>('/calendar/events', {
       method: 'POST',
-      body: JSON.stringify({ tool: 'add_calendar_event', arguments: data })
+      body: JSON.stringify(data)
     }),
   deleteEvent: (eventId: string | number) =>
-    apiFetch<{ success: boolean }>('/mcp/call', {
-      method: 'POST',
-      body: JSON.stringify({ tool: 'delete_calendar_event', arguments: { eventId } })
+    apiFetch<{ success: boolean }>(`/calendar/events/${eventId}`, {
+      method: 'DELETE'
     })
 };
