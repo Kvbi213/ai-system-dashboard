@@ -49,6 +49,20 @@ function formatDisplayGrade(raw: string | number): string {
   return String(raw !== undefined && raw !== null ? raw : '').trim();
 }
 
+export function parseLibrusDate(rawDate?: string): string {
+  if (!rawDate) return '2026-11-04';
+  const isoMatch = String(rawDate).match(/\d{4}-\d{2}-\d{2}/);
+  if (isoMatch) return isoMatch[0];
+  const parsed = new Date(rawDate);
+  return !isNaN(parsed.getTime()) ? parsed.toISOString().split('T')[0] : '2026-11-04';
+}
+
+export function parseSafeAverage(raw: unknown): number | undefined {
+  if (raw === null || raw === undefined) return undefined;
+  const num = typeof raw === 'number' ? raw : parseFloat(String(raw));
+  return Number.isFinite(num) && num > 0 ? Number(num.toFixed(2)) : undefined;
+}
+
 function parseGradeValue(raw: string | number): number {
   if (typeof raw === 'number') return raw;
   const str = String(raw).trim();
@@ -210,7 +224,7 @@ export class DatabaseStore {
               ? Number(g.details.weight)
               : (g.weight !== undefined ? Number(g.weight) : (infoWeightMatch ? parseInt(infoWeightMatch[1], 10) : 1));
             const cat = g.details?.category || g.category || infoCategory || 'Brak kategorii';
-            const dt = g.details?.date || g.date || infoDate || 'Październik 2026';
+            const dt = parseLibrusDate(g.details?.date || g.date || infoDate);
             const tch = g.details?.teacher || g.teacher || infoTeacher || '';
             const gId = String(g.id || `gt_sem${semester}_${sIdx}_${gIdx}`);
             const imprMatch = rawInfo.match(/Poprawa oceny:\s*([0-9\+\-]+)/i);
@@ -299,19 +313,12 @@ export class DatabaseStore {
             });
           });
 
-          const sem1Avg = sub.sem1Avg !== undefined && sub.sem1Avg !== null
-            ? Number(sub.sem1Avg)
-            : (sub.tempAverage !== undefined && sub.tempAverage !== null
-                ? Number(sub.tempAverage)
-                : (sub.semester?.[0]?.tempAverage !== undefined && sub.semester?.[0]?.tempAverage !== null
-                    ? Number(sub.semester[0].tempAverage)
-                    : undefined));
+          const sem1Avg = parseSafeAverage(sub.sem1Avg) ??
+            parseSafeAverage(sub.tempAverage) ??
+            parseSafeAverage(sub.semester?.[0]?.tempAverage);
 
-          const sem2Avg = sub.sem2Avg !== undefined && sub.sem2Avg !== null
-            ? Number(sub.sem2Avg)
-            : (sub.semester?.[1]?.tempAverage !== undefined && sub.semester?.[1]?.tempAverage !== null
-                ? Number(sub.semester[1].tempAverage)
-                : undefined);
+          const sem2Avg = parseSafeAverage(sub.sem2Avg) ??
+            parseSafeAverage(sub.semester?.[1]?.tempAverage);
 
           let weightedSum = 0;
           let weightTotal = 0;
@@ -352,7 +359,7 @@ export class DatabaseStore {
       if (rawEventsList.length > 0) {
         const gtEvents: SchoolEvent[] = rawEventsList.map((e: any) => ({
           id: String(e.id),
-          date: e.date || e.day || '2026-11-04',
+          date: parseLibrusDate(e.date || e.day),
           type: (e.type === 'sprawdzian' ? 'sprawdzian' : e.type === 'kartkowka' ? 'kartkowka' : e.type === 'absence' ? 'absence' : 'inne') as any,
           category: e.category || 'Wydarzenie szkolne',
           title: e.title || 'Wydarzenie Librus',

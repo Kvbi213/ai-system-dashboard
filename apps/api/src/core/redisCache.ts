@@ -1,8 +1,10 @@
 import type { Redis as RedisClient } from 'ioredis';
 import IORedis from 'ioredis';
 
-// Bezpieczny konstruktor klienta Redis kompatybilny z ESM i CommonJS
-export const RedisConstructor: any = (IORedis as any).default || IORedis;
+// Bezpieczny i silnie typowany konstruktor klienta Redis kompatybilny z ESM i CommonJS
+export type RedisCtor = new (url?: string, opts?: any) => RedisClient;
+export const RedisConstructor: RedisCtor =
+  ((IORedis as unknown as { default?: RedisCtor }).default ?? IORedis) as RedisCtor;
 
 export class InvalidCacheKeyError extends Error {
   public readonly key: unknown;
@@ -385,6 +387,10 @@ export class RedisCache {
       this.isRedisConnected = false;
     }
     this.inMemoryCache.clear();
+  }
+
+  public async disconnect(): Promise<void> {
+    await this.close();
   }
 }
 
