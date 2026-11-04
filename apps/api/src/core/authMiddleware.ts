@@ -19,20 +19,20 @@ const PUBLIC_PATHS = [
   '/traffic/public'
 ];
 
-function extractWebhookSecret(req: Request): string | undefined {
-  const header = req.headers['x-webhook-secret'];
-  if (header) {
-    const val = Array.isArray(header) ? (header.length > 0 ? header[0] : '') : String(header);
-    const trimmed = val.trim();
-    if (trimmed.length > 0) return trimmed;
+export function sanitizeSecret(value: unknown): string | undefined {
+  if (value === null || value === undefined) return undefined;
+  if (Array.isArray(value)) {
+    if (value.length === 0) return undefined;
+    return sanitizeSecret(value[0]);
   }
-  const querySecret = req.query && req.query.secret;
-  if (querySecret) {
-    const val = Array.isArray(querySecret) ? (querySecret.length > 0 ? String(querySecret[0]) : '') : String(querySecret);
-    const trimmed = val.trim();
-    if (trimmed.length > 0) return trimmed;
-  }
-  return undefined;
+  const str = String(value).trim();
+  return str.length > 0 && str !== 'undefined' && str !== 'null' ? str : undefined;
+}
+
+export function extractWebhookSecret(req: Request): string | undefined {
+  const fromHeader = sanitizeSecret(req.headers['x-webhook-secret']);
+  if (fromHeader) return fromHeader;
+  return sanitizeSecret(req.query?.secret);
 }
 
 export const authMiddleware = (
@@ -52,8 +52,9 @@ export const authMiddleware = (
     const expectedSecret = process.env.PUSHBULLET_WEBHOOK_SECRET;
     if (!expectedSecret || !expectedSecret.trim()) {
       res.status(503).json({
-        error: 'SERVICE_UNAVAILABLE',
-        message: 'Webhook processing service is currently unavailable.'
+        error: 'WEBHOOK_UNCONFIGURED',
+        code: 'SERVICE_UNAVAILABLE',
+        message: 'Webhook processing service is currently unconfigured or unavailable.'
       });
       return;
     }

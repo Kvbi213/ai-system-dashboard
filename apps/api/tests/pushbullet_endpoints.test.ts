@@ -27,7 +27,11 @@ describe('Pushbullet Domain Endpoints Suite', () => {
   });
 
   afterAll(async () => {
-    process.env.PUSHBULLET_WEBHOOK_SECRET = originalWebhookSecret;
+    if (originalWebhookSecret !== undefined) {
+      process.env.PUSHBULLET_WEBHOOK_SECRET = originalWebhookSecret;
+    } else {
+      delete process.env.PUSHBULLET_WEBHOOK_SECRET;
+    }
     await new Promise<void>((resolve) => {
       server.close(() => resolve());
     });
@@ -39,7 +43,11 @@ describe('Pushbullet Domain Endpoints Suite', () => {
   });
 
   afterEach(() => {
-    process.env.PUSHBULLET_WEBHOOK_SECRET = originalWebhookSecret;
+    if (originalWebhookSecret !== undefined) {
+      process.env.PUSHBULLET_WEBHOOK_SECRET = originalWebhookSecret;
+    } else {
+      delete process.env.PUSHBULLET_WEBHOOK_SECRET;
+    }
   });
 
   it('POST /api/pushbullet/send sends push in simulated mode when no live API key', async () => {
