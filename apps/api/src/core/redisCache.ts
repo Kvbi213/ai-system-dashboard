@@ -1,10 +1,18 @@
 import Redis from 'ioredis';
 
+export class InvalidCacheKeyError extends Error {
+  constructor(public readonly key: unknown, message: string) {
+    super(`[InvalidCacheKeyError] ${message} (otrzymano: "${String(key)}")`);
+    this.name = 'InvalidCacheKeyError';
+  }
+}
+
 export interface RedisCacheOptions {
   redisUrl?: string;
   fallbackOnly?: boolean;
   keyPrefix?: string;
   janitorIntervalMs?: number;
+  unrefJanitor?: boolean;
 }
 
 interface CacheItem {
@@ -13,7 +21,16 @@ interface CacheItem {
 }
 
 const MAX_KEY_LENGTH = 256;
-const WILDCARD_REGEX = /[*?[\]]/;
+const SINGLE_KEY_REGEX = /^[A-Za-z0-9:_\-\.\/]+$/;
+const PATTERN_KEY_REGEX = /^[A-Za-z0-9:_\-\.\/\*\?]+$/;
+
+function globToRegex(globPattern: string): RegExp {
+  const escaped = globPattern
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    .replace(/\*/g, '.*')
+    .replace(/\?/g, '.');
+  return new RegExp(`^${escaped}$`);
+}
 
 export class RedisCache {
   private redisClient: Redis | null = null;
@@ -27,7 +44,10 @@ export class RedisCache {
     this.keyPrefix = options.keyPrefix || 'omnidash:';
     this.isFallbackOnly = !!options.fallbackOnly;
 
-    this.startJanitor(options.janitorIntervalMs ?? 60000);
+    this.startJanitor(
+      options.janitorIntervalMs ?? 60000,
+      options.unrefJanitor ?? true
+    );
 
     if (!this.isFallbackOnly) {
       const url = options.redisUrl || process.env.REDIS_URL || 'redis://localhost:6379';
@@ -35,37 +55,49 @@ export class RedisCache {
     }
   }
 
-  private startJanitor(intervalMs: number): void {
+  private startJanitor(intervalMs: number, shouldUnref: boolean): void {
     if (intervalMs <= 0) return;
     this.janitorTimer = setInterval(() => {
-      this.purgeExpiredInMemory();
+      this.purgeExpired();
     }, intervalMs);
 
-    if (this.janitorTimer.unref) {
+    if (shouldUnref && this.janitorTimer.unref) {
       this.janitorTimer.unref();
     }
   }
 
-  private purgeExpiredInMemory(): void {
+  public purgeExpired(): number {
     const now = Date.now();
+    let purgedCount = 0;
     for (const [key, item] of this.inMemoryCache.entries()) {
       if (item.expiresAt !== null && now > item.expiresAt) {
         this.inMemoryCache.delete(key);
+        purgedCount++;
       }
     }
+    return purgedCount;
   }
 
-  private validateKey(key: string, allowWildcards = false): boolean {
+  private validateKey(key: string, allowWildcards = false): void {
     if (typeof key !== 'string' || key.trim().length === 0) {
-      return false;
+      throw new InvalidCacheKeyError(key, 'Klucz pamięci podręcznej musi być niepustym ciągiem znaków');
     }
     if (key.length > MAX_KEY_LENGTH) {
-      return false;
+      throw new InvalidCacheKeyError(
+        key,
+        `Długość klucza (${key.length}) przekracza dopuszczalny limit ${MAX_KEY_LENGTH} znaków`
+      );
     }
-    if (!allowWildcards && WILDCARD_REGEX.test(key)) {
-      return false;
+
+    const regex = allowWildcards ? PATTERN_KEY_REGEX : SINGLE_KEY_REGEX;
+    if (!regex.test(key)) {
+      throw new InvalidCacheKeyError(
+        key,
+        allowWildcards
+          ? 'Wzorzec inwalidacji zawiera niedozwolone znaki. Dozwolone znaki alfanumeryczne, : _ - . / * ?'
+          : 'Klucz zawiera znaki zabronione lub kontrolne. Dozwolone znaki alfanumeryczne oraz : _ - . /'
+      );
     }
-    return true;
   }
 
   private initRedis(url: string): void {
@@ -77,7 +109,7 @@ export class RedisCache {
         connectTimeout: 500,
         retryStrategy: (times: number) => {
           if (times > 5) {
-            return null; // Zakończ agresywne próby ponowień w przypadku braku instancji
+            return null; // Zakończ ponawianie prób po 5 nieudanych połączeniach
           }
           return Math.min(times * 500, 3000);
         }
@@ -103,7 +135,6 @@ export class RedisCache {
         this.isRedisConnected = false;
       });
 
-      // Bezpieczna próba asynchronicznego połączenia
       this.redisClient.connect().catch(() => {
         this.isRedisConnected = false;
       });
@@ -118,9 +149,7 @@ export class RedisCache {
   }
 
   public async get<T>(key: string): Promise<T | null> {
-    if (!this.validateKey(key, false)) {
-      return null;
-    }
+    this.validateKey(key, false);
 
     const prefixedKey = this.formatKey(key);
 
@@ -128,7 +157,12 @@ export class RedisCache {
       try {
         const raw = await this.redisClient.get(prefixedKey);
         if (raw !== null) {
-          return JSON.parse(raw) as T;
+          try {
+            return JSON.parse(raw) as T;
+          } catch {
+            await this.redisClient.del(prefixedKey).catch(() => {});
+            return null;
+          }
         }
         return null;
       } catch {
@@ -148,14 +182,13 @@ export class RedisCache {
     try {
       return JSON.parse(item.value) as T;
     } catch {
+      this.inMemoryCache.delete(prefixedKey);
       return null;
     }
   }
 
   public async set(key: string, value: any, ttlSeconds?: number): Promise<void> {
-    if (!this.validateKey(key, false)) {
-      return;
-    }
+    this.validateKey(key, false);
 
     const prefixedKey = this.formatKey(key);
     const serialized = JSON.stringify(value);
@@ -183,10 +216,11 @@ export class RedisCache {
 
   public async del(key: string | string[]): Promise<void> {
     const rawKeys = Array.isArray(key) ? key : [key];
-    const validKeys = rawKeys.filter((k) => this.validateKey(k, false));
-    if (validKeys.length === 0) return;
+    for (const k of rawKeys) {
+      this.validateKey(k, false);
+    }
 
-    const prefixedKeys = validKeys.map((k) => this.formatKey(k));
+    const prefixedKeys = rawKeys.map((k) => this.formatKey(k));
 
     if (this.isRedisConnected && this.redisClient && prefixedKeys.length > 0) {
       try {
@@ -227,9 +261,7 @@ export class RedisCache {
   }
 
   public async invalidatePattern(pattern: string): Promise<void> {
-    if (!this.validateKey(pattern, true)) {
-      return;
-    }
+    this.validateKey(pattern, true);
 
     const fullPattern = this.formatKey(pattern);
 
@@ -242,12 +274,8 @@ export class RedisCache {
       }
     }
 
-    // In-Memory Fallback: Bezpieczne dopasowanie regexem
-    const escaped = fullPattern
-      .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-      .replace(/\*/g, '.*')
-      .replace(/\?/g, '.');
-    const regexPattern = new RegExp(`^${escaped}$`);
+    // In-Memory Fallback: precyzyjny regex z escape'owaniem znaków
+    const regexPattern = globToRegex(fullPattern);
 
     for (const k of this.inMemoryCache.keys()) {
       if (regexPattern.test(k)) {
@@ -268,7 +296,7 @@ export class RedisCache {
   }
 
   public getStats(): { isRedisConnected: boolean; inMemoryKeysCount: number } {
-    this.purgeExpiredInMemory();
+    this.purgeExpired();
     return {
       isRedisConnected: this.isRedisConnected,
       inMemoryKeysCount: this.inMemoryCache.size

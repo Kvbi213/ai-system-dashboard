@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { RedisCache } from '../src/core/redisCache.js';
+import { RedisCache, InvalidCacheKeyError } from '../src/core/redisCache.js';
 
 describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
   let cache: RedisCache;
 
   beforeEach(() => {
-    cache = new RedisCache({ fallbackOnly: true, janitorIntervalMs: 50 });
+    cache = new RedisCache({ fallbackOnly: true, janitorIntervalMs: 0 });
   });
 
   afterEach(async () => {
@@ -88,26 +88,61 @@ describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
     expect(stats.inMemoryKeysCount).toBe(2);
   });
 
-  it('odrzuca klucze z wildcardami i niepoprawne długości w operacjach pojedynczych', async () => {
-    await cache.set('invalid*key', 'should_not_save');
-    expect(await cache.get('invalid*key')).toBeNull();
-
-    await cache.set('valid:key', 'saved');
-    expect(await cache.get('valid:key')).toBe('saved');
+  it('rzuca InvalidCacheKeyError przy niepoprawnych kluczach, znakach kontrolnych i wildcardach w get/set/del', async () => {
+    await expect(cache.set('invalid*key', 'fail')).rejects.toThrow(InvalidCacheKeyError);
+    await expect(cache.get('invalid?key')).rejects.toThrow(InvalidCacheKeyError);
+    await expect(cache.del('invalid\nkey')).rejects.toThrow(InvalidCacheKeyError);
+    await expect(cache.set('', 'empty')).rejects.toThrow(InvalidCacheKeyError);
 
     const tooLongKey = 'a'.repeat(300);
-    await cache.set(tooLongKey, 'overflow');
-    expect(await cache.get(tooLongKey)).toBeNull();
+    await expect(cache.set(tooLongKey, 'overflow')).rejects.toThrow(InvalidCacheKeyError);
+
+    // Wzorzec z dozwolonymi wildcardami przechodzi
+    await expect(cache.invalidatePattern('valid:*')).resolves.toBeUndefined();
+    // Wzorzec z nielegalnymi znakami rzuca błąd
+    await expect(cache.invalidatePattern('invalid*pattern\n')).rejects.toThrow(InvalidCacheKeyError);
   });
 
-  it('automatycznie czyści wygasłe wpisy za pomocą okresowego janitora', async () => {
-    await cache.set('janitor:short', 'val', 0.05); // 50ms TTL
-    expect(await cache.get('janitor:short')).toBe('val');
+  it('bezpiecznie ignoruje i usuwa uszkodzone wartości JSON bez rzucania niespójnego wyjątku', async () => {
+    // Ręczne wstrzyknięcie uszkodzonego stringa do mapy in-memory
+    const internalMap = (cache as any).inMemoryCache as Map<string, any>;
+    internalMap.set('omnidash:corrupted:json', {
+      value: '{ unclosed json syntax',
+      expiresAt: null
+    });
 
-    // Odczekaj 120ms, aby minął zarówno TTL, jak i interwał janitora (50ms)
-    await new Promise((resolve) => setTimeout(resolve, 120));
+    const result = await cache.get('corrupted:json');
+    expect(result).toBeNull();
+    // Powinien zostać wyczyszczony z pamięci po wykryciu uszkodzenia
+    expect(internalMap.has('omnidash:corrupted:json')).toBe(false);
+  });
+
+  it('czyści wygasłe wpisy za pomocą metody purgeExpired', async () => {
+    await cache.set('purge:short', 'val', 0.05); // 50ms TTL
+    expect(await cache.get('purge:short')).toBe('val');
+
+    await new Promise((resolve) => setTimeout(resolve, 80));
+
+    const purged = cache.purgeExpired();
+    expect(purged).toBeGreaterThanOrEqual(1);
 
     const stats = cache.getStats();
     expect(stats.inMemoryKeysCount).toBe(0);
+  });
+
+  it('okresowy janitor w tle automatycznie usuwa przeterminowane klucze', async () => {
+    const autoCache = new RedisCache({ fallbackOnly: true, janitorIntervalMs: 30, unrefJanitor: false });
+    try {
+      await autoCache.set('auto:short', 'val', 0.04); // 40ms TTL
+      expect(await autoCache.get('auto:short')).toBe('val');
+
+      // Odczekaj 80ms, aby minął zarówno TTL, jak i interwał janitora (30ms)
+      await new Promise((resolve) => setTimeout(resolve, 80));
+
+      const stats = autoCache.getStats();
+      expect(stats.inMemoryKeysCount).toBe(0);
+    } finally {
+      await autoCache.close();
+    }
   });
 });
