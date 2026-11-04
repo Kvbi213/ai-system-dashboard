@@ -73,13 +73,33 @@ export function parseSafeAverage(raw: unknown): number | undefined {
 }
 
 /**
- * Sanityzuje opcjonalne pole info zdarzenia ze znaczników HTML i niebezpiecznych znaków.
+ * Normalizuje identyfikator zdarzenia: zachowuje TEMP_EVENT_ID jako string, parsuje liczby dodatnie do number.
+ */
+export function parseEventId(rawId: unknown): EventId {
+  if (rawId === null || rawId === undefined) return TEMP_EVENT_ID;
+  const str = String(rawId).trim();
+  if (str === TEMP_EVENT_ID || str === '') return TEMP_EVENT_ID;
+  const num = Number(str);
+  return Number.isFinite(num) && num > 0 ? num : str;
+}
+
+/**
+ * Sanityzuje opcjonalne pole info zdarzenia ze znaczników HTML i encji.
  */
 export function sanitizeEventInfo(raw?: unknown): string | undefined {
   if (raw === null || raw === undefined) return undefined;
   const str = String(raw).trim();
   if (!str) return undefined;
-  return str.replace(/<[^>]*>?/gm, '').trim();
+  const noTags = str.replace(/<[^>]*>?/gm, '').trim();
+  const unescaped = noTags
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .trim();
+  return unescaped || undefined;
 }
 
 function parseGradeValue(raw: string | number): number {
@@ -394,9 +414,7 @@ export class DatabaseStore {
         }
 
         const gtEvents: SchoolEvent[] = flatList.map((e: any) => ({
-          id: String(e.id) === TEMP_EVENT_ID
-            ? TEMP_EVENT_ID
-            : (Number.isFinite(Number(e.id)) ? Number(e.id) : String(e.id)),
+          id: parseEventId(e.id),
           date: parseLibrusDate(e.date || e.day) || new Date().toISOString().split('T')[0],
           type: (e.type === 'sprawdzian' ? 'sprawdzian' : e.type === 'kartkowka' ? 'kartkowka' : e.type === 'absence' ? 'absence' : 'inne') as any,
           category: e.category || 'Wydarzenie szkolne',
@@ -405,7 +423,7 @@ export class DatabaseStore {
           description: e.description || undefined,
           time: e.time || undefined,
           subject: e.subject || undefined,
-          info: sanitizeEventInfo(e.info || e.title)
+          info: sanitizeEventInfo(e.info) ?? sanitizeEventInfo(e.title)
         }));
 
         // Połącz wydarzenia z zachowaniem unikalności ID

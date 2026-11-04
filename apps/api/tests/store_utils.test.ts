@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { parseLibrusDate, parseSafeAverage, sanitizeEventInfo } from '../src/db/store.js';
+import { parseLibrusDate, parseSafeAverage, sanitizeEventInfo, parseEventId } from '../src/db/store.js';
+import { TEMP_EVENT_ID } from '../src/db/types.js';
 
 describe('store utils: parseLibrusDate', () => {
   it('parses valid ISO date string correctly', () => {
@@ -48,14 +49,36 @@ describe('store utils: parseSafeAverage', () => {
 });
 
 describe('store utils: sanitizeEventInfo', () => {
-  it('strips html tags and trims strings', () => {
+  it('strips html tags and decodes common html entities', () => {
     expect(sanitizeEventInfo('<script>alert(1)</script>Kartkówka')).toBe('alert(1)Kartkówka');
-    expect(sanitizeEventInfo('<b>Sprawdzian</b> semestralny')).toBe('Sprawdzian semestralny');
+    expect(sanitizeEventInfo('<b>Sprawdzian</b> &amp; kartkówka')).toBe('Sprawdzian & kartkówka');
+    expect(sanitizeEventInfo('Matematyka &lt;rozszerzona&gt;')).toBe('Matematyka <rozszerzona>');
+    expect(sanitizeEventInfo('Dział: &quot;Wielomiany&quot;')).toBe('Dział: "Wielomiany"');
   });
 
   it('returns undefined for empty, null, or undefined', () => {
     expect(sanitizeEventInfo(null)).toBeUndefined();
     expect(sanitizeEventInfo(undefined)).toBeUndefined();
     expect(sanitizeEventInfo('   ')).toBeUndefined();
+    expect(sanitizeEventInfo('<b></b>')).toBeUndefined();
+  });
+});
+
+describe('store utils: parseEventId', () => {
+  it('converts positive numeric string to number', () => {
+    expect(parseEventId('3463302')).toBe(3463302);
+    expect(parseEventId(12345)).toBe(12345);
+  });
+
+  it('preserves special temporary event ID as string', () => {
+    expect(parseEventId('-1')).toBe(TEMP_EVENT_ID);
+    expect(parseEventId(TEMP_EVENT_ID)).toBe(TEMP_EVENT_ID);
+  });
+
+  it('preserves non-numeric strings or returns TEMP_EVENT_ID for invalid', () => {
+    expect(parseEventId('custom_event_99')).toBe('custom_event_99');
+    expect(parseEventId(null)).toBe(TEMP_EVENT_ID);
+    expect(parseEventId(undefined)).toBe(TEMP_EVENT_ID);
+    expect(parseEventId('')).toBe(TEMP_EVENT_ID);
   });
 });

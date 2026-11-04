@@ -2,7 +2,7 @@ import Librus from 'librus-api';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { dbStore, parseSafeAverage, parseLibrusDate, sanitizeEventInfo } from '../../db/store.js';
+import { dbStore, parseSafeAverage, parseLibrusDate, sanitizeEventInfo, parseEventId } from '../../db/store.js';
 import { redisCache } from '../../core/redisCache.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -104,17 +104,15 @@ export async function syncLibrusData(): Promise<LibrusSyncResult> {
 
           for (const ev of nested) {
             const evDate = parseLibrusDate(ev.date || ev.day) || `${now.getFullYear()}-${String(currentMonth).padStart(2, '0')}-01`;
-            const numericId = Number(ev.id);
-            const finalId = Number.isFinite(numericId) && numericId > 0 ? numericId : (ev.id !== undefined ? String(ev.id) : `event_${flatList.length + 1}`);
             flatList.push({
-              id: finalId,
+              id: parseEventId(ev.id),
               title: ev.title || 'Wydarzenie szkolne',
               day: evDate,
               date: evDate,
               time: ev.time || undefined,
               teacher: ev.teacher || undefined,
               category: ev.category || 'Terminarz Librus',
-              info: sanitizeEventInfo(ev.info || ev.title)
+              info: sanitizeEventInfo(ev.info) ?? sanitizeEventInfo(ev.title)
             });
           }
         }
