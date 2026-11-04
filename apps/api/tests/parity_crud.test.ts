@@ -162,6 +162,11 @@ describe('OmniDash Parity & Extended Domain CRUD Endpoints', () => {
       expect(() => {
         dbStore.transferFunds('operator-system-core', 'NEEDS', 'SAVINGS', -10.0);
       }).toThrow(/dodatnią/);
+
+      // Validation fail-fast: Infinity
+      expect(() => {
+        dbStore.transferFunds('operator-system-core', 'NEEDS', 'SAVINGS', Infinity);
+      }).toThrow(/skończoną/);
     });
   });
 

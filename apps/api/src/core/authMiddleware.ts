@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 export interface UserContext {
   id: string;
   email: string;
-  role: 'ADMIN' | 'USER';
+  role: 'ADMIN' | 'USER' | 'WEBHOOK_SYSTEM';
 }
 
 export interface AuthenticatedRequest extends Request {
@@ -31,24 +31,10 @@ export const authMiddleware = (
     return next();
   }
 
-  // Pushbullet Webhook Guard: requires valid secret header or query token
-  if (req.path.startsWith('/pushbullet/webhook') || fullPath.includes('/pushbullet/webhook')) {
-    const webhookSecret = req.headers['x-webhook-secret'] || (req.query && req.query.secret);
-    const expectedSecret = process.env.PUSHBULLET_WEBHOOK_SECRET || process.env.DEV_WEBHOOK_SECRET || 'omnidash-dev-webhook-secret-2026';
-    if (webhookSecret && webhookSecret === expectedSecret) {
-      req.user = {
-        id: 'operator-system-core',
-        email: 'webhook@pushbullet.integration',
-        role: 'ADMIN'
-      };
-      return next();
-    }
-  }
-
   const authHeader = req.headers.authorization;
   const devBypassHeader = req.headers['x-dev-bypass'];
 
-  // Local development bypass support
+  // Local development bypass & Bearer authentication
   if (
     authHeader === 'Bearer dev-operator-token' ||
     devBypassHeader === 'true' ||
@@ -58,6 +44,34 @@ export const authMiddleware = (
       id: 'operator-system-core',
       email: 'operator@omnidash.internal',
       role: 'ADMIN'
+    };
+    return next();
+  }
+
+  // Pushbullet Webhook Guard: requires strictly configured secret and matching token when unauthenticated
+  if (req.path.startsWith('/pushbullet/webhook') || fullPath.includes('/pushbullet/webhook')) {
+    const expectedSecret = process.env.PUSHBULLET_WEBHOOK_SECRET;
+    if (!expectedSecret || !expectedSecret.trim()) {
+      res.status(503).json({
+        error: 'WEBHOOK_UNCONFIGURED',
+        message: 'Brak konfiguracji zmiennej środowiskowej PUSHBULLET_WEBHOOK_SECRET na serwerze.'
+      });
+      return;
+    }
+
+    const webhookSecret = req.headers['x-webhook-secret'] || (req.query && req.query.secret);
+    if (!webhookSecret || webhookSecret !== expectedSecret) {
+      res.status(401).json({
+        error: 'UNAUTHORIZED_WEBHOOK',
+        message: 'Nieprawidłowy lub brakujący klucz sekretu webhooka (x-webhook-secret).'
+      });
+      return;
+    }
+
+    req.user = {
+      id: 'webhook-service-daemon',
+      email: 'webhook@pushbullet.integration',
+      role: 'WEBHOOK_SYSTEM'
     };
     return next();
   }

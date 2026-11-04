@@ -128,6 +128,7 @@ describe('Pushbullet Domain Endpoints Suite', () => {
   });
 
   it('POST /api/pushbullet/webhook rejects unauthenticated access (no secret or token)', async () => {
+    process.env.PUSHBULLET_WEBHOOK_SECRET = 'omnidash-test-webhook-secret-999';
     const res = await fetch(`${baseUrl}/api/pushbullet/webhook`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -136,12 +137,28 @@ describe('Pushbullet Domain Endpoints Suite', () => {
     expect(res.status).toBe(401);
   });
 
+  it('POST /api/pushbullet/webhook returns 503 when PUSHBULLET_WEBHOOK_SECRET is unconfigured', async () => {
+    const orig = process.env.PUSHBULLET_WEBHOOK_SECRET;
+    delete process.env.PUSHBULLET_WEBHOOK_SECRET;
+    try {
+      const res = await fetch(`${baseUrl}/api/pushbullet/webhook`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: 'zadanie: Test' })
+      });
+      expect(res.status).toBe(503);
+    } finally {
+      process.env.PUSHBULLET_WEBHOOK_SECRET = orig;
+    }
+  });
+
   it('POST /api/pushbullet/webhook accepts request with valid x-webhook-secret and classifies task', async () => {
+    process.env.PUSHBULLET_WEBHOOK_SECRET = 'omnidash-test-webhook-secret-999';
     const res = await fetch(`${baseUrl}/api/pushbullet/webhook`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-webhook-secret': 'omnidash-dev-webhook-secret-2026'
+        'x-webhook-secret': 'omnidash-test-webhook-secret-999'
       },
       body: JSON.stringify({ body: 'zadanie: Przetestować webhook Zero-Trust' })
     });

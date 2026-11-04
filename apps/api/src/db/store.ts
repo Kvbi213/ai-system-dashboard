@@ -154,8 +154,13 @@ export class DatabaseStore {
     amount: number,
     note?: string
   ): { expenseTx: TransactionItem; incomeTx: TransactionItem } {
-    if (!amount || typeof amount !== 'number' || isNaN(amount) || amount <= 0) {
-      throw new Error('Kwota transferu musi być dodatnią liczbą większą od zera.');
+    if (
+      typeof amount !== 'number' ||
+      !Number.isFinite(amount) ||
+      isNaN(amount) ||
+      amount <= 0
+    ) {
+      throw new Error('Kwota transferu musi być poprawną skończoną liczbą dodatnią większą od zera.');
     }
     if (fromEnvelope === toEnvelope) {
       throw new Error('Koperta źródłowa i docelowa transferu muszą być różne.');
@@ -180,7 +185,11 @@ export class DatabaseStore {
       return { expenseTx, incomeTx };
     } catch (err) {
       // Atomic compensation / rollback of the first leg
-      this.deleteTransaction(expenseTx.id);
+      try {
+        this.deleteTransaction(expenseTx.id);
+      } catch (rollbackErr) {
+        console.error('[!] Błąd rollbacku transakcji transferu:', rollbackErr);
+      }
       throw err;
     }
   }
