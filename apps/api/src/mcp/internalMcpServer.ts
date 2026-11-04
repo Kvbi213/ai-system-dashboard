@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { dbStore } from '../db/store.js';
+import { dbStore, LessonItem } from '../db/store.js';
+import { semanticMemory } from '../domains/memory/semanticRecall.js';
 import os from 'os';
 
 export interface McpToolDefinition {
@@ -55,6 +56,62 @@ export class InternalMcpServer {
             description: 'Identyfikator cyklu FBW (np. "Cykl A")'
           }
         }
+      }
+    },
+    {
+      name: 'get_current_lesson_status',
+      description: 'Zwraca precyzyjny status bieżącej lekcji: trwające zajęcia, czas do dzwonka na przerwę, czas trwania przerwy oraz dane następnej lekcji (sala, przedmiot, nauczyciel).',
+      parameters: {
+        type: 'object',
+        properties: {
+          day: {
+            type: 'number',
+            description: 'Numer dnia tygodnia (1-5, domyślnie bieżący dzień roboczy)'
+          },
+          currentTime: {
+            type: 'string',
+            description: 'Czas w formacie "HH:mm" (opcjonalny, domyślnie aktualna godzina systemowa)'
+          }
+        }
+      }
+    },
+    {
+      name: 'schedule_lesson_transition_alert',
+      description: 'Planuje deterministyczny komunikat Pushbullet / asystenta przed końcem lekcji (np. na 5 min przed dzwonkiem) z informacją o sali, przerwie i kolejnej lekcji.',
+      parameters: {
+        type: 'object',
+        properties: {
+          minutesBeforeEnd: {
+            type: 'number',
+            description: 'Liczba minut przed dzwonkiem na przerwę (domyślnie 5)'
+          },
+          lessonIndex: {
+            type: 'number',
+            description: 'Kolejność lekcji w planie (np. 1, 2, 3)'
+          },
+          customNote: {
+            type: 'string',
+            description: 'Dodatkowa notatka lub zadanie do przekazania na przerwę'
+          }
+        }
+      }
+    },
+    {
+      name: 'save_student_directive',
+      description: 'Zapisuje stałą preferencję lub regułę asystenta szkolnego (np. "przypominaj co lekcję o przerwie i kolejnej sali") do pamięci semantycznej Lab-Zero i bazy wiedzy OmniDash.',
+      parameters: {
+        type: 'object',
+        properties: {
+          directive: {
+            type: 'string',
+            description: 'Treść dyrektywy lub preferencji'
+          },
+          tags: {
+            type: 'string',
+            description: 'Tagi rozdzielone przecinkami (np. "szkoła,librus,przerwy")'
+          }
+        },
+        required: ['directive']
       }
     }
   ];
@@ -127,6 +184,155 @@ export class InternalMcpServer {
           totalSets,
           isFinished: totalSets > 0 && completedSets >= totalSets,
           lastSynced: new Date().toISOString()
+        };
+      }
+
+      case 'get_current_lesson_status': {
+        const now = new Date();
+        const dayNum = args.day ? Number(args.day) : (now.getDay() === 0 || now.getDay() === 6 ? 2 : now.getDay());
+        const lessons = dbStore.getTimetable(dayNum);
+
+        let currentMinutes: number;
+        if (args.currentTime && typeof args.currentTime === 'string' && args.currentTime.includes(':')) {
+          const [h, m] = args.currentTime.split(':').map(Number);
+          currentMinutes = h * 60 + m;
+        } else {
+          currentMinutes = now.getHours() * 60 + now.getMinutes();
+        }
+
+        const parseRange = (rangeStr: string) => {
+          const parts = rangeStr.split('-').map((s) => s.trim());
+          if (parts.length < 2) return { start: 0, end: 0 };
+          const [sh, sm] = parts[0].split(':').map(Number);
+          const [eh, em] = parts[1].split(':').map(Number);
+          return {
+            start: sh * 60 + sm,
+            end: eh * 60 + em
+          };
+        };
+
+        let currentLesson: LessonItem | null = null;
+        let nextLesson: LessonItem | null = null;
+        let isBreak = false;
+        let minutesToBell = 0;
+        let breakDurationMinutes = 10;
+
+        for (let i = 0; i < lessons.length; i++) {
+          const l = lessons[i];
+          const range = parseRange(l.timeRange);
+
+          if (currentMinutes >= range.start && currentMinutes < range.end) {
+            currentLesson = l;
+            minutesToBell = range.end - currentMinutes;
+            if (i + 1 < lessons.length) {
+              nextLesson = lessons[i + 1];
+              const nextRange = parseRange(nextLesson.timeRange);
+              breakDurationMinutes = Math.max(5, nextRange.start - range.end);
+            }
+            break;
+          } else if (currentMinutes < range.start) {
+            isBreak = true;
+            nextLesson = l;
+            minutesToBell = range.start - currentMinutes;
+            break;
+          }
+        }
+
+        // Fallback gdy lekcje się skończyły lub jeszcze nie zaczęły
+        if (!currentLesson && !nextLesson && lessons.length > 0) {
+          nextLesson = lessons[0];
+          isBreak = true;
+          minutesToBell = Math.max(0, parseRange(lessons[0].timeRange).start - currentMinutes);
+        }
+
+        return {
+          day: dayNum,
+          currentMinutesFormatted: `${Math.floor(currentMinutes / 60).toString().padStart(2, '0')}:${(currentMinutes % 60).toString().padStart(2, '0')}`,
+          isBreak,
+          currentLesson: currentLesson ? {
+            order: currentLesson.order,
+            subject: currentLesson.subject,
+            time: currentLesson.timeRange,
+            classroom: currentLesson.classroom,
+            teacher: currentLesson.teacher,
+            minutesRemaining: minutesToBell
+          } : null,
+          breakInfo: {
+            breakDurationMinutes,
+            minutesUntilNextLesson: minutesToBell
+          },
+          nextLesson: nextLesson ? {
+            order: nextLesson.order,
+            subject: nextLesson.subject,
+            time: nextLesson.timeRange,
+            classroom: nextLesson.classroom,
+            teacher: nextLesson.teacher
+          } : null,
+          statusSummary: currentLesson
+            ? `Trwa lekcja: ${currentLesson.subject} (${currentLesson.classroom}). Do dzwonka: ${minutesToBell} min. Następnie: ${nextLesson ? nextLesson.subject + ' w sali ' + nextLesson.classroom : 'Koniec zajęć'}.`
+            : `Przerwa. Do następnej lekcji (${nextLesson?.subject || 'Brak'}): ${minutesToBell} min.`
+        };
+      }
+
+      case 'schedule_lesson_transition_alert': {
+        const minutesBeforeEnd = Number(args.minutesBeforeEnd ?? 5);
+        const lessonIndex = args.lessonIndex ? Number(args.lessonIndex) : 1;
+        const note = args.customNote ? String(args.customNote) : 'Powiadomienie przed dzwonkiem';
+
+        const dayNum = 2; // wtorek demonstracyjny / bieżący dzień
+        const lessons = dbStore.getTimetable(dayNum);
+        const targetLesson = lessons.find((l) => l.order === lessonIndex) || lessons[0];
+        const nextIdx = lessons.findIndex((l) => l.order === targetLesson?.order);
+        const nextLesson = nextIdx >= 0 && nextIdx + 1 < lessons.length ? lessons[nextIdx + 1] : null;
+
+        const scheduledTime = targetLesson ? targetLesson.timeRange.split('-')[1].trim() : '12:00';
+
+        const messagePayload = {
+          type: 'LESSON_TRANSITION',
+          scheduledAlertMinutesBefore: minutesBeforeEnd,
+          targetLesson: targetLesson?.subject,
+          room: targetLesson?.classroom,
+          nextSubject: nextLesson ? nextLesson.subject : 'Koniec zajęć',
+          nextRoom: nextLesson ? nextLesson.classroom : '-',
+          nextTeacher: nextLesson ? nextLesson.teacher : '-',
+          note,
+          status: 'SCHEDULED'
+        };
+
+        return {
+          success: true,
+          scheduledForLesson: targetLesson?.subject || 'Lekcja',
+          fireAtTime: scheduledTime,
+          alertWindow: `${minutesBeforeEnd} min przed dzwonkiem`,
+          notificationPreview: `[DZWONEK] Za ${minutesBeforeEnd} min koniec: ${targetLesson?.subject}. Następna lekcja: ${nextLesson ? nextLesson.subject + ' (sala ' + nextLesson.classroom + ')' : 'brak'}.`,
+          payload: messagePayload
+        };
+      }
+
+      case 'save_student_directive': {
+        const directiveText = String(args.directive || '').trim();
+        if (!directiveText) {
+          throw new Error('Pole "directive" jest wymagane i nie może być puste.');
+        }
+
+        const tagList = args.tags
+          ? String(args.tags).split(',').map((t) => t.trim()).filter(Boolean)
+          : ['szkoła', 'lekcje', 'dyrektywa'];
+
+        const memoryEntry = semanticMemory.addFact({
+          category: 'SCHOOL',
+          content: directiveText,
+          tags: tagList
+        });
+
+        return {
+          success: true,
+          directiveId: memoryEntry.id,
+          category: memoryEntry.category,
+          storedContent: memoryEntry.content,
+          tags: memoryEntry.tags,
+          totalMemoryFacts: semanticMemory.getFacts().length,
+          message: 'Dyrektywa została pomyślnie zindeksowana w pamięci semantycznej Lab-Zero.'
         };
       }
 

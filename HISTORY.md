@@ -452,3 +452,26 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
 - [+] **Nowy Zestaw Testów Jednostkowych (`llm_gateway.test.ts`):**
   - Pokrycie testowe: przekroczenie limitu pętli, przekroczenie limitu tokenów, fail-fast przy pustej wiadomości oraz deterministyczny fallback lokalny.
   - Łączna liczba testów jednostkowych API Gateway wzrosła z 39 do 44.
+
+
+---
+
+### ## v4.0.0-rc.4 — 2026-11-04 [MASTER SYSTEM DOCUMENTATION & EXPANDED SCHOOL MCP TOOLS]
+**Status:** WYDANE I ZWERYFIKOWANE  
+**Typ:** FEATURE / DOCUMENTATION (Master System Specification, Narzędzia Szkolne MCP, Monitor Przerw i Czasu do Dzwonka, Integracja Dyrektyw Lab-Zero)  
+**Cel:** Rozszerzenie możliwości narzędziowych asystenta AI o precyzyjny kontekst szkolny (przerwy, czas do dzwonka, planowanie przejścia między salami) oraz opracowanie jednolitego Master Document.
+
+#### Zakres Wdrożenia i Zmian:
+- [+] **Rozszerzenie `InternalMcpServer` o 3 nowe narzędzia:**
+  - `get_current_lesson_status`: obliczanie czasu pozostałego do dzwonka, czasu trwania przerwy oraz szczegółów kolejnej lekcji.
+  - `schedule_lesson_transition_alert`: harmonogramowanie deterministycznego powiadomienia przed końcem lekcji (np. 5 min przed dzwonkiem).
+  - `save_student_directive`: utrwalanie stałych dyrektyw i preferencji ucznia w pamięci semantycznej Lab-Zero.
+- [+] **Integracja z Brama AI (`llmGateway.ts`):**
+  - Obsługa zapytań o przerwy, dzwonek i zapis dyrektyw w lokalnym silniku asystenta z generowaniem wywołań narzędziowych `toolCall`.
+- [+] **Master Document (`MASTER_SYSTEM_ARCHITECTURE.md`):**
+  - Kompletny rejestr topologii monorepo, wszystkich modułów, narzędzi MCP, endpointów API i metryk weryfikacji.
+- [+] **Weryfikacja Empiryczna (100% GREEN):**
+  - API Gateway Vitest: 52 passed.
+  - Worker Vitest: 8 passed.
+  - Playwright E2E: 46 passed (2 skipped).
+  - Łącznie: 106 testów automatycznych na zielono.

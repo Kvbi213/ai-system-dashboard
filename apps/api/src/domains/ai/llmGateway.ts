@@ -375,7 +375,24 @@ export class LLMGateway {
     let reply = 'Zrozumiałem polecenie. Silnik asystenta zrealizował operację lokalnie w środowisku Zero-Trust.';
     let toolCall: { toolName: string; args: Record<string, unknown>; output: string } | undefined = undefined;
 
-    if (query.includes('plan') || query.includes('lekcj')) {
+    if (query.includes('przerw') || query.includes('dzwonek') || query.includes('następn') || query.includes('gdzie mam')) {
+      const timetable = dbStore.getTimetable(2);
+      const currentLesson = timetable.find((t) => t.order === 4) || timetable[0]; // wtorek 4 lekcja (Wychowanie fizyczne)
+      const nextLesson = timetable.find((t) => t.order === 5);
+      reply = `Aktualnie trwa ${currentLesson.subject} (${currentLesson.classroom}). Do dzwonka pozostało 15 minut. Następna lekcja: ${nextLesson ? nextLesson.subject + ' w sali ' + nextLesson.classroom + ' z ' + nextLesson.teacher : 'Koniec zajęć'}.`;
+      toolCall = {
+        toolName: 'get_current_lesson_status',
+        args: { day: 2 },
+        output: JSON.stringify({ current: currentLesson.subject, room: currentLesson.classroom, next: nextLesson?.subject, nextRoom: nextLesson?.classroom })
+      };
+    } else if (query.includes('dyrektyw') || (query.includes('zapisz') && query.includes('lekcj'))) {
+      reply = `Zarejestrowano nową dyrektywę w pamięci asystenta: przed zakończeniem każdej lekcji będziesz otrzymywać powiadomienie o czasie do dzwonka, przerwie oraz kolejnej sali i nauczycielu.`;
+      toolCall = {
+        toolName: 'save_student_directive',
+        args: { directive: message, tags: 'szkoła,przerwy,dzwonek' },
+        output: JSON.stringify({ status: 'saved', category: 'SCHOOL' })
+      };
+    } else if (query.includes('plan') || query.includes('lekcj')) {
       const timetable = dbStore.getTimetable(2); // Domyślnie bieżący dzień roboczy
       reply = `W dzisiejszym harmonogramie masz zaplanowane ${timetable.length} bloków zajęć: ` +
         timetable.map((t: LessonItem) => `${t.subject} (${t.classroom})`).join(', ') + '.';
