@@ -22,11 +22,15 @@ const PUBLIC_PATHS = [
 function extractWebhookSecret(req: Request): string | undefined {
   const header = req.headers['x-webhook-secret'];
   if (header) {
-    return Array.isArray(header) ? header[0].trim() : String(header).trim();
+    const val = Array.isArray(header) ? (header.length > 0 ? header[0] : '') : String(header);
+    const trimmed = val.trim();
+    if (trimmed.length > 0) return trimmed;
   }
   const querySecret = req.query && req.query.secret;
   if (querySecret) {
-    return Array.isArray(querySecret) ? String(querySecret[0]).trim() : String(querySecret).trim();
+    const val = Array.isArray(querySecret) ? (querySecret.length > 0 ? String(querySecret[0]) : '') : String(querySecret);
+    const trimmed = val.trim();
+    if (trimmed.length > 0) return trimmed;
   }
   return undefined;
 }
@@ -48,8 +52,8 @@ export const authMiddleware = (
     const expectedSecret = process.env.PUSHBULLET_WEBHOOK_SECRET;
     if (!expectedSecret || !expectedSecret.trim()) {
       res.status(503).json({
-        error: 'WEBHOOK_UNCONFIGURED',
-        message: 'Brak konfiguracji zmiennej środowiskowej PUSHBULLET_WEBHOOK_SECRET na serwerze.'
+        error: 'SERVICE_UNAVAILABLE',
+        message: 'Webhook processing service is currently unavailable.'
       });
       return;
     }
@@ -58,7 +62,7 @@ export const authMiddleware = (
     if (!webhookSecret || webhookSecret !== expectedSecret.trim()) {
       res.status(401).json({
         error: 'UNAUTHORIZED_WEBHOOK',
-        message: 'Nieprawidłowy lub brakujący klucz sekretu webhooka (x-webhook-secret).'
+        message: 'Nieprawidłowy lub brakujący klucz sekretu webhooka.'
       });
       return;
     }

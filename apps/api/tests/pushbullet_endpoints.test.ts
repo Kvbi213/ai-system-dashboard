@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import app from '../src/index.js';
 import http from 'http';
 import { pushbulletService } from '../src/domains/pushbullet/pushbulletService.js';
@@ -36,6 +36,10 @@ describe('Pushbullet Domain Endpoints Suite', () => {
   beforeEach(() => {
     pushbulletService.clearHistory();
     process.env.PUSHBULLET_WEBHOOK_SECRET = 'omnidash-test-webhook-secret-999';
+  });
+
+  afterEach(() => {
+    process.env.PUSHBULLET_WEBHOOK_SECRET = originalWebhookSecret;
   });
 
   it('POST /api/pushbullet/send sends push in simulated mode when no live API key', async () => {
