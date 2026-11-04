@@ -26,6 +26,7 @@ aiRouter.post('/chat', async (req: Request, res: Response) => {
   try {
     const result = await llmGateway.complete({
       message,
+      userId: (req as any).user?.id,
       history: Array.isArray(history) ? history : []
     });
 

@@ -143,6 +143,26 @@ describe('OmniDash Parity & Extended Domain CRUD Endpoints', () => {
       const delBody = await delRes.json();
       expect(delBody.success).toBe(true);
     });
+
+    it('executes atomic transferFunds between envelopes and validates input', () => {
+      const initialTxCount = dbStore.getTransactions('operator-system-core').length;
+      const transfer = dbStore.transferFunds('operator-system-core', 'NEEDS', 'SAVINGS', 75.0, 'Oszczędności awaryjne');
+      expect(transfer.expenseTx.amount).toBe(75.0);
+      expect(transfer.expenseTx.envelope).toBe('NEEDS');
+      expect(transfer.incomeTx.amount).toBe(75.0);
+      expect(transfer.incomeTx.envelope).toBe('SAVINGS');
+      expect(dbStore.getTransactions('operator-system-core').length).toBe(initialTxCount + 2);
+
+      // Validation fail-fast: identical envelopes
+      expect(() => {
+        dbStore.transferFunds('operator-system-core', 'NEEDS', 'NEEDS', 50.0);
+      }).toThrow(/różne/);
+
+      // Validation fail-fast: non-positive amount
+      expect(() => {
+        dbStore.transferFunds('operator-system-core', 'NEEDS', 'SAVINGS', -10.0);
+      }).toThrow(/dodatnią/);
+    });
   });
 
   describe('Workouts Domain CRUD (/api/workouts)', () => {

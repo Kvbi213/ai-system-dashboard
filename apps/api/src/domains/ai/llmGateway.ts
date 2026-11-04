@@ -4,6 +4,7 @@ import { dbStore, LessonItem } from '../../db/store.js';
 
 export interface LLMRequestOptions {
   message: string;
+  userId?: string;
   history?: { role: 'user' | 'assistant' | 'system'; content: string }[];
   temperature?: number;
   maxTokens?: number;
@@ -190,7 +191,7 @@ export class LLMGateway {
 
     // 4. Deterministic Local Executive Assistant Fallback
     budget.recordStep();
-    const localRes = this.executeLocalAssistant(options.message);
+    const localRes = this.executeLocalAssistant(options.message, options.userId);
     const durationMs = Date.now() - startTime;
     const localTokens = options.message.length + localRes.reply.length;
     budget.recordTokens(localTokens);
@@ -370,7 +371,7 @@ export class LLMGateway {
     };
   }
 
-  private executeLocalAssistant(message: string): { reply: string; toolCall?: { toolName: string; args: Record<string, unknown>; output: string } } {
+  private executeLocalAssistant(message: string, userId?: string): { reply: string; toolCall?: { toolName: string; args: Record<string, unknown>; output: string } } {
     const query = message.toLowerCase();
     let reply = 'Zrozumiałem polecenie. Silnik asystenta zrealizował operację lokalnie w środowisku Zero-Trust.';
     let toolCall: { toolName: string; args: Record<string, unknown>; output: string } | undefined = undefined;
@@ -426,7 +427,8 @@ export class LLMGateway {
       };
     } else if (query.includes('dodaj zadanie') || query.includes('nowe zadanie')) {
       const taskTitle = message.replace(/(dodaj zadanie|nowe zadanie|zadanie:?)/gi, '').trim() || 'Nowe zadanie z czatu';
-      const createdTask = dbStore.addTask('operator-system-core', { title: taskTitle, priority: 'HIGH', category: 'Czat AI' });
+      const callerUserId = userId && userId.trim() ? userId.trim() : 'operator-system-core';
+      const createdTask = dbStore.addTask(callerUserId, { title: taskTitle, priority: 'HIGH', category: 'Czat AI' });
       reply = `Zadanie "${createdTask.title}" zostało pomyślnie dodane do Twojej listy zadań.`;
       toolCall = {
         toolName: 'add_to_do',

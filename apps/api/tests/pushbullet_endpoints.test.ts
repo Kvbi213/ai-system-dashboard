@@ -126,4 +126,28 @@ describe('Pushbullet Domain Endpoints Suite', () => {
     expect(data.history.length).toBe(1);
     expect(data.history[0].title).toBe('Historia 1');
   });
+
+  it('POST /api/pushbullet/webhook rejects unauthenticated access (no secret or token)', async () => {
+    const res = await fetch(`${baseUrl}/api/pushbullet/webhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body: 'zadanie: Zrobić zakupy' })
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('POST /api/pushbullet/webhook accepts request with valid x-webhook-secret and classifies task', async () => {
+    const res = await fetch(`${baseUrl}/api/pushbullet/webhook`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-webhook-secret': 'omnidash-dev-webhook-secret-2026'
+      },
+      body: JSON.stringify({ body: 'zadanie: Przetestować webhook Zero-Trust' })
+    });
+    expect(res.status).toBe(201);
+    const data: any = await res.json();
+    expect(data.classifiedAs).toBe('TASK');
+    expect(data.task.title).toBe('Przetestować webhook Zero-Trust');
+  });
 });

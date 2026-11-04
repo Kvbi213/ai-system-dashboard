@@ -154,6 +154,12 @@ export class DatabaseStore {
     amount: number,
     note?: string
   ): { expenseTx: TransactionItem; incomeTx: TransactionItem } {
+    if (!amount || typeof amount !== 'number' || isNaN(amount) || amount <= 0) {
+      throw new Error('Kwota transferu musi być dodatnią liczbą większą od zera.');
+    }
+    if (fromEnvelope === toEnvelope) {
+      throw new Error('Koperta źródłowa i docelowa transferu muszą być różne.');
+    }
     const reason = note || `Przesunięcie środków: ${fromEnvelope} -> ${toEnvelope}`;
     const expenseTx = this.addTransaction(userId, {
       title: `Transfer wychodzący: ${reason}`,
@@ -162,14 +168,21 @@ export class DatabaseStore {
       category: 'Transfer',
       type: 'EXPENSE'
     });
-    const incomeTx = this.addTransaction(userId, {
-      title: `Transfer przychodzący: ${reason}`,
-      amount,
-      envelope: toEnvelope,
-      category: 'Transfer',
-      type: 'INCOME'
-    });
-    return { expenseTx, incomeTx };
+
+    try {
+      const incomeTx = this.addTransaction(userId, {
+        title: `Transfer przychodzący: ${reason}`,
+        amount,
+        envelope: toEnvelope,
+        category: 'Transfer',
+        type: 'INCOME'
+      });
+      return { expenseTx, incomeTx };
+    } catch (err) {
+      // Atomic compensation / rollback of the first leg
+      this.deleteTransaction(expenseTx.id);
+      throw err;
+    }
   }
 
   // Subscriptions CRUD

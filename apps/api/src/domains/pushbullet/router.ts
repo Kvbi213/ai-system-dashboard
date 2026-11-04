@@ -62,6 +62,7 @@ pushbulletRouter.get('/history', (_req: Request, res: Response) => {
  * Odbiór powiadomień efemerycznych (SMS bankowe, notatki zadań).
  */
 pushbulletRouter.post('/webhook', (req: Request, res: Response) => {
+  const userId = (req as any).user?.id || 'operator-system-core';
   const { title, body } = req.body;
 
   if (!body || typeof body !== 'string') {
@@ -77,7 +78,7 @@ pushbulletRouter.post('/webhook', (req: Request, res: Response) => {
     const rawAmount = match[1].replace(',', '.');
     const amount = parseFloat(rawAmount);
     if (!isNaN(amount) && amount > 0) {
-      const tx = dbStore.addTransaction('operator-system-core', {
+      const tx = dbStore.addTransaction(userId, {
         title: title || 'Płatność automatyczna SMS',
         amount,
         envelope: 'NEEDS',
@@ -96,7 +97,7 @@ pushbulletRouter.post('/webhook', (req: Request, res: Response) => {
   // Wykrywanie notatki jako zadania
   if (body.toLowerCase().startsWith('zadanie:')) {
     const taskTitle = body.replace(/zadanie:/i, '').trim();
-    const task = dbStore.addTask('operator-system-core', {
+    const task = dbStore.addTask(userId, {
       title: taskTitle,
       priority: 'HIGH',
       category: 'Pushbullet'

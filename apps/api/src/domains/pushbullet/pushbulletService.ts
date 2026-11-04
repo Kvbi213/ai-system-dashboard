@@ -5,8 +5,7 @@ export const SendPushSchema = z.object({
   body: z.string().min(1, 'Treść powiadomienia jest wymagana'),
   priority: z.enum(['CRITICAL', 'HIGH', 'NORMAL', 'LOW']).default('NORMAL'),
   targetEmail: z.string().email().optional(),
-  targetDeviceId: z.string().optional(),
-  tokenOverride: z.string().optional()
+  targetDeviceId: z.string().optional()
 });
 
 export type SendPushPayload = z.infer<typeof SendPushSchema>;
@@ -150,7 +149,7 @@ export class PushbulletService {
    */
   public async sendPush(payload: SendPushPayload): Promise<PushResult> {
     const validated = SendPushSchema.parse(payload);
-    const key = this.getApiKey(validated.tokenOverride);
+    const key = this.getApiKey();
     const formattedTitle = (validated.title || 'OmniDash Alert').trim();
     const formattedBody = formatPushText(validated.body);
     const nowIso = new Date().toISOString();
