@@ -1,4 +1,4 @@
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 
 export class InvalidCacheKeyError extends Error {
   public readonly key: unknown;

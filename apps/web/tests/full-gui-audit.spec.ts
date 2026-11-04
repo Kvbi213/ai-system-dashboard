@@ -63,7 +63,7 @@ test.describe('OmniDash Reborn - Comprehensive Full GUI E2E Audit', () => {
     // Switch to Oceny tab
     await page.locator('button:has-text("Oceny i Średnie")').click();
     await expect(page.locator('text=Średnia ocen').first()).toBeVisible();
-    await expect(page.locator('text=3.38').first()).toBeVisible();
+    await expect(page.locator('text=4.28').first()).toBeVisible();
     await expect(page.locator('text=Szczęśliwy nr').first()).toBeVisible();
 
     // Test semester switch

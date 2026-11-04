@@ -1,10 +1,18 @@
 {
+  "success": true,
+  "timestamp": "2026-11-04T14:24:43.531Z",
+  "studentInfo": {
+    "name": "Jakub Lis",
+    "class": "2 TI T",
+    "index": "11",
+    "educator": "Ziemba Joanna",
+    "accountLogin": "12538637u"
+  },
+  "luckyNumber": 3,
   "grades": {
-    "isConfigured": true,
-    "isDemo": false,
     "subjects": [
       {
-        "name": "Biologia",
+        "name": "biologia",
         "semester": [
           {
             "grades": [
@@ -17,9 +25,19 @@
                 "id": 5436827,
                 "info": "Kategoria: Praca klasowa\nData: 2026-10-21 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna\n",
                 "value": "3"
+              },
+              {
+                "id": 6517463,
+                "info": "Kategoria: Praca klasowa\nData: 2026-10-28 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna\n\nPoprawa oceny: 3 (Praca klasowa)",
+                "value": "5"
+              },
+              {
+                "id": 6542101,
+                "info": "Kategoria: odpowiedź ustna\nData: 2026-10-28 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Łukaszczyk-Wulgaris Joanna\n",
+                "value": "4+"
               }
             ],
-            "tempAverage": 3.38,
+            "tempAverage": 4.13,
             "average": null
           },
           {
@@ -30,7 +48,7 @@
           {
             "grades": [],
             "tempAverage": null,
-            "average": 3.38
+            "average": 4.13
           },
           {
             "grades": [],
@@ -38,83 +56,11 @@
             "average": null
           }
         ],
-        "tempAverage": 3.38,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 2661119,
-            "info": "Kategoria: odpowiedź ustna\nData: 2026-10-01 (czw.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-            "value": "4+",
-            "details": {
-              "category": "odpowiedź ustna",
-              "weight": 1,
-              "date": "2026-10-01 (czw.)",
-              "teacher": "Łukaszczyk-Wulgaris Joanna",
-              "comment": "",
-              "raw": "Kategoria: odpowiedź ustna\nData: 2026-10-01 (czw.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 4.5
-          },
-          {
-            "id": 5436827,
-            "info": "Kategoria: Praca klasowa\nData: 2026-10-21 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-            "value": "3",
-            "details": {
-              "category": "Praca klasowa",
-              "weight": 3,
-              "date": "2026-10-21 (śr.)",
-              "teacher": "Łukaszczyk-Wulgaris Joanna",
-              "comment": "",
-              "raw": "Kategoria: Praca klasowa\nData: 2026-10-21 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 3
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 2661119,
-            "info": "Kategoria: odpowiedź ustna\nData: 2026-10-01 (czw.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-            "value": "4+",
-            "details": {
-              "category": "odpowiedź ustna",
-              "weight": 1,
-              "date": "2026-10-01 (czw.)",
-              "teacher": "Łukaszczyk-Wulgaris Joanna",
-              "comment": "",
-              "raw": "Kategoria: odpowiedź ustna\nData: 2026-10-01 (czw.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 4.5
-          },
-          {
-            "id": 5436827,
-            "info": "Kategoria: Praca klasowa\nData: 2026-10-21 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-            "value": "3",
-            "details": {
-              "category": "Praca klasowa",
-              "weight": 3,
-              "date": "2026-10-21 (śr.)",
-              "teacher": "Łukaszczyk-Wulgaris Joanna",
-              "comment": "",
-              "raw": "Kategoria: Praca klasowa\nData: 2026-10-21 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 3
-          }
-        ],
-        "sem1Avg": 3.38,
-        "sem2Avg": 3.38,
-        "computedAverage": 3.38
+        "tempAverage": 4.13,
+        "average": null
       },
       {
-        "name": "Biznes i zarządzanie",
+        "name": "biznes i zarządzanie",
         "semester": [
           {
             "grades": [
@@ -144,50 +90,10 @@
           }
         ],
         "tempAverage": 4.5,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 5307591,
-            "info": "Kategoria: kartkówka\nData: 2026-10-20 (wt.)\nNauczyciel: Sokół Paweł\nLicz do średniej: tak\nWaga: 1\nDodał: Sokół Paweł\n\nKomentarz: Pieniądz w gospodarce rynkowej, Rynek finansowy, Finanse osobiste ",
-            "value": "4+",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-10-20 (wt.)",
-              "teacher": "Sokół Paweł",
-              "comment": "Pieniądz w gospodarce rynkowej, Rynek finansowy, Finanse osobiste",
-              "raw": "Kategoria: kartkówka\nData: 2026-10-20 (wt.)\nNauczyciel: Sokół Paweł\nLicz do średniej: tak\nWaga: 1\nDodał: Sokół Paweł\n\nKomentarz: Pieniądz w gospodarce rynkowej, Rynek finansowy, Finanse osobiste ",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 4.5
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 5307591,
-            "info": "Kategoria: kartkówka\nData: 2026-10-20 (wt.)\nNauczyciel: Sokół Paweł\nLicz do średniej: tak\nWaga: 1\nDodał: Sokół Paweł\n\nKomentarz: Pieniądz w gospodarce rynkowej, Rynek finansowy, Finanse osobiste ",
-            "value": "4+",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-10-20 (wt.)",
-              "teacher": "Sokół Paweł",
-              "comment": "Pieniądz w gospodarce rynkowej, Rynek finansowy, Finanse osobiste",
-              "raw": "Kategoria: kartkówka\nData: 2026-10-20 (wt.)\nNauczyciel: Sokół Paweł\nLicz do średniej: tak\nWaga: 1\nDodał: Sokół Paweł\n\nKomentarz: Pieniądz w gospodarce rynkowej, Rynek finansowy, Finanse osobiste ",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 4.5
-          }
-        ],
-        "sem1Avg": 4.5,
-        "sem2Avg": 4.5,
-        "computedAverage": 4.5
+        "average": null
       },
       {
-        "name": "Chemia",
+        "name": "chemia",
         "semester": [
           {
             "grades": [
@@ -195,9 +101,14 @@
                 "id": 2554576,
                 "info": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Kolasińska Paulina\nLicz do średniej: tak\nWaga: 1\nDodał: Kolasińska Paulina\n\nKomentarz: Roztwory wodne elektrolitów",
                 "value": "4+"
+              },
+              {
+                "id": 6719070,
+                "info": "Kategoria: kartkówka\nData: 2026-10-28 (śr.)\nNauczyciel: Kolasińska Paulina\nLicz do średniej: tak\nWaga: 1\nDodał: Kolasińska Paulina\n\nKomentarz: Nazewnictwo alkanów ",
+                "value": "1"
               }
             ],
-            "tempAverage": 4.5,
+            "tempAverage": 2.75,
             "average": null
           },
           {
@@ -208,7 +119,7 @@
           {
             "grades": [],
             "tempAverage": null,
-            "average": 4.5
+            "average": 2.75
           },
           {
             "grades": [],
@@ -216,51 +127,11 @@
             "average": null
           }
         ],
-        "tempAverage": 4.5,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 2554576,
-            "info": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Kolasińska Paulina\nLicz do średniej: tak\nWaga: 1\nDodał: Kolasińska Paulina\n\nKomentarz: Roztwory wodne elektrolitów",
-            "value": "4+",
-            "details": {
-              "category": "Praca w grupach",
-              "weight": 1,
-              "date": "2026-10-01 (czw.)",
-              "teacher": "Kolasińska Paulina",
-              "comment": "Roztwory wodne elektrolitów",
-              "raw": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Kolasińska Paulina\nLicz do średniej: tak\nWaga: 1\nDodał: Kolasińska Paulina\n\nKomentarz: Roztwory wodne elektrolitów",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 4.5
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 2554576,
-            "info": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Kolasińska Paulina\nLicz do średniej: tak\nWaga: 1\nDodał: Kolasińska Paulina\n\nKomentarz: Roztwory wodne elektrolitów",
-            "value": "4+",
-            "details": {
-              "category": "Praca w grupach",
-              "weight": 1,
-              "date": "2026-10-01 (czw.)",
-              "teacher": "Kolasińska Paulina",
-              "comment": "Roztwory wodne elektrolitów",
-              "raw": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Kolasińska Paulina\nLicz do średniej: tak\nWaga: 1\nDodał: Kolasińska Paulina\n\nKomentarz: Roztwory wodne elektrolitów",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 4.5
-          }
-        ],
-        "sem1Avg": 4.5,
-        "sem2Avg": 4.5,
-        "computedAverage": 4.5
+        "tempAverage": 2.75,
+        "average": null
       },
       {
-        "name": "Edukacja obywatelska",
+        "name": "edukacja obywatelska",
         "semester": [
           {
             "grades": [
@@ -268,6 +139,11 @@
                 "id": 983480,
                 "info": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Czarna Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Czarna Alicja\n",
                 "value": "5"
+              },
+              {
+                "id": 6953970,
+                "info": "Kategoria: prasówka\nData: 2026-10-30 (pt.)\nNauczyciel: Czarna Alicja\nDodał: Czarna Alicja\n",
+                "value": "-"
               }
             ],
             "tempAverage": 5,
@@ -290,50 +166,10 @@
           }
         ],
         "tempAverage": 5,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 983480,
-            "info": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Czarna Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Czarna Alicja\n",
-            "value": "5",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-09-18 (pt.)",
-              "teacher": "Czarna Alicja",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Czarna Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Czarna Alicja\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 983480,
-            "info": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Czarna Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Czarna Alicja\n",
-            "value": "5",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-09-18 (pt.)",
-              "teacher": "Czarna Alicja",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Czarna Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Czarna Alicja\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          }
-        ],
-        "sem1Avg": 5,
-        "sem2Avg": 5,
-        "computedAverage": 5
+        "average": null
       },
       {
-        "name": "Edukacja zdrowotna",
+        "name": "edukacja zdrowotna",
         "semester": [
           {
             "grades": [],
@@ -357,16 +193,10 @@
           }
         ],
         "tempAverage": null,
-        "average": null,
-        "sem1Grades": [],
-        "sem2Grades": [],
-        "grades": [],
-        "sem1Avg": null,
-        "sem2Avg": null,
-        "computedAverage": 0
+        "average": null
       },
       {
-        "name": "Historia",
+        "name": "historia",
         "semester": [
           {
             "grades": [
@@ -406,114 +236,10 @@
           }
         ],
         "tempAverage": 4,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 2034728,
-            "info": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-            "value": "4",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-09-28 (pon.)",
-              "teacher": "Wardyn Wojciech",
-              "comment": "",
-              "raw": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 4
-          },
-          {
-            "id": 2677693,
-            "info": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-            "value": "4",
-            "details": {
-              "category": "Praca w grupach",
-              "weight": 1,
-              "date": "2026-10-01 (czw.)",
-              "teacher": "Wardyn Wojciech",
-              "comment": "",
-              "raw": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 4
-          },
-          {
-            "id": 3632946,
-            "info": "Kategoria: zadanie\nData: 2026-10-08 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-            "value": "4",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-10-08 (czw.)",
-              "teacher": "Wardyn Wojciech",
-              "comment": "",
-              "raw": "Kategoria: zadanie\nData: 2026-10-08 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 4
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 2034728,
-            "info": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-            "value": "4",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-09-28 (pon.)",
-              "teacher": "Wardyn Wojciech",
-              "comment": "",
-              "raw": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 4
-          },
-          {
-            "id": 2677693,
-            "info": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-            "value": "4",
-            "details": {
-              "category": "Praca w grupach",
-              "weight": 1,
-              "date": "2026-10-01 (czw.)",
-              "teacher": "Wardyn Wojciech",
-              "comment": "",
-              "raw": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 4
-          },
-          {
-            "id": 3632946,
-            "info": "Kategoria: zadanie\nData: 2026-10-08 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-            "value": "4",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-10-08 (czw.)",
-              "teacher": "Wardyn Wojciech",
-              "comment": "",
-              "raw": "Kategoria: zadanie\nData: 2026-10-08 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 4
-          }
-        ],
-        "sem1Avg": 4,
-        "sem2Avg": 4,
-        "computedAverage": 4
+        "average": null
       },
       {
-        "name": "Informatyka",
+        "name": "informatyka",
         "semester": [
           {
             "grades": [
@@ -521,9 +247,14 @@
                 "id": 1976428,
                 "info": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Becker Adam\nLicz do średniej: tak\nWaga: 1\nDodał: Becker Adam\n\nKomentarz: bhp/cpp-bmi-debugging/ppt-nobliści",
                 "value": "6"
+              },
+              {
+                "id": 7233622,
+                "info": "Kategoria: aktywność\nData: 2026-11-02 (pon.)\nNauczyciel: Becker Adam\nLicz do średniej: tak\nWaga: 1\nDodał: Becker Adam\n\nKomentarz: portfolio",
+                "value": "5"
               }
             ],
-            "tempAverage": 6,
+            "tempAverage": 5.5,
             "average": null
           },
           {
@@ -534,7 +265,7 @@
           {
             "grades": [],
             "tempAverage": null,
-            "average": 6
+            "average": 5.5
           },
           {
             "grades": [],
@@ -542,51 +273,11 @@
             "average": null
           }
         ],
-        "tempAverage": 6,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 1976428,
-            "info": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Becker Adam\nLicz do średniej: tak\nWaga: 1\nDodał: Becker Adam\n\nKomentarz: bhp/cpp-bmi-debugging/ppt-nobliści",
-            "value": "6",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-28 (pon.)",
-              "teacher": "Becker Adam",
-              "comment": "bhp/cpp-bmi-debugging/ppt-nobliści",
-              "raw": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Becker Adam\nLicz do średniej: tak\nWaga: 1\nDodał: Becker Adam\n\nKomentarz: bhp/cpp-bmi-debugging/ppt-nobliści",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 6
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 1976428,
-            "info": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Becker Adam\nLicz do średniej: tak\nWaga: 1\nDodał: Becker Adam\n\nKomentarz: bhp/cpp-bmi-debugging/ppt-nobliści",
-            "value": "6",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-28 (pon.)",
-              "teacher": "Becker Adam",
-              "comment": "bhp/cpp-bmi-debugging/ppt-nobliści",
-              "raw": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Becker Adam\nLicz do średniej: tak\nWaga: 1\nDodał: Becker Adam\n\nKomentarz: bhp/cpp-bmi-debugging/ppt-nobliści",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 6
-          }
-        ],
-        "sem1Avg": 6,
-        "sem2Avg": 6,
-        "computedAverage": 6
+        "tempAverage": 5.5,
+        "average": null
       },
       {
-        "name": "Język angielski",
+        "name": "język angielski",
         "semester": [
           {
             "grades": [
@@ -614,6 +305,11 @@
                 "id": 5138679,
                 "info": "Kategoria: sprawdzian\nData: 2026-10-20 (wt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: question tags + defining relative clauses",
                 "value": "3"
+              },
+              {
+                "id": 6895219,
+                "info": "Kategoria: aktywność\nData: 2026-10-29 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
+                "value": "+"
               }
             ],
             "tempAverage": 4.33,
@@ -636,174 +332,10 @@
           }
         ],
         "tempAverage": 4.33,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 829132,
-            "info": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: słownictwo unit 4",
-            "value": "5",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-09-17 (czw.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "słownictwo unit 4",
-              "raw": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: słownictwo unit 4",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          },
-          {
-            "id": 909325,
-            "info": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n",
-            "value": "5",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-09-18 (pt.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          },
-          {
-            "id": 1611467,
-            "info": "Kategoria: aktywność\nData: 2026-09-24 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
-            "value": "-",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-09-24 (czw.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-09-24 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n"
-            },
-            "inAverage": true,
-            "numericValue": null
-          },
-          {
-            "id": 2824639,
-            "info": "Kategoria: aktywność\nData: 2026-10-02 (pt.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
-            "value": "+",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-10-02 (pt.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-10-02 (pt.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n"
-            },
-            "inAverage": true,
-            "numericValue": null
-          },
-          {
-            "id": 5138679,
-            "info": "Kategoria: sprawdzian\nData: 2026-10-20 (wt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: question tags + defining relative clauses",
-            "value": "3",
-            "details": {
-              "category": "sprawdzian",
-              "weight": 1,
-              "date": "2026-10-20 (wt.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "question tags + defining relative clauses",
-              "raw": "Kategoria: sprawdzian\nData: 2026-10-20 (wt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: question tags + defining relative clauses",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 3
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 829132,
-            "info": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: słownictwo unit 4",
-            "value": "5",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-09-17 (czw.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "słownictwo unit 4",
-              "raw": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: słownictwo unit 4",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          },
-          {
-            "id": 909325,
-            "info": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n",
-            "value": "5",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-09-18 (pt.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          },
-          {
-            "id": 1611467,
-            "info": "Kategoria: aktywność\nData: 2026-09-24 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
-            "value": "-",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-09-24 (czw.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-09-24 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n"
-            },
-            "inAverage": true,
-            "numericValue": null
-          },
-          {
-            "id": 2824639,
-            "info": "Kategoria: aktywność\nData: 2026-10-02 (pt.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
-            "value": "+",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-10-02 (pt.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-10-02 (pt.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n"
-            },
-            "inAverage": true,
-            "numericValue": null
-          },
-          {
-            "id": 5138679,
-            "info": "Kategoria: sprawdzian\nData: 2026-10-20 (wt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: question tags + defining relative clauses",
-            "value": "3",
-            "details": {
-              "category": "sprawdzian",
-              "weight": 1,
-              "date": "2026-10-20 (wt.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "question tags + defining relative clauses",
-              "raw": "Kategoria: sprawdzian\nData: 2026-10-20 (wt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: question tags + defining relative clauses",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 3
-          }
-        ],
-        "sem1Avg": 4.33,
-        "sem2Avg": 4.33,
-        "computedAverage": 4.33
+        "average": null
       },
       {
-        "name": "Język angielski zawodowy",
+        "name": "język angielski zawodowy",
         "semester": [
           {
             "grades": [
@@ -811,6 +343,11 @@
                 "id": 2552196,
                 "info": "Kategoria: zadanie\nData: 2026-10-01 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: job advertisement",
                 "value": "5"
+              },
+              {
+                "id": 6897196,
+                "info": "Kategoria: aktywność\nData: 2026-10-29 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
+                "value": "+"
               }
             ],
             "tempAverage": 5,
@@ -833,50 +370,10 @@
           }
         ],
         "tempAverage": 5,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 2552196,
-            "info": "Kategoria: zadanie\nData: 2026-10-01 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: job advertisement",
-            "value": "5",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-10-01 (czw.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "job advertisement",
-              "raw": "Kategoria: zadanie\nData: 2026-10-01 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: job advertisement",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 2552196,
-            "info": "Kategoria: zadanie\nData: 2026-10-01 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: job advertisement",
-            "value": "5",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-10-01 (czw.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "job advertisement",
-              "raw": "Kategoria: zadanie\nData: 2026-10-01 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: job advertisement",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          }
-        ],
-        "sem1Avg": 5,
-        "sem2Avg": 5,
-        "computedAverage": 5
+        "average": null
       },
       {
-        "name": "Język niemiecki",
+        "name": "język niemiecki",
         "semester": [
           {
             "grades": [
@@ -899,183 +396,11 @@
                 "id": 5863304,
                 "info": "Kategoria: aktywność\nData: 2026-10-23 (pt.)\nNauczyciel: Chyła Beata\nDodał: Chyła Beata\n",
                 "value": "+"
-              }
-            ],
-            "tempAverage": 3,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 3
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 3,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 316188,
-            "info": "Kategoria: praca domowa\nData: 2026-09-11 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-            "value": "4+",
-            "details": {
-              "category": "praca domowa",
-              "weight": 1,
-              "date": "2026-09-11 (pt.)",
-              "teacher": "Chyła Beata",
-              "comment": "",
-              "raw": "Kategoria: praca domowa\nData: 2026-09-11 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 4.5
-          },
-          {
-            "id": 2119728,
-            "info": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-            "value": "2+",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-09-28 (pon.)",
-              "teacher": "Chyła Beata",
-              "comment": "",
-              "raw": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 2.5
-          },
-          {
-            "id": 4691628,
-            "info": "Kategoria: słownictwo\nData: 2026-10-16 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-            "value": "2",
-            "details": {
-              "category": "słownictwo",
-              "weight": 1,
-              "date": "2026-10-16 (pt.)",
-              "teacher": "Chyła Beata",
-              "comment": "",
-              "raw": "Kategoria: słownictwo\nData: 2026-10-16 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 2
-          },
-          {
-            "id": 5863304,
-            "info": "Kategoria: aktywność\nData: 2026-10-23 (pt.)\nNauczyciel: Chyła Beata\nDodał: Chyła Beata\n",
-            "value": "+",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-10-23 (pt.)",
-              "teacher": "Chyła Beata",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-10-23 (pt.)\nNauczyciel: Chyła Beata\nDodał: Chyła Beata\n"
-            },
-            "inAverage": true,
-            "numericValue": null
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 316188,
-            "info": "Kategoria: praca domowa\nData: 2026-09-11 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-            "value": "4+",
-            "details": {
-              "category": "praca domowa",
-              "weight": 1,
-              "date": "2026-09-11 (pt.)",
-              "teacher": "Chyła Beata",
-              "comment": "",
-              "raw": "Kategoria: praca domowa\nData: 2026-09-11 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 4.5
-          },
-          {
-            "id": 2119728,
-            "info": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-            "value": "2+",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-09-28 (pon.)",
-              "teacher": "Chyła Beata",
-              "comment": "",
-              "raw": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 2.5
-          },
-          {
-            "id": 4691628,
-            "info": "Kategoria: słownictwo\nData: 2026-10-16 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-            "value": "2",
-            "details": {
-              "category": "słownictwo",
-              "weight": 1,
-              "date": "2026-10-16 (pt.)",
-              "teacher": "Chyła Beata",
-              "comment": "",
-              "raw": "Kategoria: słownictwo\nData: 2026-10-16 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 2
-          },
-          {
-            "id": 5863304,
-            "info": "Kategoria: aktywność\nData: 2026-10-23 (pt.)\nNauczyciel: Chyła Beata\nDodał: Chyła Beata\n",
-            "value": "+",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-10-23 (pt.)",
-              "teacher": "Chyła Beata",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-10-23 (pt.)\nNauczyciel: Chyła Beata\nDodał: Chyła Beata\n"
-            },
-            "inAverage": true,
-            "numericValue": null
-          }
-        ],
-        "sem1Avg": 3,
-        "sem2Avg": 3,
-        "computedAverage": 3
-      },
-      {
-        "name": "Język polski",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 767218,
-                "info": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: barok- wprowadzenie",
-                "value": "1"
               },
               {
-                "id": 1004112,
-                "info": "Kategoria: kartkówka\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nPoprawa oceny: 1 (kartkówka)",
-                "value": "4"
-              },
-              {
-                "id": 995881,
-                "info": "Kategoria: zadanie\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: prezentacje - sztuka baroku",
-                "value": "5+"
+                "id": 6281328,
+                "info": "Kategoria: prezentacja\nData: 2026-10-27 (wt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
+                "value": "5"
               }
             ],
             "tempAverage": 3.5,
@@ -1098,114 +423,68 @@
           }
         ],
         "tempAverage": 3.5,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 767218,
-            "info": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: barok- wprowadzenie",
-            "value": "1",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-09-17 (czw.)",
-              "teacher": "Negowska Alicja",
-              "comment": "barok- wprowadzenie",
-              "raw": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: barok- wprowadzenie",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 1
-          },
-          {
-            "id": 1004112,
-            "info": "Kategoria: kartkówka\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nPoprawa oceny: 1 (kartkówka)",
-            "value": "4",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-09-18 (pt.)",
-              "teacher": "Negowska Alicja",
-              "comment": "",
-              "raw": "Kategoria: kartkówka\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nPoprawa oceny: 1 (kartkówka)",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 4
-          },
-          {
-            "id": 995881,
-            "info": "Kategoria: zadanie\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: prezentacje - sztuka baroku",
-            "value": "5+",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-18 (pt.)",
-              "teacher": "Negowska Alicja",
-              "comment": "prezentacje - sztuka baroku",
-              "raw": "Kategoria: zadanie\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: prezentacje - sztuka baroku",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5.5
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 767218,
-            "info": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: barok- wprowadzenie",
-            "value": "1",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-09-17 (czw.)",
-              "teacher": "Negowska Alicja",
-              "comment": "barok- wprowadzenie",
-              "raw": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: barok- wprowadzenie",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 1
-          },
-          {
-            "id": 1004112,
-            "info": "Kategoria: kartkówka\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nPoprawa oceny: 1 (kartkówka)",
-            "value": "4",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-09-18 (pt.)",
-              "teacher": "Negowska Alicja",
-              "comment": "",
-              "raw": "Kategoria: kartkówka\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nPoprawa oceny: 1 (kartkówka)",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 4
-          },
-          {
-            "id": 995881,
-            "info": "Kategoria: zadanie\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: prezentacje - sztuka baroku",
-            "value": "5+",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-18 (pt.)",
-              "teacher": "Negowska Alicja",
-              "comment": "prezentacje - sztuka baroku",
-              "raw": "Kategoria: zadanie\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: prezentacje - sztuka baroku",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5.5
-          }
-        ],
-        "sem1Avg": 3.5,
-        "sem2Avg": 3.5,
-        "computedAverage": 3.5
+        "average": null
       },
       {
-        "name": "Lokalne sieci komputerowe",
+        "name": "język polski",
+        "semester": [
+          {
+            "grades": [
+              {
+                "id": 767218,
+                "info": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: barok- wprowadzenie",
+                "value": "1"
+              },
+              {
+                "id": 1004112,
+                "info": "Kategoria: kartkówka\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nPoprawa oceny: 1 (kartkówka)",
+                "value": "4"
+              },
+              {
+                "id": 995881,
+                "info": "Kategoria: zadanie\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: prezentacje - sztuka baroku",
+                "value": "5+"
+              },
+              {
+                "id": 6191574,
+                "info": "Kategoria: aktywność\nData: 2026-10-26 (pon.)\nNauczyciel: Negowska Alicja\nDodał: Negowska Alicja\n",
+                "value": "+"
+              },
+              {
+                "id": 7091674,
+                "info": "Kategoria: Test wiedzy z lektury\nData: 2026-10-30 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: Makbet- test po przeczytaniu lektury",
+                "value": "5"
+              },
+              {
+                "id": 7299225,
+                "info": "Kategoria: aktywność\nData: 2026-11-02 (pon.)\nNauczyciel: Negowska Alicja\nDodał: Negowska Alicja\n",
+                "value": "+"
+              }
+            ],
+            "tempAverage": 3.88,
+            "average": null
+          },
+          {
+            "grades": [],
+            "tempAverage": null,
+            "average": null
+          },
+          {
+            "grades": [],
+            "tempAverage": null,
+            "average": 3.88
+          },
+          {
+            "grades": [],
+            "tempAverage": null,
+            "average": null
+          }
+        ],
+        "tempAverage": 3.88,
+        "average": null
+      },
+      {
+        "name": "lokalne sieci komputerowe",
         "semester": [
           {
             "grades": [
@@ -1235,50 +514,10 @@
           }
         ],
         "tempAverage": 5,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 3927791,
-            "info": "Kategoria: aktywność\nData: 2026-10-09 (pt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: symbole i piktogramy w sieciach komputerowych",
-            "value": "5",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-10-09 (pt.)",
-              "teacher": "Wojnarowski Przemysław",
-              "comment": "symbole i piktogramy w sieciach komputerowych",
-              "raw": "Kategoria: aktywność\nData: 2026-10-09 (pt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: symbole i piktogramy w sieciach komputerowych",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 3927791,
-            "info": "Kategoria: aktywność\nData: 2026-10-09 (pt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: symbole i piktogramy w sieciach komputerowych",
-            "value": "5",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-10-09 (pt.)",
-              "teacher": "Wojnarowski Przemysław",
-              "comment": "symbole i piktogramy w sieciach komputerowych",
-              "raw": "Kategoria: aktywność\nData: 2026-10-09 (pt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: symbole i piktogramy w sieciach komputerowych",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          }
-        ],
-        "sem1Avg": 5,
-        "sem2Avg": 5,
-        "computedAverage": 5
+        "average": null
       },
       {
-        "name": "Matematyka",
+        "name": "matematyka",
         "semester": [
           {
             "grades": [
@@ -1311,9 +550,14 @@
                 "id": 5974954,
                 "info": "Kategoria: Praca klasowa\nData: 2026-10-25 (nd.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 3\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa",
                 "value": "2"
+              },
+              {
+                "id": 6567892,
+                "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-10-28 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n\nKomentarz: Tales",
+                "value": "4"
               }
             ],
-            "tempAverage": 3.11,
+            "tempAverage": 3.2,
             "average": null
           },
           {
@@ -1324,7 +568,7 @@
           {
             "grades": [],
             "tempAverage": null,
-            "average": 3.11
+            "average": 3.2
           },
           {
             "grades": [],
@@ -1332,211 +576,11 @@
             "average": null
           }
         ],
-        "tempAverage": 3.11,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 138759,
-            "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-08 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-            "value": "3",
-            "details": {
-              "category": "Odpowiedź/kartkówka",
-              "weight": 1,
-              "date": "2026-09-08 (wt.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "",
-              "raw": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-08 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 3
-          },
-          {
-            "id": 611954,
-            "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-15 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-            "value": "5",
-            "details": {
-              "category": "Odpowiedź/kartkówka",
-              "weight": 1,
-              "date": "2026-09-15 (wt.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "",
-              "raw": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-15 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          },
-          {
-            "id": 1355469,
-            "info": "Kategoria: Aktywność\nData: 2026-09-22 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-            "value": "5",
-            "details": {
-              "category": "Aktywność",
-              "weight": 1,
-              "date": "2026-09-22 (wt.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "",
-              "raw": "Kategoria: Aktywność\nData: 2026-09-22 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          },
-          {
-            "id": 1660212,
-            "info": "Kategoria: sprawdzian\nData: 2026-09-24 (czw.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 2\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa",
-            "value": "3",
-            "details": {
-              "category": "sprawdzian",
-              "weight": 2,
-              "date": "2026-09-24 (czw.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "funkcja liniowa",
-              "raw": "Kategoria: sprawdzian\nData: 2026-09-24 (czw.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 2\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 3
-          },
-          {
-            "id": 3558014,
-            "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-10-07 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n\nKomentarz: graficznie i algebraicznie",
-            "value": "3",
-            "details": {
-              "category": "Odpowiedź/kartkówka",
-              "weight": 1,
-              "date": "2026-10-07 (śr.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "graficznie i algebraicznie",
-              "raw": "Kategoria: Odpowiedź/kartkówka\nData: 2026-10-07 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n\nKomentarz: graficznie i algebraicznie",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 3
-          },
-          {
-            "id": 5974954,
-            "info": "Kategoria: Praca klasowa\nData: 2026-10-25 (nd.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 3\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa",
-            "value": "2",
-            "details": {
-              "category": "Praca klasowa",
-              "weight": 3,
-              "date": "2026-10-25 (nd.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "funkcja liniowa",
-              "raw": "Kategoria: Praca klasowa\nData: 2026-10-25 (nd.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 3\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 2
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 138759,
-            "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-08 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-            "value": "3",
-            "details": {
-              "category": "Odpowiedź/kartkówka",
-              "weight": 1,
-              "date": "2026-09-08 (wt.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "",
-              "raw": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-08 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 3
-          },
-          {
-            "id": 611954,
-            "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-15 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-            "value": "5",
-            "details": {
-              "category": "Odpowiedź/kartkówka",
-              "weight": 1,
-              "date": "2026-09-15 (wt.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "",
-              "raw": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-15 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          },
-          {
-            "id": 1355469,
-            "info": "Kategoria: Aktywność\nData: 2026-09-22 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-            "value": "5",
-            "details": {
-              "category": "Aktywność",
-              "weight": 1,
-              "date": "2026-09-22 (wt.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "",
-              "raw": "Kategoria: Aktywność\nData: 2026-09-22 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          },
-          {
-            "id": 1660212,
-            "info": "Kategoria: sprawdzian\nData: 2026-09-24 (czw.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 2\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa",
-            "value": "3",
-            "details": {
-              "category": "sprawdzian",
-              "weight": 2,
-              "date": "2026-09-24 (czw.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "funkcja liniowa",
-              "raw": "Kategoria: sprawdzian\nData: 2026-09-24 (czw.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 2\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 3
-          },
-          {
-            "id": 3558014,
-            "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-10-07 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n\nKomentarz: graficznie i algebraicznie",
-            "value": "3",
-            "details": {
-              "category": "Odpowiedź/kartkówka",
-              "weight": 1,
-              "date": "2026-10-07 (śr.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "graficznie i algebraicznie",
-              "raw": "Kategoria: Odpowiedź/kartkówka\nData: 2026-10-07 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n\nKomentarz: graficznie i algebraicznie",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 3
-          },
-          {
-            "id": 5974954,
-            "info": "Kategoria: Praca klasowa\nData: 2026-10-25 (nd.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 3\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa",
-            "value": "2",
-            "details": {
-              "category": "Praca klasowa",
-              "weight": 3,
-              "date": "2026-10-25 (nd.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "funkcja liniowa",
-              "raw": "Kategoria: Praca klasowa\nData: 2026-10-25 (nd.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 3\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 2
-          }
-        ],
-        "sem1Avg": 3.11,
-        "sem2Avg": 3.11,
-        "computedAverage": 3.11
+        "tempAverage": 3.2,
+        "average": null
       },
       {
-        "name": "Pracownia lokalnych sieci komputerowych",
+        "name": "pracownia lokalnych sieci komputerowych",
         "semester": [
           {
             "grades": [
@@ -1571,82 +615,10 @@
           }
         ],
         "tempAverage": 5,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 816464,
-            "info": "Kategoria: zadanie\nData: 2026-09-17 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz\n",
-            "value": "5",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-17 (czw.)",
-              "teacher": "Kryła Łukasz",
-              "comment": "",
-              "raw": "Kategoria: zadanie\nData: 2026-09-17 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          },
-          {
-            "id": 4534719,
-            "info": "Kategoria: Gdniazo\nData: 2026-10-15 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz\n",
-            "value": "5",
-            "details": {
-              "category": "Gdniazo",
-              "weight": 1,
-              "date": "2026-10-15 (czw.)",
-              "teacher": "Kryła Łukasz",
-              "comment": "",
-              "raw": "Kategoria: Gdniazo\nData: 2026-10-15 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 816464,
-            "info": "Kategoria: zadanie\nData: 2026-09-17 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz\n",
-            "value": "5",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-17 (czw.)",
-              "teacher": "Kryła Łukasz",
-              "comment": "",
-              "raw": "Kategoria: zadanie\nData: 2026-09-17 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          },
-          {
-            "id": 4534719,
-            "info": "Kategoria: Gdniazo\nData: 2026-10-15 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz\n",
-            "value": "5",
-            "details": {
-              "category": "Gdniazo",
-              "weight": 1,
-              "date": "2026-10-15 (czw.)",
-              "teacher": "Kryła Łukasz",
-              "comment": "",
-              "raw": "Kategoria: Gdniazo\nData: 2026-10-15 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          }
-        ],
-        "sem1Avg": 5,
-        "sem2Avg": 5,
-        "computedAverage": 5
+        "average": null
       },
       {
-        "name": "Pracownia systemów operacyjnych",
+        "name": "pracownia systemów operacyjnych",
         "semester": [
           {
             "grades": [],
@@ -1670,22 +642,21 @@
           }
         ],
         "tempAverage": null,
-        "average": null,
-        "sem1Grades": [],
-        "sem2Grades": [],
-        "grades": [],
-        "sem1Avg": null,
-        "sem2Avg": null,
-        "computedAverage": 0
+        "average": null
       },
       {
-        "name": "Pracownia urządzeń techniki komputerowej",
+        "name": "pracownia urządzeń techniki komputerowej",
         "semester": [
           {
             "grades": [
               {
                 "id": 1240939,
                 "info": "Kategoria: zadanie\nData: 2026-09-22 (wt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: modernizacja zestawu komputerowego",
+                "value": "5"
+              },
+              {
+                "id": 6318131,
+                "info": "Kategoria: zadanie\nData: 2026-10-20 (wt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: Diagnostyka serwisowa zestawu komputerowego ",
                 "value": "5"
               }
             ],
@@ -1709,50 +680,10 @@
           }
         ],
         "tempAverage": 5,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 1240939,
-            "info": "Kategoria: zadanie\nData: 2026-09-22 (wt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: modernizacja zestawu komputerowego",
-            "value": "5",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-22 (wt.)",
-              "teacher": "Wojnarowski Przemysław",
-              "comment": "modernizacja zestawu komputerowego",
-              "raw": "Kategoria: zadanie\nData: 2026-09-22 (wt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: modernizacja zestawu komputerowego",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 1240939,
-            "info": "Kategoria: zadanie\nData: 2026-09-22 (wt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: modernizacja zestawu komputerowego",
-            "value": "5",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-22 (wt.)",
-              "teacher": "Wojnarowski Przemysław",
-              "comment": "modernizacja zestawu komputerowego",
-              "raw": "Kategoria: zadanie\nData: 2026-09-22 (wt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: modernizacja zestawu komputerowego",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          }
-        ],
-        "sem1Avg": 5,
-        "sem2Avg": 5,
-        "computedAverage": 5
+        "average": null
       },
       {
-        "name": "Religia",
+        "name": "religia",
         "semester": [
           {
             "grades": [],
@@ -1776,16 +707,10 @@
           }
         ],
         "tempAverage": null,
-        "average": null,
-        "sem1Grades": [],
-        "sem2Grades": [],
-        "grades": [],
-        "sem1Avg": null,
-        "sem2Avg": null,
-        "computedAverage": 0
+        "average": null
       },
       {
-        "name": "Systemy operacyjne",
+        "name": "systemy operacyjne",
         "semester": [
           {
             "grades": [
@@ -1820,80 +745,10 @@
           }
         ],
         "tempAverage": 5,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 1171137,
-            "info": "Kategoria: zadanie\nData: 2026-09-21 (pon.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: Struktura folderów i zarządzanie przez cud",
-            "value": "5",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-21 (pon.)",
-              "teacher": "Wojnarowski Przemysław",
-              "comment": "Struktura folderów i zarządzanie przez cud",
-              "raw": "Kategoria: zadanie\nData: 2026-09-21 (pon.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: Struktura folderów i zarządzanie przez cud",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          },
-          {
-            "id": 2066473,
-            "info": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Wojnarowski Przemysław\nDodał: Wojnarowski Przemysław\n\nKomentarz: diagnostyka systemu ",
-            "value": "-",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-28 (pon.)",
-              "teacher": "Wojnarowski Przemysław",
-              "comment": "diagnostyka systemu",
-              "raw": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Wojnarowski Przemysław\nDodał: Wojnarowski Przemysław\n\nKomentarz: diagnostyka systemu "
-            },
-            "inAverage": true,
-            "numericValue": null
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 1171137,
-            "info": "Kategoria: zadanie\nData: 2026-09-21 (pon.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: Struktura folderów i zarządzanie przez cud",
-            "value": "5",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-21 (pon.)",
-              "teacher": "Wojnarowski Przemysław",
-              "comment": "Struktura folderów i zarządzanie przez cud",
-              "raw": "Kategoria: zadanie\nData: 2026-09-21 (pon.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: Struktura folderów i zarządzanie przez cud",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 5
-          },
-          {
-            "id": 2066473,
-            "info": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Wojnarowski Przemysław\nDodał: Wojnarowski Przemysław\n\nKomentarz: diagnostyka systemu ",
-            "value": "-",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-28 (pon.)",
-              "teacher": "Wojnarowski Przemysław",
-              "comment": "diagnostyka systemu",
-              "raw": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Wojnarowski Przemysław\nDodał: Wojnarowski Przemysław\n\nKomentarz: diagnostyka systemu "
-            },
-            "inAverage": true,
-            "numericValue": null
-          }
-        ],
-        "sem1Avg": 5,
-        "sem2Avg": 5,
-        "computedAverage": 5
+        "average": null
       },
       {
-        "name": "Urządzenia techniki komputerowej",
+        "name": "urządzenia techniki komputerowej",
         "semester": [
           {
             "grades": [
@@ -1923,50 +778,10 @@
           }
         ],
         "tempAverage": 2.75,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 3570755,
-            "info": "Kategoria: sprawdzian\nData: 2026-10-08 (czw.)\nNauczyciel: Gembiak Bartosz\nLicz do średniej: tak\nWaga: 1\nDodał: Gembiak Bartosz\n",
-            "value": "3-",
-            "details": {
-              "category": "sprawdzian",
-              "weight": 1,
-              "date": "2026-10-08 (czw.)",
-              "teacher": "Gembiak Bartosz",
-              "comment": "",
-              "raw": "Kategoria: sprawdzian\nData: 2026-10-08 (czw.)\nNauczyciel: Gembiak Bartosz\nLicz do średniej: tak\nWaga: 1\nDodał: Gembiak Bartosz\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 2.75
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 3570755,
-            "info": "Kategoria: sprawdzian\nData: 2026-10-08 (czw.)\nNauczyciel: Gembiak Bartosz\nLicz do średniej: tak\nWaga: 1\nDodał: Gembiak Bartosz\n",
-            "value": "3-",
-            "details": {
-              "category": "sprawdzian",
-              "weight": 1,
-              "date": "2026-10-08 (czw.)",
-              "teacher": "Gembiak Bartosz",
-              "comment": "",
-              "raw": "Kategoria: sprawdzian\nData: 2026-10-08 (czw.)\nNauczyciel: Gembiak Bartosz\nLicz do średniej: tak\nWaga: 1\nDodał: Gembiak Bartosz\n",
-              "inAverage": true
-            },
-            "inAverage": true,
-            "numericValue": 2.75
-          }
-        ],
-        "sem1Avg": 2.75,
-        "sem2Avg": 2.75,
-        "computedAverage": 2.75
+        "average": null
       },
       {
-        "name": "Wychowanie fizyczne",
+        "name": "wychowanie fizyczne",
         "semester": [
           {
             "grades": [
@@ -1996,48 +811,10 @@
           }
         ],
         "tempAverage": null,
-        "average": null,
-        "sem1Grades": [
-          {
-            "id": 2197682,
-            "info": "Kategoria: aktywność\nData: 2026-09-29 (wt.)\nNauczyciel: Łysakowski Grzegorz\nDodał: Łysakowski Grzegorz\n",
-            "value": "-",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-09-29 (wt.)",
-              "teacher": "Łysakowski Grzegorz",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-09-29 (wt.)\nNauczyciel: Łysakowski Grzegorz\nDodał: Łysakowski Grzegorz\n"
-            },
-            "inAverage": true,
-            "numericValue": null
-          }
-        ],
-        "sem2Grades": [],
-        "grades": [
-          {
-            "id": 2197682,
-            "info": "Kategoria: aktywność\nData: 2026-09-29 (wt.)\nNauczyciel: Łysakowski Grzegorz\nDodał: Łysakowski Grzegorz\n",
-            "value": "-",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-09-29 (wt.)",
-              "teacher": "Łysakowski Grzegorz",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-09-29 (wt.)\nNauczyciel: Łysakowski Grzegorz\nDodał: Łysakowski Grzegorz\n"
-            },
-            "inAverage": true,
-            "numericValue": null
-          }
-        ],
-        "sem1Avg": null,
-        "sem2Avg": null,
-        "computedAverage": 0
+        "average": null
       },
       {
-        "name": "Zajęcia z wychowawcą",
+        "name": "zajęcia z wychowawcą",
         "semester": [
           {
             "grades": [],
@@ -2061,39 +838,142 @@
           }
         ],
         "tempAverage": null,
-        "average": null,
-        "sem1Grades": [],
-        "sem2Grades": [],
-        "grades": [],
-        "sem1Avg": null,
-        "sem2Avg": null,
-        "computedAverage": 0
+        "average": null
+      }
+    ]
+  },
+  "calendarEvents": [
+    [
+      {
+        "id": 3463302,
+        "day": "2026-11-01",
+        "title": "Wszystkich  Świętych: T"
       }
     ],
-    "overallAverage": 4.32,
-    "totalSubjects": 21,
-    "gradedSubjectsCount": 16,
-    "highestAverage": {
-      "subject": "Informatyka",
-      "average": 6
-    },
-    "lowestAverage": {
-      "subject": "Urządzenia techniki komputerowej",
-      "average": 2.75
-    },
-    "luckyNumber": 21,
-    "studentInfo": {
-      "name": "Jakub Lis",
-      "class": "2 TI T",
-      "index": "11",
-      "educator": "Ziemba Joanna",
-      "accountLogin": "12538637u"
-    },
-    "attendanceRate": null,
-    "lastSync": "2026-10-26T07:16:12.004Z"
-  },
-  "luckyNumber": 21,
-  "gradesLastSync": "2026-10-26 07:16:12",
+    [
+      {
+        "id": 12683613,
+        "day": "2026-11-02",
+        "info": "Nauczyciel: Wojnarowski Przemysław\nOpis: https://canva.link/nylvcmonczwu6zp\nData dodania: 2026-10-26 12:16:42",
+        "title": "Nr lekcji: 5\nlokalne sieci komputerowe, kartkówka\n2TI T\nSala: 0.2"
+      }
+    ],
+    [
+      {
+        "id": 3523730,
+        "day": "2026-11-03",
+        "title": "Nieobecność:\nNauczyciel: Łukaszczyk-Wulgaris Joanna"
+      }
+    ],
+    [
+      {
+        "id": 3526139,
+        "day": "2026-11-04",
+        "title": "Nieobecność:\nNauczyciel: Prabucki Andrzej"
+      },
+      {
+        "id": 3526138,
+        "day": "2026-11-04",
+        "title": "Nieobecność:\nNauczyciel: Kryła Łukasz"
+      },
+      {
+        "id": 3526895,
+        "day": "2026-11-04",
+        "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
+      },
+      {
+        "id": 3526545,
+        "day": "2026-11-04",
+        "title": "Nieobecność:\nNauczyciel: Czarna Alicja\nGodziny: 10:40 do 13:05"
+      },
+      {
+        "id": -1,
+        "day": "2026-11-04",
+        "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 7 (pracownia urządzeń techniki komputerowej)"
+      },
+      {
+        "id": 12696856,
+        "day": "2026-11-04",
+        "info": "Nauczyciel: Gembiak Bartosz\nOpis: Test lekcja 7-12 i popraw lekcja 1-6.\nData dodania: 2026-10-28 12:26:52",
+        "title": "Nr lekcji: 5\nurządzenia techniki komputerowej, Sprawdzian wiadomości\n2TI T\nSala: 1.2"
+      }
+    ],
+    [
+      {
+        "id": 3526139,
+        "day": "2026-11-05",
+        "title": "Nieobecność:\nNauczyciel: Prabucki Andrzej"
+      },
+      {
+        "id": 3526138,
+        "day": "2026-11-05",
+        "title": "Nieobecność:\nNauczyciel: Kryła Łukasz"
+      },
+      {
+        "id": 3526895,
+        "day": "2026-11-05",
+        "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
+      },
+      {
+        "id": -1,
+        "day": "2026-11-05",
+        "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 4 (pracownia urządzeń techniki komputerowej)"
+      },
+      {
+        "id": -1,
+        "day": "2026-11-05",
+        "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 5 (pracownia urządzeń techniki komputerowej)"
+      }
+    ],
+    [
+      {
+        "id": 3526895,
+        "day": "2026-11-06",
+        "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
+      },
+      {
+        "id": -1,
+        "day": "2026-11-06",
+        "title": "Przesunięcie z Alicja Negowska na lekcji nr: 5 (język polski)"
+      },
+      {
+        "id": -1,
+        "day": "2026-11-06",
+        "title": "Odwołane zajęcia\nPaulina Kolasińska na lekcji nr: 5 (chemia)"
+      }
+    ],
+    [
+      {
+        "id": 12649181,
+        "day": "2026-11-09",
+        "info": "Nauczyciel: Sokół Paweł\nOpis: Wszystkie tematy od początku roku\nData dodania: 2026-10-19 11:22:49",
+        "title": "Nr lekcji: 4\nbiznes i zarządzanie, Sprawdzian wiadomości\n2TI T\nSala: 0.2"
+      }
+    ],
+    [
+      {
+        "id": 3463303,
+        "day": "2026-11-11",
+        "title": "Święto Niepodległości: T"
+      }
+    ],
+    [
+      {
+        "id": 12706162,
+        "day": "2026-11-13",
+        "info": "Nauczyciel: Chyła Beata\nOpis: Tolles Deutsch 1,dział 4\nData dodania: 2026-10-30 09:08:43",
+        "title": "Nr lekcji: 3\njęzyk niemiecki, Praca Klasowa\n2Ti/1\nSala: Z1"
+      }
+    ],
+    [
+      {
+        "id": 12691840,
+        "day": "2026-11-17",
+        "info": "Nauczyciel: Spych Monika\nOpis: Wartości i postawy (tematy 2-7)\nData dodania: 2026-10-29 08:56:02",
+        "title": "Nr lekcji: 8\nSprawdzian wiadomości\n2TI T"
+      }
+    ]
+  ],
   "timetable": {
     "hours": [
       "07:10 - 07:55",
@@ -2109,1850 +989,399 @@
       "15:45 - 16:30"
     ],
     "table": {
-      "monday": [
+      "Monday": [
+        null,
+        null,
         {
-          "id": "librus_monday_2_0850",
-          "day": "monday",
-          "subject": "Informatyka",
-          "time_start": "08:50",
-          "time_end": "09:35",
-          "room": "s. 04",
-          "teacher": "Becker Adam (2 TI gr.2)",
-          "cleanTeacher": "Becker Adam",
-          "type": "Wykład",
-          "color": "cyan",
-          "notes": "Nauczyciel: Becker Adam (2 TI gr.2)",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
+          "subject": "informatyka",
+          "teacher": "Becker Adam (2 TI gr.2)",
+          "room": "04",
+          "time": "08:50 - 09:35",
+          "cancelled": false,
+          "flag": null,
+          "original": null
         },
         {
-          "id": "librus_monday_3_0940",
-          "day": "monday",
-          "subject": "Informatyka",
-          "time_start": "09:40",
-          "time_end": "10:25",
-          "room": "s. 04",
-          "teacher": "Becker Adam (2 TI gr.2)",
-          "cleanTeacher": "Becker Adam",
-          "type": "Wykład",
-          "color": "cyan",
-          "notes": "Nauczyciel: Becker Adam (2 TI gr.2)",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
+          "subject": "informatyka",
+          "teacher": "Becker Adam (2 TI gr.2)",
+          "room": "04",
+          "time": "09:40 - 10:25",
+          "cancelled": false,
+          "flag": null,
+          "original": null
         },
         {
-          "id": "librus_monday_4_1040",
-          "day": "monday",
-          "subject": "Biznes i zarządzanie",
-          "time_start": "10:40",
-          "time_end": "11:25",
-          "room": "s. 0.2",
-          "teacher": "Sokół Paweł",
-          "cleanTeacher": "Sokół Paweł",
-          "type": "Wykład",
-          "color": "blue",
-          "notes": "Nauczyciel: Sokół Paweł",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
+          "subject": "biznes i zarządzanie",
+          "teacher": "Sokół Paweł",
+          "room": "0.2",
+          "time": "10:40 - 11:25",
+          "cancelled": false,
+          "flag": null,
+          "original": null
         },
         {
-          "id": "librus_monday_5_1130",
-          "day": "monday",
-          "subject": "Lokalne sieci komputerowe",
-          "time_start": "11:30",
-          "time_end": "12:15",
-          "room": "s. 0.2",
-          "teacher": "Wojnarowski Przemysław",
-          "cleanTeacher": "Wojnarowski Przemysław",
-          "type": "Wykład",
-          "color": "cyan",
-          "notes": "Nauczyciel: Wojnarowski Przemysław",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
+          "subject": "lokalne sieci komputerowe",
+          "teacher": "Wojnarowski Przemysław",
+          "room": "0.2",
+          "time": "11:30 - 12:15",
+          "cancelled": false,
+          "flag": null,
+          "original": null
         },
         {
-          "id": "librus_monday_6_1220",
-          "day": "monday",
-          "subject": "Język polski",
-          "time_start": "12:20",
-          "time_end": "13:05",
-          "room": "s. 34",
-          "teacher": "Negowska Alicja",
-          "cleanTeacher": "Negowska Alicja",
-          "type": "Wykład",
-          "color": "rose",
-          "notes": "Nauczyciel: Negowska Alicja",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        }
-      ],
-      "tuesday": [
-        {
-          "id": "librus_tuesday_1_0800",
-          "day": "tuesday",
-          "subject": "Pracownia urządzeń techniki komputerowej",
-          "time_start": "08:00",
-          "time_end": "08:45",
-          "room": "s. 0.1",
-          "teacher": "Wojnarowski Przemysław (2TI-gr1)",
-          "cleanTeacher": "Wojnarowski Przemysław",
-          "type": "Laboratorium",
-          "color": "cyan",
-          "notes": "Nauczyciel: Wojnarowski Przemysław (2TI-gr1)",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_tuesday_2_0850",
-          "day": "tuesday",
-          "subject": "Pracownia urządzeń techniki komputerowej",
-          "time_start": "08:50",
-          "time_end": "09:35",
-          "room": "s. 0.1",
-          "teacher": "Wojnarowski Przemysław (2TI-gr1)",
-          "cleanTeacher": "Wojnarowski Przemysław",
-          "type": "Laboratorium",
-          "color": "cyan",
-          "notes": "Nauczyciel: Wojnarowski Przemysław (2TI-gr1)",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_tuesday_3_0940",
-          "day": "tuesday",
-          "subject": "Zajęcia z wychowawcą",
-          "time_start": "09:40",
-          "time_end": "10:25",
-          "room": "s. 28",
-          "teacher": "Ziemba Joanna",
-          "cleanTeacher": "Ziemba Joanna",
-          "type": "Wykład",
-          "color": "blue",
-          "notes": "Nauczyciel: Ziemba Joanna",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_tuesday_4_1040",
-          "day": "tuesday",
-          "subject": "Wychowanie fizyczne",
-          "time_start": "10:40",
-          "time_end": "11:25",
-          "room": "",
-          "teacher": "Łysakowski Grzegorz (Klasa 2 Ti)",
-          "cleanTeacher": "Łysakowski Grzegorz",
-          "type": "Ćwiczenia",
-          "color": "purple",
-          "notes": "Nauczyciel: Łysakowski Grzegorz (Klasa 2 Ti)",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_tuesday_5_1130",
-          "day": "tuesday",
-          "subject": "Wychowanie fizyczne",
-          "time_start": "11:30",
-          "time_end": "12:15",
-          "room": "",
-          "teacher": "Łysakowski Grzegorz (Klasa 2 Ti)",
-          "cleanTeacher": "Łysakowski Grzegorz",
-          "type": "Ćwiczenia",
-          "color": "purple",
-          "notes": "Nauczyciel: Łysakowski Grzegorz (Klasa 2 Ti)",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_tuesday_6_1220",
-          "day": "tuesday",
-          "subject": "Pracownia systemów operacyjnych",
-          "time_start": "12:20",
-          "time_end": "13:05",
-          "room": "s. 1.15",
-          "teacher": "Reszka Sławomir (2 Ti gr1 PSO)",
-          "cleanTeacher": "Reszka Sławomir",
-          "type": "Laboratorium",
-          "color": "blue",
-          "notes": "Nauczyciel: Reszka Sławomir (2 Ti gr1 PSO)",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_tuesday_7_1315",
-          "day": "tuesday",
-          "subject": "Pracownia systemów operacyjnych",
-          "time_start": "13:15",
-          "time_end": "14:00",
-          "room": "s. 1.15",
-          "teacher": "Reszka Sławomir (2 Ti gr1 PSO)",
-          "cleanTeacher": "Reszka Sławomir",
-          "type": "Laboratorium",
-          "color": "blue",
-          "notes": "Nauczyciel: Reszka Sławomir (2 Ti gr1 PSO)",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_tuesday_8_1405",
-          "day": "tuesday",
-          "subject": "Edukacja zdrowotna",
-          "time_start": "14:05",
-          "time_end": "14:50",
-          "room": "s. 38",
-          "teacher": "Spych Monika",
-          "cleanTeacher": "Spych Monika",
-          "type": "Wykład",
-          "color": "emerald",
-          "notes": "Nauczyciel: Spych Monika",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_tuesday_9_1455",
-          "day": "tuesday",
-          "subject": "Matematyka",
-          "time_start": "14:55",
-          "time_end": "15:40",
-          "room": "s. 26",
-          "teacher": "Bahr Zbigniew",
-          "cleanTeacher": "Bahr Zbigniew",
-          "type": "Wykład",
-          "color": "indigo",
-          "notes": "Nauczyciel: Bahr Zbigniew",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        }
-      ],
-      "wednesday": [
-        {
-          "id": "librus_wednesday_1_0800",
-          "day": "wednesday",
-          "subject": "Biologia",
-          "time_start": "08:00",
-          "time_end": "08:45",
-          "room": "s. 06",
-          "teacher": "Łukaszczyk-Wulgaris Joanna",
-          "cleanTeacher": "Łukaszczyk-Wulgaris Joanna",
-          "type": "Wykład",
-          "color": "emerald",
-          "notes": "Nauczyciel: Łukaszczyk-Wulgaris Joanna",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_wednesday_2_0850",
-          "day": "wednesday",
-          "subject": "Biologia",
-          "time_start": "08:50",
-          "time_end": "09:35",
-          "room": "s. 06",
-          "teacher": "Łukaszczyk-Wulgaris Joanna",
-          "cleanTeacher": "Łukaszczyk-Wulgaris Joanna",
-          "type": "Wykład",
-          "color": "emerald",
-          "notes": "Nauczyciel: Łukaszczyk-Wulgaris Joanna",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_wednesday_3_0940",
-          "day": "wednesday",
-          "subject": "Systemy operacyjne",
-          "time_start": "09:40",
-          "time_end": "10:25",
-          "room": "s. 1.2",
-          "teacher": "Wojnarowski Przemysław",
-          "cleanTeacher": "Wojnarowski Przemysław",
-          "type": "Wykład",
-          "color": "cyan",
-          "notes": "Nauczyciel: Wojnarowski Przemysław",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_wednesday_4_1040",
-          "day": "wednesday",
-          "subject": "Systemy operacyjne",
-          "time_start": "10:40",
-          "time_end": "11:25",
-          "room": "s. 1.2",
-          "teacher": "Wojnarowski Przemysław",
-          "cleanTeacher": "Wojnarowski Przemysław",
-          "type": "Wykład",
-          "color": "cyan",
-          "notes": "Nauczyciel: Wojnarowski Przemysław",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_wednesday_5_1130",
-          "day": "wednesday",
-          "subject": "Urządzenia techniki komputerowej",
-          "time_start": "11:30",
-          "time_end": "12:15",
-          "room": "s. 1.2",
-          "teacher": "Gembiak Bartosz",
-          "cleanTeacher": "Gembiak Bartosz",
-          "type": "Wykład",
-          "color": "cyan",
-          "notes": "Nauczyciel: Gembiak Bartosz",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_wednesday_6_1220",
-          "day": "wednesday",
-          "subject": "Urządzenia techniki komputerowej",
-          "time_start": "12:20",
-          "time_end": "13:05",
-          "room": "s. 1.2",
-          "teacher": "Gembiak Bartosz",
-          "cleanTeacher": "Gembiak Bartosz",
-          "type": "Wykład",
-          "color": "cyan",
-          "notes": "Nauczyciel: Gembiak Bartosz",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_wednesday_7_1315",
-          "day": "wednesday",
-          "subject": "Chemia",
-          "time_start": "13:15",
-          "time_end": "14:00",
-          "room": "s. 08",
-          "teacher": "Kolasińska Paulina",
-          "cleanTeacher": "Kolasińska Paulina",
-          "type": "Wykład",
-          "color": "emerald",
-          "notes": "Nauczyciel: Kolasińska Paulina",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_wednesday_8_1405",
-          "day": "wednesday",
-          "subject": "Historia",
-          "time_start": "14:05",
-          "time_end": "14:50",
-          "room": "s. 06",
-          "teacher": "Wardyn Wojciech",
-          "cleanTeacher": "Wardyn Wojciech",
-          "type": "Wykład",
-          "color": "rose",
-          "notes": "Nauczyciel: Wardyn Wojciech",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_wednesday_9_1455",
-          "day": "wednesday",
-          "subject": "Matematyka",
-          "time_start": "14:55",
-          "time_end": "15:40",
-          "room": "s. 26",
-          "teacher": "Bahr Zbigniew",
-          "cleanTeacher": "Bahr Zbigniew",
-          "type": "Wykład",
-          "color": "indigo",
-          "notes": "Nauczyciel: Bahr Zbigniew",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        }
-      ],
-      "thursday": [
-        {
-          "id": "librus_thursday_2_0850",
-          "day": "thursday",
-          "subject": "Język angielski",
-          "time_start": "08:50",
-          "time_end": "09:35",
-          "room": "s. Z2",
-          "teacher": "Ziemba Joanna (j.ang 2 TI gr.1)",
-          "cleanTeacher": "Ziemba Joanna",
-          "type": "Lektorat",
-          "color": "amber",
-          "notes": "Nauczyciel: Ziemba Joanna (j.ang 2 TI gr.1)",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_thursday_3_0940",
-          "day": "thursday",
-          "subject": "Język angielski",
-          "time_start": "09:40",
-          "time_end": "10:25",
-          "room": "s. Z2",
-          "teacher": "Ziemba Joanna (j.ang 2 TI gr.1)",
-          "cleanTeacher": "Ziemba Joanna",
-          "type": "Lektorat",
-          "color": "amber",
-          "notes": "Nauczyciel: Ziemba Joanna (j.ang 2 TI gr.1)",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_thursday_6_1220",
-          "day": "thursday",
-          "subject": "Matematyka",
-          "time_start": "12:20",
-          "time_end": "13:05",
-          "room": "s. 05",
-          "teacher": "Bahr Zbigniew",
-          "cleanTeacher": "Bahr Zbigniew",
-          "type": "Wykład",
-          "color": "indigo",
-          "notes": "Nauczyciel: Bahr Zbigniew",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_thursday_7_1315",
-          "day": "thursday",
-          "subject": "Matematyka",
-          "time_start": "13:15",
-          "time_end": "14:00",
-          "room": "s. 05",
-          "teacher": "Bahr Zbigniew",
-          "cleanTeacher": "Bahr Zbigniew",
-          "type": "Wykład",
-          "color": "indigo",
-          "notes": "Nauczyciel: Bahr Zbigniew",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_thursday_8_1405",
-          "day": "thursday",
-          "subject": "Język angielski zawodowy",
-          "time_start": "14:05",
-          "time_end": "14:50",
-          "room": "s. Z2",
-          "teacher": "Ziemba Joanna (j. ang zaw. 2 TI gr.1)",
-          "cleanTeacher": "Ziemba Joanna",
-          "type": "Lektorat",
-          "color": "amber",
-          "notes": "Nauczyciel: Ziemba Joanna (j. ang zaw. 2 TI gr.1)",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        }
-      ],
-      "friday": [
-        {
-          "id": "librus_friday_1_0800",
-          "day": "friday",
-          "subject": "Edukacja obywatelska",
-          "time_start": "08:00",
-          "time_end": "08:45",
-          "room": "s. 09",
-          "teacher": "Czarna Alicja",
-          "cleanTeacher": "Czarna Alicja",
-          "type": "Wykład",
-          "color": "blue",
-          "notes": "Nauczyciel: Czarna Alicja",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_friday_2_0850",
-          "day": "friday",
-          "subject": "Wychowanie fizyczne",
-          "time_start": "08:50",
-          "time_end": "09:35",
-          "room": "",
-          "teacher": "Łysakowski Grzegorz (Klasa 2 Ti)",
-          "cleanTeacher": "Łysakowski Grzegorz",
-          "type": "Ćwiczenia",
-          "color": "purple",
-          "notes": "Nauczyciel: Łysakowski Grzegorz (Klasa 2 Ti)",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_friday_3_0940",
-          "day": "friday",
-          "subject": "Język niemiecki",
-          "time_start": "09:40",
-          "time_end": "10:25",
-          "room": "s. Z1",
-          "teacher": "Chyła Beata (2Ti/1)",
-          "cleanTeacher": "Chyła Beata",
-          "type": "Lektorat",
-          "color": "amber",
-          "notes": "Nauczyciel: Chyła Beata (2Ti/1)",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_friday_4_1040",
-          "day": "friday",
-          "subject": "Język niemiecki",
-          "time_start": "10:40",
-          "time_end": "11:25",
-          "room": "s. Z1",
-          "teacher": "Chyła Beata (2Ti/1)",
-          "cleanTeacher": "Chyła Beata",
-          "type": "Lektorat",
-          "color": "amber",
-          "notes": "Nauczyciel: Chyła Beata (2Ti/1)",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_friday_5_1130",
-          "day": "friday",
-          "subject": "Chemia",
-          "time_start": "11:30",
-          "time_end": "12:15",
-          "room": "s. 19",
-          "teacher": "Kolasińska Paulina",
-          "cleanTeacher": "Kolasińska Paulina",
-          "type": "Wykład",
-          "color": "emerald",
-          "notes": "Nauczyciel: Kolasińska Paulina",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_friday_6_1220",
-          "day": "friday",
-          "subject": "Język polski",
-          "time_start": "12:20",
-          "time_end": "13:05",
-          "room": "s. 34",
-          "teacher": "Negowska Alicja",
-          "cleanTeacher": "Negowska Alicja",
-          "type": "Wykład",
-          "color": "rose",
-          "notes": "Nauczyciel: Negowska Alicja",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        },
-        {
-          "id": "librus_friday_7_1315",
-          "day": "friday",
-          "subject": "Język polski",
-          "time_start": "13:15",
-          "time_end": "14:00",
-          "room": "s. 34",
-          "teacher": "Negowska Alicja",
-          "cleanTeacher": "Negowska Alicja",
-          "type": "Wykład",
-          "color": "rose",
-          "notes": "Nauczyciel: Negowska Alicja",
-          "isCancelled": false,
-          "isSubstitution": false,
-          "status": "active",
-          "statusLabel": "Aktywna",
-          "isLibrus": true
-        }
-      ],
-      "saturday": [],
-      "sunday": []
-    },
-    "lessons": [
-      {
-        "id": "librus_tuesday_1_0800",
-        "day": "tuesday",
-        "subject": "Pracownia urządzeń techniki komputerowej",
-        "time_start": "08:00",
-        "time_end": "08:45",
-        "room": "s. 0.1",
-        "teacher": "Wojnarowski Przemysław (2TI-gr1)",
-        "cleanTeacher": "Wojnarowski Przemysław",
-        "type": "Laboratorium",
-        "color": "cyan",
-        "notes": "Nauczyciel: Wojnarowski Przemysław (2TI-gr1)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_wednesday_1_0800",
-        "day": "wednesday",
-        "subject": "Biologia",
-        "time_start": "08:00",
-        "time_end": "08:45",
-        "room": "s. 06",
-        "teacher": "Łukaszczyk-Wulgaris Joanna",
-        "cleanTeacher": "Łukaszczyk-Wulgaris Joanna",
-        "type": "Wykład",
-        "color": "emerald",
-        "notes": "Nauczyciel: Łukaszczyk-Wulgaris Joanna",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_friday_1_0800",
-        "day": "friday",
-        "subject": "Edukacja obywatelska",
-        "time_start": "08:00",
-        "time_end": "08:45",
-        "room": "s. 09",
-        "teacher": "Czarna Alicja",
-        "cleanTeacher": "Czarna Alicja",
-        "type": "Wykład",
-        "color": "blue",
-        "notes": "Nauczyciel: Czarna Alicja | [!] NIEOBECNOŚĆ: Czarna Alicja (Cały dzień)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true,
-        "absenceAlert": {
-          "isAbsent": true,
-          "teacher": "Czarna Alicja",
-          "hours": "Cały dzień",
-          "date": "2026-10-23",
-          "description": "Nieobecność nauczyciela: Czarna Alicja (Cały dzień)",
-          "suggestedStatus": "okienko_or_sub"
-        }
-      },
-      {
-        "id": "librus_monday_2_0850",
-        "day": "monday",
-        "subject": "Informatyka",
-        "time_start": "08:50",
-        "time_end": "09:35",
-        "room": "s. 04",
-        "teacher": "Becker Adam (2 TI gr.2)",
-        "cleanTeacher": "Becker Adam",
-        "type": "Wykład",
-        "color": "cyan",
-        "notes": "Nauczyciel: Becker Adam (2 TI gr.2)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_tuesday_2_0850",
-        "day": "tuesday",
-        "subject": "Pracownia urządzeń techniki komputerowej",
-        "time_start": "08:50",
-        "time_end": "09:35",
-        "room": "s. 0.1",
-        "teacher": "Wojnarowski Przemysław (2TI-gr1)",
-        "cleanTeacher": "Wojnarowski Przemysław",
-        "type": "Laboratorium",
-        "color": "cyan",
-        "notes": "Nauczyciel: Wojnarowski Przemysław (2TI-gr1)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_wednesday_2_0850",
-        "day": "wednesday",
-        "subject": "Biologia",
-        "time_start": "08:50",
-        "time_end": "09:35",
-        "room": "s. 06",
-        "teacher": "Łukaszczyk-Wulgaris Joanna",
-        "cleanTeacher": "Łukaszczyk-Wulgaris Joanna",
-        "type": "Wykład",
-        "color": "emerald",
-        "notes": "Nauczyciel: Łukaszczyk-Wulgaris Joanna",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_thursday_2_0850",
-        "day": "thursday",
-        "subject": "Język angielski",
-        "time_start": "08:50",
-        "time_end": "09:35",
-        "room": "s. Z2",
-        "teacher": "Ziemba Joanna (j.ang 2 TI gr.1)",
-        "cleanTeacher": "Ziemba Joanna",
-        "type": "Lektorat",
-        "color": "amber",
-        "notes": "Nauczyciel: Ziemba Joanna (j.ang 2 TI gr.1)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_friday_2_0850",
-        "day": "friday",
-        "subject": "Wychowanie fizyczne",
-        "time_start": "08:50",
-        "time_end": "09:35",
-        "room": "",
-        "teacher": "Łysakowski Grzegorz (Klasa 2 Ti)",
-        "cleanTeacher": "Łysakowski Grzegorz",
-        "type": "Ćwiczenia",
-        "color": "purple",
-        "notes": "Nauczyciel: Łysakowski Grzegorz (Klasa 2 Ti)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_monday_3_0940",
-        "day": "monday",
-        "subject": "Informatyka",
-        "time_start": "09:40",
-        "time_end": "10:25",
-        "room": "s. 04",
-        "teacher": "Becker Adam (2 TI gr.2)",
-        "cleanTeacher": "Becker Adam",
-        "type": "Wykład",
-        "color": "cyan",
-        "notes": "Nauczyciel: Becker Adam (2 TI gr.2)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_tuesday_3_0940",
-        "day": "tuesday",
-        "subject": "Zajęcia z wychowawcą",
-        "time_start": "09:40",
-        "time_end": "10:25",
-        "room": "s. 28",
-        "teacher": "Ziemba Joanna",
-        "cleanTeacher": "Ziemba Joanna",
-        "type": "Wykład",
-        "color": "blue",
-        "notes": "Nauczyciel: Ziemba Joanna",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_wednesday_3_0940",
-        "day": "wednesday",
-        "subject": "Systemy operacyjne",
-        "time_start": "09:40",
-        "time_end": "10:25",
-        "room": "s. 1.2",
-        "teacher": "Wojnarowski Przemysław",
-        "cleanTeacher": "Wojnarowski Przemysław",
-        "type": "Wykład",
-        "color": "cyan",
-        "notes": "Nauczyciel: Wojnarowski Przemysław",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_thursday_3_0940",
-        "day": "thursday",
-        "subject": "Język angielski",
-        "time_start": "09:40",
-        "time_end": "10:25",
-        "room": "s. Z2",
-        "teacher": "Ziemba Joanna (j.ang 2 TI gr.1)",
-        "cleanTeacher": "Ziemba Joanna",
-        "type": "Lektorat",
-        "color": "amber",
-        "notes": "Nauczyciel: Ziemba Joanna (j.ang 2 TI gr.1)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_friday_3_0940",
-        "day": "friday",
-        "subject": "Język niemiecki",
-        "time_start": "09:40",
-        "time_end": "10:25",
-        "room": "s. Z1",
-        "teacher": "Chyła Beata (2Ti/1)",
-        "cleanTeacher": "Chyła Beata",
-        "type": "Lektorat",
-        "color": "amber",
-        "notes": "Nauczyciel: Chyła Beata (2Ti/1)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_monday_4_1040",
-        "day": "monday",
-        "subject": "Biznes i zarządzanie",
-        "time_start": "10:40",
-        "time_end": "11:25",
-        "room": "s. 0.2",
-        "teacher": "Sokół Paweł",
-        "cleanTeacher": "Sokół Paweł",
-        "type": "Wykład",
-        "color": "blue",
-        "notes": "Nauczyciel: Sokół Paweł",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_tuesday_4_1040",
-        "day": "tuesday",
-        "subject": "Wychowanie fizyczne",
-        "time_start": "10:40",
-        "time_end": "11:25",
-        "room": "",
-        "teacher": "Łysakowski Grzegorz (Klasa 2 Ti)",
-        "cleanTeacher": "Łysakowski Grzegorz",
-        "type": "Ćwiczenia",
-        "color": "purple",
-        "notes": "Nauczyciel: Łysakowski Grzegorz (Klasa 2 Ti) | [!] NIEOBECNOŚĆ: Łysakowski Grzegorz (Cały dzień)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true,
-        "absenceAlert": {
-          "isAbsent": true,
-          "teacher": "Łysakowski Grzegorz",
-          "hours": "Cały dzień",
-          "date": "2026-10-20",
-          "description": "Nieobecność nauczyciela: Łysakowski Grzegorz (Cały dzień)",
-          "suggestedStatus": "okienko_or_sub"
-        }
-      },
-      {
-        "id": "librus_wednesday_4_1040",
-        "day": "wednesday",
-        "subject": "Systemy operacyjne",
-        "time_start": "10:40",
-        "time_end": "11:25",
-        "room": "s. 1.2",
-        "teacher": "Wojnarowski Przemysław",
-        "cleanTeacher": "Wojnarowski Przemysław",
-        "type": "Wykład",
-        "color": "cyan",
-        "notes": "Nauczyciel: Wojnarowski Przemysław",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_friday_4_1040",
-        "day": "friday",
-        "subject": "Język niemiecki",
-        "time_start": "10:40",
-        "time_end": "11:25",
-        "room": "s. Z1",
-        "teacher": "Chyła Beata (2Ti/1)",
-        "cleanTeacher": "Chyła Beata",
-        "type": "Lektorat",
-        "color": "amber",
-        "notes": "Nauczyciel: Chyła Beata (2Ti/1)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_monday_5_1130",
-        "day": "monday",
-        "subject": "Lokalne sieci komputerowe",
-        "time_start": "11:30",
-        "time_end": "12:15",
-        "room": "s. 0.2",
-        "teacher": "Wojnarowski Przemysław",
-        "cleanTeacher": "Wojnarowski Przemysław",
-        "type": "Wykład",
-        "color": "cyan",
-        "notes": "Nauczyciel: Wojnarowski Przemysław",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_tuesday_5_1130",
-        "day": "tuesday",
-        "subject": "Wychowanie fizyczne",
-        "time_start": "11:30",
-        "time_end": "12:15",
-        "room": "",
-        "teacher": "Łysakowski Grzegorz (Klasa 2 Ti)",
-        "cleanTeacher": "Łysakowski Grzegorz",
-        "type": "Ćwiczenia",
-        "color": "purple",
-        "notes": "Nauczyciel: Łysakowski Grzegorz (Klasa 2 Ti) | [!] NIEOBECNOŚĆ: Łysakowski Grzegorz (Cały dzień)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true,
-        "absenceAlert": {
-          "isAbsent": true,
-          "teacher": "Łysakowski Grzegorz",
-          "hours": "Cały dzień",
-          "date": "2026-10-20",
-          "description": "Nieobecność nauczyciela: Łysakowski Grzegorz (Cały dzień)",
-          "suggestedStatus": "okienko_or_sub"
-        }
-      },
-      {
-        "id": "librus_wednesday_5_1130",
-        "day": "wednesday",
-        "subject": "Urządzenia techniki komputerowej",
-        "time_start": "11:30",
-        "time_end": "12:15",
-        "room": "s. 1.2",
-        "teacher": "Gembiak Bartosz",
-        "cleanTeacher": "Gembiak Bartosz",
-        "type": "Wykład",
-        "color": "cyan",
-        "notes": "Nauczyciel: Gembiak Bartosz",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_friday_5_1130",
-        "day": "friday",
-        "subject": "Chemia",
-        "time_start": "11:30",
-        "time_end": "12:15",
-        "room": "s. 19",
-        "teacher": "Kolasińska Paulina",
-        "cleanTeacher": "Kolasińska Paulina",
-        "type": "Wykład",
-        "color": "emerald",
-        "notes": "Nauczyciel: Kolasińska Paulina",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_monday_6_1220",
-        "day": "monday",
-        "subject": "Język polski",
-        "time_start": "12:20",
-        "time_end": "13:05",
-        "room": "s. 34",
-        "teacher": "Negowska Alicja",
-        "cleanTeacher": "Negowska Alicja",
-        "type": "Wykład",
-        "color": "rose",
-        "notes": "Nauczyciel: Negowska Alicja",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_tuesday_6_1220",
-        "day": "tuesday",
-        "subject": "Pracownia systemów operacyjnych",
-        "time_start": "12:20",
-        "time_end": "13:05",
-        "room": "s. 1.15",
-        "teacher": "Reszka Sławomir (2 Ti gr1 PSO)",
-        "cleanTeacher": "Reszka Sławomir",
-        "type": "Laboratorium",
-        "color": "blue",
-        "notes": "Nauczyciel: Reszka Sławomir (2 Ti gr1 PSO)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_wednesday_6_1220",
-        "day": "wednesday",
-        "subject": "Urządzenia techniki komputerowej",
-        "time_start": "12:20",
-        "time_end": "13:05",
-        "room": "s. 1.2",
-        "teacher": "Gembiak Bartosz",
-        "cleanTeacher": "Gembiak Bartosz",
-        "type": "Wykład",
-        "color": "cyan",
-        "notes": "Nauczyciel: Gembiak Bartosz",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_thursday_6_1220",
-        "day": "thursday",
-        "subject": "Matematyka",
-        "time_start": "12:20",
-        "time_end": "13:05",
-        "room": "s. 05",
-        "teacher": "Bahr Zbigniew",
-        "cleanTeacher": "Bahr Zbigniew",
-        "type": "Wykład",
-        "color": "indigo",
-        "notes": "Nauczyciel: Bahr Zbigniew",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_friday_6_1220",
-        "day": "friday",
-        "subject": "Język polski",
-        "time_start": "12:20",
-        "time_end": "13:05",
-        "room": "s. 34",
-        "teacher": "Negowska Alicja",
-        "cleanTeacher": "Negowska Alicja",
-        "type": "Wykład",
-        "color": "rose",
-        "notes": "Nauczyciel: Negowska Alicja | [!] NIEOBECNOŚĆ: Negowska Alicja (Cały dzień)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true,
-        "absenceAlert": {
-          "isAbsent": true,
+          "subject": "język polski",
           "teacher": "Negowska Alicja",
-          "hours": "Cały dzień",
-          "date": "2026-10-16",
-          "description": "Nieobecność nauczyciela: Negowska Alicja (Cały dzień)",
-          "suggestedStatus": "okienko_or_sub"
-        }
-      },
-      {
-        "id": "librus_tuesday_7_1315",
-        "day": "tuesday",
-        "subject": "Pracownia systemów operacyjnych",
-        "time_start": "13:15",
-        "time_end": "14:00",
-        "room": "s. 1.15",
-        "teacher": "Reszka Sławomir (2 Ti gr1 PSO)",
-        "cleanTeacher": "Reszka Sławomir",
-        "type": "Laboratorium",
-        "color": "blue",
-        "notes": "Nauczyciel: Reszka Sławomir (2 Ti gr1 PSO)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_wednesday_7_1315",
-        "day": "wednesday",
-        "subject": "Chemia",
-        "time_start": "13:15",
-        "time_end": "14:00",
-        "room": "s. 08",
-        "teacher": "Kolasińska Paulina",
-        "cleanTeacher": "Kolasińska Paulina",
-        "type": "Wykład",
-        "color": "emerald",
-        "notes": "Nauczyciel: Kolasińska Paulina",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_thursday_7_1315",
-        "day": "thursday",
-        "subject": "Matematyka",
-        "time_start": "13:15",
-        "time_end": "14:00",
-        "room": "s. 05",
-        "teacher": "Bahr Zbigniew",
-        "cleanTeacher": "Bahr Zbigniew",
-        "type": "Wykład",
-        "color": "indigo",
-        "notes": "Nauczyciel: Bahr Zbigniew",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_friday_7_1315",
-        "day": "friday",
-        "subject": "Język polski",
-        "time_start": "13:15",
-        "time_end": "14:00",
-        "room": "s. 34",
-        "teacher": "Negowska Alicja",
-        "cleanTeacher": "Negowska Alicja",
-        "type": "Wykład",
-        "color": "rose",
-        "notes": "Nauczyciel: Negowska Alicja | [!] NIEOBECNOŚĆ: Negowska Alicja (Cały dzień)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true,
-        "absenceAlert": {
-          "isAbsent": true,
-          "teacher": "Negowska Alicja",
-          "hours": "Cały dzień",
-          "date": "2026-10-16",
-          "description": "Nieobecność nauczyciela: Negowska Alicja (Cały dzień)",
-          "suggestedStatus": "okienko_or_sub"
-        }
-      },
-      {
-        "id": "librus_tuesday_8_1405",
-        "day": "tuesday",
-        "subject": "Edukacja zdrowotna",
-        "time_start": "14:05",
-        "time_end": "14:50",
-        "room": "s. 38",
-        "teacher": "Spych Monika",
-        "cleanTeacher": "Spych Monika",
-        "type": "Wykład",
-        "color": "emerald",
-        "notes": "Nauczyciel: Spych Monika",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_wednesday_8_1405",
-        "day": "wednesday",
-        "subject": "Historia",
-        "time_start": "14:05",
-        "time_end": "14:50",
-        "room": "s. 06",
-        "teacher": "Wardyn Wojciech",
-        "cleanTeacher": "Wardyn Wojciech",
-        "type": "Wykład",
-        "color": "rose",
-        "notes": "Nauczyciel: Wardyn Wojciech",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_thursday_8_1405",
-        "day": "thursday",
-        "subject": "Język angielski zawodowy",
-        "time_start": "14:05",
-        "time_end": "14:50",
-        "room": "s. Z2",
-        "teacher": "Ziemba Joanna (j. ang zaw. 2 TI gr.1)",
-        "cleanTeacher": "Ziemba Joanna",
-        "type": "Lektorat",
-        "color": "amber",
-        "notes": "Nauczyciel: Ziemba Joanna (j. ang zaw. 2 TI gr.1) | [!] NIEOBECNOŚĆ: Ziemba Joanna (11:30 do 14:50)",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true,
-        "absenceAlert": {
-          "isAbsent": true,
+          "room": "34",
+          "time": "12:20 - 13:05",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        null,
+        null,
+        null,
+        null
+      ],
+      "Tuesday": [
+        null,
+        {
+          "subject": "pracownia urządzeń techniki komputerowej",
+          "teacher": "Wojnarowski Przemysław (2TI-gr1)",
+          "room": "0.1",
+          "time": "08:00 - 08:45",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "pracownia urządzeń techniki komputerowej",
+          "teacher": "Wojnarowski Przemysław (2TI-gr1)",
+          "room": "0.1",
+          "time": "08:50 - 09:35",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "zajęcia z wychowawcą",
           "teacher": "Ziemba Joanna",
-          "hours": "11:30 do 14:50",
-          "date": "2026-10-08",
-          "description": "Nieobecność nauczyciela: Ziemba Joanna (11:30 do 14:50)",
-          "suggestedStatus": "okienko_or_sub"
-        }
-      },
-      {
-        "id": "librus_tuesday_9_1455",
-        "day": "tuesday",
-        "subject": "Matematyka",
-        "time_start": "14:55",
-        "time_end": "15:40",
-        "room": "s. 26",
-        "teacher": "Bahr Zbigniew",
-        "cleanTeacher": "Bahr Zbigniew",
-        "type": "Wykład",
-        "color": "indigo",
-        "notes": "Nauczyciel: Bahr Zbigniew",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      },
-      {
-        "id": "librus_wednesday_9_1455",
-        "day": "wednesday",
-        "subject": "Matematyka",
-        "time_start": "14:55",
-        "time_end": "15:40",
-        "room": "s. 26",
-        "teacher": "Bahr Zbigniew",
-        "cleanTeacher": "Bahr Zbigniew",
-        "type": "Wykład",
-        "color": "indigo",
-        "notes": "Nauczyciel: Bahr Zbigniew",
-        "isCancelled": false,
-        "isSubstitution": false,
-        "status": "active",
-        "statusLabel": "Aktywna",
-        "isLibrus": true
-      }
-    ],
-    "substitutions": [
-      {
-        "lessonId": "librus_friday_1_0800",
-        "day": "friday",
-        "subject": "Edukacja obywatelska",
-        "time_start": "08:00",
-        "time_end": "08:45",
-        "teacher": "Czarna Alicja",
-        "absenceTeacher": "Czarna Alicja",
-        "absenceHours": "Cały dzień",
-        "absenceDate": "2026-10-23"
-      },
-      {
-        "lessonId": "librus_tuesday_4_1040",
-        "day": "tuesday",
-        "subject": "Wychowanie fizyczne",
-        "time_start": "10:40",
-        "time_end": "11:25",
-        "teacher": "Łysakowski Grzegorz (Klasa 2 Ti)",
-        "absenceTeacher": "Łysakowski Grzegorz",
-        "absenceHours": "Cały dzień",
-        "absenceDate": "2026-10-20"
-      },
-      {
-        "lessonId": "librus_tuesday_5_1130",
-        "day": "tuesday",
-        "subject": "Wychowanie fizyczne",
-        "time_start": "11:30",
-        "time_end": "12:15",
-        "teacher": "Łysakowski Grzegorz (Klasa 2 Ti)",
-        "absenceTeacher": "Łysakowski Grzegorz",
-        "absenceHours": "Cały dzień",
-        "absenceDate": "2026-10-20"
-      },
-      {
-        "lessonId": "librus_friday_6_1220",
-        "day": "friday",
-        "subject": "Język polski",
-        "time_start": "12:20",
-        "time_end": "13:05",
-        "teacher": "Negowska Alicja",
-        "absenceTeacher": "Negowska Alicja",
-        "absenceHours": "Cały dzień",
-        "absenceDate": "2026-10-16"
-      },
-      {
-        "lessonId": "librus_friday_7_1315",
-        "day": "friday",
-        "subject": "Język polski",
-        "time_start": "13:15",
-        "time_end": "14:00",
-        "teacher": "Negowska Alicja",
-        "absenceTeacher": "Negowska Alicja",
-        "absenceHours": "Cały dzień",
-        "absenceDate": "2026-10-16"
-      },
-      {
-        "lessonId": "librus_thursday_8_1405",
-        "day": "thursday",
-        "subject": "Język angielski zawodowy",
-        "time_start": "14:05",
-        "time_end": "14:50",
-        "teacher": "Ziemba Joanna (j. ang zaw. 2 TI gr.1)",
-        "absenceTeacher": "Ziemba Joanna",
-        "absenceHours": "11:30 do 14:50",
-        "absenceDate": "2026-10-08"
-      }
-    ],
-    "lastSync": "2026-10-26T07:16:12.004Z"
+          "room": "31",
+          "time": "09:40 - 10:25",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "wychowanie fizyczne",
+          "teacher": "Łysakowski Grzegorz (Klasa 2 Ti)",
+          "room": "",
+          "time": "10:40 - 11:25",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "wychowanie fizyczne",
+          "teacher": "Łysakowski Grzegorz (Klasa 2 Ti)",
+          "room": "",
+          "time": "11:30 - 12:15",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "pracownia systemów operacyjnych",
+          "teacher": "Reszka Sławomir (2 Ti gr1 PSO)",
+          "room": "1.15",
+          "time": "12:20 - 13:05",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "pracownia systemów operacyjnych",
+          "teacher": "Reszka Sławomir (2 Ti gr1 PSO)",
+          "room": "1.15",
+          "time": "13:15 - 14:00",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "edukacja zdrowotna",
+          "teacher": "Spych Monika",
+          "room": "38",
+          "time": "14:05 - 14:50",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "matematyka",
+          "teacher": "Bahr Zbigniew",
+          "room": "26",
+          "time": "14:55 - 15:40",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        null
+      ],
+      "Wednesday": [
+        null,
+        {
+          "subject": "biologia",
+          "teacher": "Łukaszczyk-Wulgaris Joanna",
+          "room": "06",
+          "time": "08:00 - 08:45",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "biologia",
+          "teacher": "Łukaszczyk-Wulgaris Joanna",
+          "room": "06",
+          "time": "08:50 - 09:35",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "systemy operacyjne",
+          "teacher": "Wojnarowski Przemysław",
+          "room": "1.2",
+          "time": "09:40 - 10:25",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "systemy operacyjne",
+          "teacher": "Wojnarowski Przemysław",
+          "room": "1.2",
+          "time": "10:40 - 11:25",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "urządzenia techniki komputerowej",
+          "teacher": "Gembiak Bartosz",
+          "room": "1.2",
+          "time": "11:30 - 12:15",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "urządzenia techniki komputerowej",
+          "teacher": "Gembiak Bartosz",
+          "room": "1.2",
+          "time": "12:20 - 13:05",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "pracownia urządzeń techniki komputerowej",
+          "teacher": "Gembiak Bartosz",
+          "room": "1.2",
+          "time": "13:15 - 14:00",
+          "cancelled": false,
+          "flag": "zastępstwo",
+          "original": null
+        },
+        {
+          "subject": "historia",
+          "teacher": "Wardyn Wojciech",
+          "room": "06",
+          "time": "14:05 - 14:50",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "matematyka",
+          "teacher": "Bahr Zbigniew",
+          "room": "26",
+          "time": "14:55 - 15:40",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        null
+      ],
+      "Thursday": [
+        null,
+        null,
+        {
+          "subject": "język angielski",
+          "teacher": "Ziemba Joanna (j.ang 2 TI gr.1)",
+          "room": "Z2",
+          "time": "08:50 - 09:35",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "język angielski",
+          "teacher": "Ziemba Joanna (j.ang 2 TI gr.1)",
+          "room": "Z2",
+          "time": "09:40 - 10:25",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "pracownia urządzeń techniki komputerowej",
+          "teacher": "Gembiak Bartosz",
+          "room": "",
+          "time": "10:40 - 11:25",
+          "cancelled": false,
+          "flag": "zastępstwo",
+          "original": null
+        },
+        {
+          "subject": "pracownia urządzeń techniki komputerowej",
+          "teacher": "Gembiak Bartosz",
+          "room": "",
+          "time": "11:30 - 12:15",
+          "cancelled": false,
+          "flag": "zastępstwo",
+          "original": null
+        },
+        {
+          "subject": "matematyka",
+          "teacher": "Bahr Zbigniew",
+          "room": "05",
+          "time": "12:20 - 13:05",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "matematyka",
+          "teacher": "Bahr Zbigniew",
+          "room": "05",
+          "time": "13:15 - 14:00",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "język angielski zawodowy",
+          "teacher": "Ziemba Joanna (j. ang zaw. 2 TI gr.1)",
+          "room": "Z2",
+          "time": "14:05 - 14:50",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        null,
+        null
+      ],
+      "Friday": [
+        null,
+        {
+          "subject": "edukacja obywatelska",
+          "teacher": "Czarna Alicja",
+          "room": "09",
+          "time": "08:00 - 08:45",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "wychowanie fizyczne",
+          "teacher": "Łysakowski Grzegorz (Klasa 2 Ti)",
+          "room": "",
+          "time": "08:50 - 09:35",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "język niemiecki",
+          "teacher": "Chyła Beata (2Ti/1)",
+          "room": "Z1",
+          "time": "09:40 - 10:25",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "język niemiecki",
+          "teacher": "Chyła Beata (2Ti/1)",
+          "room": "Z1",
+          "time": "10:40 - 11:25",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "język polski",
+          "teacher": "Alicja Negowska",
+          "room": "",
+          "time": "11:30 - 12:15",
+          "cancelled": false,
+          "flag": "odwołane, przesunięcie",
+          "original": {
+            "subject": "chemia",
+            "teacher": "Kolasińska Paulina",
+            "room": "",
+            "time": "11:30 - 12:15"
+          }
+        },
+        {
+          "subject": "język polski",
+          "teacher": "Negowska Alicja",
+          "room": "34",
+          "time": "12:20 - 13:05",
+          "cancelled": false,
+          "flag": null,
+          "original": null
+        },
+        {
+          "subject": "język polski",
+          "teacher": "Negowska Alicja",
+          "room": "19",
+          "time": "13:15 - 14:00",
+          "cancelled": true,
+          "flag": "przesunięcie",
+          "original": null
+        },
+        null,
+        null,
+        null
+      ],
+      "Saturday": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "Sunday": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    }
   },
-  "timetableLastSync": "2026-10-26 07:16:31",
-  "calendar": {
-    "lastSync": "2026-10-26T07:16:08.190Z",
-    "month": 10,
-    "year": 2026,
-    "events": [
-      {
-        "id": 3479986,
-        "date": "2026-10-01",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Reszka Sławomir",
-        "teacher": "Reszka Sławomir",
-        "time": "Cały dzień",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Reszka Sławomir (Cały dzień)",
-        "raw": "Nieobecność:Nauczyciel: Reszka Sławomir"
-      },
-      {
-        "id": 3480589,
-        "date": "2026-10-01",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Łysakowski Grzegorz",
-        "teacher": "Łysakowski Grzegorz",
-        "time": "Cały dzień",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Łysakowski Grzegorz (Cały dzień)",
-        "raw": "Nieobecność:Nauczyciel: Łysakowski Grzegorz"
-      },
-      {
-        "id": 12481508,
-        "date": "2026-10-01",
-        "type": "sprawdzian",
-        "category": "Sprawdzian",
-        "title": "Sprawdzian: wiadomościj.ang 2 TI gr.1",
-        "subject": "wiadomościj.ang 2 TI gr.1",
-        "teacher": null,
-        "time": "Lekcja 0",
-        "description": "Nr lekcji: 0Sprawdzian wiadomościj.ang 2 TI gr.1, język angielski",
-        "raw": "Nr lekcji: 0Sprawdzian wiadomościj.ang 2 TI gr.1, język angielski"
-      },
-      {
-        "id": 12547607,
-        "date": "2026-10-01",
-        "type": "kartkowka",
-        "category": "Kartkówka",
-        "title": "Kartkówka: biologia",
-        "subject": "biologia",
-        "teacher": null,
-        "time": "Lekcja 9",
-        "description": "Nr lekcji: 9biologia, kartkówka2TI T",
-        "raw": "Nr lekcji: 9biologia, kartkówka2TI T"
-      },
-      {
-        "id": 3473668,
-        "date": "2026-10-02",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Reszka Sławomir",
-        "teacher": "Reszka Sławomir",
-        "time": "Cały dzień",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Reszka Sławomir (Cały dzień)",
-        "raw": "Nieobecność:Nauczyciel: Reszka Sławomir"
-      },
-      {
-        "id": 3484861,
-        "date": "2026-10-02",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Spych Monika",
-        "teacher": "Spych Monika",
-        "time": "08:00 do 13:05",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Spych Monika (08:00 do 13:05)",
-        "raw": "Nieobecność:Nauczyciel: Spych MonikaGodziny: 08:00 do 13:05"
-      },
-      {
-        "id": 3477178,
-        "date": "2026-10-04",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Prabucki Andrzej",
-        "teacher": "Prabucki Andrzej",
-        "time": "Cały dzień",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Prabucki Andrzej (Cały dzień)",
-        "raw": "Nieobecność:Nauczyciel: Prabucki Andrzej"
-      },
-      {
-        "id": 3487393,
-        "date": "2026-10-06",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Czarna Alicja",
-        "teacher": "Czarna Alicja",
-        "time": "Cały dzień",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Czarna Alicja (Cały dzień)",
-        "raw": "Nieobecność:Nauczyciel: Czarna Alicja"
-      },
-      {
-        "id": 3490083,
-        "date": "2026-10-07",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Negowska Alicja",
-        "teacher": "Negowska Alicja",
-        "time": "10:40 do 14:00",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Negowska Alicja (10:40 do 14:00)",
-        "raw": "Nieobecność:Nauczyciel: Negowska AlicjaGodziny: 10:40 do 14:00"
-      },
-      {
-        "id": 12538443,
-        "date": "2026-10-07",
-        "type": "sprawdzian",
-        "category": "Sprawdzian",
-        "title": "Sprawdzian: urządzenia techniki komputerowej",
-        "subject": "urządzenia techniki komputerowej",
-        "teacher": null,
-        "time": "Lekcja 6",
-        "description": "Nr lekcji: 6urządzenia techniki komputerowej, Sprawdzian wiadomości2TI TSala: 1.16",
-        "raw": "Nr lekcji: 6urządzenia techniki komputerowej, Sprawdzian wiadomości2TI TSala: 1.16"
-      },
-      {
-        "id": 3491278,
-        "date": "2026-10-08",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Ziemba Joanna",
-        "teacher": "Ziemba Joanna",
-        "time": "11:30 do 14:50",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Ziemba Joanna (11:30 do 14:50)",
-        "raw": "Nieobecność:Nauczyciel: Ziemba JoannaGodziny: 11:30 do 14:50"
-      },
-      {
-        "id": 3492489,
-        "date": "2026-10-09",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Ziemba Joanna",
-        "teacher": "Ziemba Joanna",
-        "time": "Cały dzień",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Ziemba Joanna (Cały dzień)",
-        "raw": "Nieobecność:Nauczyciel: Ziemba Joanna"
-      },
-      {
-        "id": 3463311,
-        "date": "2026-10-13",
-        "type": "inne",
-        "category": "Wydarzenie szkolne",
-        "title": "Dzień wolny od zajęć dydaktyczno-wychowawczyc",
-        "subject": null,
-        "teacher": null,
-        "time": "",
-        "description": "Dzień wolny od zajęć dydaktyczno-wychowawczych: T",
-        "raw": "Dzień wolny od zajęć dydaktyczno-wychowawczych: T"
-      },
-      {
-        "id": 3463323,
-        "date": "2026-10-14",
-        "type": "inne",
-        "category": "Wydarzenie szkolne",
-        "title": "Dzień Edukacji Narodowej: T",
-        "subject": null,
-        "teacher": null,
-        "time": "",
-        "description": "Dzień Edukacji Narodowej: T",
-        "raw": "Dzień Edukacji Narodowej: T"
-      },
-      {
-        "id": 3501193,
-        "date": "2026-10-15",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Negowska Alicja",
-        "teacher": "Negowska Alicja",
-        "time": "Cały dzień",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Negowska Alicja (Cały dzień)",
-        "raw": "Nieobecność:Nauczyciel: Negowska Alicja"
-      },
-      {
-        "id": 3501197,
-        "date": "2026-10-16",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Ziemba Joanna",
-        "teacher": "Ziemba Joanna",
-        "time": "Cały dzień",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Ziemba Joanna (Cały dzień)",
-        "raw": "Nieobecność:Nauczyciel: Ziemba Joanna"
-      },
-      {
-        "id": 3501200,
-        "date": "2026-10-16",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Negowska Alicja",
-        "teacher": "Negowska Alicja",
-        "time": "Cały dzień",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Negowska Alicja (Cały dzień)",
-        "raw": "Nieobecność:Nauczyciel: Negowska Alicja"
-      },
-      {
-        "id": 12577117,
-        "date": "2026-10-16",
-        "type": "kartkowka",
-        "category": "Kartkówka",
-        "title": "Kartkówka: język niemiecki",
-        "subject": "język niemiecki",
-        "teacher": null,
-        "time": "Lekcja 0",
-        "description": "Nr lekcji: 0język niemiecki, kartkówka2Ti/1Sala: Z1",
-        "raw": "Nr lekcji: 0język niemiecki, kartkówka2Ti/1Sala: Z1"
-      },
-      {
-        "id": 3501515,
-        "date": "2026-10-19",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Łysakowski Grzegorz",
-        "teacher": "Łysakowski Grzegorz",
-        "time": "Cały dzień",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Łysakowski Grzegorz (Cały dzień)",
-        "raw": "Nieobecność:Nauczyciel: Łysakowski Grzegorz"
-      },
-      {
-        "id": 3505568,
-        "date": "2026-10-19",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Prabucki Andrzej",
-        "teacher": "Prabucki Andrzej",
-        "time": "08:00 do 12:15",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Prabucki Andrzej (08:00 do 12:15)",
-        "raw": "Nieobecność:Nauczyciel: Prabucki AndrzejGodziny: 08:00 do 12:15"
-      },
-      {
-        "id": 3505755,
-        "date": "2026-10-19",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Wardyn Wojciech",
-        "teacher": "Wardyn Wojciech",
-        "time": "08:00 do 08:45",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Wardyn Wojciech (08:00 do 08:45)",
-        "raw": "Nieobecność:Nauczyciel: Wardyn WojciechGodziny: 08:00 do 08:45"
-      },
-      {
-        "id": 12618168,
-        "date": "2026-10-19",
-        "type": "kartkowka",
-        "category": "Kartkówka",
-        "title": "Kartkówka: biznes i zarządzanie",
-        "subject": "biznes i zarządzanie",
-        "teacher": null,
-        "time": "Lekcja 5",
-        "description": "Nr lekcji: 5biznes i zarządzanie, kartkówka2TI T",
-        "raw": "Nr lekcji: 5biznes i zarządzanie, kartkówka2TI T"
-      },
-      {
-        "id": 3507958,
-        "date": "2026-10-20",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Negowska Alicja",
-        "teacher": "Negowska Alicja",
-        "time": "Cały dzień",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Negowska Alicja (Cały dzień)",
-        "raw": "Nieobecność:Nauczyciel: Negowska Alicja"
-      },
-      {
-        "id": 3507957,
-        "date": "2026-10-20",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Łysakowski Grzegorz",
-        "teacher": "Łysakowski Grzegorz",
-        "time": "Cały dzień",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Łysakowski Grzegorz (Cały dzień)",
-        "raw": "Nieobecność:Nauczyciel: Łysakowski Grzegorz"
-      },
-      {
-        "id": 12639087,
-        "date": "2026-10-21",
-        "type": "kartkowka",
-        "category": "Kartkówka",
-        "title": "Kartkówka: biologia",
-        "subject": "biologia",
-        "teacher": null,
-        "time": "Lekcja 1",
-        "description": "Nr lekcji: 1biologia, kartkówka2TI T",
-        "raw": "Nr lekcji: 1biologia, kartkówka2TI T"
-      },
-      {
-        "id": 12549292,
-        "date": "2026-10-21",
-        "type": "sprawdzian",
-        "category": "Sprawdzian",
-        "title": "Sprawdzian: biologia",
-        "subject": "biologia",
-        "teacher": null,
-        "time": "Lekcja 2",
-        "description": "Nr lekcji: 2biologia, Praca Klasowa2TI T",
-        "raw": "Nr lekcji: 2biologia, Praca Klasowa2TI T"
-      },
-      {
-        "id": 12637127,
-        "date": "2026-10-22",
-        "type": "sprawdzian",
-        "category": "Sprawdzian",
-        "title": "Sprawdzian: 2TI T",
-        "subject": "2TI T",
-        "teacher": null,
-        "time": "Lekcja 0",
-        "description": "Nr lekcji: 0Praca Klasowa2TI T",
-        "raw": "Nr lekcji: 0Praca Klasowa2TI T"
-      },
-      {
-        "id": -1,
-        "date": "2026-10-23",
-        "type": "inne",
-        "category": "Wydarzenie szkolne",
-        "title": "Odwołane zajęciaAlicja Czarna na lekcji nr: 1",
-        "subject": null,
-        "teacher": null,
-        "time": "",
-        "description": "Odwołane zajęciaAlicja Czarna na lekcji nr: 1 (edukacja obywatelska)",
-        "raw": "Odwołane zajęciaAlicja Czarna na lekcji nr: 1 (edukacja obywatelska)"
-      },
-      {
-        "id": 3508619,
-        "date": "2026-10-23",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Czarna Alicja",
-        "teacher": "Czarna Alicja",
-        "time": "Cały dzień",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Czarna Alicja (Cały dzień)",
-        "raw": "Nieobecność:Nauczyciel: Czarna Alicja"
-      },
-      {
-        "id": 3513357,
-        "date": "2026-10-26",
-        "type": "absence",
-        "category": "Nieobecność nauczyciela",
-        "title": "Nieobecność: Piwowarczyk Grzegorz",
-        "teacher": "Piwowarczyk Grzegorz",
-        "time": "13:15 do 14:00",
-        "subject": null,
-        "description": "Nieobecność nauczyciela: Piwowarczyk Grzegorz (13:15 do 14:00)",
-        "raw": "Nieobecność:Nauczyciel: Piwowarczyk GrzegorzGodziny: 13:15 do 14:00"
-      },
-      {
-        "id": 12644658,
-        "date": "2026-10-28",
-        "type": "kartkowka",
-        "category": "Kartkówka",
-        "title": "Kartkówka: biologia",
-        "subject": "biologia",
-        "teacher": null,
-        "time": "Lekcja 2",
-        "description": "Nr lekcji: 2biologia, kartkówka2TI T",
-        "raw": "Nr lekcji: 2biologia, kartkówka2TI T"
-      },
-      {
-        "id": 12675352,
-        "date": "2026-10-28",
-        "type": "kartkowka",
-        "category": "Kartkówka",
-        "title": "Kartkówka: chemia",
-        "subject": "chemia",
-        "teacher": null,
-        "time": "Lekcja 7",
-        "description": "Nr lekcji: 7chemia, kartkówka2TI T",
-        "raw": "Nr lekcji: 7chemia, kartkówka2TI T"
-      },
-      {
-        "id": 12667847,
-        "date": "2026-10-29",
-        "type": "kartkowka",
-        "category": "Kartkówka",
-        "title": "Kartkówka: język angielski",
-        "subject": "język angielski",
-        "teacher": null,
-        "time": "Lekcja 0",
-        "description": "Nr lekcji: 0język angielski, kartkówkaj.ang 2 TI gr.1Sala: Z2",
-        "raw": "Nr lekcji: 0język angielski, kartkówkaj.ang 2 TI gr.1Sala: Z2"
-      },
-      {
-        "id": 12670940,
-        "date": "2026-10-29",
-        "type": "sprawdzian",
-        "category": "Sprawdzian",
-        "title": "Sprawdzian: język niemiecki",
-        "subject": "język niemiecki",
-        "teacher": null,
-        "time": "Lekcja 8",
-        "description": "Nr lekcji: 8język niemiecki, Sprawdzian wiadomości2TI T",
-        "raw": "Nr lekcji: 8język niemiecki, Sprawdzian wiadomości2TI T"
-      },
-      {
-        "id": 3463302,
-        "date": "2026-11-01",
-        "type": "inne",
-        "category": "Wydarzenie szkolne",
-        "title": "Wszystkich  Świętych: T",
-        "subject": null,
-        "teacher": null,
-        "time": "",
-        "description": "Wszystkich  Świętych: T",
-        "raw": "Wszystkich  Świętych: T"
-      },
-      {
-        "id": 12649181,
-        "date": "2026-11-09",
-        "type": "sprawdzian",
-        "category": "Sprawdzian",
-        "title": "Sprawdzian: biznes i zarządzanie",
-        "subject": "biznes i zarządzanie",
-        "teacher": null,
-        "time": "Lekcja 4",
-        "description": "Nr lekcji: 4biznes i zarządzanie, Sprawdzian wiadomości2TI TSala: 0.2",
-        "raw": "Nr lekcji: 4biznes i zarządzanie, Sprawdzian wiadomości2TI TSala: 0.2"
-      },
-      {
-        "id": 3463303,
-        "date": "2026-11-11",
-        "type": "inne",
-        "category": "Wydarzenie szkolne",
-        "title": "Święto Niepodległości: T",
-        "subject": null,
-        "teacher": null,
-        "time": "",
-        "description": "Święto Niepodległości: T",
-        "raw": "Święto Niepodległości: T"
-      }
-    ]
-  },
-  "calendarLastSync": "2026-10-26 07:16:31"
+  "lastSync": "2026-11-04T14:24:43.531Z"
 }

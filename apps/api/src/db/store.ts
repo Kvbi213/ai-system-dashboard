@@ -45,9 +45,14 @@ export * from './types.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+function formatDisplayGrade(raw: string | number): string {
+  return String(raw !== undefined && raw !== null ? raw : '').trim();
+}
+
 function parseGradeValue(raw: string | number): number {
   if (typeof raw === 'number') return raw;
   const str = String(raw).trim();
+  if (str === '+' || str === '-') return 0;
   if (str.endsWith('+')) {
     const base = parseFloat(str.slice(0, -1));
     return isNaN(base) ? 0 : base + 0.5;
@@ -77,6 +82,7 @@ export class DatabaseStore {
   private routines: RoutineItem[] = [];
   private personalGoals: PersonalGoalItem[] = [];
   private journal: JournalEntry[] = [];
+  private luckyNumber = 3;
 
   constructor() {
     this.seed();
@@ -174,6 +180,10 @@ export class DatabaseStore {
       const raw = fs.readFileSync(groundTruthPath, 'utf8');
       const data = JSON.parse(raw);
 
+      if (typeof data.luckyNumber === 'number') {
+        this.luckyNumber = data.luckyNumber;
+      }
+
       // 1. Parsowanie Przedmiotów i Ocen
       if (data.grades && Array.isArray(data.grades.subjects)) {
         const parsedSubjects: SubjectWithGrades[] = [];
@@ -182,34 +192,64 @@ export class DatabaseStore {
         data.grades.subjects.forEach((sub: any, sIdx: number) => {
           const subGrades: SingleGradeDetail[] = [];
 
+          const parseRawGrade = (g: any, gIdx: number, semester: 1 | 2): SingleGradeDetail => {
+            const rawVal = g.value !== undefined ? g.value : g.numericValue;
+            const displayVal = formatDisplayGrade(rawVal);
+            const val = parseGradeValue(g.numericValue !== undefined ? g.numericValue : g.value);
+            const weight = g.details?.weight !== undefined ? Number(g.details.weight) : (g.weight !== undefined ? Number(g.weight) : 1);
+            const cat = g.details?.category || g.category || 'Brak kategorii';
+            const dt = g.details?.date || g.date || 'Październik 2026';
+            const tch = g.details?.teacher || g.teacher || '';
+            const gId = String(g.id || `gt_sem${semester}_${sIdx}_${gIdx}`);
+            const rawInfo = String(g.info || g.details?.raw || '');
+            const imprMatch = rawInfo.match(/Poprawa oceny:\s*([0-9\+\-]+)/i);
+            const isImprovement = Boolean(imprMatch || g.isImprovement);
+            const improvedValue = imprMatch ? imprMatch[1].trim() : (g.improvedValue ? String(g.improvedValue) : undefined);
+            const inAvg = g.details?.inAverage !== undefined
+              ? Boolean(g.details.inAverage)
+              : (g.inAverage !== undefined ? Boolean(g.inAverage) : (val > 0 && weight > 0));
+
+            return {
+              id: gId,
+              value: val,
+              displayValue: displayVal,
+              weight,
+              category: cat,
+              date: dt,
+              teacher: tch,
+              comment: g.details?.comment || g.comment || undefined,
+              semester,
+              isImprovement,
+              improvedValue,
+              inAverage: inAvg
+            };
+          };
+
           // Semestr 1
           if (Array.isArray(sub.sem1Grades)) {
             sub.sem1Grades.forEach((g: any, gIdx: number) => {
-              const val = parseGradeValue(g.numericValue || g.value);
-              const weight = g.details?.weight !== undefined ? Number(g.details.weight) : 1;
-              const cat = g.details?.category || 'Brak kategorii';
-              const dt = g.details?.date || 'Październik 2026';
-              const tch = g.details?.teacher || '';
-              const gId = String(g.id || `gt_sem1_${sIdx}_${gIdx}`);
-
-              subGrades.push({
-                id: gId,
-                value: val,
-                weight,
-                category: cat,
-                date: dt,
-                teacher: tch,
-                semester: 1
-              });
+              const detail = parseRawGrade(g, gIdx, 1);
+              if (detail.isImprovement && detail.improvedValue) {
+                for (let pi = subGrades.length - 1; pi >= 0; pi--) {
+                  const prev = subGrades[pi];
+                  if (prev.category === detail.category || prev.displayValue === detail.improvedValue) {
+                    prev.improvedGradeId = detail.id;
+                    detail.improvedGradeId = prev.id;
+                    prev.inAverage = false;
+                    break;
+                  }
+                }
+              }
+              subGrades.push(detail);
 
               flatGrades.push({
-                id: gId,
+                id: detail.id,
                 subject: sub.name,
-                grade: val,
-                weight,
-                description: cat,
-                date: dt,
-                teacher: tch
+                grade: detail.value,
+                weight: detail.weight,
+                description: detail.category,
+                date: detail.date || '',
+                teacher: detail.teacher
               });
             });
           }
@@ -217,51 +257,65 @@ export class DatabaseStore {
           // Semestr 2
           if (Array.isArray(sub.sem2Grades)) {
             sub.sem2Grades.forEach((g: any, gIdx: number) => {
-              const val = parseGradeValue(g.numericValue || g.value);
-              const weight = g.details?.weight !== undefined ? Number(g.details.weight) : 1;
-              const cat = g.details?.category || 'Brak kategorii';
-              const dt = g.details?.date || 'Listopad 2026';
-              const tch = g.details?.teacher || '';
-              const gId = String(g.id || `gt_sem2_${sIdx}_${gIdx}`);
-
-              subGrades.push({
-                id: gId,
-                value: val,
-                weight,
-                category: cat,
-                date: dt,
-                teacher: tch,
-                semester: 2
-              });
+              const detail = parseRawGrade(g, gIdx, 2);
+              if (detail.isImprovement && detail.improvedValue) {
+                for (let pi = subGrades.length - 1; pi >= 0; pi--) {
+                  const prev = subGrades[pi];
+                  if (prev.category === detail.category || prev.displayValue === detail.improvedValue) {
+                    prev.improvedGradeId = detail.id;
+                    detail.improvedGradeId = prev.id;
+                    prev.inAverage = false;
+                    break;
+                  }
+                }
+              }
+              subGrades.push(detail);
 
               flatGrades.push({
-                id: gId,
+                id: detail.id,
                 subject: sub.name,
-                grade: val,
-                weight,
-                description: cat,
-                date: dt,
-                teacher: tch
+                grade: detail.value,
+                weight: detail.weight,
+                description: detail.category,
+                date: detail.date || '',
+                teacher: detail.teacher
               });
             });
           }
 
+          const sem1Avg = sub.sem1Avg !== undefined && sub.sem1Avg !== null
+            ? Number(sub.sem1Avg)
+            : (sub.tempAverage !== undefined && sub.tempAverage !== null
+                ? Number(sub.tempAverage)
+                : (sub.semester?.[0]?.tempAverage !== undefined && sub.semester?.[0]?.tempAverage !== null
+                    ? Number(sub.semester[0].tempAverage)
+                    : undefined));
+
+          const sem2Avg = sub.sem2Avg !== undefined && sub.sem2Avg !== null
+            ? Number(sub.sem2Avg)
+            : (sub.semester?.[1]?.tempAverage !== undefined && sub.semester?.[1]?.tempAverage !== null
+                ? Number(sub.semester[1].tempAverage)
+                : undefined);
+
           let weightedSum = 0;
           let weightTotal = 0;
           for (const sg of subGrades) {
-            if (sg.weight > 0) {
+            if (sg.inAverage !== false && sg.weight > 0 && sg.value > 0) {
               weightedSum += sg.value * sg.weight;
               weightTotal += sg.weight;
             }
           }
-          const computedAvg = weightTotal > 0 ? Number((weightedSum / weightTotal).toFixed(2)) : Number(sub.tempAverage || sub.sem1Avg || 0);
+          const computedAvg = weightTotal > 0 ? Number((weightedSum / weightTotal).toFixed(2)) : 0;
+          const finalAvg = (sem1Avg !== undefined && sem1Avg > 0)
+            ? sem1Avg
+            : (computedAvg > 0 ? computedAvg : (sem2Avg !== undefined && sem2Avg > 0 ? sem2Avg : 0));
 
           parsedSubjects.push({
             id: `sub_${sIdx}_${sub.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
             name: sub.name,
-            average: computedAvg,
-            semester1Average: sub.sem1Avg ? Number(sub.sem1Avg) : undefined,
-            semester2Average: sub.sem2Avg ? Number(sub.sem2Avg) : undefined,
+            average: finalAvg,
+            semester1Average: sem1Avg,
+            semester2Average: sem2Avg,
             grades: subGrades
           });
         });
@@ -420,7 +474,7 @@ export class DatabaseStore {
       return { expenseTx, incomeTx };
     } catch (err) {
       try {
-        this.deleteTransaction(expenseTx.id);
+        this.deleteTransaction(userId, expenseTx.id);
       } catch (rollbackErr) {
         console.error('[!] Błąd rollbacku transakcji transferu:', rollbackErr);
       }
@@ -616,6 +670,14 @@ export class DatabaseStore {
     return this.grades;
   }
 
+  public getLuckyNumber(): number {
+    return this.luckyNumber;
+  }
+
+  public refreshFromGroundTruth(): void {
+    this.loadLibrusGroundTruth();
+  }
+
   public getSubjectsWithGrades(): SubjectWithGrades[] {
     if (this.subjectsWithGrades.length > 0) {
       return this.subjectsWithGrades;
@@ -627,10 +689,12 @@ export class DatabaseStore {
       list.push({
         id: g.id,
         value: g.grade,
+        displayValue: String(g.grade),
         weight: g.weight,
         category: g.description,
         date: g.date,
-        teacher: g.teacher
+        teacher: g.teacher,
+        inAverage: true
       });
       map.set(g.subject, list);
     }
@@ -641,7 +705,7 @@ export class DatabaseStore {
       let sumProduct = 0;
       let sumWeight = 0;
       for (const gr of grades) {
-        if (gr.weight > 0) {
+        if (gr.weight > 0 && gr.value > 0) {
           sumProduct += gr.value * gr.weight;
           sumWeight += gr.weight;
         }
@@ -680,6 +744,14 @@ export class DatabaseStore {
   }
 
   public calculateGpa(): number {
+    const graded = this.subjectsWithGrades.filter(
+      (s) => (s.semester1Average && s.semester1Average > 0) || (s.average && s.average > 0)
+    );
+    if (graded.length > 0) {
+      const sum = graded.reduce((acc, s) => acc + (s.semester1Average || s.average || 0), 0);
+      return Number((sum / graded.length).toFixed(2));
+    }
+
     let sumProduct = 0;
     let sumWeight = 0;
     for (const g of this.grades) {

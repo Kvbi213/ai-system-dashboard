@@ -1,8 +1,28 @@
 import { Router, Request, Response } from 'express';
 import { dbStore, GradeItem } from '../../db/store.js';
 import { redisCache } from '../../core/redisCache.js';
+import { syncLibrusData } from './librusSyncService.js';
 
 export const schoolRouter = Router();
+
+schoolRouter.post('/sync', async (_req: Request, res: Response) => {
+  try {
+    const result = await syncLibrusData();
+    if (!result.success && result.error === 'CREDENTIALS_MISSING') {
+      return res.status(400).json(result);
+    }
+    if (!result.success) {
+      return res.status(502).json(result);
+    }
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: `Nieoczekiwany błąd serwisu synchronizacji: ${err.message}`,
+      error: err.message
+    });
+  }
+});
 
 schoolRouter.get('/timetable', async (req: Request, res: Response) => {
   const day = parseInt(req.query.day as string, 10) || 1;
@@ -40,15 +60,16 @@ schoolRouter.get('/grades', async (_req: Request, res: Response) => {
       const grades = dbStore.getGrades();
       const subjects = dbStore.getSubjectsWithGrades();
       const gpa = dbStore.calculateGpa();
+      const luckyNumber = dbStore.getLuckyNumber();
       return {
         grades,
         subjects,
         stats: {
           gpa,
-          luckyNumber: 21,
-          totalGradesCount: grades.length,
+          luckyNumber,
+          totalGradesCount: grades.filter((g: GradeItem) => g.grade > 0).length,
           excellentCount: grades.filter((g: GradeItem) => g.grade >= 5).length,
-          threatsCount: grades.filter((g: GradeItem) => g.grade <= 1.5).length
+          threatsCount: subjects.filter((s) => s.average > 0 && s.average < 2.0).length
         }
       };
     });
@@ -57,15 +78,16 @@ schoolRouter.get('/grades', async (_req: Request, res: Response) => {
     const grades = dbStore.getGrades();
     const subjects = dbStore.getSubjectsWithGrades();
     const gpa = dbStore.calculateGpa();
+    const luckyNumber = dbStore.getLuckyNumber();
     res.json({
       grades,
       subjects,
       stats: {
         gpa,
-        luckyNumber: 21,
-        totalGradesCount: grades.length,
+        luckyNumber,
+        totalGradesCount: grades.filter((g: GradeItem) => g.grade > 0).length,
         excellentCount: grades.filter((g: GradeItem) => g.grade >= 5).length,
-        threatsCount: grades.filter((g: GradeItem) => g.grade <= 1.5).length
+        threatsCount: subjects.filter((s) => s.average > 0 && s.average < 2.0).length
       }
     });
   }
@@ -101,18 +123,20 @@ schoolRouter.get('/read-all', async (_req: Request, res: Response) => {
   try {
     const data = await redisCache.getOrSet('school:read-all', 300, async () => {
       const grades = dbStore.getGrades();
+      const subjects = dbStore.getSubjectsWithGrades();
       const gpa = dbStore.calculateGpa();
+      const luckyNumber = dbStore.getLuckyNumber();
       return {
         success: true,
         isConfigured: true,
         isDemo: false,
         timestamp: new Date().toISOString(),
-        studentInfo: { name: 'Operator', class: '2 TI T' },
-        luckyNumber: 21,
+        studentInfo: { name: 'Jakub Lis', class: '2 TI T' },
+        luckyNumber,
         grades: {
           overallAverage: gpa.toString(),
-          totalSubjects: 21,
-          gradedSubjectsCount: grades.length,
+          totalSubjects: subjects.length,
+          gradedSubjectsCount: subjects.filter((s) => s.average > 0 || (s.semester1Average && s.semester1Average > 0)).length,
           subjects: grades
         },
         timetable: dbStore.getAllTimetable(),
@@ -124,18 +148,20 @@ schoolRouter.get('/read-all', async (_req: Request, res: Response) => {
     res.json(data);
   } catch {
     const grades = dbStore.getGrades();
+    const subjects = dbStore.getSubjectsWithGrades();
     const gpa = dbStore.calculateGpa();
+    const luckyNumber = dbStore.getLuckyNumber();
     res.json({
       success: true,
       isConfigured: true,
       isDemo: false,
       timestamp: new Date().toISOString(),
-      studentInfo: { name: 'Operator', class: '2 TI T' },
-      luckyNumber: 21,
+      studentInfo: { name: 'Jakub Lis', class: '2 TI T' },
+      luckyNumber,
       grades: {
         overallAverage: gpa.toString(),
-        totalSubjects: 21,
-        gradedSubjectsCount: grades.length,
+        totalSubjects: subjects.length,
+        gradedSubjectsCount: subjects.filter((s) => s.average > 0 || (s.semester1Average && s.semester1Average > 0)).length,
         subjects: grades
       },
       timetable: dbStore.getAllTimetable(),

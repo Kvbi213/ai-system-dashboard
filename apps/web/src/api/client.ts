@@ -95,9 +95,10 @@ export const workoutsApi = {
 export const schoolApi = {
   getTimetable: (day = 1) => apiFetch<{ day: number; lessons: any[]; meta: any }>(`/school/timetable?day=${day}`),
   getAllWeekTimetable: () => apiFetch<any>('/school/read-all'),
-  getGrades: () => apiFetch<{ grades: any[]; stats: any }>('/school/grades'),
+  getGrades: () => apiFetch<{ grades: any[]; subjects: any[]; stats: any }>('/school/grades'),
   getAttendance: () => apiFetch<any>('/school/attendance'),
-  getEvents: () => apiFetch<{ events: any[] }>('/school/events')
+  getEvents: () => apiFetch<{ events: any[] }>('/school/events'),
+  syncLibrus: () => apiFetch<{ success: boolean; message: string; stats?: any }>('/school/sync', { method: 'POST' })
 };
 
 // Private Hub Domain

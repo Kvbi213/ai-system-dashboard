@@ -91,7 +91,7 @@ $PROJECT_ROOT/OmniDash/
 │   │   │       ├── finance/        # /api/finance (50/30/20, transakcje)
 │   │   │       ├── workouts/       # /api/workouts (ćwiczenia, nawyki, serie)
 │   │   │       ├── traffic/        # /api/traffic (kamery, CANARD, alerty)
-│   │   │       ├── school/         # /api/school (plan, oceny, obecności)
+│   │   │       ├── school/         # /api/school (plan, oceny, librusSyncService, /sync)
 │   │   │       ├── news/           # /api/news (ticker IT/CERT)
 │   │   │       ├── ai/             # /api/ai (SSE chat reasoning, tool calling)
 │   │   │       ├── osint/          # /api/osint (DNS, ASN, SSL inspect)

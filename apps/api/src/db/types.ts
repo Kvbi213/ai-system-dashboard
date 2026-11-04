@@ -115,12 +115,17 @@ export interface SchoolEvent {
 export interface SingleGradeDetail {
   id: string;
   value: number;
+  displayValue: string;
   weight: number;
   category: string;
   date?: string;
   teacher?: string;
   comment?: string;
   semester?: 1 | 2;
+  isImprovement?: boolean;
+  improvedGradeId?: string;
+  improvedValue?: string;
+  inAverage?: boolean;
 }
 
 export interface SubjectWithGrades {

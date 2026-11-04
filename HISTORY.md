@@ -555,3 +555,25 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - Worker Vitest: 8 passed (3 pliki testowe, 100% green).
   - Playwright E2E: 8/8 passed w audycie kalendarza, osi czasu i strefy prywatnej.
   - Web Build: `tsc && vite build` — 0 błędów, exit code 0.
+
+## v4.0.0-rc.8 — 2026-11-04
+### Autorytatywna Synchronizacja Librus Synergia, GPA 4.28, Prezentacja Ocen i Grupowanie Popraw w Klamrach
+- [+] **Usługa Synchronizacji na Żywo z Librus Synergia (`apps/api/src/domains/school/librusSyncService.ts`):**
+  - Implementacja bezpośredniej integracji z biblioteką `librus-api` z autoryzacją poświadczeniami `LIBRUS_LOGIN` oraz `LIBRUS_PASSWORD` pobieranymi ze zmiennych środowiskowych `.env`.
+  - Nowy endpoint produkcyjny: `POST /api/school/sync` z inwalidacją bufora Redis (`school:*`) i odświeżeniem stanu bazy pamięciowej `dbStore`.
+- [+] **Autorytatywne Odwzorowanie Algorytmu Średniej i Metadanych Librus Synergia (`apps/api/src/db/store.ts`):**
+  - Obliczanie GPA zgodnie ze standardem Librus Synergia: średnia arytmetyczna z autorytatywnych średnich semestralnych (`sem1Avg` / `tempAverage`) dla 16 ocenionych przedmiotów (Suma: 68.54 / 16 = **4.28**).
+  - Synchronizacja autentycznego szczęśliwego numerka z portalu (**3**).
+  - Zachowanie dokładnych wartości wyświetlanych (`displayValue`) z modyfikatorami (`4+`, `3-`, `2+`, `5+`) oraz znaczkami aktywności (`+`, `-`).
+  - Identyfikacja i kojarzenie ocen poprawkowych (`isImprovement`, `improvedGradeId`, `improvedValue`).
+  - Precyzyjna kalkulacja zagrożeń (zagrożenia = 0 przy braku średnich < 2.0).
+- [+] **Prezentacja Ocen w Interfejsie SPA (`apps/web`):**
+  - `SubjectGradesGrid.tsx`: renderowanie klamer poprawkowych `[ 3  5 ]` (Biologia) oraz `[ 1  4 ]` (Język polski), w których ocena pierwotna jest przekreślona/wyciszona, a ocena poprawiona wyeksponowana.
+  - Obsługa badge'y aktywności (`+`, `-`) z dedykowanymi stylami szmaragdowymi i karmazynowymi.
+  - `GradesPage.tsx`: przycisk szybkiej synchronizacji na żywo ("Synchronizuj z Librus") z animacją postępu i inwalidacją `localStorage` (`omnidash_grades_cache_v4_2`).
+- [+] **Weryfikacja Empiryczna:**
+  - API Gateway Vitest: 95 passed (13 plików testowych, 100% green).
+  - Worker Vitest: 8 passed (3 pliki testowe, 100% green).
+  - Playwright E2E: 54 passed (2 skipped, 100% green).
+  - Web Build: `tsc && vite build` — 0 błędów, exit code 0.
+

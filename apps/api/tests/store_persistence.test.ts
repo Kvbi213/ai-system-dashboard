@@ -27,11 +27,22 @@ describe('DatabaseStore Persistence & Librus Ground Truth', () => {
     const store = new DatabaseStore();
     const subjects = store.getSubjectsWithGrades();
 
-    expect(subjects.length).toBeGreaterThan(0);
+    expect(subjects.length).toBe(21);
     const biologia = subjects.find((s) => s.name === 'Biologia');
     expect(biologia).toBeDefined();
-    expect(biologia?.grades.length).toBeGreaterThan(0);
-    expect(biologia?.average).toBeGreaterThan(0);
+    expect(biologia?.grades.length).toBe(4);
+    expect(biologia?.average).toBe(4.13);
+
+    // Sprawdzenie poprawy oceny w Biologii
+    const bioImprovement = biologia?.grades.find((g) => g.isImprovement);
+    expect(bioImprovement).toBeDefined();
+    expect(bioImprovement?.displayValue).toBe('5');
+    expect(bioImprovement?.improvedValue).toBe('3');
+    expect(bioImprovement?.improvedGradeId).toBeDefined();
+
+    // Sprawdzenie GPA i szczęśliwego numerka
+    expect(store.calculateGpa()).toBe(4.28);
+    expect(store.getLuckyNumber()).toBe(3);
   });
 
   it('ładuje wydarzenia z Ground Truth oraz wydarzenia na listopad 2026', () => {
