@@ -539,3 +539,19 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - Worker Vitest: 8 passed (3 pliki testowe, 100% green).
   - Playwright E2E: 52 passed (2 skipped, 100% green).
   - Web Build: `tsc && vite build` — 0 błędów, kod 0.
+
+## v4.0.0-rc.7 — 2026-11-04
+### Refaktoryzacja Bufora Redis (SCAN Iteration), Sanityzacja Kluczy i Korekta Odliczania Treningowego
+- [+] **Bezpieczna Iteracja SCAN w Warstwie Cache (`apps/api/src/core/redisCache.ts`):**
+  - Wyeliminowano blokujące wywołanie `KEYS` O(N) na rzecz asynchronicznej pętli kursorowej `SCAN` z usuwaniem paczkami po 100 kluczy (`scanAndDelete`).
+  - Wdrożono rygorystyczną walidację kluczy (długość <= 256 znaków, zakaz nieautoryzowanych wildcardów w operacjach pojedynczych).
+  - Dodano okresowy mechanizm czyszczenia pamięci podręcznej (in-memory janitor timer co 60s z flagą `.unref()`).
+  - Rozbudowano procedurę zamykania `close()` o czyszczenie timera janitora i deterministyczne rozłączenie klienta Redis.
+  - Skonfigurowano politykę automatycznego wznawiania połączenia z exponential backoff i logowaniem zdarzeń (`ready`, `reconnecting`, `error`).
+- [+] **Korekta Językowa Odliczania w Nakładce Treningowej (`apps/web`):**
+  - Wdrożono deterministyczną odmianę jednostek czasu w języku polskim w `RestTimerOverlay.tsx` (`getSecondsUnit`: sekunda/sekundy/sekund).
+- [+] **Weryfikacja Empiryczna:**
+  - API Gateway Vitest: 91 passed (13 plików testowych, 100% green).
+  - Worker Vitest: 8 passed (3 pliki testowe, 100% green).
+  - Playwright E2E: 8/8 passed w audycie kalendarza, osi czasu i strefy prywatnej.
+  - Web Build: `tsc && vite build` — 0 błędów, exit code 0.

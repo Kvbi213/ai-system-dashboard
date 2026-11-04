@@ -80,7 +80,8 @@ $PROJECT_ROOT/OmniDash/
 │   │   │   ├── core/
 │   │   │   │   ├── corsConfig.ts   # Ścisła biała lista CORS (zero wildcard '*')
 │   │   │   │   ├── security.ts     # Nagłówki Helmet i audyt bezpieczeństwa
-│   │   │   │   └── authMiddleware.ts # Zero-Trust Bearer / Dev-Bypass guard
+│   │   │   │   ├── authMiddleware.ts # Zero-Trust Bearer / Dev-Bypass guard
+│   │   │   │   └── redisCache.ts   # Resilientny bufor Redis (SCAN iteration, key sanitization, in-memory TTL failover, auto-reconnect)
 │   │   │   ├── db/
 │   │   │   │   └── store.ts        # Relacyjny store Drizzle-ready z izolacją tenanta (userId)
 │   │   │   └── domains/            # Modularne routery domenowe

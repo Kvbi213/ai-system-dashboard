@@ -51,6 +51,16 @@ function playRestDoneChime() {
   }
 }
 
+function getSecondsUnit(sec: number): string {
+  const abs = Math.abs(sec);
+  const lastDigit = abs % 10;
+  const lastTwo = abs % 100;
+  if (lastTwo >= 11 && lastTwo <= 19) return 'sekund do serii';
+  if (lastDigit === 1) return 'sekunda do serii';
+  if (lastDigit >= 2 && lastDigit <= 4) return 'sekundy do serii';
+  return 'sekund do serii';
+}
+
 export const RestTimerOverlay: React.FC<RestTimerOverlayProps> = ({
   isOpen,
   secondsRemaining,
@@ -152,7 +162,7 @@ export const RestTimerOverlay: React.FC<RestTimerOverlayProps> = ({
             max={300}
             step={1}
             value={secondsRemaining}
-            unit="sekundy do serii"
+            unit={getSecondsUnit(secondsRemaining)}
             label="Licznik odliczania (przeciągnij by skorygować)"
             onChange={(val) => onSetSeconds(val)}
             accent="cyan"

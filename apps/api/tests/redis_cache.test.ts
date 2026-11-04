@@ -5,7 +5,7 @@ describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
   let cache: RedisCache;
 
   beforeEach(() => {
-    cache = new RedisCache({ fallbackOnly: true });
+    cache = new RedisCache({ fallbackOnly: true, janitorIntervalMs: 50 });
   });
 
   afterEach(async () => {
@@ -86,5 +86,28 @@ describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
 
     expect(stats.isRedisConnected).toBe(false);
     expect(stats.inMemoryKeysCount).toBe(2);
+  });
+
+  it('odrzuca klucze z wildcardami i niepoprawne długości w operacjach pojedynczych', async () => {
+    await cache.set('invalid*key', 'should_not_save');
+    expect(await cache.get('invalid*key')).toBeNull();
+
+    await cache.set('valid:key', 'saved');
+    expect(await cache.get('valid:key')).toBe('saved');
+
+    const tooLongKey = 'a'.repeat(300);
+    await cache.set(tooLongKey, 'overflow');
+    expect(await cache.get(tooLongKey)).toBeNull();
+  });
+
+  it('automatycznie czyści wygasłe wpisy za pomocą okresowego janitora', async () => {
+    await cache.set('janitor:short', 'val', 0.05); // 50ms TTL
+    expect(await cache.get('janitor:short')).toBe('val');
+
+    // Odczekaj 120ms, aby minął zarówno TTL, jak i interwał janitora (50ms)
+    await new Promise((resolve) => setTimeout(resolve, 120));
+
+    const stats = cache.getStats();
+    expect(stats.inMemoryKeysCount).toBe(0);
   });
 });
