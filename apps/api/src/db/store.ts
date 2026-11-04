@@ -364,7 +364,24 @@ export class DatabaseStore {
         : (Array.isArray(data.calendarEvents) ? data.calendarEvents : []);
 
       if (rawEventsList.length > 0) {
-        const gtEvents: SchoolEvent[] = rawEventsList.map((e: any) => ({
+        const flatList: any[] = [];
+        for (const item of rawEventsList) {
+          if (!item) continue;
+          if (item.id !== undefined) {
+            flatList.push(item);
+          } else {
+            const nested = Object.values(item).filter(
+              (v: any) => v && typeof v === 'object' && v.id !== undefined
+            );
+            if (nested.length > 0) {
+              nested.forEach((n: any) => {
+                flatList.push({ ...n, date: n.date || n.day || item.date || item.day });
+              });
+            }
+          }
+        }
+
+        const gtEvents: SchoolEvent[] = flatList.map((e: any) => ({
           id: String(e.id),
           date: parseLibrusDate(e.date || e.day) || new Date().toISOString().split('T')[0],
           type: (e.type === 'sprawdzian' ? 'sprawdzian' : e.type === 'kartkowka' ? 'kartkowka' : e.type === 'absence' ? 'absence' : 'inne') as any,

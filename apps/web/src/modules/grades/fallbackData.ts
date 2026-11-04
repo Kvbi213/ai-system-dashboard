@@ -1,6 +1,17 @@
 import { SubjectGradeItem } from "./components/SubjectGradesGrid";
 
-export const FALLBACK_LIBRUS_SUBJECTS: SubjectGradeItem[] = [
+export function validateFallbackSubjects(data: unknown): data is SubjectGradeItem[] {
+  if (!Array.isArray(data)) return false;
+  return data.every(
+    (s) =>
+      typeof s.id === 'string' &&
+      typeof s.name === 'string' &&
+      typeof s.average === 'number' &&
+      Array.isArray(s.grades)
+  );
+}
+
+export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
   {
     "id": "sub_0_biologia",
     "name": "Biologia",

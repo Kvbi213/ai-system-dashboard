@@ -2,7 +2,7 @@ import Librus from 'librus-api';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { dbStore, parseSafeAverage } from '../../db/store.js';
+import { dbStore, parseSafeAverage, parseLibrusDate } from '../../db/store.js';
 import { redisCache } from '../../core/redisCache.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -93,11 +93,29 @@ export async function syncLibrusData(): Promise<LibrusSyncResult> {
       const currentMonth = now.getMonth() + 1;
       const cal = await client.calendar.getCalendar(currentMonth);
       if (Array.isArray(cal)) {
-        calendarEvents = cal.map((c: any) => ({
-          ...c,
-          date: c.date || c.day || `${now.getFullYear()}-${String(currentMonth).padStart(2, '0')}-01`,
-          day: c.day || c.date
-        }));
+        const flatList: any[] = [];
+        for (const item of cal) {
+          if (!item) continue;
+          const nested: any[] = Array.isArray(item)
+            ? item
+            : (typeof item === 'object'
+                ? Object.values(item).filter((v: any) => v && typeof v === 'object' && (v.id !== undefined || v.title))
+                : [item]);
+
+          for (const ev of nested) {
+            const evDate = parseLibrusDate(ev.date || ev.day) || `${now.getFullYear()}-${String(currentMonth).padStart(2, '0')}-01`;
+            flatList.push({
+              id: ev.id !== undefined ? String(ev.id) : `event_${flatList.length + 1}`,
+              title: ev.title || 'Wydarzenie szkolne',
+              day: evDate,
+              date: evDate,
+              time: ev.time || undefined,
+              teacher: ev.teacher || undefined,
+              category: ev.category || 'Terminarz Librus'
+            });
+          }
+        }
+        calendarEvents = flatList;
       }
     } catch {
       // Ignoruj błąd kalendarza

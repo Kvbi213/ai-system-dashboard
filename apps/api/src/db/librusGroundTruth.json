@@ -2,7 +2,7 @@
   "success": true,
   "isConfigured": true,
   "isDemo": false,
-  "timestamp": "2026-11-04T15:05:12.792Z",
+  "timestamp": "2026-11-04T15:37:19.878Z",
   "studentInfo": {
     "name": "Jakub Lis",
     "class": "2 TI T",
@@ -59,7 +59,7 @@
           }
         ],
         "tempAverage": 4.13,
-        "average": null,
+        "average": 4.13,
         "sem1Grades": [
           {
             "id": 2661119,
@@ -157,7 +157,7 @@
           }
         ],
         "tempAverage": 4.5,
-        "average": null,
+        "average": 4.5,
         "sem1Grades": [
           {
             "id": 5307591,
@@ -215,7 +215,7 @@
           }
         ],
         "tempAverage": 2.75,
-        "average": null,
+        "average": 2.75,
         "sem1Grades": [
           {
             "id": 2554576,
@@ -288,7 +288,7 @@
           }
         ],
         "tempAverage": 5,
-        "average": null,
+        "average": 5,
         "sem1Grades": [
           {
             "id": 983480,
@@ -397,7 +397,7 @@
           }
         ],
         "tempAverage": 4,
-        "average": null,
+        "average": 4,
         "sem1Grades": [
           {
             "id": 2034728,
@@ -485,7 +485,7 @@
           }
         ],
         "tempAverage": 5.5,
-        "average": null,
+        "average": 5.5,
         "sem1Grades": [
           {
             "id": 1976428,
@@ -578,7 +578,7 @@
           }
         ],
         "tempAverage": 4.33,
-        "average": null,
+        "average": 4.33,
         "sem1Grades": [
           {
             "id": 829132,
@@ -711,7 +711,7 @@
           }
         ],
         "tempAverage": 5,
-        "average": null,
+        "average": 5,
         "sem1Grades": [
           {
             "id": 2552196,
@@ -799,7 +799,7 @@
           }
         ],
         "tempAverage": 3.5,
-        "average": null,
+        "average": 3.5,
         "sem1Grades": [
           {
             "id": 316188,
@@ -937,7 +937,7 @@
           }
         ],
         "tempAverage": 3.88,
-        "average": null,
+        "average": 3.88,
         "sem1Grades": [
           {
             "id": 767218,
@@ -1065,7 +1065,7 @@
           }
         ],
         "tempAverage": 5,
-        "average": null,
+        "average": 5,
         "sem1Grades": [
           {
             "id": 3927791,
@@ -1153,7 +1153,7 @@
           }
         ],
         "tempAverage": 3.36,
-        "average": null,
+        "average": 3.36,
         "sem1Grades": [
           {
             "id": 138759,
@@ -1316,7 +1316,7 @@
           }
         ],
         "tempAverage": 5,
-        "average": null,
+        "average": 5,
         "sem1Grades": [
           {
             "id": 816464,
@@ -1420,7 +1420,7 @@
           }
         ],
         "tempAverage": 5,
-        "average": null,
+        "average": 5,
         "sem1Grades": [
           {
             "id": 1240939,
@@ -1524,7 +1524,7 @@
           }
         ],
         "tempAverage": 5,
-        "average": null,
+        "average": 5,
         "sem1Grades": [
           {
             "id": 1171137,
@@ -1592,7 +1592,7 @@
           }
         ],
         "tempAverage": 2.75,
-        "average": null,
+        "average": 2.75,
         "sem1Grades": [
           {
             "id": 3570755,
@@ -1703,287 +1703,301 @@
   "calendar": {
     "events": [
       {
-        "0": {
-          "id": 3463302,
-          "day": "2026-11-01",
-          "title": "Wszystkich  Świętych: T"
-        },
-        "date": "2026-11-01"
+        "id": "3463302",
+        "title": "Wszystkich  Świętych: T",
+        "day": "2026-11-01",
+        "date": "2026-11-01",
+        "category": "Terminarz Librus"
       },
       {
-        "0": {
-          "id": 12683613,
-          "day": "2026-11-02",
-          "info": "Nauczyciel: Wojnarowski Przemysław\nOpis: https://canva.link/nylvcmonczwu6zp\nData dodania: 2026-10-26 12:16:42",
-          "title": "Nr lekcji: 5\nlokalne sieci komputerowe, kartkówka\n2TI T\nSala: 0.2"
-        },
-        "date": "2026-11-01"
+        "id": "12683613",
+        "title": "Nr lekcji: 5\nlokalne sieci komputerowe, kartkówka\n2TI T\nSala: 0.2",
+        "day": "2026-11-02",
+        "date": "2026-11-02",
+        "category": "Terminarz Librus"
       },
       {
-        "0": {
-          "id": 3523730,
-          "day": "2026-11-03",
-          "title": "Nieobecność:\nNauczyciel: Łukaszczyk-Wulgaris Joanna"
-        },
-        "date": "2026-11-01"
+        "id": "3523730",
+        "title": "Nieobecność:\nNauczyciel: Łukaszczyk-Wulgaris Joanna",
+        "day": "2026-11-03",
+        "date": "2026-11-03",
+        "category": "Terminarz Librus"
       },
       {
-        "0": {
-          "id": 3526139,
-          "day": "2026-11-04",
-          "title": "Nieobecność:\nNauczyciel: Prabucki Andrzej"
-        },
-        "1": {
-          "id": 3526138,
-          "day": "2026-11-04",
-          "title": "Nieobecność:\nNauczyciel: Kryła Łukasz"
-        },
-        "2": {
-          "id": 3526895,
-          "day": "2026-11-04",
-          "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
-        },
-        "3": {
-          "id": 3526545,
-          "day": "2026-11-04",
-          "title": "Nieobecność:\nNauczyciel: Czarna Alicja\nGodziny: 10:40 do 13:05"
-        },
-        "4": {
-          "id": -1,
-          "day": "2026-11-04",
-          "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 7 (pracownia urządzeń techniki komputerowej)"
-        },
-        "5": {
-          "id": 12696856,
-          "day": "2026-11-04",
-          "info": "Nauczyciel: Gembiak Bartosz\nOpis: Test lekcja 7-12 i popraw lekcja 1-6.\nData dodania: 2026-10-28 12:26:52",
-          "title": "Nr lekcji: 5\nurządzenia techniki komputerowej, Sprawdzian wiadomości\n2TI T\nSala: 1.2"
-        },
-        "date": "2026-11-01"
+        "id": "3526139",
+        "title": "Nieobecność:\nNauczyciel: Prabucki Andrzej",
+        "day": "2026-11-04",
+        "date": "2026-11-04",
+        "category": "Terminarz Librus"
       },
       {
-        "0": {
-          "id": 3526139,
-          "day": "2026-11-05",
-          "title": "Nieobecność:\nNauczyciel: Prabucki Andrzej"
-        },
-        "1": {
-          "id": 3526138,
-          "day": "2026-11-05",
-          "title": "Nieobecność:\nNauczyciel: Kryła Łukasz"
-        },
-        "2": {
-          "id": 3526895,
-          "day": "2026-11-05",
-          "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
-        },
-        "3": {
-          "id": -1,
-          "day": "2026-11-05",
-          "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 4 (pracownia urządzeń techniki komputerowej)"
-        },
-        "4": {
-          "id": -1,
-          "day": "2026-11-05",
-          "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 5 (pracownia urządzeń techniki komputerowej)"
-        },
-        "date": "2026-11-01"
+        "id": "3526138",
+        "title": "Nieobecność:\nNauczyciel: Kryła Łukasz",
+        "day": "2026-11-04",
+        "date": "2026-11-04",
+        "category": "Terminarz Librus"
       },
       {
-        "0": {
-          "id": 3526895,
-          "day": "2026-11-06",
-          "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
-        },
-        "1": {
-          "id": -1,
-          "day": "2026-11-06",
-          "title": "Przesunięcie z Alicja Negowska na lekcji nr: 5 (język polski)"
-        },
-        "2": {
-          "id": -1,
-          "day": "2026-11-06",
-          "title": "Odwołane zajęcia\nPaulina Kolasińska na lekcji nr: 5 (chemia)"
-        },
-        "date": "2026-11-01"
+        "id": "3526895",
+        "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina",
+        "day": "2026-11-04",
+        "date": "2026-11-04",
+        "category": "Terminarz Librus"
       },
       {
-        "0": {
-          "id": 12649181,
-          "day": "2026-11-09",
-          "info": "Nauczyciel: Sokół Paweł\nOpis: Wszystkie tematy od początku roku\nData dodania: 2026-10-19 11:22:49",
-          "title": "Nr lekcji: 4\nbiznes i zarządzanie, Sprawdzian wiadomości\n2TI T\nSala: 0.2"
-        },
-        "date": "2026-11-01"
+        "id": "3526545",
+        "title": "Nieobecność:\nNauczyciel: Czarna Alicja\nGodziny: 10:40 do 13:05",
+        "day": "2026-11-04",
+        "date": "2026-11-04",
+        "category": "Terminarz Librus"
       },
       {
-        "0": {
-          "id": 3463303,
-          "day": "2026-11-11",
-          "title": "Święto Niepodległości: T"
-        },
-        "date": "2026-11-01"
+        "id": "-1",
+        "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 7 (pracownia urządzeń techniki komputerowej)",
+        "day": "2026-11-04",
+        "date": "2026-11-04",
+        "category": "Terminarz Librus"
       },
       {
-        "0": {
-          "id": 12706162,
-          "day": "2026-11-13",
-          "info": "Nauczyciel: Chyła Beata\nOpis: Tolles Deutsch 1,dział 4\nData dodania: 2026-10-30 09:08:43",
-          "title": "Nr lekcji: 3\njęzyk niemiecki, Praca Klasowa\n2Ti/1\nSala: Z1"
-        },
-        "date": "2026-11-01"
+        "id": "12696856",
+        "title": "Nr lekcji: 5\nurządzenia techniki komputerowej, Sprawdzian wiadomości\n2TI T\nSala: 1.2",
+        "day": "2026-11-04",
+        "date": "2026-11-04",
+        "category": "Terminarz Librus"
       },
       {
-        "0": {
-          "id": 12691840,
-          "day": "2026-11-17",
-          "info": "Nauczyciel: Spych Monika\nOpis: Wartości i postawy (tematy 2-7)\nData dodania: 2026-10-29 08:56:02",
-          "title": "Nr lekcji: 8\nSprawdzian wiadomości\n2TI T"
-        },
-        "date": "2026-11-01"
+        "id": "3526139",
+        "title": "Nieobecność:\nNauczyciel: Prabucki Andrzej",
+        "day": "2026-11-05",
+        "date": "2026-11-05",
+        "category": "Terminarz Librus"
+      },
+      {
+        "id": "3526138",
+        "title": "Nieobecność:\nNauczyciel: Kryła Łukasz",
+        "day": "2026-11-05",
+        "date": "2026-11-05",
+        "category": "Terminarz Librus"
+      },
+      {
+        "id": "3526895",
+        "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina",
+        "day": "2026-11-05",
+        "date": "2026-11-05",
+        "category": "Terminarz Librus"
+      },
+      {
+        "id": "-1",
+        "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 4 (pracownia urządzeń techniki komputerowej)",
+        "day": "2026-11-05",
+        "date": "2026-11-05",
+        "category": "Terminarz Librus"
+      },
+      {
+        "id": "-1",
+        "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 5 (pracownia urządzeń techniki komputerowej)",
+        "day": "2026-11-05",
+        "date": "2026-11-05",
+        "category": "Terminarz Librus"
+      },
+      {
+        "id": "3526895",
+        "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina",
+        "day": "2026-11-06",
+        "date": "2026-11-06",
+        "category": "Terminarz Librus"
+      },
+      {
+        "id": "-1",
+        "title": "Przesunięcie z Alicja Negowska na lekcji nr: 5 (język polski)",
+        "day": "2026-11-06",
+        "date": "2026-11-06",
+        "category": "Terminarz Librus"
+      },
+      {
+        "id": "-1",
+        "title": "Odwołane zajęcia\nPaulina Kolasińska na lekcji nr: 5 (chemia)",
+        "day": "2026-11-06",
+        "date": "2026-11-06",
+        "category": "Terminarz Librus"
+      },
+      {
+        "id": "12649181",
+        "title": "Nr lekcji: 4\nbiznes i zarządzanie, Sprawdzian wiadomości\n2TI T\nSala: 0.2",
+        "day": "2026-11-09",
+        "date": "2026-11-09",
+        "category": "Terminarz Librus"
+      },
+      {
+        "id": "3463303",
+        "title": "Święto Niepodległości: T",
+        "day": "2026-11-11",
+        "date": "2026-11-11",
+        "category": "Terminarz Librus"
+      },
+      {
+        "id": "12706162",
+        "title": "Nr lekcji: 3\njęzyk niemiecki, Praca Klasowa\n2Ti/1\nSala: Z1",
+        "day": "2026-11-13",
+        "date": "2026-11-13",
+        "category": "Terminarz Librus"
+      },
+      {
+        "id": "12691840",
+        "title": "Nr lekcji: 8\nSprawdzian wiadomości\n2TI T",
+        "day": "2026-11-17",
+        "date": "2026-11-17",
+        "category": "Terminarz Librus"
       }
     ]
   },
   "calendarEvents": [
     {
-      "0": {
-        "id": 3463302,
-        "day": "2026-11-01",
-        "title": "Wszystkich  Świętych: T"
-      },
-      "date": "2026-11-01"
+      "id": "3463302",
+      "title": "Wszystkich  Świętych: T",
+      "day": "2026-11-01",
+      "date": "2026-11-01",
+      "category": "Terminarz Librus"
     },
     {
-      "0": {
-        "id": 12683613,
-        "day": "2026-11-02",
-        "info": "Nauczyciel: Wojnarowski Przemysław\nOpis: https://canva.link/nylvcmonczwu6zp\nData dodania: 2026-10-26 12:16:42",
-        "title": "Nr lekcji: 5\nlokalne sieci komputerowe, kartkówka\n2TI T\nSala: 0.2"
-      },
-      "date": "2026-11-01"
+      "id": "12683613",
+      "title": "Nr lekcji: 5\nlokalne sieci komputerowe, kartkówka\n2TI T\nSala: 0.2",
+      "day": "2026-11-02",
+      "date": "2026-11-02",
+      "category": "Terminarz Librus"
     },
     {
-      "0": {
-        "id": 3523730,
-        "day": "2026-11-03",
-        "title": "Nieobecność:\nNauczyciel: Łukaszczyk-Wulgaris Joanna"
-      },
-      "date": "2026-11-01"
+      "id": "3523730",
+      "title": "Nieobecność:\nNauczyciel: Łukaszczyk-Wulgaris Joanna",
+      "day": "2026-11-03",
+      "date": "2026-11-03",
+      "category": "Terminarz Librus"
     },
     {
-      "0": {
-        "id": 3526139,
-        "day": "2026-11-04",
-        "title": "Nieobecność:\nNauczyciel: Prabucki Andrzej"
-      },
-      "1": {
-        "id": 3526138,
-        "day": "2026-11-04",
-        "title": "Nieobecność:\nNauczyciel: Kryła Łukasz"
-      },
-      "2": {
-        "id": 3526895,
-        "day": "2026-11-04",
-        "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
-      },
-      "3": {
-        "id": 3526545,
-        "day": "2026-11-04",
-        "title": "Nieobecność:\nNauczyciel: Czarna Alicja\nGodziny: 10:40 do 13:05"
-      },
-      "4": {
-        "id": -1,
-        "day": "2026-11-04",
-        "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 7 (pracownia urządzeń techniki komputerowej)"
-      },
-      "5": {
-        "id": 12696856,
-        "day": "2026-11-04",
-        "info": "Nauczyciel: Gembiak Bartosz\nOpis: Test lekcja 7-12 i popraw lekcja 1-6.\nData dodania: 2026-10-28 12:26:52",
-        "title": "Nr lekcji: 5\nurządzenia techniki komputerowej, Sprawdzian wiadomości\n2TI T\nSala: 1.2"
-      },
-      "date": "2026-11-01"
+      "id": "3526139",
+      "title": "Nieobecność:\nNauczyciel: Prabucki Andrzej",
+      "day": "2026-11-04",
+      "date": "2026-11-04",
+      "category": "Terminarz Librus"
     },
     {
-      "0": {
-        "id": 3526139,
-        "day": "2026-11-05",
-        "title": "Nieobecność:\nNauczyciel: Prabucki Andrzej"
-      },
-      "1": {
-        "id": 3526138,
-        "day": "2026-11-05",
-        "title": "Nieobecność:\nNauczyciel: Kryła Łukasz"
-      },
-      "2": {
-        "id": 3526895,
-        "day": "2026-11-05",
-        "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
-      },
-      "3": {
-        "id": -1,
-        "day": "2026-11-05",
-        "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 4 (pracownia urządzeń techniki komputerowej)"
-      },
-      "4": {
-        "id": -1,
-        "day": "2026-11-05",
-        "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 5 (pracownia urządzeń techniki komputerowej)"
-      },
-      "date": "2026-11-01"
+      "id": "3526138",
+      "title": "Nieobecność:\nNauczyciel: Kryła Łukasz",
+      "day": "2026-11-04",
+      "date": "2026-11-04",
+      "category": "Terminarz Librus"
     },
     {
-      "0": {
-        "id": 3526895,
-        "day": "2026-11-06",
-        "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
-      },
-      "1": {
-        "id": -1,
-        "day": "2026-11-06",
-        "title": "Przesunięcie z Alicja Negowska na lekcji nr: 5 (język polski)"
-      },
-      "2": {
-        "id": -1,
-        "day": "2026-11-06",
-        "title": "Odwołane zajęcia\nPaulina Kolasińska na lekcji nr: 5 (chemia)"
-      },
-      "date": "2026-11-01"
+      "id": "3526895",
+      "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina",
+      "day": "2026-11-04",
+      "date": "2026-11-04",
+      "category": "Terminarz Librus"
     },
     {
-      "0": {
-        "id": 12649181,
-        "day": "2026-11-09",
-        "info": "Nauczyciel: Sokół Paweł\nOpis: Wszystkie tematy od początku roku\nData dodania: 2026-10-19 11:22:49",
-        "title": "Nr lekcji: 4\nbiznes i zarządzanie, Sprawdzian wiadomości\n2TI T\nSala: 0.2"
-      },
-      "date": "2026-11-01"
+      "id": "3526545",
+      "title": "Nieobecność:\nNauczyciel: Czarna Alicja\nGodziny: 10:40 do 13:05",
+      "day": "2026-11-04",
+      "date": "2026-11-04",
+      "category": "Terminarz Librus"
     },
     {
-      "0": {
-        "id": 3463303,
-        "day": "2026-11-11",
-        "title": "Święto Niepodległości: T"
-      },
-      "date": "2026-11-01"
+      "id": "-1",
+      "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 7 (pracownia urządzeń techniki komputerowej)",
+      "day": "2026-11-04",
+      "date": "2026-11-04",
+      "category": "Terminarz Librus"
     },
     {
-      "0": {
-        "id": 12706162,
-        "day": "2026-11-13",
-        "info": "Nauczyciel: Chyła Beata\nOpis: Tolles Deutsch 1,dział 4\nData dodania: 2026-10-30 09:08:43",
-        "title": "Nr lekcji: 3\njęzyk niemiecki, Praca Klasowa\n2Ti/1\nSala: Z1"
-      },
-      "date": "2026-11-01"
+      "id": "12696856",
+      "title": "Nr lekcji: 5\nurządzenia techniki komputerowej, Sprawdzian wiadomości\n2TI T\nSala: 1.2",
+      "day": "2026-11-04",
+      "date": "2026-11-04",
+      "category": "Terminarz Librus"
     },
     {
-      "0": {
-        "id": 12691840,
-        "day": "2026-11-17",
-        "info": "Nauczyciel: Spych Monika\nOpis: Wartości i postawy (tematy 2-7)\nData dodania: 2026-10-29 08:56:02",
-        "title": "Nr lekcji: 8\nSprawdzian wiadomości\n2TI T"
-      },
-      "date": "2026-11-01"
+      "id": "3526139",
+      "title": "Nieobecność:\nNauczyciel: Prabucki Andrzej",
+      "day": "2026-11-05",
+      "date": "2026-11-05",
+      "category": "Terminarz Librus"
+    },
+    {
+      "id": "3526138",
+      "title": "Nieobecność:\nNauczyciel: Kryła Łukasz",
+      "day": "2026-11-05",
+      "date": "2026-11-05",
+      "category": "Terminarz Librus"
+    },
+    {
+      "id": "3526895",
+      "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina",
+      "day": "2026-11-05",
+      "date": "2026-11-05",
+      "category": "Terminarz Librus"
+    },
+    {
+      "id": "-1",
+      "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 4 (pracownia urządzeń techniki komputerowej)",
+      "day": "2026-11-05",
+      "date": "2026-11-05",
+      "category": "Terminarz Librus"
+    },
+    {
+      "id": "-1",
+      "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 5 (pracownia urządzeń techniki komputerowej)",
+      "day": "2026-11-05",
+      "date": "2026-11-05",
+      "category": "Terminarz Librus"
+    },
+    {
+      "id": "3526895",
+      "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina",
+      "day": "2026-11-06",
+      "date": "2026-11-06",
+      "category": "Terminarz Librus"
+    },
+    {
+      "id": "-1",
+      "title": "Przesunięcie z Alicja Negowska na lekcji nr: 5 (język polski)",
+      "day": "2026-11-06",
+      "date": "2026-11-06",
+      "category": "Terminarz Librus"
+    },
+    {
+      "id": "-1",
+      "title": "Odwołane zajęcia\nPaulina Kolasińska na lekcji nr: 5 (chemia)",
+      "day": "2026-11-06",
+      "date": "2026-11-06",
+      "category": "Terminarz Librus"
+    },
+    {
+      "id": "12649181",
+      "title": "Nr lekcji: 4\nbiznes i zarządzanie, Sprawdzian wiadomości\n2TI T\nSala: 0.2",
+      "day": "2026-11-09",
+      "date": "2026-11-09",
+      "category": "Terminarz Librus"
+    },
+    {
+      "id": "3463303",
+      "title": "Święto Niepodległości: T",
+      "day": "2026-11-11",
+      "date": "2026-11-11",
+      "category": "Terminarz Librus"
+    },
+    {
+      "id": "12706162",
+      "title": "Nr lekcji: 3\njęzyk niemiecki, Praca Klasowa\n2Ti/1\nSala: Z1",
+      "day": "2026-11-13",
+      "date": "2026-11-13",
+      "category": "Terminarz Librus"
+    },
+    {
+      "id": "12691840",
+      "title": "Nr lekcji: 8\nSprawdzian wiadomości\n2TI T",
+      "day": "2026-11-17",
+      "date": "2026-11-17",
+      "category": "Terminarz Librus"
     }
   ],
   "timetable": {
@@ -2395,5 +2409,5 @@
       ]
     }
   },
-  "lastSync": "2026-11-04T15:05:12.792Z"
+  "lastSync": "2026-11-04T15:37:19.878Z"
 }
