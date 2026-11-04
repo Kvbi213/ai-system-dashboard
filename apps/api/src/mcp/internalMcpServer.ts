@@ -32,7 +32,6 @@ export class McpError extends Error {
   constructor(message: string, public readonly status: number = 500, options?: { cause?: unknown }) {
     super(message, options);
     this.name = 'McpError';
-    Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
@@ -55,6 +54,13 @@ export class McpNotImplementedError extends McpError {
     super(message, 501, options);
     this.name = 'McpNotImplementedError';
   }
+}
+
+/**
+ * Zwraca status HTTP powiązany ze strukturą błędu MCP.
+ */
+export function httpStatusFromError(err: unknown): number {
+  return err instanceof McpError ? err.status : 500;
 }
 
 /**
@@ -496,7 +502,7 @@ mcpRouter.post('/call', async (req: Request, res: Response) => {
       result
     });
   } catch (err: any) {
-    const status = err instanceof McpError ? err.status : 500;
+    const status = httpStatusFromError(err);
     res.status(status).json({
       success: false,
       tool,

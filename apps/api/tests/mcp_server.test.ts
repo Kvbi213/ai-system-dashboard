@@ -1,7 +1,33 @@
 import { describe, it, expect } from 'vitest';
-import { mcpServer } from '../src/mcp/internalMcpServer.js';
+import {
+  mcpServer,
+  McpError,
+  McpBadRequestError,
+  McpNotFoundError,
+  McpNotImplementedError,
+  httpStatusFromError
+} from '../src/mcp/internalMcpServer.js';
 
 describe('OmniDash Internal MCP Server Suite', () => {
+  it('verifies McpError hierarchy and HTTP status codes', () => {
+    const badReq = new McpBadRequestError('Bad arg');
+    expect(badReq).toBeInstanceOf(McpError);
+    expect(badReq.status).toBe(400);
+    expect(httpStatusFromError(badReq)).toBe(400);
+
+    const notFound = new McpNotFoundError('Missing item');
+    expect(notFound).toBeInstanceOf(McpError);
+    expect(notFound.status).toBe(404);
+    expect(httpStatusFromError(notFound)).toBe(404);
+
+    const notImpl = new McpNotImplementedError('Not supported');
+    expect(notImpl).toBeInstanceOf(McpError);
+    expect(notImpl.status).toBe(501);
+    expect(httpStatusFromError(notImpl)).toBe(501);
+
+    const unknownErr = new Error('Generic error');
+    expect(httpStatusFromError(unknownErr)).toBe(500);
+  });
   it('lists registered MCP tools with schema parameters', () => {
     const tools = mcpServer.listTools();
     expect(tools.length).toBeGreaterThanOrEqual(7);
