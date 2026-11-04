@@ -331,11 +331,16 @@ export class InternalMcpServer {
 
       case 'schedule_lesson_transition_alert': {
         const rawMinutes = Number(args.minutesBeforeEnd ?? 5);
-        const minutesBeforeEnd = Math.min(30, Math.max(1, isNaN(rawMinutes) ? 5 : rawMinutes));
-        const lessonIndex = Number(args.lessonIndex ?? 1);
-        if (isNaN(lessonIndex) || lessonIndex < 1) {
+        if (isNaN(rawMinutes) || !Number.isInteger(rawMinutes) || rawMinutes < 1 || rawMinutes > 30) {
+          throw new Error('Parametr "minutesBeforeEnd" musi być liczbą całkowitą od 1 do 30.');
+        }
+        const minutesBeforeEnd = rawMinutes;
+
+        const rawIndex = Number(args.lessonIndex ?? 1);
+        if (isNaN(rawIndex) || !Number.isInteger(rawIndex) || rawIndex < 1) {
           throw new Error('Parametr "lessonIndex" musi być dodatnią liczbą całkowitą.');
         }
+        const lessonIndex = rawIndex;
 
         const note = args.customNote ? String(args.customNote).slice(0, 300) : 'Powiadomienie przed dzwonkiem';
 
