@@ -191,23 +191,36 @@ export class DatabaseStore {
 
         data.grades.subjects.forEach((sub: any, sIdx: number) => {
           const subGrades: SingleGradeDetail[] = [];
+          const rawName = String(sub.name || '').trim();
+          const normalizedName = rawName ? rawName.charAt(0).toUpperCase() + rawName.slice(1) : `Przedmiot_${sIdx + 1}`;
 
           const parseRawGrade = (g: any, gIdx: number, semester: 1 | 2): SingleGradeDetail => {
+            const rawInfo = String(g.info || g.details?.raw || '');
+            const infoCategory = rawInfo.match(/Kategoria:\s*([^\n\r]+)/i)?.[1]?.trim();
+            const infoDate = rawInfo.match(/Data:\s*([^\n\r]+)/i)?.[1]?.trim();
+            const infoTeacher = rawInfo.match(/Nauczyciel:\s*([^\n\r]+)/i)?.[1]?.trim();
+            const infoWeightMatch = rawInfo.match(/Waga:\s*(\d+)/i);
+            const infoInAvgMatch = rawInfo.match(/Licz do średniej:\s*([^\n\r]+)/i);
+            const infoComment = rawInfo.match(/Komentarz:\s*([^\n\r]+)/i)?.[1]?.trim();
+
             const rawVal = g.value !== undefined ? g.value : g.numericValue;
             const displayVal = formatDisplayGrade(rawVal);
             const val = parseGradeValue(g.numericValue !== undefined ? g.numericValue : g.value);
-            const weight = g.details?.weight !== undefined ? Number(g.details.weight) : (g.weight !== undefined ? Number(g.weight) : 1);
-            const cat = g.details?.category || g.category || 'Brak kategorii';
-            const dt = g.details?.date || g.date || 'Październik 2026';
-            const tch = g.details?.teacher || g.teacher || '';
+            const weight = g.details?.weight !== undefined
+              ? Number(g.details.weight)
+              : (g.weight !== undefined ? Number(g.weight) : (infoWeightMatch ? parseInt(infoWeightMatch[1], 10) : 1));
+            const cat = g.details?.category || g.category || infoCategory || 'Brak kategorii';
+            const dt = g.details?.date || g.date || infoDate || 'Październik 2026';
+            const tch = g.details?.teacher || g.teacher || infoTeacher || '';
             const gId = String(g.id || `gt_sem${semester}_${sIdx}_${gIdx}`);
-            const rawInfo = String(g.info || g.details?.raw || '');
             const imprMatch = rawInfo.match(/Poprawa oceny:\s*([0-9\+\-]+)/i);
             const isImprovement = Boolean(imprMatch || g.isImprovement);
             const improvedValue = imprMatch ? imprMatch[1].trim() : (g.improvedValue ? String(g.improvedValue) : undefined);
             const inAvg = g.details?.inAverage !== undefined
               ? Boolean(g.details.inAverage)
-              : (g.inAverage !== undefined ? Boolean(g.inAverage) : (val > 0 && weight > 0));
+              : (g.inAverage !== undefined
+                  ? Boolean(g.inAverage)
+                  : (infoInAvgMatch ? infoInAvgMatch[1].trim().toLowerCase() === 'tak' : (val > 0 && weight > 0)));
 
             return {
               id: gId,
@@ -217,7 +230,7 @@ export class DatabaseStore {
               category: cat,
               date: dt,
               teacher: tch,
-              comment: g.details?.comment || g.comment || undefined,
+              comment: g.details?.comment || g.comment || infoComment || undefined,
               semester,
               isImprovement,
               improvedValue,
@@ -225,63 +238,66 @@ export class DatabaseStore {
             };
           };
 
+          const sem1List = Array.isArray(sub.sem1Grades)
+            ? sub.sem1Grades
+            : (Array.isArray(sub.semester?.[0]?.grades) ? sub.semester[0].grades : []);
+          const sem2List = Array.isArray(sub.sem2Grades)
+            ? sub.sem2Grades
+            : (Array.isArray(sub.semester?.[1]?.grades) ? sub.semester[1].grades : []);
+
           // Semestr 1
-          if (Array.isArray(sub.sem1Grades)) {
-            sub.sem1Grades.forEach((g: any, gIdx: number) => {
-              const detail = parseRawGrade(g, gIdx, 1);
-              if (detail.isImprovement && detail.improvedValue) {
-                for (let pi = subGrades.length - 1; pi >= 0; pi--) {
-                  const prev = subGrades[pi];
-                  if (prev.category === detail.category || prev.displayValue === detail.improvedValue) {
-                    prev.improvedGradeId = detail.id;
-                    detail.improvedGradeId = prev.id;
-                    prev.inAverage = false;
-                    break;
-                  }
+          sem1List.forEach((g: any, gIdx: number) => {
+            const detail = parseRawGrade(g, gIdx, 1);
+            if (detail.isImprovement && detail.improvedValue) {
+              for (let pi = subGrades.length - 1; pi >= 0; pi--) {
+                const prev = subGrades[pi];
+                if (prev.category === detail.category || prev.displayValue === detail.improvedValue) {
+                  prev.improvedGradeId = detail.id;
+                  detail.improvedGradeId = prev.id;
+                  prev.inAverage = false;
+                  break;
                 }
               }
-              subGrades.push(detail);
+            }
+            subGrades.push(detail);
 
-              flatGrades.push({
-                id: detail.id,
-                subject: sub.name,
-                grade: detail.value,
-                weight: detail.weight,
-                description: detail.category,
-                date: detail.date || '',
-                teacher: detail.teacher
-              });
+            flatGrades.push({
+              id: detail.id,
+              subject: normalizedName,
+              grade: detail.value,
+              weight: detail.weight,
+              description: detail.category,
+              date: detail.date || '',
+              teacher: detail.teacher
             });
-          }
+          });
 
           // Semestr 2
-          if (Array.isArray(sub.sem2Grades)) {
-            sub.sem2Grades.forEach((g: any, gIdx: number) => {
-              const detail = parseRawGrade(g, gIdx, 2);
-              if (detail.isImprovement && detail.improvedValue) {
-                for (let pi = subGrades.length - 1; pi >= 0; pi--) {
-                  const prev = subGrades[pi];
-                  if (prev.category === detail.category || prev.displayValue === detail.improvedValue) {
-                    prev.improvedGradeId = detail.id;
-                    detail.improvedGradeId = prev.id;
-                    prev.inAverage = false;
-                    break;
-                  }
+          sem2List.forEach((g: any, gIdx: number) => {
+            const detail = parseRawGrade(g, gIdx, 2);
+            if (detail.isImprovement && detail.improvedValue) {
+              for (let pi = subGrades.length - 1; pi >= 0; pi--) {
+                const prev = subGrades[pi];
+                if (prev.category === detail.category || prev.displayValue === detail.improvedValue) {
+                  prev.improvedGradeId = detail.id;
+                  detail.improvedGradeId = prev.id;
+                  prev.inAverage = false;
+                  break;
                 }
               }
-              subGrades.push(detail);
+            }
+            subGrades.push(detail);
 
-              flatGrades.push({
-                id: detail.id,
-                subject: sub.name,
-                grade: detail.value,
-                weight: detail.weight,
-                description: detail.category,
-                date: detail.date || '',
-                teacher: detail.teacher
-              });
+            flatGrades.push({
+              id: detail.id,
+              subject: normalizedName,
+              grade: detail.value,
+              weight: detail.weight,
+              description: detail.category,
+              date: detail.date || '',
+              teacher: detail.teacher
             });
-          }
+          });
 
           const sem1Avg = sub.sem1Avg !== undefined && sub.sem1Avg !== null
             ? Number(sub.sem1Avg)
@@ -311,8 +327,8 @@ export class DatabaseStore {
             : (computedAvg > 0 ? computedAvg : (sem2Avg !== undefined && sem2Avg > 0 ? sem2Avg : 0));
 
           parsedSubjects.push({
-            id: `sub_${sIdx}_${sub.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
-            name: sub.name,
+            id: `sub_${sIdx}_${normalizedName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+            name: normalizedName,
             average: finalAvg,
             semester1Average: sem1Avg,
             semester2Average: sem2Avg,
@@ -329,10 +345,14 @@ export class DatabaseStore {
       }
 
       // 2. Parsowanie Wydarzeń Kalendarza
-      if (data.calendar && Array.isArray(data.calendar.events)) {
-        const gtEvents: SchoolEvent[] = data.calendar.events.map((e: any) => ({
+      const rawEventsList = Array.isArray(data.calendar?.events)
+        ? data.calendar.events
+        : (Array.isArray(data.calendarEvents) ? data.calendarEvents : []);
+
+      if (rawEventsList.length > 0) {
+        const gtEvents: SchoolEvent[] = rawEventsList.map((e: any) => ({
           id: String(e.id),
-          date: e.date,
+          date: e.date || e.day || '2026-11-04',
           type: (e.type === 'sprawdzian' ? 'sprawdzian' : e.type === 'kartkowka' ? 'kartkowka' : e.type === 'absence' ? 'absence' : 'inne') as any,
           category: e.category || 'Wydarzenie szkolne',
           title: e.title || 'Wydarzenie Librus',

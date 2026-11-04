@@ -20,6 +20,24 @@ export interface LibrusSyncResult {
   error?: string;
 }
 
+export function parseGradeInfoString(rawInfo: string) {
+  const categoryMatch = rawInfo.match(/Kategoria:\s*([^\n\r]+)/i);
+  const dateMatch = rawInfo.match(/Data:\s*([^\n\r]+)/i);
+  const teacherMatch = rawInfo.match(/Nauczyciel:\s*([^\n\r]+)/i);
+  const weightMatch = rawInfo.match(/Waga:\s*(\d+)/i);
+  const inAverageMatch = rawInfo.match(/Licz do średniej:\s*([^\n\r]+)/i);
+  const commentMatch = rawInfo.match(/Komentarz:\s*([^\n\r]+)/i);
+
+  return {
+    category: categoryMatch ? categoryMatch[1].trim() : 'Brak kategorii',
+    date: dateMatch ? dateMatch[1].trim() : 'Październik 2026',
+    teacher: teacherMatch ? teacherMatch[1].trim() : '',
+    weight: weightMatch ? parseInt(weightMatch[1], 10) : 1,
+    inAverage: inAverageMatch ? inAverageMatch[1].trim().toLowerCase() === 'tak' : true,
+    comment: commentMatch ? commentMatch[1].trim() : ''
+  };
+}
+
 export async function syncLibrusData(): Promise<LibrusSyncResult> {
   const login = process.env.LIBRUS_LOGIN?.trim();
   const password = process.env.LIBRUS_PASSWORD?.trim();
@@ -75,7 +93,11 @@ export async function syncLibrusData(): Promise<LibrusSyncResult> {
       const currentMonth = now.getMonth() + 1;
       const cal = await client.calendar.getCalendar(currentMonth);
       if (Array.isArray(cal)) {
-        calendarEvents = cal;
+        calendarEvents = cal.map((c: any) => ({
+          ...c,
+          date: c.date || c.day || `${now.getFullYear()}-${String(currentMonth).padStart(2, '0')}-01`,
+          day: c.day || c.date
+        }));
       }
     } catch {
       // Ignoruj błąd kalendarza
@@ -89,13 +111,66 @@ export async function syncLibrusData(): Promise<LibrusSyncResult> {
       // Ignoruj błąd planu lekcji
     }
 
+    // Wzbogać przedmioty o pola sem1Grades, sem2Grades, znormalizowane nazwy i szczegóły ocen
+    const enrichedSubjects = (subjects || []).map((sub: any) => {
+      const rawName = String(sub.name || '').trim();
+      const name = rawName ? rawName.charAt(0).toUpperCase() + rawName.slice(1) : 'Brak nazwy';
+
+      const enrichGradeItem = (g: any) => {
+        const infoStr = String(g.info || g.details?.raw || '');
+        const parsed = parseGradeInfoString(infoStr);
+        return {
+          ...g,
+          details: {
+            category: g.details?.category || parsed.category,
+            weight: g.details?.weight !== undefined ? Number(g.details.weight) : parsed.weight,
+            date: g.details?.date || parsed.date,
+            teacher: g.details?.teacher || parsed.teacher,
+            comment: g.details?.comment || parsed.comment,
+            raw: infoStr,
+            inAverage: g.details?.inAverage !== undefined ? Boolean(g.details.inAverage) : parsed.inAverage
+          },
+          inAverage: g.inAverage !== undefined ? Boolean(g.inAverage) : parsed.inAverage
+        };
+      };
+
+      const rawSem1 = Array.isArray(sub.sem1Grades)
+        ? sub.sem1Grades
+        : (Array.isArray(sub.semester?.[0]?.grades) ? sub.semester[0].grades : []);
+      const rawSem2 = Array.isArray(sub.sem2Grades)
+        ? sub.sem2Grades
+        : (Array.isArray(sub.semester?.[1]?.grades) ? sub.semester[1].grades : []);
+
+      const sem1Grades = rawSem1.map(enrichGradeItem);
+      const sem2Grades = rawSem2.map(enrichGradeItem);
+
+      const sem1Avg = sub.sem1Avg ?? sub.semester?.[0]?.tempAverage ?? sub.tempAverage ?? null;
+      const sem2Avg = sub.sem2Avg ?? sub.semester?.[1]?.tempAverage ?? null;
+
+      return {
+        ...sub,
+        name,
+        sem1Grades,
+        sem2Grades,
+        sem1Avg,
+        sem2Avg,
+        tempAverage: sem1Avg,
+        average: sub.average ?? sem1Avg
+      };
+    });
+
     const payload = {
       success: true,
+      isConfigured: true,
+      isDemo: false,
       timestamp: new Date().toISOString(),
       studentInfo: studentInfo || { name: 'Jakub Lis', class: '2 TI T' },
       luckyNumber,
       grades: {
-        subjects
+        subjects: enrichedSubjects
+      },
+      calendar: {
+        events: calendarEvents
       },
       calendarEvents,
       timetable,

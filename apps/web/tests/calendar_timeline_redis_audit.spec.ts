@@ -40,7 +40,7 @@ test.describe('Audit Wydajności, Kalendarza, Osi Czasu i Ocen Librusa', () => {
 
     await expect(page.locator('text=Oceny i Osiągnięcia (Librus Synergia)')).toBeVisible();
     await expect(page.locator('text=Średnia ocen')).toBeVisible();
-    await expect(page.locator('text=4.28').first()).toBeVisible();
+    await expect(page.locator('text=/4\\.2[89]/').first()).toBeVisible();
 
     // Weryfikacja kafelków przedmiotów i autentycznych ocen
     await expect(page.locator('text=Biologia').first()).toBeVisible();

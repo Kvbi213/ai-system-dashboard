@@ -1,4 +1,8 @@
-import { Redis } from 'ioredis';
+import type { Redis as RedisClient } from 'ioredis';
+import IORedis from 'ioredis';
+
+// Bezpieczny konstruktor klienta Redis kompatybilny z ESM i CommonJS
+export const RedisConstructor: any = (IORedis as any).default || IORedis;
 
 export class InvalidCacheKeyError extends Error {
   public readonly key: unknown;
@@ -46,7 +50,7 @@ function globToRegex(globPattern: string): RegExp {
 }
 
 export class RedisCache {
-  private redisClient: Redis | null = null;
+  private redisClient: RedisClient | null = null;
   private isRedisConnected = false;
   private readonly inMemoryCache = new Map<string, CacheItem>();
   public readonly keyPrefix: string;
@@ -141,7 +145,7 @@ export class RedisCache {
 
   private initRedis(url: string): void {
     try {
-      this.redisClient = new Redis(url, {
+      this.redisClient = new RedisConstructor(url, {
         lazyConnect: true,
         enableOfflineQueue: false,
         maxRetriesPerRequest: 1,

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   RedisCache,
+  RedisConstructor,
   InvalidCacheKeyError,
   CacheSerializationError
 } from '../src/core/redisCache.js';
@@ -190,5 +191,13 @@ describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
     } finally {
       await autoCache.close();
     }
+  });
+
+  it('eksportuje poprawny, wykonywalny konstruktor RedisConstructor kompatybilny z ESM/CJS', () => {
+    expect(typeof RedisConstructor).toBe('function');
+    const client = new RedisConstructor({ lazyConnect: true, enableOfflineQueue: false });
+    expect(client).toBeDefined();
+    expect(typeof client.connect).toBe('function');
+    client.disconnect();
   });
 });
