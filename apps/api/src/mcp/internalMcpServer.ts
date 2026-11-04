@@ -26,24 +26,45 @@ export function getCurrentWorkday(now = new Date()): number {
 }
 
 /**
- * Dedykowana klasa błędu dla niepoprawnych parametrów wywołania narzędzi MCP.
+ * Bazowa klasa dla strukturalnych błędów serwera MCP z kodem HTTP.
  */
-export class McpBadRequestError extends Error {
-  public readonly status = 400;
-  constructor(message: string) {
-    super(message);
-    this.name = 'McpBadRequestError';
+export class McpError extends Error {
+  constructor(message: string, public readonly status: number = 500, options?: { cause?: unknown }) {
+    super(message, options);
+    this.name = 'McpError';
     Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+export class McpBadRequestError extends McpError {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, 400, options);
+    this.name = 'McpBadRequestError';
+  }
+}
+
+export class McpNotFoundError extends McpError {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, 404, options);
+    this.name = 'McpNotFoundError';
+  }
+}
+
+export class McpNotImplementedError extends McpError {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, 501, options);
+    this.name = 'McpNotImplementedError';
   }
 }
 
 /**
  * Reużywalny walidator liczb całkowitych w zadanym przedziale domkniętym.
+ * Rzuca McpBadRequestError gdy walidacja nie powiedzie się.
  */
 export function validatePositiveInteger(
   value: number,
   options: { min?: number; max?: number; name?: string }
-): void {
+): asserts value is number {
   const min = options.min ?? 1;
   const max = options.max ?? Number.MAX_SAFE_INTEGER;
   const name = options.name ?? 'wartość';
@@ -178,10 +199,10 @@ export class InternalMcpServer {
     try {
       return await this.handleToolCall(name, args);
     } catch (err: any) {
-      if (err instanceof McpBadRequestError) {
+      if (err instanceof McpError) {
         throw err;
       }
-      throw new Error(`[!] McpServer Error [${name}]: ${err.message}`);
+      throw new McpError(`[!] McpServer Error [${name}]: ${err.message}`, 500, { cause: err });
     }
   }
 
@@ -376,16 +397,16 @@ export class InternalMcpServer {
 
         const lessons = dbStore.getTimetable(dayNum);
         if (!lessons || lessons.length === 0) {
-          throw new McpBadRequestError(`Brak planu lekcji dla dnia ${dayNum}.`);
+          throw new McpNotFoundError(`Brak planu lekcji dla dnia ${dayNum}.`);
         }
 
-        if (lessonIndex > lessons.length) {
-          throw new McpBadRequestError(
-            `Podany lessonIndex (${lessonIndex}) przekracza liczbę lekcji w planie (${lessons.length}).`
+        const targetLesson = lessons.find((l) => l.order === lessonIndex);
+        if (!targetLesson) {
+          throw new McpNotFoundError(
+            `Nie znaleziono lekcji o numerze ${lessonIndex} w planie dla dnia ${dayNum} (liczba lekcji w dniu: ${lessons.length}).`
           );
         }
 
-        const targetLesson = lessons.find((l) => l.order === lessonIndex) || lessons[0];
         const nextIdx = lessons.findIndex((l) => l.order === targetLesson.order);
         const nextLesson = nextIdx >= 0 && nextIdx + 1 < lessons.length ? lessons[nextIdx + 1] : null;
 
@@ -443,7 +464,7 @@ export class InternalMcpServer {
       }
 
       default:
-        throw new McpBadRequestError(`Nieznane narzędzie "${name}".`);
+        throw new McpNotImplementedError(`Nieznane narzędzie "${name}".`);
     }
   }
 }
@@ -475,7 +496,7 @@ mcpRouter.post('/call', async (req: Request, res: Response) => {
       result
     });
   } catch (err: any) {
-    const status = err instanceof McpBadRequestError ? err.status : 500;
+    const status = err instanceof McpError ? err.status : 500;
     res.status(status).json({
       success: false,
       tool,
