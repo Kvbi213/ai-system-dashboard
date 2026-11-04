@@ -1,8 +1,66 @@
 import { Router, Request, Response } from 'express';
 import { dbStore } from '../../db/store.js';
+import { pushbulletService, SendPushSchema } from './pushbulletService.js';
 
 export const pushbulletRouter = Router();
 
+/**
+ * POST /api/pushbullet/send
+ * Wysyła powiadomienie Push na smartfon operatora.
+ */
+pushbulletRouter.post('/send', async (req: Request, res: Response) => {
+  try {
+    const payload = SendPushSchema.parse(req.body);
+    const result = await pushbulletService.sendPush(payload);
+
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      res.status(502).json(result);
+    }
+  } catch (err: any) {
+    res.status(400).json({
+      success: false,
+      error: err.issues ? err.issues.map((i: any) => `${i.path.join('.')}: ${i.message}`).join(', ') : err.message
+    });
+  }
+});
+
+/**
+ * POST /api/pushbullet/test
+ * Testuje łączność i ważność tokena Access-Token z Pushbullet API.
+ */
+pushbulletRouter.post('/test', async (req: Request, res: Response) => {
+  const token = req.body?.token || req.headers['x-pushbullet-token'];
+  const result = await pushbulletService.verifyToken(typeof token === 'string' ? token : undefined);
+
+  if (result.valid) {
+    res.json({
+      success: true,
+      user: result.user
+    });
+  } else {
+    res.status(401).json({
+      success: false,
+      error: result.error
+    });
+  }
+});
+
+/**
+ * GET /api/pushbullet/history
+ * Zwraca historię ostatnich powiadomień.
+ */
+pushbulletRouter.get('/history', (_req: Request, res: Response) => {
+  res.json({
+    history: pushbulletService.getHistory()
+  });
+});
+
+/**
+ * POST /api/pushbullet/webhook
+ * Odbiór powiadomień efemerycznych (SMS bankowe, notatki zadań).
+ */
 pushbulletRouter.post('/webhook', (req: Request, res: Response) => {
   const { title, body } = req.body;
 
@@ -11,7 +69,7 @@ pushbulletRouter.post('/webhook', (req: Request, res: Response) => {
     return;
   }
 
-  // Detect bank payment SMS (e.g. "Płatność kartą: 45,20 PLN")
+  // Wykrywanie płatności bankowej SMS (np. "Płatność kartą: 45,20 PLN")
   const paymentRegex = /Płatność kartą:\s*([\d,.]+)\s*PLN/i;
   const match = body.match(paymentRegex);
 
@@ -35,7 +93,7 @@ pushbulletRouter.post('/webhook', (req: Request, res: Response) => {
     }
   }
 
-  // Detect task note
+  // Wykrywanie notatki jako zadania
   if (body.toLowerCase().startsWith('zadanie:')) {
     const taskTitle = body.replace(/zadanie:/i, '').trim();
     const task = dbStore.addTask('operator-system-core', {

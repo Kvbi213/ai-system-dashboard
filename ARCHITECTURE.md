@@ -1,17 +1,17 @@
 # ARCHITECTURE.md — REJESTR ARCHITEKTURY OMNIDASH REBORN
 > Dokument nadrzędny architektury systemu OmniDash Reborn.
 > Standard: Protokół Antigravity v4.0 (Deterministic Edition).
-> Status: AKTYWNY (v4.0.0-rc.4) | Monorepo: `pnpm workspaces`
+> Status: AKTYWNY (v4.0.0-rc.5) | Monorepo: `pnpm workspaces`
 
 ---
 
 ## 1. STATUS SYSTEMU I METRYKI WYDANIA
 
-- **Wersja:** `v4.0.0-rc.4`
+- **Wersja:** `v4.0.0-rc.5`
 - **Typ Architektury:** Domain-Driven Modular Monolith w kontenerach Docker Compose
 - **Standard Jakości:** 100% TypeScript (`strict: true`, zero `any`), Zero-Placeholder Policy
 - **Środowisko:** Node.js 22 LTS, Vite 6, React 19, TailwindCSS v4, Vitest, Playwright 1.50
-- **Metryki Testowe:** 106 passed (46 Playwright E2E + 52 API Vitest + 8 Worker Vitest)
+- **Metryki Testowe:** 118 passed (46 Playwright E2E + 64 API Vitest + 8 Worker Vitest)
 - **Dostępne Porty Usług:**
   - `3000`: Frontend SPA (`apps/web` Vite Dev / Nginx Alpine)
   - `5000`: API Gateway (`apps/api` Express TS Zero-Trust)
@@ -142,4 +142,4 @@ $PROJECT_ROOT/OmniDash/
 - **Kolejne Zadania:**
   - Rozszerzenie parsera Librus o sesję Synergia z automatycznym odnawianiem ciasteczek w `apps/worker`.
   - Integracja Web Speech API (TTS) w oknie dialogowym czatu AI.
-  - Implementacja modalnego ekranu blokady kodem PIN (`LockScreenModal.tsx`) z animacją wstrząsu.
+  - Wdrożenie fizycznej synchronizacji bazy wiedzy Obsidian przez lokalny skrypt filesystemowy.

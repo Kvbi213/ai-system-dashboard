@@ -16,7 +16,8 @@ const PUBLIC_PATHS = [
   '/system/health',
   '/system/status',
   '/news/public',
-  '/traffic/public'
+  '/traffic/public',
+  '/pushbullet/webhook'
 ];
 
 export const authMiddleware = (

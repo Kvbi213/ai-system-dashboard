@@ -475,3 +475,34 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - Worker Vitest: 8 passed.
   - Playwright E2E: 46 passed (2 skipped).
   - Łącznie: 106 testów automatycznych na zielono.
+
+
+---
+
+### ## v4.0.0-rc.5 — 2026-11-04 [FULL PARITY & PUSHBULLET INTEGRATION]
+**Status:** WYDANE I ZWERYFIKOWANE  
+**Typ:** MINOR / FEATURE (100% Parzystość Funkcjonalna v4.0 względem Legacy v3.4.0, Usługa Pushbullet Service & Dispatcher, Rozszerzenie Serwera MCP do 29 Narzędzi Produkcyjnych, Nowe Moduły GUI: Kalendarz, Encje, Wyszukiwarka Omnibox i Blokada PIN)  
+**Cel:** Domknięcie wszystkich brakujących podstron, funkcji i narzędzi MCP zidentyfikowanych w audycie porównawczym v4.0 Reborn z archiwalnym v3.4.0.
+
+#### Zakres Wdrożenia i Zmian:
+- [+] **Usługa Pushbullet Service & Router w API Gateway (`apps/api`):**
+  - Utworzono `pushbulletService.ts`: obsługa metody `sendPush` z priorytetami `CRITICAL`, `HIGH`, `NORMAL`, `LOW`, sanityzacja formatowania mobilnego `formatPushText` oraz weryfikacja tokena `verifyToken`.
+  - Wdrożono endpointy REST: `POST /api/pushbullet/send`, `POST /api/pushbullet/test`, `GET /api/pushbullet/history`, `POST /api/pushbullet/webhook`.
+  - Dodano `/pushbullet/webhook` do publicznych ścieżek `authMiddleware.ts`.
+- [+] **Rozszerzenie MCP do 29 Narzędzi Produkcyjnych (`internalMcpServer.ts`):**
+  - Dodano narzędzia powiadomień: `send_phone_notification`, `get_phone_notifications`.
+  - Dodano narzędzia To-Do: `add_to_do`, `delete_to_do`, `update_to_do`, `get_all_tasks`.
+  - Dodano narzędzia finansowe: `add_finance_record`, `delete_finance_record`, `transfer_funds`, `get_gcp_budget_status`.
+  - Dodano narzędzia szkolne i terminarza: `get_librus_grades`, `get_librus_calendar`, `add_calendar_event`, `delete_calendar_event`, `get_calendar_events`.
+  - Dodano narzędzia kognitywne i eksploracyjne: `learn_fact`, `query_semantic_memory`, `perform_osint_scan` (z Anti-SSRF), `execute_web_search`, `read_project_file`, `scan_project_directory`, `get_traffic_alerts`.
+  - Wzbogacono `dbStore` o metody modyfikacji i usuwania: `updateTask`, `deleteTransaction`, `transferFunds`, `addSchoolEvent`, `deleteSchoolEvent`.
+- [+] **Nowe Moduły GUI we Frontendzie SPA (`apps/web`):**
+  - `/calendar` — Miesięczny i dzienny Terminarz sprawdzianów Librus oraz wydarzeń prywatnych z modalem dodawania.
+  - `/entities` — Baza Wiedzy & Rejestr Podmiotów (hierarchiczny graf majątku Matrix 120m², ZSE Zduńska Wola, operatora i serwerów VPS).
+  - `/search` — Uniwersalna Wyszukiwarka Omnibox przeszukująca w czasie rzeczywistym pamięć AI, zadania, finanse i oceny.
+  - `LockScreenOverlay.tsx` — Ekran blokady PIN Zero-Trust z blokadą po 3 nieudanych próbach.
+  - Zaktualizowano `NotificationSettings.tsx` o fizyczne testowanie tokenu i wysyłkę testowego alertu na smartfon.
+- [+] **Weryfikacja Empiryczna:**
+  - API Gateway Vitest: 64 passed (10 plików testowych, 100% green).
+  - Worker Vitest: 8 passed (3 pliki testowe, 100% green).
+  - Web Build: `tsc && vite build` — 0 błędów, kod 0.

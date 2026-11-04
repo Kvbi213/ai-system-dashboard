@@ -15,7 +15,10 @@ import {
   ChevronsUpDown,
   Globe,
   BrainCircuit,
-  UserCheck
+  UserCheck,
+  Search,
+  Calendar,
+  Network
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -41,6 +44,7 @@ const NAV_CATEGORIES: NavCategory[] = [
     items: [
       { to: '/', label: 'Pulpit Główny', icon: LayoutGrid },
       { to: '/chat', label: 'Czat Asystenta AI', icon: MessageSquare },
+      { to: '/search', label: 'Wyszukiwarka Omnibox', icon: Search },
       { to: '/widgets', label: 'Widżety & Narzędzia', icon: Cpu }
     ]
   },
@@ -49,6 +53,7 @@ const NAV_CATEGORIES: NavCategory[] = [
     title: 'Harmonogram i Finanse',
     items: [
       { to: '/school', label: 'Harmonogram & Edukacja', icon: GraduationCap },
+      { to: '/calendar', label: 'Terminarz & Kalendarz', icon: Calendar },
       { to: '/private', label: 'Strefa Prywatna', icon: UserCheck },
       { to: '/finance', label: 'Budżet 50/30/20', icon: Wallet }
     ]
@@ -65,6 +70,7 @@ const NAV_CATEGORIES: NavCategory[] = [
     id: 'system',
     title: 'System i Administracja',
     items: [
+      { to: '/entities', label: 'Baza Wiedzy & Encje', icon: Network },
       { to: '/memory', label: 'Pamięć Kognitywna AI', icon: BrainCircuit },
       { to: '/osint', label: 'OSINT & Telemetria IP', icon: Globe },
       { to: '/server', label: 'Infrastruktura Serwera', icon: Server },

@@ -417,6 +417,29 @@ export class LLMGateway {
         args: { semester: 2 },
         output: JSON.stringify({ gpa, luckyNumber: 21 })
       };
+    } else if (query.includes('push') || query.includes('telefon') || query.includes('powiadom')) {
+      reply = `Wysłano powiadomienie na Twój smartfon przez Pushbullet. Status doręczenia: NOMINALNY.`;
+      toolCall = {
+        toolName: 'send_phone_notification',
+        args: { title: 'OmniDash Asystent', body: message, priority: 'HIGH' },
+        output: JSON.stringify({ success: true, simulated: true, sentAt: new Date().toISOString() })
+      };
+    } else if (query.includes('dodaj zadanie') || query.includes('nowe zadanie')) {
+      const taskTitle = message.replace(/(dodaj zadanie|nowe zadanie|zadanie:?)/gi, '').trim() || 'Nowe zadanie z czatu';
+      const createdTask = dbStore.addTask('operator-system-core', { title: taskTitle, priority: 'HIGH', category: 'Czat AI' });
+      reply = `Zadanie "${createdTask.title}" zostało pomyślnie dodane do Twojej listy zadań.`;
+      toolCall = {
+        toolName: 'add_to_do',
+        args: { title: createdTask.title, priority: 'HIGH', category: 'Czat AI' },
+        output: JSON.stringify({ id: createdTask.id, title: createdTask.title })
+      };
+    } else if (query.includes('wydatek') || query.includes('kupił') || query.includes('zapłacił')) {
+      reply = `Zarejestrowano transakcję w budżecie 50/30/20. Koperta została zaktualizowana.`;
+      toolCall = {
+        toolName: 'add_finance_record',
+        args: { title: 'Transakcja z czatu AI', amount: 50.0, envelope: 'NEEDS' },
+        output: JSON.stringify({ success: true, envelope: 'NEEDS', amount: 50.0 })
+      };
     } else if (query.includes('trening') || query.includes('fbw') || query.includes('seri')) {
       const exercises = dbStore.getExercises();
       const completed = exercises.reduce((acc, ex) => acc + (ex.completedSets || 0), 0);

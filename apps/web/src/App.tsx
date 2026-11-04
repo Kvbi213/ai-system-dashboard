@@ -5,10 +5,14 @@ import { AppHeader } from './components/navigation/AppHeader';
 import { BottomTabBar } from './components/navigation/BottomTabBar';
 import { MoreDrawerSheet } from './components/navigation/MoreDrawerSheet';
 import { ToastProvider } from './components/ui/Toast';
+import { LockScreenOverlay } from './components/security/LockScreenOverlay';
 
 import { DashboardPage } from './modules/dashboard/page';
 import { ChatPage } from './modules/chat/page';
 import { SchoolPage } from './modules/school/page';
+import { CalendarPage } from './modules/calendar/page';
+import { EntitiesPage } from './modules/entities/page';
+import { SearchPage } from './modules/search/page';
 import { PrivatePage } from './modules/private/page';
 import { GradesPage } from './modules/grades/page';
 import { FinancePage } from './modules/finance/page';
@@ -23,12 +27,15 @@ import { MemoryPage } from './modules/memory/page';
 const ROUTE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/': { title: 'Pulpit Główny', subtitle: 'Centrum Operacyjne Edge v4.0' },
   '/chat': { title: 'Czat Asystenta AI', subtitle: 'Zero-Trust Reasoning & Tool Calling' },
+  '/search': { title: 'Wyszukiwarka Omnibox', subtitle: 'Wielokategoriowe Przeszukiwanie Danych' },
   '/widgets': { title: 'Widżety & Narzędzia Operacyjne', subtitle: 'Hardware, Notatnik, Rynek i Prompt Vault' },
-  '/memory': { title: 'Pamięć Kognitywna AI', subtitle: 'Dyrektywy Systemowe i Baza Faktów' },
+  '/memory': { title: 'Pamięć Kognitywna AI', subtitle: 'Dyrektywy Systemowe i Baza Faktów Lab-Zero' },
   '/school': { title: 'Harmonogram & Edukacja', subtitle: 'Plan zajęć, Oceny, Frekwencja i Terminarz' },
+  '/calendar': { title: 'Terminarz & Kalendarz', subtitle: 'Sprawdziany, Kartkówki i Wydarzenia' },
+  '/entities': { title: 'Baza Wiedzy & Encje', subtitle: 'Graf Relacji i Rejestr Matrix 120m²' },
   '/private': { title: 'Strefa Prywatna', subtitle: 'Rutyny Dnia, Cele Osobiste i Dziennik' },
   '/timetable': { title: 'Harmonogram Zajęć', subtitle: 'Plan tygodniowy i sale dydaktyczne' },
-  '/grades': { title: 'Oceny i Frekwencja', subtitle: 'Panel wyników i frekwencji' },
+  '/grades': { title: 'Oceny i Frekwencja', subtitle: 'Panel wyników i frekwencji Librus' },
   '/finance': { title: 'Finanse 50/30/20', subtitle: 'Zarządzanie Budżetem, Abonamentami i Celami' },
   '/workouts': { title: 'Trening FBW & Nawyki', subtitle: 'Kalistenika, Streaki Dnia i Rekordy' },
   '/traffic': { title: 'Monitoring Tras & Radary', subtitle: 'CANARD Telemetria i Kamery Drogowe GDDKiA' },
@@ -39,6 +46,14 @@ const ROUTE_TITLES: Record<string, { title: string; subtitle: string }> = {
 
 export const App: React.FC = () => {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isLocked, setIsLocked] = useState(() => {
+    try {
+      return localStorage.getItem('omnidash_pin_lock') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
   const location = useLocation();
   const isChatRoute = location.pathname === '/chat';
 
@@ -56,6 +71,9 @@ export const App: React.FC = () => {
           <div className="absolute top-[25%] -right-[15%] w-[600px] h-[600px] rounded-full bg-gradient-to-bl from-indigo-200/35 via-purple-100/25 to-transparent dark:from-indigo-900/20 dark:via-purple-900/10 blur-3xl transition-opacity duration-300" />
           <div className="absolute -bottom-[15%] left-[25%] w-[550px] h-[550px] rounded-full bg-gradient-to-tr from-emerald-100/35 via-teal-100/25 to-transparent dark:from-emerald-900/15 dark:via-teal-900/10 blur-3xl transition-opacity duration-300" />
         </div>
+
+        {/* Lock Screen Overlay (Active when pin lock is enabled) */}
+        {isLocked && <LockScreenOverlay onUnlock={() => setIsLocked(false)} />}
 
         {/* Desktop Persistent Sidebar */}
         <Sidebar />
@@ -79,9 +97,12 @@ export const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/chat" element={<ChatPage />} />
+              <Route path="/search" element={<SearchPage />} />
               <Route path="/widgets" element={<WidgetsPage />} />
               <Route path="/memory" element={<MemoryPage />} />
               <Route path="/school" element={<SchoolPage />} />
+              <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/entities" element={<EntitiesPage />} />
               <Route path="/private" element={<PrivatePage />} />
               <Route path="/timetable" element={<SchoolPage />} />
               <Route path="/grades" element={<GradesPage />} />

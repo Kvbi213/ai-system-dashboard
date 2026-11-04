@@ -1,0 +1,129 @@
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import app from '../src/index.js';
+import http from 'http';
+import { pushbulletService } from '../src/domains/pushbullet/pushbulletService.js';
+
+describe('Pushbullet Domain Endpoints Suite', () => {
+  let server: http.Server;
+  let baseUrl: string;
+  const authHeaders = {
+    'Content-Type': 'application/json',
+    'x-dev-bypass': 'true'
+  };
+
+  beforeAll(async () => {
+    await new Promise<void>((resolve) => {
+      server = app.listen(0, () => {
+        const addr = server.address();
+        if (typeof addr === 'object' && addr) {
+          baseUrl = `http://127.0.0.1:${addr.port}`;
+        }
+        resolve();
+      });
+    });
+  });
+
+  afterAll(async () => {
+    await new Promise<void>((resolve) => {
+      server.close(() => resolve());
+    });
+  });
+
+  beforeEach(() => {
+    pushbulletService.clearHistory();
+  });
+
+  it('POST /api/pushbullet/send sends push in simulated mode when no live API key', async () => {
+    const res = await fetch(`${baseUrl}/api/pushbullet/send`, {
+      method: 'POST',
+      headers: authHeaders,
+      body: JSON.stringify({
+        title: 'Testowy Alert OmniDash',
+        body: 'Treść testowa powiadomienia na smartfon.',
+        priority: 'HIGH'
+      })
+    });
+
+    expect(res.status).toBe(200);
+    const data: any = await res.json();
+    expect(data.success).toBe(true);
+    expect(data.iden).toBeDefined();
+    expect(data.sentAt).toBeDefined();
+
+    const history = pushbulletService.getHistory();
+    expect(history.length).toBe(1);
+    expect(history[0].title).toBe('Testowy Alert OmniDash');
+    expect(history[0].priority).toBe('HIGH');
+  });
+
+  it('POST /api/pushbullet/send returns 400 on invalid payload (missing body)', async () => {
+    const res = await fetch(`${baseUrl}/api/pushbullet/send`, {
+      method: 'POST',
+      headers: authHeaders,
+      body: JSON.stringify({
+        title: 'Tylko tytuł'
+      })
+    });
+
+    expect(res.status).toBe(400);
+    const data: any = await res.json();
+    expect(data.success).toBe(false);
+    expect(data.error).toContain('body');
+  });
+
+  it('POST /api/pushbullet/test verifies valid dev/mock token', async () => {
+    const res = await fetch(`${baseUrl}/api/pushbullet/test`, {
+      method: 'POST',
+      headers: authHeaders,
+      body: JSON.stringify({
+        token: 'test_token_valid'
+      })
+    });
+
+    expect(res.status).toBe(200);
+    const data: any = await res.json();
+    expect(data.success).toBe(true);
+    expect(data.user).toBeDefined();
+    expect(data.user.name).toContain('Jakub Lis');
+  });
+
+  it('POST /api/pushbullet/test returns 401 when token is missing and no env var', async () => {
+    const originalKey = process.env.PUSHBULLET_API_KEY;
+    delete process.env.PUSHBULLET_API_KEY;
+
+    try {
+      const res = await fetch(`${baseUrl}/api/pushbullet/test`, {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({})
+      });
+
+      expect(res.status).toBe(401);
+      const data: any = await res.json();
+      expect(data.success).toBe(false);
+      expect(data.error).toBeDefined();
+    } finally {
+      process.env.PUSHBULLET_API_KEY = originalKey;
+    }
+  });
+
+  it('GET /api/pushbullet/history returns recorded history', async () => {
+    await fetch(`${baseUrl}/api/pushbullet/send`, {
+      method: 'POST',
+      headers: authHeaders,
+      body: JSON.stringify({
+        title: 'Historia 1',
+        body: 'Wiadomość 1'
+      })
+    });
+
+    const res = await fetch(`${baseUrl}/api/pushbullet/history`, {
+      headers: authHeaders
+    });
+    expect(res.status).toBe(200);
+    const data: any = await res.json();
+    expect(Array.isArray(data.history)).toBe(true);
+    expect(data.history.length).toBe(1);
+    expect(data.history[0].title).toBe('Historia 1');
+  });
+});

@@ -167,3 +167,33 @@ export const memoryApi = {
 export const osintApi = {
   lookup: (target: string) => apiFetch<any>(`/osint/lookup?target=${encodeURIComponent(target)}`)
 };
+
+// Pushbullet Domain
+export const pushbulletApi = {
+  send: (data: { title: string; body: string; priority?: 'CRITICAL' | 'HIGH' | 'NORMAL' | 'LOW'; tokenOverride?: string }) =>
+    apiFetch<{ success: boolean; iden?: string; simulated?: boolean; message?: string }>('/pushbullet/send', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+  testToken: (token?: string) =>
+    apiFetch<{ success: boolean; user?: { name: string; email: string; iden: string }; error?: string }>('/pushbullet/test', {
+      method: 'POST',
+      body: JSON.stringify({ token })
+    }),
+  getHistory: () => apiFetch<{ history: any[] }>('/pushbullet/history')
+};
+
+// Calendar Domain
+export const calendarApi = {
+  getEvents: () => apiFetch<{ events: any[] }>('/school/events'),
+  addEvent: (data: { title: string; date: string; category?: string; description?: string }) =>
+    apiFetch<{ success: boolean; event: any }>('/mcp/call', {
+      method: 'POST',
+      body: JSON.stringify({ tool: 'add_calendar_event', arguments: data })
+    }),
+  deleteEvent: (eventId: string | number) =>
+    apiFetch<{ success: boolean }>('/mcp/call', {
+      method: 'POST',
+      body: JSON.stringify({ tool: 'delete_calendar_event', arguments: { eventId } })
+    })
+};

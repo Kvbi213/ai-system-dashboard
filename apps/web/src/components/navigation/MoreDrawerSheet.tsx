@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { BottomActionSheet } from '../ui/BottomActionSheet';
-import { Dumbbell, Radio, Server, Sliders, ShieldCheck, ChevronRight, Globe, Cpu, BrainCircuit, UserCheck } from 'lucide-react';
+import { Dumbbell, Radio, Server, Sliders, ShieldCheck, ChevronRight, Globe, Cpu, BrainCircuit, UserCheck, Calendar, Network, Search } from 'lucide-react';
 
 interface MoreDrawerSheetProps {
   isOpen: boolean;
@@ -10,6 +10,27 @@ interface MoreDrawerSheetProps {
 
 export const MoreDrawerSheet: React.FC<MoreDrawerSheetProps> = ({ isOpen, onClose }) => {
   const extraNav = [
+    {
+      to: '/search',
+      label: 'Wyszukiwarka Omnibox',
+      desc: 'Szybkie przeszukiwanie całej bazy i notatek',
+      icon: Search,
+      color: 'text-sky-600 bg-sky-50 border-sky-200'
+    },
+    {
+      to: '/calendar',
+      label: 'Terminarz & Kalendarz',
+      desc: 'Sprawdziany, kartkówki, wydarzenia osobiste',
+      icon: Calendar,
+      color: 'text-rose-600 bg-rose-50 border-rose-200'
+    },
+    {
+      to: '/entities',
+      label: 'Baza Wiedzy & Encje',
+      desc: 'Graf relacji i rejestr majątku Matrix 120m²',
+      icon: Network,
+      color: 'text-teal-600 bg-teal-50 border-teal-200'
+    },
     {
       to: '/widgets',
       label: 'Widżety & Narzędzia',

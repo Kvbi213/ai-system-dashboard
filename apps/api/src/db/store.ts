@@ -105,6 +105,16 @@ export class DatabaseStore {
     return task;
   }
 
+  public updateTask(userId: string, id: string, updates: Partial<Pick<TaskItem, 'title' | 'priority' | 'category' | 'completed'>>): TaskItem | null {
+    const task = this.tasks.find((t) => t.id === id && t.userId === userId);
+    if (!task) return null;
+    if (updates.title !== undefined) task.title = updates.title;
+    if (updates.priority !== undefined) task.priority = updates.priority;
+    if (updates.category !== undefined) task.category = updates.category;
+    if (updates.completed !== undefined) task.completed = updates.completed;
+    return task;
+  }
+
   public deleteTask(userId: string, id: string): boolean {
     const initialLen = this.tasks.length;
     this.tasks = this.tasks.filter((t) => !(t.id === id && t.userId === userId));
@@ -129,6 +139,37 @@ export class DatabaseStore {
     };
     this.transactions.unshift(newTx);
     return newTx;
+  }
+
+  public deleteTransaction(userId: string, id: string): boolean {
+    const len = this.transactions.length;
+    this.transactions = this.transactions.filter((t) => !(t.id === id && t.userId === userId));
+    return this.transactions.length < len;
+  }
+
+  public transferFunds(
+    userId: string,
+    fromEnvelope: 'NEEDS' | 'WANTS' | 'SAVINGS',
+    toEnvelope: 'NEEDS' | 'WANTS' | 'SAVINGS',
+    amount: number,
+    note?: string
+  ): { expenseTx: TransactionItem; incomeTx: TransactionItem } {
+    const reason = note || `Przesunięcie środków: ${fromEnvelope} -> ${toEnvelope}`;
+    const expenseTx = this.addTransaction(userId, {
+      title: `Transfer wychodzący: ${reason}`,
+      amount,
+      envelope: fromEnvelope,
+      category: 'Transfer',
+      type: 'EXPENSE'
+    });
+    const incomeTx = this.addTransaction(userId, {
+      title: `Transfer przychodzący: ${reason}`,
+      amount,
+      envelope: toEnvelope,
+      category: 'Transfer',
+      type: 'INCOME'
+    });
+    return { expenseTx, incomeTx };
   }
 
   // Subscriptions CRUD
@@ -301,6 +342,21 @@ export class DatabaseStore {
 
   public getEvents(): SchoolEvent[] {
     return this.events;
+  }
+
+  public addSchoolEvent(event: Omit<SchoolEvent, 'id'>): SchoolEvent {
+    const newEvent: SchoolEvent = {
+      id: `evt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      ...event
+    };
+    this.events.unshift(newEvent);
+    return newEvent;
+  }
+
+  public deleteSchoolEvent(id: string | number): boolean {
+    const len = this.events.length;
+    this.events = this.events.filter((e) => String(e.id) !== String(id));
+    return this.events.length < len;
   }
 
   public calculateGpa(): number {
