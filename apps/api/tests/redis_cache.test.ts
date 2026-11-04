@@ -2,8 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   RedisCache,
   InvalidCacheKeyError,
-  CacheSerializationError,
-  MAX_TOTAL_KEY_LENGTH
+  CacheSerializationError
 } from '../src/core/redisCache.js';
 
 describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
@@ -79,7 +78,7 @@ describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
     expect(first.data).toBe('fetched');
 
     const second = await cache.getOrSet('getorset:test', 60, fetcher);
-    expect(callCount).toBe(1);
+    expect(callCount).toBe(1); // Nie powinien wywołać fetchera ponownie
     expect(second.data).toBe('fetched');
     expect(second.timestamp).toBe(first.timestamp);
   });
@@ -93,11 +92,16 @@ describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
     expect(stats.inMemoryKeysCount).toBe(2);
   });
 
-  it('waliduje poprawność prefiksu w konstruktorze', () => {
+  it('waliduje poprawność prefiksu w konstruktorze i udostępnia właściwość key', () => {
     // Zbyt długi prefiks
-    expect(() => new RedisCache({ fallbackOnly: true, keyPrefix: 'a'.repeat(150) })).toThrow(
-      InvalidCacheKeyError
-    );
+    try {
+      new RedisCache({ fallbackOnly: true, keyPrefix: 'a'.repeat(150) });
+      expect.fail('Powinien rzucić błąd');
+    } catch (err: any) {
+      expect(err).toBeInstanceOf(InvalidCacheKeyError);
+      expect(err.key).toBeDefined();
+    }
+
     // Niedozwolone znaki w prefiksie
     expect(() => new RedisCache({ fallbackOnly: true, keyPrefix: 'invalid*prefix:' })).toThrow(
       InvalidCacheKeyError
@@ -145,6 +149,7 @@ describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
     await expect(cache.set('undefined:key', undefined)).rejects.toThrow(CacheSerializationError);
     await expect(cache.set('func:key', () => {})).rejects.toThrow(CacheSerializationError);
     await expect(cache.set('sym:key', Symbol('test'))).rejects.toThrow(CacheSerializationError);
+    await expect(cache.set('bigint:key', 999999999999999999999n)).rejects.toThrow(CacheSerializationError);
   });
 
   it('bezpiecznie ignoruje i usuwa uszkodzone wartości JSON bez rzucania niespójnego wyjątku', async () => {

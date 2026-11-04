@@ -1,9 +1,13 @@
 import Redis from 'ioredis';
 
 export class InvalidCacheKeyError extends Error {
-  constructor(public readonly key: unknown, message: string) {
+  public readonly key: unknown;
+
+  constructor(key: unknown, message: string) {
     super(`[InvalidCacheKeyError] ${message} (otrzymano: "${String(key)}")`);
     this.name = 'InvalidCacheKeyError';
+    this.key = key;
+    Object.setPrototypeOf(this, InvalidCacheKeyError.prototype);
   }
 }
 
@@ -11,6 +15,7 @@ export class CacheSerializationError extends Error {
   constructor(message: string, options?: { cause?: unknown }) {
     super(`[CacheSerializationError] ${message}`, options);
     this.name = 'CacheSerializationError';
+    Object.setPrototypeOf(this, CacheSerializationError.prototype);
   }
 }
 
@@ -224,7 +229,12 @@ export class RedisCache {
   public async set(key: string, value: any, ttlSeconds?: number): Promise<void> {
     this.validateKey(key, false);
 
-    if (typeof value === 'function' || typeof value === 'symbol' || value === undefined) {
+    if (
+      typeof value === 'function' ||
+      typeof value === 'symbol' ||
+      typeof value === 'bigint' ||
+      value === undefined
+    ) {
       throw new CacheSerializationError(
         `Wartość typu ${typeof value} dla klucza "${key}" nie może zostać zserializowana do formatu JSON`
       );
