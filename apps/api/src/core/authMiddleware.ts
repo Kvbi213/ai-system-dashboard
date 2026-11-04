@@ -19,13 +19,15 @@ const PUBLIC_PATHS = [
   '/traffic/public'
 ];
 
-function isSecretPrimitive(v: unknown): v is string | number | boolean {
-  return typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean';
+function isSecretPrimitive(v: unknown): v is string | number | boolean | bigint {
+  return typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || typeof v === 'bigint';
 }
 
 /**
- * Unwraps arrays recursively and validates that value represents a valid secret string.
- * Returns undefined for non-primitives (objects/functions/symbols) and invalid string representations.
+ * Recursively extracts and unwraps the first primitive secret token from a request value.
+ * - Returns `undefined` for `null`, `undefined`, empty arrays, non-primitive values (objects/functions/symbols),
+ *   or strings that are empty / equal to `"undefined"` / `"null"`.
+ * - Accepts primitive types (`string`, `number`, `boolean`, `bigint`) and returns their trimmed string representation.
  */
 export function sanitizeSecret(value: unknown): string | undefined {
   if (value === null || value === undefined) return undefined;
@@ -39,10 +41,10 @@ export function sanitizeSecret(value: unknown): string | undefined {
   // Accept only primitive types that can be stringified safely
   if (!isSecretPrimitive(value)) return undefined;
 
-  const str = String(value).trim();
-  if (!str || str === 'undefined' || str === 'null') return undefined;
+  const normalized = String(value).trim();
+  if (!normalized || normalized === 'undefined' || normalized === 'null') return undefined;
 
-  return str;
+  return normalized;
 }
 
 export function extractWebhookSecret(req: Request): string | undefined {

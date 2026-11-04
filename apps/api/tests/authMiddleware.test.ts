@@ -63,6 +63,11 @@ describe('Zero-Trust Auth Middleware', () => {
       expect(sanitizeSecret({ token: 'abc' })).toBeUndefined();
       expect(sanitizeSecret(() => 'evil')).toBeUndefined();
       expect(sanitizeSecret(Symbol('secret'))).toBeUndefined();
+      expect(sanitizeSecret([{ token: 'x' }])).toBeUndefined();
+    });
+
+    it('safely handles bigint primitives', () => {
+      expect(sanitizeSecret(12345678901234567890n)).toBe('12345678901234567890');
     });
 
     it('disallows literal strings "undefined" and "null"', () => {
