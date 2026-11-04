@@ -6,12 +6,15 @@ import { pushbulletService } from '../src/domains/pushbullet/pushbulletService.j
 describe('Pushbullet Domain Endpoints Suite', () => {
   let server: http.Server;
   let baseUrl: string;
+  let originalWebhookSecret: string | undefined;
   const authHeaders = {
     'Content-Type': 'application/json',
     'x-dev-bypass': 'true'
   };
 
   beforeAll(async () => {
+    originalWebhookSecret = process.env.PUSHBULLET_WEBHOOK_SECRET;
+    process.env.PUSHBULLET_WEBHOOK_SECRET = 'omnidash-test-webhook-secret-999';
     await new Promise<void>((resolve) => {
       server = app.listen(0, () => {
         const addr = server.address();
@@ -24,6 +27,7 @@ describe('Pushbullet Domain Endpoints Suite', () => {
   });
 
   afterAll(async () => {
+    process.env.PUSHBULLET_WEBHOOK_SECRET = originalWebhookSecret;
     await new Promise<void>((resolve) => {
       server.close(() => resolve());
     });
@@ -31,6 +35,7 @@ describe('Pushbullet Domain Endpoints Suite', () => {
 
   beforeEach(() => {
     pushbulletService.clearHistory();
+    process.env.PUSHBULLET_WEBHOOK_SECRET = 'omnidash-test-webhook-secret-999';
   });
 
   it('POST /api/pushbullet/send sends push in simulated mode when no live API key', async () => {
@@ -150,6 +155,18 @@ describe('Pushbullet Domain Endpoints Suite', () => {
     } finally {
       process.env.PUSHBULLET_WEBHOOK_SECRET = orig;
     }
+  });
+
+  it('POST /api/pushbullet/webhook cannot be bypassed by x-dev-bypass header without secret', async () => {
+    const res = await fetch(`${baseUrl}/api/pushbullet/webhook`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-dev-bypass': 'true'
+      },
+      body: JSON.stringify({ body: 'zadanie: Próba ominięcia zabezpieczenia' })
+    });
+    expect(res.status).toBe(401);
   });
 
   it('POST /api/pushbullet/webhook accepts request with valid x-webhook-secret and classifies task', async () => {

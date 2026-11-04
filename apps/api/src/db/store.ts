@@ -157,7 +157,6 @@ export class DatabaseStore {
     if (
       typeof amount !== 'number' ||
       !Number.isFinite(amount) ||
-      isNaN(amount) ||
       amount <= 0
     ) {
       throw new Error('Kwota transferu musi być poprawną skończoną liczbą dodatnią większą od zera.');

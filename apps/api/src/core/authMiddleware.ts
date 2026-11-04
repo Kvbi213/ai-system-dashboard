@@ -19,6 +19,18 @@ const PUBLIC_PATHS = [
   '/traffic/public'
 ];
 
+function extractWebhookSecret(req: Request): string | undefined {
+  const header = req.headers['x-webhook-secret'];
+  if (header) {
+    return Array.isArray(header) ? header[0].trim() : String(header).trim();
+  }
+  const querySecret = req.query && req.query.secret;
+  if (querySecret) {
+    return Array.isArray(querySecret) ? String(querySecret[0]).trim() : String(querySecret).trim();
+  }
+  return undefined;
+}
+
 export const authMiddleware = (
   req: AuthenticatedRequest,
   res: Response,
@@ -31,24 +43,7 @@ export const authMiddleware = (
     return next();
   }
 
-  const authHeader = req.headers.authorization;
-  const devBypassHeader = req.headers['x-dev-bypass'];
-
-  // Local development bypass & Bearer authentication
-  if (
-    authHeader === 'Bearer dev-operator-token' ||
-    devBypassHeader === 'true' ||
-    process.env.DEV_AUTH_BYPASS === 'true'
-  ) {
-    req.user = {
-      id: 'operator-system-core',
-      email: 'operator@omnidash.internal',
-      role: 'ADMIN'
-    };
-    return next();
-  }
-
-  // Pushbullet Webhook Guard: requires strictly configured secret and matching token when unauthenticated
+  // 1. Pushbullet Webhook Guard: dedicated endpoint requiring strictly configured secret (cannot be bypassed by dev headers)
   if (req.path.startsWith('/pushbullet/webhook') || fullPath.includes('/pushbullet/webhook')) {
     const expectedSecret = process.env.PUSHBULLET_WEBHOOK_SECRET;
     if (!expectedSecret || !expectedSecret.trim()) {
@@ -59,8 +54,8 @@ export const authMiddleware = (
       return;
     }
 
-    const webhookSecret = req.headers['x-webhook-secret'] || (req.query && req.query.secret);
-    if (!webhookSecret || webhookSecret !== expectedSecret) {
+    const webhookSecret = extractWebhookSecret(req);
+    if (!webhookSecret || webhookSecret !== expectedSecret.trim()) {
       res.status(401).json({
         error: 'UNAUTHORIZED_WEBHOOK',
         message: 'Nieprawidłowy lub brakujący klucz sekretu webhooka (x-webhook-secret).'
@@ -72,6 +67,23 @@ export const authMiddleware = (
       id: 'webhook-service-daemon',
       email: 'webhook@pushbullet.integration',
       role: 'WEBHOOK_SYSTEM'
+    };
+    return next();
+  }
+
+  const authHeader = req.headers.authorization;
+  const devBypassHeader = req.headers['x-dev-bypass'];
+
+  // 2. Local development bypass & Operator authentication for standard API endpoints
+  if (
+    authHeader === 'Bearer dev-operator-token' ||
+    devBypassHeader === 'true' ||
+    process.env.DEV_AUTH_BYPASS === 'true'
+  ) {
+    req.user = {
+      id: 'operator-system-core',
+      email: 'operator@omnidash.internal',
+      role: 'ADMIN'
     };
     return next();
   }

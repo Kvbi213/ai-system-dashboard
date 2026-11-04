@@ -93,21 +93,27 @@ describe('OmniDash API Gateway Integration Suite', () => {
     expect(data.toolCall.toolName).toBe('timetable_get_schedule');
   });
 
-  it('POST /api/pushbullet/webhook parses bank SMS and creates transaction', async () => {
-    const res = await fetch(`${baseUrl}/api/pushbullet/webhook`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer dev-operator-token'
-      },
-      body: JSON.stringify({
-        title: 'Bank Alert',
-        body: 'Płatność kartą: 54,90 PLN w Księgarni Dnia'
-      })
-    });
-    expect(res.status).toBe(201);
-    const data = await res.json();
-    expect(data.classifiedAs).toBe('TRANSACTION');
-    expect(data.transaction.amount).toBe(54.90);
+  it('POST /api/pushbullet/webhook parses bank SMS and creates transaction with valid secret', async () => {
+    const origSecret = process.env.PUSHBULLET_WEBHOOK_SECRET;
+    process.env.PUSHBULLET_WEBHOOK_SECRET = 'gateway-webhook-secret';
+    try {
+      const res = await fetch(`${baseUrl}/api/pushbullet/webhook`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-webhook-secret': 'gateway-webhook-secret'
+        },
+        body: JSON.stringify({
+          title: 'Bank Alert',
+          body: 'Płatność kartą: 54,90 PLN w Księgarni Dnia'
+        })
+      });
+      expect(res.status).toBe(201);
+      const data = await res.json();
+      expect(data.classifiedAs).toBe('TRANSACTION');
+      expect(data.transaction.amount).toBe(54.90);
+    } finally {
+      process.env.PUSHBULLET_WEBHOOK_SECRET = origSecret;
+    }
   });
 });
