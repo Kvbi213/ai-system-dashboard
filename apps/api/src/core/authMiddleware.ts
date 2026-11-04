@@ -19,14 +19,30 @@ const PUBLIC_PATHS = [
   '/traffic/public'
 ];
 
+function isSecretPrimitive(v: unknown): v is string | number | boolean {
+  return typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean';
+}
+
+/**
+ * Unwraps arrays recursively and validates that value represents a valid secret string.
+ * Returns undefined for non-primitives (objects/functions/symbols) and invalid string representations.
+ */
 export function sanitizeSecret(value: unknown): string | undefined {
   if (value === null || value === undefined) return undefined;
+
+  // Recursively unwrap arrays
   if (Array.isArray(value)) {
     if (value.length === 0) return undefined;
     return sanitizeSecret(value[0]);
   }
+
+  // Accept only primitive types that can be stringified safely
+  if (!isSecretPrimitive(value)) return undefined;
+
   const str = String(value).trim();
-  return str.length > 0 && str !== 'undefined' && str !== 'null' ? str : undefined;
+  if (!str || str === 'undefined' || str === 'null') return undefined;
+
+  return str;
 }
 
 export function extractWebhookSecret(req: Request): string | undefined {
@@ -50,10 +66,10 @@ export const authMiddleware = (
   // 1. Pushbullet Webhook Guard: dedicated endpoint requiring strictly configured secret (cannot be bypassed by dev headers)
   if (req.path.startsWith('/pushbullet/webhook') || fullPath.includes('/pushbullet/webhook')) {
     const expectedSecret = process.env.PUSHBULLET_WEBHOOK_SECRET;
-    if (!expectedSecret || !expectedSecret.trim()) {
+    if (!expectedSecret?.trim()) {
       res.status(503).json({
-        error: 'WEBHOOK_UNCONFIGURED',
-        code: 'SERVICE_UNAVAILABLE',
+        error: 'SERVICE_UNAVAILABLE',
+        code: 'WEBHOOK_UNCONFIGURED',
         message: 'Webhook processing service is currently unconfigured or unavailable.'
       });
       return;
