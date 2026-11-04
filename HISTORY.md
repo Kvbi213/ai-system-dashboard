@@ -577,3 +577,26 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - Playwright E2E: 54 passed (2 skipped, 100% green).
   - Web Build: `tsc && vite build` — 0 błędów, exit code 0.
 
+## v4.0.0-rc.9 — 2026-11-04
+### Autorytatywny Widok Tabelaryczny Librus Synergia 1:1, Usunięcie Wad Prezentacji Ocen i Naprawa Zaleceń Groq Reviewera
+- [+] **Nowy Autorytatywny Widok Tabeli 1:1 (`apps/web/src/modules/grades/components/LibrusTableView.tsx`):**
+  - Wiernie odwzorowana struktura tabeli oficjalnego portalu Librus Synergia (`Przedmiot | Okres 1: Oceny bieżące | Śr. I | I | Okres 2: Oceny bieżące | Śr. II | II | Koniec roku: Śr. R | R`).
+  - Rozwijanie wierszy przyciskiem `(+)` z pełnym wykazem szczegółów (Kategoria, Waga, Data, Nauczyciel, Licz do średniej, Poprawa / Komentarz).
+  - Wiersz końcowy `Zachowanie` oraz obsługa stanu `Brak ocen` i `-`.
+- [+] **Eliminacja Wad Prezentacji Ocen (`SubjectGradesGrid.tsx` & `LibrusTableView.tsx`):**
+  - Całkowite usunięcie doklejonych sufiksów wag `w1`, `w2`, `w3` z twarzy badge'y – etykiety prezentują wyłącznie czyste oceny i modyfikatory (`4+`, `5`, `3-`, `+`, `-`).
+  - Korekta stylizacji par poprawkowych `[ 3  5 ]` i `[ 1  4 ]` – usunięcie przekreślenia pierwotnej oceny i przerywanego obramowania na rzecz naturalnych nawiasów klamrowych.
+  - Znak aktywności `-` renderowany jako jasnozielona etykieta systemowa zgodna z Librusem (zamiast czerwonej).
+- [+] **Dynamiczne Statystyki i Przełącznik Widoków (`GradesPage.tsx` & `GradeStatsSummary.tsx`):**
+  - Przełącznik widoku: `Tabela Synergia` (domyślny) oraz `Kafelki`.
+  - Dynamiczny semestr `Okres ${semester} (2026/2027)` oraz dynamiczny status GPA z progami i kolorystyką.
+  - Pełna baza fallback (`FALLBACK_LIBRUS_SUBJECTS`) dla 21 przedmiotów zapobiegająca migotaniu lub niekompletnemu stanowi.
+- [+] **Eliminacja Zastrzeżeń Groq Reviewera (`store.ts`, `redisCache.ts`, `store_utils.test.ts`):**
+  - `parseLibrusDate` zwraca precyzyjnie `string | undefined` bez maskowania danych stałą datą fallback.
+  - `RedisCtor` silnie typowany z wykorzystaniem `RedisOptions` z biblioteki `ioredis` (usunięcie typu `any`).
+  - Nowy pakiet testów jednostkowych w `tests/store_utils.test.ts` (100% testów zielonych).
+- [+] **Weryfikacja Empiryczna:**
+  - API Gateway Vitest: 103 passed (14 plików testowych, 100% green).
+  - Playwright E2E: 8/8 passed w audycie kalendarza, osi czasu i ocen.
+  - Web Build: `tsc && vite build` — 0 błędów, exit code 0.
+

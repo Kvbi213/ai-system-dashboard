@@ -54,7 +54,7 @@ $PROJECT_ROOT/OmniDash/
 │   │           ├── chat/           # Asystent AI, strumieniowanie SSE, kasetki narzędziowe
 │   │           ├── school/         # Hub edukacyjny (plan 1:1 Librus, oceny, frekwencja, egzaminy)
 │   │           ├── timetable/      # Dedykowany plan lekcji z wyborem dnia (pełna zgodność Synergia)
-│   │           ├── grades/         # Siatka ocen cząstkowych i średnia ważona GPA
+│   │           ├── grades/         # LibrusTableView (tabela 1:1 Synergia), SubjectGradesGrid, GradeStatsSummary, fallbackData
 │   │           ├── finance/        # Budżet 50/30/20, BudgetPredictionCard z Write-Back, abonamenty, cele
 │   │           ├── workouts/       # Trening FBW (AtticFBWTracker), RestTimerOverlay (OLED True Black), rekordy
 │   │           ├── traffic/        # Kamery GDDKiA, radary CANARD, alerty drogowe

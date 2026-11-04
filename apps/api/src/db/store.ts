@@ -49,12 +49,19 @@ function formatDisplayGrade(raw: string | number): string {
   return String(raw !== undefined && raw !== null ? raw : '').trim();
 }
 
-export function parseLibrusDate(rawDate?: string): string {
-  if (!rawDate) return '2026-11-04';
-  const isoMatch = String(rawDate).match(/\d{4}-\d{2}-\d{2}/);
+/**
+ * Normalizuje surowy ciąg daty z Librusa do formatu ISO YYYY-MM-DD.
+ * @param rawDate - surowy ciąg wejściowy (ISO, 'YYYY-MM-DD (dziań)', string z Date)
+ * @returns Znormalizowany ciąg YYYY-MM-DD lub undefined jeśli ciąg jest pusty/niepoprawny.
+ */
+export function parseLibrusDate(rawDate?: string): string | undefined {
+  if (!rawDate) return undefined;
+  const trimmed = String(rawDate).trim();
+  if (!trimmed) return undefined;
+  const isoMatch = trimmed.match(/\d{4}-\d{2}-\d{2}/);
   if (isoMatch) return isoMatch[0];
-  const parsed = new Date(rawDate);
-  return !isNaN(parsed.getTime()) ? parsed.toISOString().split('T')[0] : '2026-11-04';
+  const parsed = new Date(trimmed);
+  return !isNaN(parsed.getTime()) ? parsed.toISOString().split('T')[0] : undefined;
 }
 
 export function parseSafeAverage(raw: unknown): number | undefined {
@@ -359,7 +366,7 @@ export class DatabaseStore {
       if (rawEventsList.length > 0) {
         const gtEvents: SchoolEvent[] = rawEventsList.map((e: any) => ({
           id: String(e.id),
-          date: parseLibrusDate(e.date || e.day),
+          date: parseLibrusDate(e.date || e.day) || new Date().toISOString().split('T')[0],
           type: (e.type === 'sprawdzian' ? 'sprawdzian' : e.type === 'kartkowka' ? 'kartkowka' : e.type === 'absence' ? 'absence' : 'inne') as any,
           category: e.category || 'Wydarzenie szkolne',
           title: e.title || 'Wydarzenie Librus',

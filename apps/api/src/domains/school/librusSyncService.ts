@@ -2,7 +2,7 @@ import Librus from 'librus-api';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { dbStore } from '../../db/store.js';
+import { dbStore, parseSafeAverage } from '../../db/store.js';
 import { redisCache } from '../../core/redisCache.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -144,8 +144,9 @@ export async function syncLibrusData(): Promise<LibrusSyncResult> {
       const sem1Grades = rawSem1.map(enrichGradeItem);
       const sem2Grades = rawSem2.map(enrichGradeItem);
 
-      const sem1Avg = sub.sem1Avg ?? sub.semester?.[0]?.tempAverage ?? sub.tempAverage ?? null;
-      const sem2Avg = sub.sem2Avg ?? sub.semester?.[1]?.tempAverage ?? null;
+      const sem1Avg = parseSafeAverage(sub.semester?.[0]?.tempAverage) ?? parseSafeAverage(sub.sem1Avg) ?? null;
+      const sem2Avg = parseSafeAverage(sub.semester?.[1]?.tempAverage) ?? parseSafeAverage(sub.sem2Avg) ?? null;
+      const yearAvg = parseSafeAverage(sub.tempAverage) ?? sem1Avg;
 
       return {
         ...sub,
@@ -155,7 +156,7 @@ export async function syncLibrusData(): Promise<LibrusSyncResult> {
         sem1Avg,
         sem2Avg,
         tempAverage: sem1Avg,
-        average: sub.average ?? sem1Avg
+        average: yearAvg
       };
     });
 

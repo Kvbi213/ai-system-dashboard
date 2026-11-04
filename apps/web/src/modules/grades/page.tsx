@@ -1,53 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { GradeStatsSummary } from './components/GradeStatsSummary';
 import { SubjectGradesGrid, SubjectGradeItem } from './components/SubjectGradesGrid';
-import { GraduationCap, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
+import { LibrusTableView } from './components/LibrusTableView';
+import { FALLBACK_LIBRUS_SUBJECTS } from './fallbackData';
+import { GraduationCap, RefreshCw, CheckCircle2, AlertCircle, Table as TableIcon, LayoutGrid } from 'lucide-react';
 import { schoolApi } from '../../api/client';
 
-const FALLBACK_SUBJECTS: SubjectGradeItem[] = [
-  {
-    id: '1',
-    name: 'Informatyka',
-    average: 5.50,
-    semester1Average: 5.50,
-    grades: [
-      { id: 'g1', value: 6, displayValue: '6', weight: 3, category: 'Sprawdzian Praktyczny Linux', semester: 1 },
-      { id: 'g2', value: 5, displayValue: '5', weight: 2, category: 'Projekt sieciowy', semester: 1 }
-    ]
-  },
-  {
-    id: '2',
-    name: 'Biologia',
-    average: 4.13,
-    semester1Average: 4.13,
-    grades: [
-      { id: 'gb1', value: 4.5, displayValue: '4+', weight: 1, category: 'odpowiedź ustna', semester: 1 },
-      { id: 'gb2', value: 3, displayValue: '3', weight: 3, category: 'Praca klasowa', semester: 1, improvedGradeId: 'gb3' },
-      { id: 'gb3', value: 5, displayValue: '5', weight: 3, category: 'Praca klasowa', semester: 1, isImprovement: true, improvedValue: '3', improvedGradeId: 'gb2' },
-      { id: 'gb4', value: 4.5, displayValue: '4+', weight: 1, category: 'odpowiedź ustna', semester: 1 }
-    ]
-  },
-  {
-    id: '3',
-    name: 'Lokalne sieci komputerowe',
-    average: 5.00,
-    semester1Average: 5.00,
-    grades: [{ id: 'g3', value: 5, displayValue: '5', weight: 1, category: 'Konfiguracja tras i VLAN', semester: 1 }]
-  },
-  {
-    id: '4',
-    name: 'Matematyka',
-    average: 3.20,
-    semester1Average: 3.20,
-    grades: [{ id: 'g4', value: 4, displayValue: '4', weight: 2, category: 'Wielomiany i funkcje', semester: 1 }]
-  }
-];
-
-const GRADES_CACHE_KEY = 'omnidash_grades_cache_v4_2';
+const GRADES_CACHE_KEY = 'omnidash_grades_cache_v4_3';
 
 function getInitialGradesData(): { subjects: SubjectGradeItem[]; stats: any } {
   if (typeof window === 'undefined') {
-    return { subjects: FALLBACK_SUBJECTS, stats: { gpa: 4.28, luckyNumber: 3, threatsCount: 0, totalGrades: 49 } };
+    return {
+      subjects: FALLBACK_LIBRUS_SUBJECTS,
+      stats: { gpa: 4.29, luckyNumber: 3, threatsCount: 0, totalGrades: 40 }
+    };
   }
   try {
     const raw = localStorage.getItem(GRADES_CACHE_KEY);
@@ -60,11 +26,15 @@ function getInitialGradesData(): { subjects: SubjectGradeItem[]; stats: any } {
   } catch {
     // Ignore error
   }
-  return { subjects: FALLBACK_SUBJECTS, stats: { gpa: 4.28, luckyNumber: 3, threatsCount: 0, totalGrades: 49 } };
+  return {
+    subjects: FALLBACK_LIBRUS_SUBJECTS,
+    stats: { gpa: 4.29, luckyNumber: 3, threatsCount: 0, totalGrades: 40 }
+  };
 }
 
 export const GradesPage: React.FC = () => {
   const [semester, setSemester] = useState<1 | 2>(1);
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const initial = getInitialGradesData();
   const [subjects, setSubjects] = useState<SubjectGradeItem[]>(initial.subjects);
   const [stats, setStats] = useState(initial.stats);
@@ -171,15 +141,52 @@ export const GradesPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 max-w-4xl mx-auto">
-      {/* Header, Sync button & Semester switch */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+    <div className="space-y-4 max-w-5xl mx-auto">
+      {/* Header, Sync button, View switcher & Semester switch */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <GraduationCap className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-          <h2 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Oceny i Osiągnięcia (Librus Synergia)</h2>
+          <div>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
+              Oceny i Osiągnięcia (Librus Synergia)
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Klasa 2 TI T • 21 przedmiotów • Dziennik ocen 1:1
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+          {/* View mode switcher: Table vs Cards */}
+          <div className="flex gap-0.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs select-none">
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              className={`px-2.5 py-1 rounded-lg transition font-semibold flex items-center gap-1.5 ${
+                viewMode === 'table'
+                  ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-400 shadow-sm border border-slate-200/60 dark:border-slate-700'
+                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+              title="Autentyczny widok tabeli Librus Synergia"
+            >
+              <TableIcon className="w-3.5 h-3.5" />
+              <span>Tabela Synergia</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('cards')}
+              className={`px-2.5 py-1 rounded-lg transition font-semibold flex items-center gap-1.5 ${
+                viewMode === 'cards'
+                  ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-400 shadow-sm border border-slate-200/60 dark:border-slate-700'
+                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+              title="Widok kafelkowy"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Kafelki</span>
+            </button>
+          </div>
+
           {/* Synchronize button */}
           <button
             onClick={handleSyncLibrus}
@@ -195,7 +202,7 @@ export const GradesPage: React.FC = () => {
           </button>
 
           {/* Semester switch */}
-          <div className="flex gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs">
+          <div className="flex gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs select-none">
             <button
               onClick={() => setSemester(1)}
               className={`px-3 py-1 rounded-lg transition font-semibold ${
@@ -252,10 +259,15 @@ export const GradesPage: React.FC = () => {
         luckyNumber={stats.luckyNumber}
         threatsCount={stats.threatsCount}
         totalGrades={stats.totalGrades}
+        semester={semester}
       />
 
-      {/* Subjects Grid */}
-      <SubjectGradesGrid subjects={subjects} semester={semester} />
+      {/* Primary View: 1:1 Librus Synergia Table or Modern Cards */}
+      {viewMode === 'table' ? (
+        <LibrusTableView subjects={subjects} activeSemester={semester} />
+      ) : (
+        <SubjectGradesGrid subjects={subjects} semester={semester} />
+      )}
     </div>
   );
 };

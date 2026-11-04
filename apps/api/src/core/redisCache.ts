@@ -1,10 +1,15 @@
-import type { Redis as RedisClient } from 'ioredis';
+import type { Redis as RedisClient, RedisOptions } from 'ioredis';
 import IORedis from 'ioredis';
 
 // Bezpieczny i silnie typowany konstruktor klienta Redis kompatybilny z ESM i CommonJS
-export type RedisCtor = new (url?: string, opts?: any) => RedisClient;
-export const RedisConstructor: RedisCtor =
-  ((IORedis as unknown as { default?: RedisCtor }).default ?? IORedis) as RedisCtor;
+export type RedisCtor = new (url?: string, opts?: RedisOptions) => RedisClient;
+export const RedisConstructor: RedisCtor = (() => {
+  const candidate = (IORedis as unknown as { default?: RedisCtor }).default ?? IORedis;
+  if (typeof candidate !== 'function') {
+    throw new Error('IORedis does not export a valid constructor function');
+  }
+  return candidate as RedisCtor;
+})();
 
 export class InvalidCacheKeyError extends Error {
   public readonly key: unknown;

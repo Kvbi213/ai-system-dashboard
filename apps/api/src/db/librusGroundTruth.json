@@ -2,7 +2,7 @@
   "success": true,
   "isConfigured": true,
   "isDemo": false,
-  "timestamp": "2026-11-04T14:40:53.079Z",
+  "timestamp": "2026-11-04T15:05:12.792Z",
   "studentInfo": {
     "name": "Jakub Lis",
     "class": "2 TI T",
@@ -1702,269 +1702,289 @@
   },
   "calendar": {
     "events": [
-      [
-        {
+      {
+        "0": {
           "id": 3463302,
           "day": "2026-11-01",
           "title": "Wszystkich  Świętych: T"
-        }
-      ],
-      [
-        {
+        },
+        "date": "2026-11-01"
+      },
+      {
+        "0": {
           "id": 12683613,
           "day": "2026-11-02",
           "info": "Nauczyciel: Wojnarowski Przemysław\nOpis: https://canva.link/nylvcmonczwu6zp\nData dodania: 2026-10-26 12:16:42",
           "title": "Nr lekcji: 5\nlokalne sieci komputerowe, kartkówka\n2TI T\nSala: 0.2"
-        }
-      ],
-      [
-        {
+        },
+        "date": "2026-11-01"
+      },
+      {
+        "0": {
           "id": 3523730,
           "day": "2026-11-03",
           "title": "Nieobecność:\nNauczyciel: Łukaszczyk-Wulgaris Joanna"
-        }
-      ],
-      [
-        {
+        },
+        "date": "2026-11-01"
+      },
+      {
+        "0": {
           "id": 3526139,
           "day": "2026-11-04",
           "title": "Nieobecność:\nNauczyciel: Prabucki Andrzej"
         },
-        {
+        "1": {
           "id": 3526138,
           "day": "2026-11-04",
           "title": "Nieobecność:\nNauczyciel: Kryła Łukasz"
         },
-        {
+        "2": {
           "id": 3526895,
           "day": "2026-11-04",
           "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
         },
-        {
+        "3": {
           "id": 3526545,
           "day": "2026-11-04",
           "title": "Nieobecność:\nNauczyciel: Czarna Alicja\nGodziny: 10:40 do 13:05"
         },
-        {
+        "4": {
           "id": -1,
           "day": "2026-11-04",
           "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 7 (pracownia urządzeń techniki komputerowej)"
         },
-        {
+        "5": {
           "id": 12696856,
           "day": "2026-11-04",
           "info": "Nauczyciel: Gembiak Bartosz\nOpis: Test lekcja 7-12 i popraw lekcja 1-6.\nData dodania: 2026-10-28 12:26:52",
           "title": "Nr lekcji: 5\nurządzenia techniki komputerowej, Sprawdzian wiadomości\n2TI T\nSala: 1.2"
-        }
-      ],
-      [
-        {
+        },
+        "date": "2026-11-01"
+      },
+      {
+        "0": {
           "id": 3526139,
           "day": "2026-11-05",
           "title": "Nieobecność:\nNauczyciel: Prabucki Andrzej"
         },
-        {
+        "1": {
           "id": 3526138,
           "day": "2026-11-05",
           "title": "Nieobecność:\nNauczyciel: Kryła Łukasz"
         },
-        {
+        "2": {
           "id": 3526895,
           "day": "2026-11-05",
           "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
         },
-        {
+        "3": {
           "id": -1,
           "day": "2026-11-05",
           "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 4 (pracownia urządzeń techniki komputerowej)"
         },
-        {
+        "4": {
           "id": -1,
           "day": "2026-11-05",
           "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 5 (pracownia urządzeń techniki komputerowej)"
-        }
-      ],
-      [
-        {
+        },
+        "date": "2026-11-01"
+      },
+      {
+        "0": {
           "id": 3526895,
           "day": "2026-11-06",
           "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
         },
-        {
+        "1": {
           "id": -1,
           "day": "2026-11-06",
           "title": "Przesunięcie z Alicja Negowska na lekcji nr: 5 (język polski)"
         },
-        {
+        "2": {
           "id": -1,
           "day": "2026-11-06",
           "title": "Odwołane zajęcia\nPaulina Kolasińska na lekcji nr: 5 (chemia)"
-        }
-      ],
-      [
-        {
+        },
+        "date": "2026-11-01"
+      },
+      {
+        "0": {
           "id": 12649181,
           "day": "2026-11-09",
           "info": "Nauczyciel: Sokół Paweł\nOpis: Wszystkie tematy od początku roku\nData dodania: 2026-10-19 11:22:49",
           "title": "Nr lekcji: 4\nbiznes i zarządzanie, Sprawdzian wiadomości\n2TI T\nSala: 0.2"
-        }
-      ],
-      [
-        {
+        },
+        "date": "2026-11-01"
+      },
+      {
+        "0": {
           "id": 3463303,
           "day": "2026-11-11",
           "title": "Święto Niepodległości: T"
-        }
-      ],
-      [
-        {
+        },
+        "date": "2026-11-01"
+      },
+      {
+        "0": {
           "id": 12706162,
           "day": "2026-11-13",
           "info": "Nauczyciel: Chyła Beata\nOpis: Tolles Deutsch 1,dział 4\nData dodania: 2026-10-30 09:08:43",
           "title": "Nr lekcji: 3\njęzyk niemiecki, Praca Klasowa\n2Ti/1\nSala: Z1"
-        }
-      ],
-      [
-        {
+        },
+        "date": "2026-11-01"
+      },
+      {
+        "0": {
           "id": 12691840,
           "day": "2026-11-17",
           "info": "Nauczyciel: Spych Monika\nOpis: Wartości i postawy (tematy 2-7)\nData dodania: 2026-10-29 08:56:02",
           "title": "Nr lekcji: 8\nSprawdzian wiadomości\n2TI T"
-        }
-      ]
+        },
+        "date": "2026-11-01"
+      }
     ]
   },
   "calendarEvents": [
-    [
-      {
+    {
+      "0": {
         "id": 3463302,
         "day": "2026-11-01",
         "title": "Wszystkich  Świętych: T"
-      }
-    ],
-    [
-      {
+      },
+      "date": "2026-11-01"
+    },
+    {
+      "0": {
         "id": 12683613,
         "day": "2026-11-02",
         "info": "Nauczyciel: Wojnarowski Przemysław\nOpis: https://canva.link/nylvcmonczwu6zp\nData dodania: 2026-10-26 12:16:42",
         "title": "Nr lekcji: 5\nlokalne sieci komputerowe, kartkówka\n2TI T\nSala: 0.2"
-      }
-    ],
-    [
-      {
+      },
+      "date": "2026-11-01"
+    },
+    {
+      "0": {
         "id": 3523730,
         "day": "2026-11-03",
         "title": "Nieobecność:\nNauczyciel: Łukaszczyk-Wulgaris Joanna"
-      }
-    ],
-    [
-      {
+      },
+      "date": "2026-11-01"
+    },
+    {
+      "0": {
         "id": 3526139,
         "day": "2026-11-04",
         "title": "Nieobecność:\nNauczyciel: Prabucki Andrzej"
       },
-      {
+      "1": {
         "id": 3526138,
         "day": "2026-11-04",
         "title": "Nieobecność:\nNauczyciel: Kryła Łukasz"
       },
-      {
+      "2": {
         "id": 3526895,
         "day": "2026-11-04",
         "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
       },
-      {
+      "3": {
         "id": 3526545,
         "day": "2026-11-04",
         "title": "Nieobecność:\nNauczyciel: Czarna Alicja\nGodziny: 10:40 do 13:05"
       },
-      {
+      "4": {
         "id": -1,
         "day": "2026-11-04",
         "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 7 (pracownia urządzeń techniki komputerowej)"
       },
-      {
+      "5": {
         "id": 12696856,
         "day": "2026-11-04",
         "info": "Nauczyciel: Gembiak Bartosz\nOpis: Test lekcja 7-12 i popraw lekcja 1-6.\nData dodania: 2026-10-28 12:26:52",
         "title": "Nr lekcji: 5\nurządzenia techniki komputerowej, Sprawdzian wiadomości\n2TI T\nSala: 1.2"
-      }
-    ],
-    [
-      {
+      },
+      "date": "2026-11-01"
+    },
+    {
+      "0": {
         "id": 3526139,
         "day": "2026-11-05",
         "title": "Nieobecność:\nNauczyciel: Prabucki Andrzej"
       },
-      {
+      "1": {
         "id": 3526138,
         "day": "2026-11-05",
         "title": "Nieobecność:\nNauczyciel: Kryła Łukasz"
       },
-      {
+      "2": {
         "id": 3526895,
         "day": "2026-11-05",
         "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
       },
-      {
+      "3": {
         "id": -1,
         "day": "2026-11-05",
         "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 4 (pracownia urządzeń techniki komputerowej)"
       },
-      {
+      "4": {
         "id": -1,
         "day": "2026-11-05",
         "title": "Zastępstwo z Bartosz Gembiak na lekcji nr: 5 (pracownia urządzeń techniki komputerowej)"
-      }
-    ],
-    [
-      {
+      },
+      "date": "2026-11-01"
+    },
+    {
+      "0": {
         "id": 3526895,
         "day": "2026-11-06",
         "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
       },
-      {
+      "1": {
         "id": -1,
         "day": "2026-11-06",
         "title": "Przesunięcie z Alicja Negowska na lekcji nr: 5 (język polski)"
       },
-      {
+      "2": {
         "id": -1,
         "day": "2026-11-06",
         "title": "Odwołane zajęcia\nPaulina Kolasińska na lekcji nr: 5 (chemia)"
-      }
-    ],
-    [
-      {
+      },
+      "date": "2026-11-01"
+    },
+    {
+      "0": {
         "id": 12649181,
         "day": "2026-11-09",
         "info": "Nauczyciel: Sokół Paweł\nOpis: Wszystkie tematy od początku roku\nData dodania: 2026-10-19 11:22:49",
         "title": "Nr lekcji: 4\nbiznes i zarządzanie, Sprawdzian wiadomości\n2TI T\nSala: 0.2"
-      }
-    ],
-    [
-      {
+      },
+      "date": "2026-11-01"
+    },
+    {
+      "0": {
         "id": 3463303,
         "day": "2026-11-11",
         "title": "Święto Niepodległości: T"
-      }
-    ],
-    [
-      {
+      },
+      "date": "2026-11-01"
+    },
+    {
+      "0": {
         "id": 12706162,
         "day": "2026-11-13",
         "info": "Nauczyciel: Chyła Beata\nOpis: Tolles Deutsch 1,dział 4\nData dodania: 2026-10-30 09:08:43",
         "title": "Nr lekcji: 3\njęzyk niemiecki, Praca Klasowa\n2Ti/1\nSala: Z1"
-      }
-    ],
-    [
-      {
+      },
+      "date": "2026-11-01"
+    },
+    {
+      "0": {
         "id": 12691840,
         "day": "2026-11-17",
         "info": "Nauczyciel: Spych Monika\nOpis: Wartości i postawy (tematy 2-7)\nData dodania: 2026-10-29 08:56:02",
         "title": "Nr lekcji: 8\nSprawdzian wiadomości\n2TI T"
-      }
-    ]
+      },
+      "date": "2026-11-01"
+    }
   ],
   "timetable": {
     "hours": [
@@ -2375,5 +2395,5 @@
       ]
     }
   },
-  "lastSync": "2026-11-04T14:40:53.079Z"
+  "lastSync": "2026-11-04T15:05:12.792Z"
 }
