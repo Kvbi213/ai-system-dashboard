@@ -333,8 +333,8 @@ export class InternalMcpServer {
         const rawMinutes = Number(args.minutesBeforeEnd ?? 5);
         const minutesBeforeEnd = Math.min(30, Math.max(1, isNaN(rawMinutes) ? 5 : rawMinutes));
         const lessonIndex = Number(args.lessonIndex ?? 1);
-        if (isNaN(lessonIndex) || lessonIndex < 1 || lessonIndex > 10) {
-          throw new Error('Parametr "lessonIndex" musi być liczbą całkowitą od 1 do 10.');
+        if (isNaN(lessonIndex) || lessonIndex < 1) {
+          throw new Error('Parametr "lessonIndex" musi być dodatnią liczbą całkowitą.');
         }
 
         const note = args.customNote ? String(args.customNote).slice(0, 300) : 'Powiadomienie przed dzwonkiem';
@@ -345,6 +345,10 @@ export class InternalMcpServer {
         const lessons = dbStore.getTimetable(dayNum);
         if (!lessons || lessons.length === 0) {
           throw new Error(`Brak planu lekcji dla dnia ${dayNum}.`);
+        }
+
+        if (lessonIndex > lessons.length) {
+          throw new Error(`Podany lessonIndex (${lessonIndex}) przekracza liczbę lekcji w planie (${lessons.length}).`);
         }
 
         const targetLesson = lessons.find((l) => l.order === lessonIndex) || lessons[0];
