@@ -15,14 +15,23 @@ export interface McpToolDefinition {
 
 /**
  * Zwraca numer bieżącego dnia roboczego (1=Pon, ..., 5=Pt).
- * W przypadku weekendu (sobota, niedziela) przełącza na najbliższy poniedziałek (1).
+ * W przypadku weekendu (sobota=6, niedziela=0) przełącza na najbliższy nadchodzący poniedziałek (1).
  */
 export function getCurrentWorkday(now = new Date()): number {
   const day = now.getDay();
   if (day === 0 || day === 6) {
-    return 1; // Poniedziałek
+    return 1; // Najbliższy nadchodzący poniedziałek roboczy
   }
   return day;
+}
+
+/**
+ * Rygorystyczna asercja poprawności dnia roboczego (1 do 5).
+ */
+export function validateWorkday(day: number): asserts day is 1 | 2 | 3 | 4 | 5 {
+  if (isNaN(day) || !Number.isInteger(day) || day < 1 || day > 5) {
+    throw new Error('Parametr "day" musi być liczbą całkowitą z zakresu 1-5 (1=Pon, 2=Wt, ..., 5=Pt).');
+  }
 }
 
 export class InternalMcpServer {
@@ -78,7 +87,7 @@ export class InternalMcpServer {
         properties: {
           day: {
             type: 'number',
-            description: 'Numer dnia tygodnia (1-5, domyślnie bieżący dzień roboczy)'
+            description: 'Numer dnia tygodnia (1 do 5, domyślnie bieżący dzień roboczy)'
           },
           currentTime: {
             type: 'string',
@@ -93,17 +102,21 @@ export class InternalMcpServer {
       parameters: {
         type: 'object',
         properties: {
+          day: {
+            type: 'number',
+            description: 'Numer dnia tygodnia (1 do 5, domyślnie bieżący dzień roboczy)'
+          },
           minutesBeforeEnd: {
             type: 'number',
-            description: 'Liczba minut przed dzwonkiem na przerwę (1 do 30, domyślnie 5)'
+            description: 'Liczba minut przed dzwonkiem na przerwę (od 1 do 30, domyślnie 5)'
           },
           lessonIndex: {
             type: 'number',
-            description: 'Kolejność lekcji w planie (np. 1, 2, 3)'
+            description: 'Kolejność lekcji w planie (od 1 do 10)'
           },
           customNote: {
             type: 'string',
-            description: 'Dodatkowa notatka lub zadanie do przekazania na przerwę'
+            description: 'Dodatkowa notatka do 300 znaków'
           }
         },
         required: ['lessonIndex']
@@ -117,11 +130,11 @@ export class InternalMcpServer {
         properties: {
           directive: {
             type: 'string',
-            description: 'Treść dyrektywy lub preferencji (maksymalnie 500 znaków)'
+            description: 'Treść dyrektywy lub preferencji (od 3 do 500 znaków)'
           },
           tags: {
             type: 'string',
-            description: 'Tagi rozdzielone przecinkami (np. "szkoła,librus,przerwy")'
+            description: 'Tagi rozdzielone przecinkami (maksymalnie 10 tagów)'
           }
         },
         required: ['directive']
@@ -165,10 +178,8 @@ export class InternalMcpServer {
       }
 
       case 'query_timetable': {
-        const day = Number(args.day || getCurrentWorkday());
-        if (isNaN(day) || day < 1 || day > 5) {
-          throw new Error('Parametr "day" musi być liczbą całkowitą z zakresu 1-5.');
-        }
+        const day = Number(args.day ?? getCurrentWorkday());
+        validateWorkday(day);
 
         const lessons = dbStore.getTimetable(day);
         return {
@@ -214,10 +225,8 @@ export class InternalMcpServer {
 
       case 'get_current_lesson_status': {
         const now = new Date();
-        const dayNum = args.day ? Number(args.day) : getCurrentWorkday(now);
-        if (isNaN(dayNum) || dayNum < 1 || dayNum > 5) {
-          throw new Error('Parametr "day" musi być liczbą z zakresu 1-5.');
-        }
+        const dayNum = Number(args.day ?? getCurrentWorkday(now));
+        validateWorkday(dayNum);
 
         const lessons = dbStore.getTimetable(dayNum);
         if (!lessons || lessons.length === 0) {
@@ -238,14 +247,16 @@ export class InternalMcpServer {
           currentMinutes = now.getHours() * 60 + now.getMinutes();
         }
 
-        const parseRange = (rangeStr: string) => {
-          if (!rangeStr || !rangeStr.includes('-')) return { start: 0, end: 0 };
+        const parseRange = (rangeStr: string): { start: number; end: number } | null => {
+          if (!rangeStr || !rangeStr.includes('-')) return null;
           const parts = rangeStr.split('-').map((s) => s.trim());
-          const [sh, sm] = (parts[0] || '08:00').split(':').map(Number);
-          const [eh, em] = (parts[1] || '08:45').split(':').map(Number);
+          if (parts.length < 2) return null;
+          const [sh, sm] = parts[0].split(':').map(Number);
+          const [eh, em] = parts[1].split(':').map(Number);
+          if (isNaN(sh) || isNaN(sm) || isNaN(eh) || isNaN(em)) return null;
           return {
-            start: (isNaN(sh) ? 8 : sh) * 60 + (isNaN(sm) ? 0 : sm),
-            end: (isNaN(eh) ? 8 : eh) * 60 + (isNaN(em) ? 45 : em)
+            start: sh * 60 + sm,
+            end: eh * 60 + em
           };
         };
 
@@ -258,6 +269,7 @@ export class InternalMcpServer {
         for (let i = 0; i < lessons.length; i++) {
           const l = lessons[i];
           const range = parseRange(l.timeRange);
+          if (!range) continue;
 
           if (currentMinutes >= range.start && currentMinutes < range.end) {
             currentLesson = l;
@@ -265,7 +277,9 @@ export class InternalMcpServer {
             if (i + 1 < lessons.length) {
               nextLesson = lessons[i + 1];
               const nextRange = parseRange(nextLesson.timeRange);
-              breakDurationMinutes = Math.max(5, nextRange.start - range.end);
+              if (nextRange) {
+                breakDurationMinutes = Math.max(5, nextRange.start - range.end);
+              }
             }
             break;
           } else if (currentMinutes < range.start) {
@@ -278,9 +292,12 @@ export class InternalMcpServer {
 
         // Fallback gdy lekcje się skończyły lub jeszcze nie zaczęły
         if (!currentLesson && !nextLesson && lessons.length > 0) {
-          nextLesson = lessons[0];
-          isBreak = true;
-          minutesToBell = Math.max(0, parseRange(lessons[0].timeRange).start - currentMinutes);
+          const firstRange = parseRange(lessons[0].timeRange);
+          if (firstRange) {
+            nextLesson = lessons[0];
+            isBreak = true;
+            minutesToBell = Math.max(0, firstRange.start - currentMinutes);
+          }
         }
 
         return {
@@ -316,9 +333,15 @@ export class InternalMcpServer {
         const rawMinutes = Number(args.minutesBeforeEnd ?? 5);
         const minutesBeforeEnd = Math.min(30, Math.max(1, isNaN(rawMinutes) ? 5 : rawMinutes));
         const lessonIndex = Number(args.lessonIndex ?? 1);
+        if (isNaN(lessonIndex) || lessonIndex < 1 || lessonIndex > 10) {
+          throw new Error('Parametr "lessonIndex" musi być liczbą całkowitą od 1 do 10.');
+        }
+
         const note = args.customNote ? String(args.customNote).slice(0, 300) : 'Powiadomienie przed dzwonkiem';
 
-        const dayNum = args.day ? Number(args.day) : getCurrentWorkday();
+        const dayNum = Number(args.day ?? getCurrentWorkday());
+        validateWorkday(dayNum);
+
         const lessons = dbStore.getTimetable(dayNum);
         if (!lessons || lessons.length === 0) {
           throw new Error(`Brak planu lekcji dla dnia ${dayNum}.`);
@@ -359,8 +382,8 @@ export class InternalMcpServer {
 
       case 'save_student_directive': {
         const rawDirective = String(args.directive || '').trim();
-        if (!rawDirective) {
-          throw new Error('Pole "directive" jest wymagane i nie może być puste.');
+        if (!rawDirective || rawDirective.length < 3) {
+          throw new Error('Pole "directive" jest wymagane i musi zawierać co najmniej 3 znaki.');
         }
         const directiveText = rawDirective.slice(0, 500);
 
