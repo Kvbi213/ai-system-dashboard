@@ -100,8 +100,11 @@ export interface GradeItem {
   teacher?: string;
 }
 
+export type EventId = string | number;
+export const TEMP_EVENT_ID = '-1';
+
 export interface SchoolEvent {
-  id: string;
+  id: EventId;
   date: string;
   type: 'absence' | 'kartkowka' | 'sprawdzian' | 'inne' | 'exam' | 'custom' | string;
   category: string;

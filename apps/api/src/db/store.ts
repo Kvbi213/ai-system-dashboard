@@ -18,6 +18,8 @@ import {
   PersonalGoalItem,
   JournalEntry,
   SchoolEvent,
+  EventId,
+  TEMP_EVENT_ID,
   SubjectWithGrades,
   SingleGradeDetail
 } from './types.js';
@@ -68,6 +70,16 @@ export function parseSafeAverage(raw: unknown): number | undefined {
   if (raw === null || raw === undefined) return undefined;
   const num = typeof raw === 'number' ? raw : parseFloat(String(raw));
   return Number.isFinite(num) && num > 0 ? Number(num.toFixed(2)) : undefined;
+}
+
+/**
+ * Sanityzuje opcjonalne pole info zdarzenia ze znaczników HTML i niebezpiecznych znaków.
+ */
+export function sanitizeEventInfo(raw?: unknown): string | undefined {
+  if (raw === null || raw === undefined) return undefined;
+  const str = String(raw).trim();
+  if (!str) return undefined;
+  return str.replace(/<[^>]*>?/gm, '').trim();
 }
 
 function parseGradeValue(raw: string | number): number {
@@ -382,7 +394,9 @@ export class DatabaseStore {
         }
 
         const gtEvents: SchoolEvent[] = flatList.map((e: any) => ({
-          id: String(e.id),
+          id: String(e.id) === TEMP_EVENT_ID
+            ? TEMP_EVENT_ID
+            : (Number.isFinite(Number(e.id)) ? Number(e.id) : String(e.id)),
           date: parseLibrusDate(e.date || e.day) || new Date().toISOString().split('T')[0],
           type: (e.type === 'sprawdzian' ? 'sprawdzian' : e.type === 'kartkowka' ? 'kartkowka' : e.type === 'absence' ? 'absence' : 'inne') as any,
           category: e.category || 'Wydarzenie szkolne',
@@ -391,7 +405,7 @@ export class DatabaseStore {
           description: e.description || undefined,
           time: e.time || undefined,
           subject: e.subject || undefined,
-          info: e.info || e.title || undefined
+          info: sanitizeEventInfo(e.info || e.title)
         }));
 
         // Połącz wydarzenia z zachowaniem unikalności ID

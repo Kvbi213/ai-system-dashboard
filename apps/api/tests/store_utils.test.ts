@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseLibrusDate, parseSafeAverage } from '../src/db/store.js';
+import { parseLibrusDate, parseSafeAverage, sanitizeEventInfo } from '../src/db/store.js';
 
 describe('store utils: parseLibrusDate', () => {
   it('parses valid ISO date string correctly', () => {
@@ -44,5 +44,18 @@ describe('store utils: parseSafeAverage', () => {
   it('returns undefined for null or undefined', () => {
     expect(parseSafeAverage(null)).toBeUndefined();
     expect(parseSafeAverage(undefined)).toBeUndefined();
+  });
+});
+
+describe('store utils: sanitizeEventInfo', () => {
+  it('strips html tags and trims strings', () => {
+    expect(sanitizeEventInfo('<script>alert(1)</script>Kartkówka')).toBe('alert(1)Kartkówka');
+    expect(sanitizeEventInfo('<b>Sprawdzian</b> semestralny')).toBe('Sprawdzian semestralny');
+  });
+
+  it('returns undefined for empty, null, or undefined', () => {
+    expect(sanitizeEventInfo(null)).toBeUndefined();
+    expect(sanitizeEventInfo(undefined)).toBeUndefined();
+    expect(sanitizeEventInfo('   ')).toBeUndefined();
   });
 });

@@ -2,7 +2,7 @@ import Librus from 'librus-api';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { dbStore, parseSafeAverage, parseLibrusDate } from '../../db/store.js';
+import { dbStore, parseSafeAverage, parseLibrusDate, sanitizeEventInfo } from '../../db/store.js';
 import { redisCache } from '../../core/redisCache.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -114,7 +114,7 @@ export async function syncLibrusData(): Promise<LibrusSyncResult> {
               time: ev.time || undefined,
               teacher: ev.teacher || undefined,
               category: ev.category || 'Terminarz Librus',
-              info: ev.info || ev.title || undefined
+              info: sanitizeEventInfo(ev.info || ev.title)
             });
           }
         }
