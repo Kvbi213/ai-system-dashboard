@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { RedisCache, InvalidCacheKeyError, CacheSerializationError } from '../src/core/redisCache.js';
+import {
+  RedisCache,
+  InvalidCacheKeyError,
+  CacheSerializationError,
+  MAX_TOTAL_KEY_LENGTH
+} from '../src/core/redisCache.js';
 
 describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
   let cache: RedisCache;
@@ -74,7 +79,7 @@ describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
     expect(first.data).toBe('fetched');
 
     const second = await cache.getOrSet('getorset:test', 60, fetcher);
-    expect(callCount).toBe(1); // Nie powinien wywołać fetchera ponownie
+    expect(callCount).toBe(1);
     expect(second.data).toBe('fetched');
     expect(second.timestamp).toBe(first.timestamp);
   });
@@ -88,15 +93,35 @@ describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
     expect(stats.inMemoryKeysCount).toBe(2);
   });
 
+  it('waliduje poprawność prefiksu w konstruktorze', () => {
+    // Zbyt długi prefiks
+    expect(() => new RedisCache({ fallbackOnly: true, keyPrefix: 'a'.repeat(150) })).toThrow(
+      InvalidCacheKeyError
+    );
+    // Niedozwolone znaki w prefiksie
+    expect(() => new RedisCache({ fallbackOnly: true, keyPrefix: 'invalid*prefix:' })).toThrow(
+      InvalidCacheKeyError
+    );
+    expect(() => new RedisCache({ fallbackOnly: true, keyPrefix: 'prefix\nwith\nnewline:' })).toThrow(
+      InvalidCacheKeyError
+    );
+  });
+
   it('rzuca InvalidCacheKeyError przy niepoprawnych kluczach, znakach kontrolnych i wildcardach w get/set/del', async () => {
     await expect(cache.set('invalid*key', 'fail')).rejects.toThrow(InvalidCacheKeyError);
     await expect(cache.get('invalid?key')).rejects.toThrow(InvalidCacheKeyError);
     await expect(cache.del('invalid\nkey')).rejects.toThrow(InvalidCacheKeyError);
     await expect(cache.set('', 'empty')).rejects.toThrow(InvalidCacheKeyError);
 
-    // Limit długości z uwzględnieniem prefiksu
-    const tooLongKey = 'a'.repeat(250);
+    // Limit długości wyliczany dynamicznie względem prefiksu
+    const maxRaw = cache.getMaxRawKeyLength();
+    const tooLongKey = 'a'.repeat(maxRaw + 1);
     await expect(cache.set(tooLongKey, 'overflow')).rejects.toThrow(InvalidCacheKeyError);
+
+    // Maksymalny dopuszczalny klucz powinien zostać zaakceptowany
+    const exactMaxKey = 'a'.repeat(maxRaw);
+    await expect(cache.set(exactMaxKey, 'exact')).resolves.toBeUndefined();
+    expect(await cache.get(exactMaxKey)).toBe('exact');
 
     // Wzorzec z dozwolonymi wildcardami przechodzi
     await expect(cache.invalidatePattern('valid:*')).resolves.toBeUndefined();
@@ -104,16 +129,25 @@ describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
     await expect(cache.invalidatePattern('invalid*pattern\n')).rejects.toThrow(InvalidCacheKeyError);
   });
 
-  it('rzuca CacheSerializationError przy próbie zapisu obiektów ze strukturą cykliczną lub undefined', async () => {
+  it('rzuca CacheSerializationError z zachowaniem cause przy nie-serializowalnych typach', async () => {
     const cyclicObj: any = {};
     cyclicObj.self = cyclicObj;
 
-    await expect(cache.set('cyclic:key', cyclicObj)).rejects.toThrow(CacheSerializationError);
+    let caughtError: CacheSerializationError | null = null;
+    try {
+      await cache.set('cyclic:key', cyclicObj);
+    } catch (err: any) {
+      caughtError = err;
+    }
+    expect(caughtError).toBeInstanceOf(CacheSerializationError);
+    expect(caughtError?.cause).toBeDefined();
+
     await expect(cache.set('undefined:key', undefined)).rejects.toThrow(CacheSerializationError);
+    await expect(cache.set('func:key', () => {})).rejects.toThrow(CacheSerializationError);
+    await expect(cache.set('sym:key', Symbol('test'))).rejects.toThrow(CacheSerializationError);
   });
 
   it('bezpiecznie ignoruje i usuwa uszkodzone wartości JSON bez rzucania niespójnego wyjątku', async () => {
-    // Ręczne wstrzyknięcie uszkodzonego stringa do mapy in-memory
     const internalMap = (cache as any).inMemoryCache as Map<string, any>;
     internalMap.set('omnidash:corrupted:json', {
       value: '{ unclosed json syntax',
@@ -122,7 +156,6 @@ describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
 
     const result = await cache.get('corrupted:json');
     expect(result).toBeNull();
-    // Powinien zostać wyczyszczony z pamięci po wykryciu uszkodzenia
     expect(internalMap.has('omnidash:corrupted:json')).toBe(false);
   });
 
@@ -145,7 +178,6 @@ describe('RedisCache (Resilient In-Memory & Redis Failover)', () => {
       await autoCache.set('auto:short', 'val', 0.04); // 40ms TTL
       expect(await autoCache.get('auto:short')).toBe('val');
 
-      // Odczekaj 80ms, aby minął zarówno TTL, jak i interwał janitora (30ms)
       await new Promise((resolve) => setTimeout(resolve, 80));
 
       const stats = autoCache.getStats();

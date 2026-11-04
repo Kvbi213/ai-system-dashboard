@@ -8,8 +8,8 @@ export class InvalidCacheKeyError extends Error {
 }
 
 export class CacheSerializationError extends Error {
-  constructor(message: string) {
-    super(`[CacheSerializationError] ${message}`);
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(`[CacheSerializationError] ${message}`, options);
     this.name = 'CacheSerializationError';
   }
 }
@@ -27,7 +27,8 @@ interface CacheItem {
   expiresAt: number | null;
 }
 
-const MAX_TOTAL_KEY_LENGTH = 256;
+export const MAX_TOTAL_KEY_LENGTH = 256;
+export const MAX_PREFIX_LENGTH = 128;
 const SINGLE_KEY_REGEX = /^[A-Za-z0-9:_\-\.\/]+$/;
 const PATTERN_KEY_REGEX = /^[A-Za-z0-9:_\-\.\/\*\?]+$/;
 
@@ -42,13 +43,15 @@ function globToRegex(globPattern: string): RegExp {
 export class RedisCache {
   private redisClient: Redis | null = null;
   private isRedisConnected = false;
-  private inMemoryCache = new Map<string, CacheItem>();
-  private keyPrefix: string;
-  private isFallbackOnly: boolean;
+  private readonly inMemoryCache = new Map<string, CacheItem>();
+  public readonly keyPrefix: string;
+  private readonly isFallbackOnly: boolean;
   private janitorTimer: NodeJS.Timeout | null = null;
 
   constructor(options: RedisCacheOptions = {}) {
-    this.keyPrefix = options.keyPrefix || 'omnidash:';
+    const rawPrefix = options.keyPrefix !== undefined ? options.keyPrefix : 'omnidash:';
+    this.validatePrefix(rawPrefix);
+    this.keyPrefix = rawPrefix;
     this.isFallbackOnly = !!options.fallbackOnly;
 
     this.startJanitor(
@@ -60,6 +63,28 @@ export class RedisCache {
       const url = options.redisUrl || process.env.REDIS_URL || 'redis://localhost:6379';
       this.initRedis(url);
     }
+  }
+
+  private validatePrefix(prefix: string): void {
+    if (typeof prefix !== 'string') {
+      throw new InvalidCacheKeyError(prefix, 'Prefiks klucza pamięci podręcznej musi być ciągiem znaków');
+    }
+    if (prefix.length > MAX_PREFIX_LENGTH) {
+      throw new InvalidCacheKeyError(
+        prefix,
+        `Długość prefiksu (${prefix.length}) przekracza maksymalny limit ${MAX_PREFIX_LENGTH} znaków`
+      );
+    }
+    if (prefix.length > 0 && !SINGLE_KEY_REGEX.test(prefix)) {
+      throw new InvalidCacheKeyError(
+        prefix,
+        'Prefiks zawiera znaki zabronione lub kontrolne. Dozwolone znaki alfanumeryczne oraz : _ - . /'
+      );
+    }
+  }
+
+  public getMaxRawKeyLength(): number {
+    return MAX_TOTAL_KEY_LENGTH - this.keyPrefix.length;
   }
 
   private startJanitor(intervalMs: number, shouldUnref: boolean): void {
@@ -90,11 +115,11 @@ export class RedisCache {
       throw new InvalidCacheKeyError(key, 'Klucz pamięci podręcznej musi być niepustym ciągiem znaków');
     }
 
-    const maxRawKeyLength = MAX_TOTAL_KEY_LENGTH - this.keyPrefix.length;
-    if (key.length > maxRawKeyLength) {
+    const maxRawLength = this.getMaxRawKeyLength();
+    if (key.length > maxRawLength) {
       throw new InvalidCacheKeyError(
         key,
-        `Długość klucza (${key.length}) wraz z prefiksem ("${this.keyPrefix}") przekracza dopuszczalny limit ${MAX_TOTAL_KEY_LENGTH} znaków`
+        `Długość klucza (${key.length}) wraz z prefiksem ("${this.keyPrefix}") przekracza dopuszczalny limit ${MAX_TOTAL_KEY_LENGTH} znaków (maksymalna długość surowego klucza: ${maxRawLength})`
       );
     }
 
@@ -199,14 +224,23 @@ export class RedisCache {
   public async set(key: string, value: any, ttlSeconds?: number): Promise<void> {
     this.validateKey(key, false);
 
+    if (typeof value === 'function' || typeof value === 'symbol' || value === undefined) {
+      throw new CacheSerializationError(
+        `Wartość typu ${typeof value} dla klucza "${key}" nie może zostać zserializowana do formatu JSON`
+      );
+    }
+
     let serialized: string;
     try {
       serialized = JSON.stringify(value);
       if (serialized === undefined) {
-        throw new Error('Wartość jest undefined i nie może zostać zserializowana');
+        throw new Error('Wartość jest undefined');
       }
     } catch (err: any) {
-      throw new CacheSerializationError(`Nie można zserializować wartości dla klucza "${key}": ${err.message}`);
+      throw new CacheSerializationError(
+        `Nie można zserializować wartości dla klucza "${key}": ${err.message}`,
+        { cause: err }
+      );
     }
 
     const prefixedKey = this.formatKey(key);
