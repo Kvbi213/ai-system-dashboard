@@ -127,11 +127,18 @@ export class SemanticMemoryStore {
     }));
   }
 
+  private readonly maxFacts = 5000;
+
   public getFacts(): MemoryFact[] {
     return this.facts;
   }
 
   public addFact(data: { category: MemoryFact['category']; content: string; tags: string[] }): MemoryFact {
+    if (this.facts.length >= this.maxFacts) {
+      // FIFO eviction najstarszego faktu ponad limit
+      this.facts.shift();
+    }
+
     const newFact: MemoryFact = {
       id: `fact_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       category: data.category,

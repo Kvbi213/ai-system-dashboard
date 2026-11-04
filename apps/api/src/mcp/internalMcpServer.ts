@@ -13,6 +13,18 @@ export interface McpToolDefinition {
   };
 }
 
+/**
+ * Zwraca numer bieżącego dnia roboczego (1=Pon, ..., 5=Pt).
+ * W przypadku weekendu (sobota, niedziela) przełącza na najbliższy poniedziałek (1).
+ */
+export function getCurrentWorkday(now = new Date()): number {
+  const day = now.getDay();
+  if (day === 0 || day === 6) {
+    return 1; // Poniedziałek
+  }
+  return day;
+}
+
 export class InternalMcpServer {
   private tools: McpToolDefinition[] = [
     {
@@ -83,7 +95,7 @@ export class InternalMcpServer {
         properties: {
           minutesBeforeEnd: {
             type: 'number',
-            description: 'Liczba minut przed dzwonkiem na przerwę (domyślnie 5)'
+            description: 'Liczba minut przed dzwonkiem na przerwę (1 do 30, domyślnie 5)'
           },
           lessonIndex: {
             type: 'number',
@@ -93,7 +105,8 @@ export class InternalMcpServer {
             type: 'string',
             description: 'Dodatkowa notatka lub zadanie do przekazania na przerwę'
           }
-        }
+        },
+        required: ['lessonIndex']
       }
     },
     {
@@ -104,7 +117,7 @@ export class InternalMcpServer {
         properties: {
           directive: {
             type: 'string',
-            description: 'Treść dyrektywy lub preferencji'
+            description: 'Treść dyrektywy lub preferencji (maksymalnie 500 znaków)'
           },
           tags: {
             type: 'string',
@@ -121,6 +134,14 @@ export class InternalMcpServer {
   }
 
   public async callTool(name: string, args: Record<string, any>): Promise<any> {
+    try {
+      return await this.handleToolCall(name, args);
+    } catch (err: any) {
+      throw new Error(`[!] McpServer Error [${name}]: ${err.message}`);
+    }
+  }
+
+  private async handleToolCall(name: string, args: Record<string, any>): Promise<any> {
     switch (name) {
       case 'get_system_metrics': {
         const totalMem = os.totalmem();
@@ -144,7 +165,11 @@ export class InternalMcpServer {
       }
 
       case 'query_timetable': {
-        const day = Number(args.day || 2);
+        const day = Number(args.day || getCurrentWorkday());
+        if (isNaN(day) || day < 1 || day > 5) {
+          throw new Error('Parametr "day" musi być liczbą całkowitą z zakresu 1-5.');
+        }
+
         const lessons = dbStore.getTimetable(day);
         return {
           day,
@@ -189,25 +214,38 @@ export class InternalMcpServer {
 
       case 'get_current_lesson_status': {
         const now = new Date();
-        const dayNum = args.day ? Number(args.day) : (now.getDay() === 0 || now.getDay() === 6 ? 2 : now.getDay());
+        const dayNum = args.day ? Number(args.day) : getCurrentWorkday(now);
+        if (isNaN(dayNum) || dayNum < 1 || dayNum > 5) {
+          throw new Error('Parametr "day" musi być liczbą z zakresu 1-5.');
+        }
+
         const lessons = dbStore.getTimetable(dayNum);
+        if (!lessons || lessons.length === 0) {
+          return {
+            day: dayNum,
+            isBreak: true,
+            currentLesson: null,
+            nextLesson: null,
+            statusSummary: 'Brak zaplanowanych lekcji na dany dzień.'
+          };
+        }
 
         let currentMinutes: number;
         if (args.currentTime && typeof args.currentTime === 'string' && args.currentTime.includes(':')) {
           const [h, m] = args.currentTime.split(':').map(Number);
-          currentMinutes = h * 60 + m;
+          currentMinutes = (isNaN(h) ? now.getHours() : h) * 60 + (isNaN(m) ? now.getMinutes() : m);
         } else {
           currentMinutes = now.getHours() * 60 + now.getMinutes();
         }
 
         const parseRange = (rangeStr: string) => {
+          if (!rangeStr || !rangeStr.includes('-')) return { start: 0, end: 0 };
           const parts = rangeStr.split('-').map((s) => s.trim());
-          if (parts.length < 2) return { start: 0, end: 0 };
-          const [sh, sm] = parts[0].split(':').map(Number);
-          const [eh, em] = parts[1].split(':').map(Number);
+          const [sh, sm] = (parts[0] || '08:00').split(':').map(Number);
+          const [eh, em] = (parts[1] || '08:45').split(':').map(Number);
           return {
-            start: sh * 60 + sm,
-            end: eh * 60 + em
+            start: (isNaN(sh) ? 8 : sh) * 60 + (isNaN(sm) ? 0 : sm),
+            end: (isNaN(eh) ? 8 : eh) * 60 + (isNaN(em) ? 45 : em)
           };
         };
 
@@ -275,23 +313,33 @@ export class InternalMcpServer {
       }
 
       case 'schedule_lesson_transition_alert': {
-        const minutesBeforeEnd = Number(args.minutesBeforeEnd ?? 5);
-        const lessonIndex = args.lessonIndex ? Number(args.lessonIndex) : 1;
-        const note = args.customNote ? String(args.customNote) : 'Powiadomienie przed dzwonkiem';
+        const rawMinutes = Number(args.minutesBeforeEnd ?? 5);
+        const minutesBeforeEnd = Math.min(30, Math.max(1, isNaN(rawMinutes) ? 5 : rawMinutes));
+        const lessonIndex = Number(args.lessonIndex ?? 1);
+        const note = args.customNote ? String(args.customNote).slice(0, 300) : 'Powiadomienie przed dzwonkiem';
 
-        const dayNum = 2; // wtorek demonstracyjny / bieżący dzień
+        const dayNum = args.day ? Number(args.day) : getCurrentWorkday();
         const lessons = dbStore.getTimetable(dayNum);
+        if (!lessons || lessons.length === 0) {
+          throw new Error(`Brak planu lekcji dla dnia ${dayNum}.`);
+        }
+
         const targetLesson = lessons.find((l) => l.order === lessonIndex) || lessons[0];
-        const nextIdx = lessons.findIndex((l) => l.order === targetLesson?.order);
+        if (!targetLesson) {
+          throw new Error(`Nie znaleziono lekcji o indeksie ${lessonIndex}.`);
+        }
+
+        const nextIdx = lessons.findIndex((l) => l.order === targetLesson.order);
         const nextLesson = nextIdx >= 0 && nextIdx + 1 < lessons.length ? lessons[nextIdx + 1] : null;
 
-        const scheduledTime = targetLesson ? targetLesson.timeRange.split('-')[1].trim() : '12:00';
+        const timeParts = targetLesson.timeRange.split('-');
+        const scheduledTime = timeParts.length > 1 ? timeParts[1].trim() : '12:00';
 
         const messagePayload = {
           type: 'LESSON_TRANSITION',
           scheduledAlertMinutesBefore: minutesBeforeEnd,
-          targetLesson: targetLesson?.subject,
-          room: targetLesson?.classroom,
+          targetLesson: targetLesson.subject,
+          room: targetLesson.classroom,
           nextSubject: nextLesson ? nextLesson.subject : 'Koniec zajęć',
           nextRoom: nextLesson ? nextLesson.classroom : '-',
           nextTeacher: nextLesson ? nextLesson.teacher : '-',
@@ -301,22 +349,23 @@ export class InternalMcpServer {
 
         return {
           success: true,
-          scheduledForLesson: targetLesson?.subject || 'Lekcja',
+          scheduledForLesson: targetLesson.subject,
           fireAtTime: scheduledTime,
           alertWindow: `${minutesBeforeEnd} min przed dzwonkiem`,
-          notificationPreview: `[DZWONEK] Za ${minutesBeforeEnd} min koniec: ${targetLesson?.subject}. Następna lekcja: ${nextLesson ? nextLesson.subject + ' (sala ' + nextLesson.classroom + ')' : 'brak'}.`,
+          notificationPreview: `[DZWONEK] Za ${minutesBeforeEnd} min koniec: ${targetLesson.subject}. Następna lekcja: ${nextLesson ? nextLesson.subject + ' (sala ' + nextLesson.classroom + ')' : 'brak'}.`,
           payload: messagePayload
         };
       }
 
       case 'save_student_directive': {
-        const directiveText = String(args.directive || '').trim();
-        if (!directiveText) {
+        const rawDirective = String(args.directive || '').trim();
+        if (!rawDirective) {
           throw new Error('Pole "directive" jest wymagane i nie może być puste.');
         }
+        const directiveText = rawDirective.slice(0, 500);
 
         const tagList = args.tags
-          ? String(args.tags).split(',').map((t) => t.trim()).filter(Boolean)
+          ? String(args.tags).split(',').map((t) => t.trim().slice(0, 40)).filter(Boolean).slice(0, 10)
           : ['szkoła', 'lekcje', 'dyrektywa'];
 
         const memoryEntry = semanticMemory.addFact({
