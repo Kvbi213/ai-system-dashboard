@@ -26,12 +26,40 @@ export function getCurrentWorkday(now = new Date()): number {
 }
 
 /**
+ * Dedykowana klasa błędu dla niepoprawnych parametrów wywołania narzędzi MCP.
+ */
+export class McpBadRequestError extends Error {
+  public readonly status = 400;
+  constructor(message: string) {
+    super(message);
+    this.name = 'McpBadRequestError';
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+/**
+ * Reużywalny walidator liczb całkowitych w zadanym przedziale domkniętym.
+ */
+export function validatePositiveInteger(
+  value: number,
+  options: { min?: number; max?: number; name?: string }
+): void {
+  const min = options.min ?? 1;
+  const max = options.max ?? Number.MAX_SAFE_INTEGER;
+  const name = options.name ?? 'wartość';
+
+  if (!Number.isInteger(value) || value < min || value > max) {
+    throw new McpBadRequestError(
+      `Parametr "${name}" musi być liczbą całkowitą z zakresu od ${min} do ${max}.`
+    );
+  }
+}
+
+/**
  * Rygorystyczna asercja poprawności dnia roboczego (1 do 5).
  */
 export function validateWorkday(day: number): asserts day is 1 | 2 | 3 | 4 | 5 {
-  if (isNaN(day) || !Number.isInteger(day) || day < 1 || day > 5) {
-    throw new Error('Parametr "day" musi być liczbą całkowitą z zakresu 1-5 (1=Pon, 2=Wt, ..., 5=Pt).');
-  }
+  validatePositiveInteger(day, { min: 1, max: 5, name: 'day' });
 }
 
 export class InternalMcpServer {
@@ -112,7 +140,7 @@ export class InternalMcpServer {
           },
           lessonIndex: {
             type: 'number',
-            description: 'Kolejność lekcji w planie (od 1 do 10)'
+            description: 'Kolejność lekcji w planie (od 1 do 12)'
           },
           customNote: {
             type: 'string',
@@ -150,6 +178,9 @@ export class InternalMcpServer {
     try {
       return await this.handleToolCall(name, args);
     } catch (err: any) {
+      if (err instanceof McpBadRequestError) {
+        throw err;
+      }
       throw new Error(`[!] McpServer Error [${name}]: ${err.message}`);
     }
   }
@@ -331,15 +362,11 @@ export class InternalMcpServer {
 
       case 'schedule_lesson_transition_alert': {
         const rawMinutes = Number(args.minutesBeforeEnd ?? 5);
-        if (isNaN(rawMinutes) || !Number.isInteger(rawMinutes) || rawMinutes < 1 || rawMinutes > 30) {
-          throw new Error('Parametr "minutesBeforeEnd" musi być liczbą całkowitą od 1 do 30.');
-        }
+        validatePositiveInteger(rawMinutes, { min: 1, max: 30, name: 'minutesBeforeEnd' });
         const minutesBeforeEnd = rawMinutes;
 
         const rawIndex = Number(args.lessonIndex ?? 1);
-        if (isNaN(rawIndex) || !Number.isInteger(rawIndex) || rawIndex < 1) {
-          throw new Error('Parametr "lessonIndex" musi być dodatnią liczbą całkowitą.');
-        }
+        validatePositiveInteger(rawIndex, { min: 1, max: 12, name: 'lessonIndex' });
         const lessonIndex = rawIndex;
 
         const note = args.customNote ? String(args.customNote).slice(0, 300) : 'Powiadomienie przed dzwonkiem';
@@ -349,18 +376,16 @@ export class InternalMcpServer {
 
         const lessons = dbStore.getTimetable(dayNum);
         if (!lessons || lessons.length === 0) {
-          throw new Error(`Brak planu lekcji dla dnia ${dayNum}.`);
+          throw new McpBadRequestError(`Brak planu lekcji dla dnia ${dayNum}.`);
         }
 
         if (lessonIndex > lessons.length) {
-          throw new Error(`Podany lessonIndex (${lessonIndex}) przekracza liczbę lekcji w planie (${lessons.length}).`);
+          throw new McpBadRequestError(
+            `Podany lessonIndex (${lessonIndex}) przekracza liczbę lekcji w planie (${lessons.length}).`
+          );
         }
 
         const targetLesson = lessons.find((l) => l.order === lessonIndex) || lessons[0];
-        if (!targetLesson) {
-          throw new Error(`Nie znaleziono lekcji o indeksie ${lessonIndex}.`);
-        }
-
         const nextIdx = lessons.findIndex((l) => l.order === targetLesson.order);
         const nextLesson = nextIdx >= 0 && nextIdx + 1 < lessons.length ? lessons[nextIdx + 1] : null;
 
@@ -392,7 +417,7 @@ export class InternalMcpServer {
       case 'save_student_directive': {
         const rawDirective = String(args.directive || '').trim();
         if (!rawDirective || rawDirective.length < 3) {
-          throw new Error('Pole "directive" jest wymagane i musi zawierać co najmniej 3 znaki.');
+          throw new McpBadRequestError('Pole "directive" jest wymagane i musi zawierać co najmniej 3 znaki.');
         }
         const directiveText = rawDirective.slice(0, 500);
 
@@ -418,7 +443,7 @@ export class InternalMcpServer {
       }
 
       default:
-        throw new Error(`[!] McpServer: Nieznane narzędzie "${name}".`);
+        throw new McpBadRequestError(`Nieznane narzędzie "${name}".`);
     }
   }
 }
@@ -450,7 +475,8 @@ mcpRouter.post('/call', async (req: Request, res: Response) => {
       result
     });
   } catch (err: any) {
-    res.status(500).json({
+    const status = err instanceof McpBadRequestError ? err.status : 500;
+    res.status(status).json({
       success: false,
       tool,
       error: err.message
