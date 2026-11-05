@@ -4,7 +4,7 @@ export const PushNotificationSchema = z.object({
   id: z.string(),
   title: z.string().min(1),
   body: z.string().min(1),
-  priority: z.enum(['CRITICAL', 'NORMAL', 'LOW']).default('NORMAL'),
+  priority: z.enum(['CRITICAL', 'HIGH', 'NORMAL', 'LOW']).default('NORMAL'),
   targetEmail: z.string().email().optional(),
   targetDeviceId: z.string().optional(),
   scheduledFor: z.number().optional(),
@@ -32,7 +32,7 @@ export class PushbulletDispatcher {
   }
 
   private sortQueue(): void {
-    const pWeight = { CRITICAL: 3, NORMAL: 2, LOW: 1 };
+    const pWeight = { CRITICAL: 4, HIGH: 3, NORMAL: 2, LOW: 1 };
     this.queue.sort((a, b) => pWeight[b.priority] - pWeight[a.priority]);
   }
 
