@@ -117,14 +117,14 @@ export function calculateLessonInfo(date = new Date()): CurrentLessonInfo {
   for (let i = 0; i < parsedLessons.length; i++) {
     const cur = parsedLessons[i];
     const next = parsedLessons[i + 1] ? parsedLessons[i + 1] : null;
+    const isConsecutiveSameSubject = Boolean(
+      next &&
+        cur.lesson.subject.trim().toLowerCase() === next.lesson.subject.trim().toLowerCase()
+    );
 
     // Trwa bieżąca lekcja
     if (currentMinutes >= cur.parsed.startMins && currentMinutes < cur.parsed.endMins) {
       const diff = cur.parsed.endMins - currentMinutes;
-      const isConsecutiveSameSubject = Boolean(
-        next &&
-          cur.lesson.subject.trim().toLowerCase() === next.lesson.subject.trim().toLowerCase()
-      );
       const currentLessonLabel = buildLessonLabel(cur.lesson);
       const nextLessonLabel = next
         ? buildLessonLabel(next.lesson, isConsecutiveSameSubject)
@@ -149,9 +149,6 @@ export function calculateLessonInfo(date = new Date()): CurrentLessonInfo {
     // Trwa przerwa między lekcją i następną
     if (next && currentMinutes >= cur.parsed.endMins && currentMinutes < next.parsed.startMins) {
       const diff = next.parsed.startMins - currentMinutes;
-      const isConsecutiveSameSubject = Boolean(
-        cur.lesson.subject.trim().toLowerCase() === next.lesson.subject.trim().toLowerCase()
-      );
       const nextLessonLabel = buildLessonLabel(next.lesson, isConsecutiveSameSubject);
 
       return {

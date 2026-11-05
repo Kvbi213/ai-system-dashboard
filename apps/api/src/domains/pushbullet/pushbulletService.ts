@@ -243,6 +243,7 @@ export class PushbulletService {
       recordHistory(false, false);
       return {
         success: false,
+        simulated: false,
         error: `Błąd sieciowy podczas wysyłania Pushbullet: ${err.message}`,
         sentAt: nowIso
       };

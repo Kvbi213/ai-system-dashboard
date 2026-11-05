@@ -569,7 +569,8 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
       // Powiadomienia Pushbullet
       case 'send_phone_notification':
       case 'send_pushbullet_notification': {
-        const safeArgs = args ?? {};
+        // Zabezpieczenie defensywne przed wywołaniem narzędzia z pustym obiektem parametrów
+        const safeArgs: Record<string, any> = args && typeof args === 'object' ? args : {};
         const title = String(safeArgs.title || 'OmniDash Powiadomienie').trim();
         const body = String(safeArgs.body || 'Wiadomość z asystenta AI').trim();
         const priority = safeArgs.priority || 'NORMAL';
