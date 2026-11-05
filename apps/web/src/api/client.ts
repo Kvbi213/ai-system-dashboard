@@ -121,7 +121,14 @@ export const privateApi = {
   addJournalEntry: (data: { title: string; content: string; category?: string }) =>
     apiFetch<{ entry: any }>('/private/journal', { method: 'POST', body: JSON.stringify(data) }),
   deleteJournalEntry: (id: string) =>
-    apiFetch<{ success: boolean }>(`/private/journal/${id}`, { method: 'DELETE' })
+    apiFetch<{ success: boolean }>(`/private/journal/${id}`, { method: 'DELETE' }),
+  getHabits: () => apiFetch<{ habits: any[] }>('/private/habits'),
+  addHabit: (title: string) =>
+    apiFetch<{ habit: any }>('/private/habits', { method: 'POST', body: JSON.stringify({ title }) }),
+  toggleHabit: (id: string) =>
+    apiFetch<{ habit: any }>(`/private/habits/${id}/toggle`, { method: 'POST' }),
+  deleteHabit: (id: string) =>
+    apiFetch<{ success: boolean }>(`/private/habits/${id}`, { method: 'DELETE' })
 };
 
 // Traffic Domain

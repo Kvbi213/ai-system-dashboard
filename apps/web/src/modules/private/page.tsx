@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PrivateRoutinesCard } from './components/PrivateRoutinesCard';
+import { DailyHabitStreaks } from './components/DailyHabitStreaks';
 import { PersonalGoalsCard } from './components/PersonalGoalsCard';
 import { PrivateJournalCard } from './components/PrivateJournalCard';
 import { Sun, Target, BookOpen } from 'lucide-react';
@@ -16,12 +17,12 @@ export const PrivatePage: React.FC = () => {
     setIsRefreshing(true);
     setTimeout(() => {
       setIsRefreshing(false);
-      toast.success('Pobrano aktualne rutyny i cele osobiste');
+      toast.success('Pobrano aktualne nawyki, rutyny i cele osobiste');
     }, 600);
   };
 
   const tabs = [
-    { id: 'routines', label: 'Rutyny i Nawyki Dnia', icon: Sun },
+    { id: 'routines', label: 'Nawyki i Rutyny Dobowe', icon: Sun },
     { id: 'goals', label: 'Cele i Projekty Osobiste', icon: Target },
     { id: 'journal', label: 'Dziennik i Refleksje', icon: BookOpen }
   ] as const;
@@ -32,7 +33,7 @@ export const PrivatePage: React.FC = () => {
       <PageHeader
         icon={Sun}
         title="Strefa Prywatna i Rozwój"
-        subtitle="Zsynchronizowane rutyny dobowe, cele strategiczne i dziennik refleksji"
+        subtitle="Zsynchronizowane nawyki, rutyny dobowe, cele strategiczne i dziennik refleksji"
         badge="Prywatne"
         badgeVariant="purple"
         onRefresh={handleRefresh}
@@ -47,7 +48,12 @@ export const PrivatePage: React.FC = () => {
       />
 
       {/* Tab Panels */}
-      {activeTab === 'routines' && <PrivateRoutinesCard />}
+      {activeTab === 'routines' && (
+        <div className="space-y-4">
+          <DailyHabitStreaks />
+          <PrivateRoutinesCard />
+        </div>
+      )}
       {activeTab === 'goals' && <PersonalGoalsCard />}
       {activeTab === 'journal' && <PrivateJournalCard />}
     </div>

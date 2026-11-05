@@ -52,6 +52,60 @@ privateRouter.delete('/routines/:id', async (req: AuthenticatedRequest, res: Res
   res.json({ success });
 });
 
+// Habits (Centralized in Private Hub)
+privateRouter.get('/habits', async (_req: AuthenticatedRequest, res: Response) => {
+  try {
+    const data = await redisCache.getOrSet('private:habits', 600, async () => {
+      return { habits: dbStore.getHabits() };
+    });
+    res.json(data);
+  } catch {
+    res.json({ habits: dbStore.getHabits() });
+  }
+});
+
+privateRouter.post('/habits', async (req: AuthenticatedRequest, res: Response) => {
+  const { title } = req.body;
+  if (!title) {
+    res.status(400).json({ error: 'INVALID_HABIT', message: 'Tytuł nawyku jest wymagany.' });
+    return;
+  }
+  const habit = dbStore.addHabit(title);
+  await redisCache.invalidatePattern('private:habits*');
+  res.status(201).json({ habit });
+});
+
+privateRouter.post('/habits/:id/toggle', async (req: AuthenticatedRequest, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : String(req.params.id);
+  const habit = dbStore.toggleHabit(id);
+  if (!habit) {
+    res.status(404).json({ error: 'NOT_FOUND', message: 'Nawyk nie został znaleziony.' });
+    return;
+  }
+  await redisCache.invalidatePattern('private:habits*');
+  res.json({ habit });
+});
+
+privateRouter.patch('/habits/:id/toggle', async (req: AuthenticatedRequest, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : String(req.params.id);
+  const habit = dbStore.toggleHabit(id);
+  if (!habit) {
+    res.status(404).json({ error: 'NOT_FOUND', message: 'Nawyk nie został znaleziony.' });
+    return;
+  }
+  await redisCache.invalidatePattern('private:habits*');
+  res.json({ habit });
+});
+
+privateRouter.delete('/habits/:id', async (req: AuthenticatedRequest, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : String(req.params.id);
+  const success = dbStore.deleteHabit(id);
+  if (success) {
+    await redisCache.invalidatePattern('private:habits*');
+  }
+  res.json({ success });
+});
+
 // Goals
 privateRouter.get('/goals', async (_req: AuthenticatedRequest, res: Response) => {
   try {

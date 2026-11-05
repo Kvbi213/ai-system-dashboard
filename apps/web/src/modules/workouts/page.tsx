@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import { AtticFBWTracker } from './components/AtticFBWTracker';
-import { DailyHabitStreaks } from './components/DailyHabitStreaks';
 import { PersonalRecordsCard } from './components/PersonalRecordsCard';
-import { Dumbbell, Flame, Trophy, CheckCircle } from 'lucide-react';
+import { Dumbbell, Trophy, CheckCircle, Flame } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { SubTabBar } from '../../components/ui/SubTabBar';
 import { useToast } from '../../components/ui/Toast';
 import { useWorkoutState } from './hooks/useWorkoutState';
 
 export const WorkoutsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'fbw' | 'habits' | 'records'>('fbw');
+  const [activeTab, setActiveTab] = useState<'fbw' | 'records'>('fbw');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const toast = useToast();
   const { completedSets, totalSets, streakDays, activeCycle } = useWorkoutState();
@@ -24,16 +23,15 @@ export const WorkoutsPage: React.FC = () => {
 
   const tabs = [
     { id: 'fbw', label: 'Trening FBW & Kalistenika', icon: Dumbbell },
-    { id: 'habits', label: 'Nawyki i Streaki', icon: Flame },
-    { id: 'records', label: 'Rekordy Osobiste', icon: Trophy }
+    { id: 'records', label: 'Rekordy Osobiste (PR)', icon: Trophy }
   ] as const;
 
   return (
-    <div className="space-y-4 max-w-4xl mx-auto">
+    <div className="space-y-4 max-w-4xl mx-auto" data-testid="workouts-page">
       {/* Unified Executive PageHeader */}
       <PageHeader
         icon={Dumbbell}
-        title="Trening FBW i Nawyki Dnia"
+        title="Trening FBW & Kalistenika"
         subtitle="Kalistenika na strychu :: Drążek, Dipy & Progresja Obciążenia"
         badge="Cykl A"
         badgeVariant="emerald"
@@ -87,7 +85,6 @@ export const WorkoutsPage: React.FC = () => {
 
       {/* Tab Panels */}
       {activeTab === 'fbw' && <AtticFBWTracker />}
-      {activeTab === 'habits' && <DailyHabitStreaks />}
       {activeTab === 'records' && <PersonalRecordsCard />}
     </div>
   );

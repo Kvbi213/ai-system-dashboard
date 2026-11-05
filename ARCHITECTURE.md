@@ -7,7 +7,7 @@
 
 ## 1. STATUS SYSTEMU I METRYKI WYDANIA
 
-- **Wersja:** `v4.0.0-rc.10`
+- **Wersja:** `v4.0.0-rc.11`
 - **Typ Architektury:** Domain-Driven Modular Monolith w kontenerach Docker Compose
 - **Standard Jakości:** 100% TypeScript (`strict: true`, zero `any`), Zero-Placeholder Policy
 - **Środowisko:** Node.js 22 LTS, Vite 6, React 19, TailwindCSS v4, Vitest, Playwright 1.50
@@ -56,7 +56,8 @@ $PROJECT_ROOT/OmniDash/
 │   │           ├── timetable/      # Dedykowany plan lekcji z wyborem dnia (pełna zgodność Synergia)
 │   │           ├── grades/         # LibrusTableView (tabela 1:1 Synergia), SubjectGradesGrid, GradeStatsSummary, fallbackData
 │   │           ├── finance/        # Budżet 50/30/20, BudgetPredictionCard z Write-Back, abonamenty, cele
-│   │           ├── workouts/       # Trening FBW (AtticFBWTracker), RestTimerOverlay (OLED True Black), rekordy
+│   │           ├── workouts/       # Trening FBW (AtticFBWTracker), RestTimerOverlay (OLED True Black), rekordy osobiste PR
+│   │           ├── private/        # Strefa Prywatna: Nawyki i rutyny dobowe (DailyHabitStreaks, PrivateRoutinesCard), cele, dziennik
 │   │           ├── traffic/        # Kamery GDDKiA, radary CANARD, alerty drogowe
 │   │           ├── osint/          # Inspekcja domen, ThreatMonitoringTimeline (SSRF Shield), certyfikaty SSL
 │   │           ├── server/         # Telemetria kontenerów Docker, węzeł Mikr.us LXC, kopia zapasowa

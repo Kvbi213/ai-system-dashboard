@@ -621,3 +621,25 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - API Gateway Vitest: 109 passed (15 plików testowych, 100% green).
   - Web Build: `tsc && vite build` — 0 błędów, exit code 0.
   - Dostępność demonów: API :5000, Web :3000, Worker nominalne.
+
+
+## v4.0.0-rc.11 — 2026-11-05
+### Oczyszczenie Osi Czasu Dnia, Poprawa Bufora Daty i Centralizacja Nawyków w Strefie Prywatnej
+- [+] **Oczyszczenie i Determinizm Osi Czasu Dnia (`DailyTimelineWidget.tsx`):**
+  - Całkowita eliminacja zaśmiecania osi czasu mikro-rutynami (`routineBlocks` z piciem wody, medytacją, spacerami itp. generującymi ponad 20 bloków).
+  - Wprowadzenie dynamicznego stempla daty w kluczu pamięci podręcznej: `omnidash_timeline_v5_${YYYY-MM-DD}` oraz automatyczne czyszczenie przestarzałego bufora `omnidash_timeline_cache_v4`.
+  - Dodanie czytelnego wskaźnika dnia tygodnia i daty w nagłówku widgetu (np. `Czwartek, 5 listopada 2026`).
+  - Zasilenie osi czasu rzeczywistym planem lekcji na bieżący dzień tygodnia (w czwartek: 7 lekcji od 08:50 do 14:50: Język angielski, Pracownia LSK, Matematyka, J. angielski zawodowy).
+  - Wstrzykiwanie wyłącznie autentycznych sprawdzianów i kartkówek z kalendarza przypadających na dany dzień oraz stałych bloków kotwiczących (FBW 16:00, Dev 19:30).
+- [+] **Centralizacja Nawyków w Strefie Prywatnej (`/private`):**
+  - Przeniesienie modułu `DailyHabitStreaks.tsx` do `apps/web/src/modules/private/components/`.
+  - Integracja nawyków i streaków z `PrivateRoutinesCard` w zakładce "Nawyki i Rutyny Dobowe" na stronie `/private`.
+  - Wdrożenie endpointów `/api/private/habits` w API Gateway (`apps/api/src/domains/private/router.ts`) z buforowaniem Redis Cache (`private:habits`) i invalidacją przy zapisie.
+  - Rozszerzenie klienta API `privateApi` o metody: `getHabits()`, `addHabit()`, `toggleHabit()`, `deleteHabit()`.
+- [+] **Oczyszczenie i Specjalizacja Podstrony Treningowej (`/workouts`):**
+  - Usunięcie zakładki nawyków z `WorkoutsPage.tsx` na rzecz czystego podziału na: `Trening FBW & Kalistenika` (`AtticFBWTracker`) oraz `Rekordy Osobiste (PR)` (`PersonalRecordsCard`).
+  - Skupienie KPI podstrony na seriach treningowych, cyklu A i powtórzeniach.
+- [+] **Weryfikacja Empiryczna:**
+  - API Gateway Vitest: 109 passed (15 plików testowych, 100% green).
+  - Web Build: `tsc && vite build` — 0 błędów, exit code 0.
+  - Dostępność demonów: API :5000, Web :3000, Worker nominalne.
