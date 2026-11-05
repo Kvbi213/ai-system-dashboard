@@ -205,7 +205,7 @@ describe('OmniDash Internal MCP Server Suite', () => {
   });
 
   it('calculates current lesson status, break countdown and next classroom', async () => {
-    const res = await mcpServer.callTool('get_current_lesson_status', { day: 2, currentTime: '11:45' });
+    const res = await mcpServer.callTool('get_current_lesson_status', { day: 2, currentTime: '12:35' });
     expect(res.day).toBe(2);
     expect(res.isBreak).toBe(false);
     expect(res.currentLesson).toBeDefined();

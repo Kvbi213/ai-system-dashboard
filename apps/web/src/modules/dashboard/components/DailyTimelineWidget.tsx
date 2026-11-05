@@ -10,6 +10,9 @@ export interface TimelineBlock {
   category: 'SZKOŁA' | 'PRYWATNE' | 'SPORT' | 'LOGISTYKA' | 'SPRAWDZIAN' | 'KARTKÓWKA';
   status: 'done' | 'current' | 'upcoming';
   room?: string;
+  isSubstitution?: boolean;
+  isCancelled?: boolean;
+  substitutionNote?: string;
   sourceType: 'school' | 'private' | 'exam';
   startMins: number;
   endMins: number;
@@ -23,6 +26,10 @@ interface LessonItemDTO {
   subject?: string;
   classroom?: string;
   room?: string;
+  isSubstitution?: boolean;
+  isCancelled?: boolean;
+  substitutionNote?: string;
+  flag?: string;
 }
 
 const POLISH_DAYS = [
@@ -274,6 +281,9 @@ export const DailyTimelineWidget: React.FC = () => {
               category: 'SZKOŁA',
               status,
               room: lesson?.classroom || lesson?.room,
+              isSubstitution: Boolean(lesson?.isSubstitution),
+              isCancelled: Boolean(lesson?.isCancelled),
+              substitutionNote: lesson?.substitutionNote,
               sourceType: 'school',
               startMins,
               endMins
@@ -503,6 +513,16 @@ export const DailyTimelineWidget: React.FC = () => {
                           {event.room}
                         </span>
                       )}
+                      {event.isCancelled && (
+                        <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-700">
+                          Odwołana
+                        </span>
+                      )}
+                      {event.isSubstitution && (
+                        <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                          Zastępstwo
+                        </span>
+                      )}
                       <span
                         className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider ${
                           isCurrent
@@ -521,9 +541,16 @@ export const DailyTimelineWidget: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className={`text-xs font-bold mt-1 ${isCurrent ? 'text-sky-950 dark:text-sky-100 font-extrabold' : 'text-slate-900 dark:text-white'}`}>
+                  <div className={`text-xs font-bold mt-1 ${event.isCancelled ? 'line-through text-slate-400 dark:text-slate-500' : isCurrent ? 'text-sky-950 dark:text-sky-100 font-extrabold' : 'text-slate-900 dark:text-white'}`}>
                     {event.title}
                   </div>
+
+                  {event.substitutionNote && (
+                    <div className="text-[10px] text-amber-700 dark:text-amber-300 font-semibold mt-0.5 flex items-center gap-1">
+                      <span>[~]</span>
+                      <span>{event.substitutionNote}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             );

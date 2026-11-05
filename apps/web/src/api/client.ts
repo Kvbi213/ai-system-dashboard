@@ -93,7 +93,8 @@ export const workoutsApi = {
 
 // School Domain
 export const schoolApi = {
-  getTimetable: (day = 1) => apiFetch<{ day: number; lessons: any[]; meta: any }>(`/school/timetable?day=${day}`),
+  getTimetable: (day = 1) => apiFetch<{ day: number; lessons: any[]; substitutionsCount?: number; meta: any }>(`/school/timetable?day=${day}`),
+  getSubstitutions: (day?: number) => apiFetch<{ substitutions: any[]; count: number; day: number | null; meta: any }>(`/school/substitutions${day ? `?day=${day}` : ''}`),
   getAllWeekTimetable: () => apiFetch<any>('/school/read-all'),
   getGrades: () => apiFetch<{ grades: any[]; subjects: any[]; stats: any }>('/school/grades'),
   getAttendance: () => apiFetch<any>('/school/attendance'),

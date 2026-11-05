@@ -93,6 +93,21 @@ export const TimetablePage: React.FC = () => {
       {/* Day Selector Bar */}
       <DaySelectorBar selectedDay={selectedDay} onSelectDay={setSelectedDay} />
 
+      {/* Substitution Alert Banner */}
+      {lessons.some((l) => l.isSubstitution || l.isCancelled) && (
+        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200 text-xs flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-bold uppercase tracking-wider bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/30 text-[10px] text-amber-900 dark:text-amber-300">
+              Zastępstwa i Zmiany
+            </span>
+            <span className="font-medium">
+              Wykryto {lessons.filter((l) => l.isSubstitution || l.isCancelled).length} zmian w planie lekcji na ten dzień
+            </span>
+          </div>
+          <span className="text-[11px] font-mono text-amber-600 dark:text-amber-400 hidden sm:inline">Librus Synergia</span>
+        </div>
+      )}
+
       {/* Meta header */}
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">

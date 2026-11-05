@@ -671,3 +671,26 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - Worker Vitest: 8 passed (3 pliki testowe, 100% green).
   - Web Build: `tsc && vite build` — 0 błędów, exit code 0.
   - Test live AI Function Calling (`POST /api/ai/chat`) z modelem `openai/gpt-oss-120b` — 100% sukcesu.
+
+
+## v4.0.0-rc.13 — 2026-11-05
+### Autorytatywny Silnik Zastępstw i Odwołanych Lekcji z Librus Synergia, Korelacja Absencji i Pełne Odwzorowanie w UI
+- [+] **Nowy Dedykowany Parser i Korelator Zastępstw (`apps/api/src/domains/school/librusTimetableParser.ts`):**
+  - Automatyczne parsowanie ustrukturyzowanej mapy dni tygodnia (`Monday` – `Friday`) oraz list lekcji z Librus Synergia.
+  - Wykrywanie flag zastępstw (`flag: zastępstwo` lub podmiana przedmiotu/nauczyciela w `original`) z formułowaniem precyzyjnych notatek zastępczych (np. `Zastępstwo prowadzi: Gembiak Bartosz` lub `Zastępstwo za: Chemia (Kolasińska Paulina)`).
+  - Wykrywanie odwołanych i przesuniętych lekcji (`cancelled: true`, `flag: odwołane, przesunięcie`).
+  - Silnik korelacji z absencjami nauczycieli (`correlateTimetableWithAbsences`): automatyczne dopasowywanie nazwisk nauczycieli (`matchTeacherNames`, tolerancja na przestawny szyk imię/nazwisko oraz inicjały) ze zdarzeniami typu `absence` z terminarza i oznaczanie odwołanych zajęć w planie.
+- [+] **Integracja z Magazynem Danych i API Gateway (`apps/api/src/db/store.ts` & `router.ts`):**
+  - Uzupełnienie `DatabaseStore.loadLibrusGroundTruth()` o wczytywanie i parsowanie `data.timetable` oraz korelację z terminarzem szkolnym.
+  - Wzbogacenie kontraktu `LessonItem` o pola: `isCancelled`, `originalSubject`, `originalTeacher`, `flag`, `notes`.
+  - Nowa metoda `dbStore.getSubstitutions(day?: number)` oraz dedykowany endpoint `GET /api/school/substitutions`.
+  - Rozszerzenie endpointu `GET /api/school/timetable` o liczbę zastępstw `substitutionsCount` i pełne flagi zmian.
+- [+] **Wizualne Odwzorowanie Zastępstw w Frontendzie (`apps/web`):**
+  - `DailyTimelineWidget.tsx`: automatyczne oznaczanie bloków lekcyjnych flagami `Zastępstwo` (badge bursztynowy) oraz `Odwołana` (badge czerwony i przekreślenie tytułu) z podglądem notatki zastępczej.
+  - `CurrentLessonHero.tsx`: wyświetlanie dynamicznej notatki o trwającym bądź nadchodzącym zastępstwie w widgecie Hero.
+  - `TimetablePage.tsx`: alert banner informujący o wykrytych zastępstwach w wybranym dniu tygodnia.
+  - Rozszerzenie klienta `schoolApi.getSubstitutions(day)`.
+- [+] **Weryfikacja Empiryczna:**
+  - API Gateway Vitest: 122 passed (17 plików testowych, 100% green).
+  - Web Build: `tsc && vite build` — 0 błędów, exit code 0.
+  - Live API: 5 autentycznych zastępstw zsynchronizowanych w `GET /api/school/substitutions`.

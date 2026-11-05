@@ -10,8 +10,8 @@ describe('Automation Engine & AI Function Calling Suite', () => {
   });
 
   it('calculates current lesson status and minutes to bell deterministically', () => {
-    // Symulacja czwartku o 09:30 (trwa lekcja 08:50 - 09:35, czyli Język angielski, 5 min do dzwonka!)
-    const simulatedThursday = new Date(2026, 10, 5, 9, 30, 0); // 5 listopada 2026, 09:30
+    // Symulacja czwartku o 10:20 (trwa lekcja 09:40 - 10:25, czyli Język angielski, 5 min do dzwonka!)
+    const simulatedThursday = new Date(2026, 10, 5, 10, 20, 0); // 5 listopada 2026, 10:20
     const info = calculateLessonInfo(simulatedThursday);
 
     expect(info.bellType).toBe('LESSON_END');
@@ -19,16 +19,16 @@ describe('Automation Engine & AI Function Calling Suite', () => {
     expect(info.currentLesson).toBeDefined();
     expect(info.currentLesson?.subject).toContain('angielski');
     expect(info.nextLesson).toBeDefined();
-    expect(info.nextLesson?.classroom).toBe('s. 22');
+    expect(info.nextLesson?.classroom).toContain('Z2');
   });
 
   it('calculates break countdown when between lessons', () => {
-    // 09:37 to przerwa między 09:35 a 09:40 (3 minuty do kolejnej lekcji)
-    const simulatedBreak = new Date(2026, 10, 5, 9, 37, 0);
+    // 10:35 to przerwa między 10:25 a 10:40 (5 minut do kolejnej lekcji)
+    const simulatedBreak = new Date(2026, 10, 5, 10, 35, 0);
     const info = calculateLessonInfo(simulatedBreak);
 
     expect(info.bellType).toBe('BREAK_END');
-    expect(info.minutesToBell).toBe(3);
+    expect(info.minutesToBell).toBe(5);
     expect(info.currentLesson).toBeNull();
     expect(info.nextLesson).toBeDefined();
   });
@@ -42,7 +42,7 @@ describe('Automation Engine & AI Function Calling Suite', () => {
       return { status: "OK", minutes: info.minutesToBell };
     `;
 
-    const simulatedThursday = new Date(2026, 10, 5, 9, 30, 0);
+    const simulatedThursday = new Date(2026, 10, 5, 10, 20, 0);
     const result = await executeScript(code, simulatedThursday);
 
     expect(result.success).toBe(true);

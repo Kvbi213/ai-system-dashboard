@@ -71,7 +71,7 @@ export const CurrentLessonHero: React.FC<CurrentLessonHeroProps> = (props) => {
               room: active.classroom || active.room || 'Sala lekcyjna',
               teacher: active.cleanTeacher || active.teacher || 'Nauczyciel',
               remainingMinutes: Math.max(1, active.endMins - currentMinutes),
-              substitutionNote: active.isSubstitution ? 'Zastępstwo' : null
+              substitutionNote: active.substitutionNote || (active.isSubstitution ? 'Zastępstwo' : null)
             });
             return;
           }
@@ -86,7 +86,7 @@ export const CurrentLessonHero: React.FC<CurrentLessonHeroProps> = (props) => {
               room: upcoming.classroom || upcoming.room || 'Sala lekcyjna',
               teacher: upcoming.cleanTeacher || upcoming.teacher || 'Nauczyciel',
               remainingMinutes: Math.max(1, upcoming.startMins - currentMinutes),
-              substitutionNote: upcoming.isSubstitution ? 'Zastępstwo' : null
+              substitutionNote: upcoming.substitutionNote || (upcoming.isSubstitution ? 'Zastępstwo' : null)
             });
             return;
           }

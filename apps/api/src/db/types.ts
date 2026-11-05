@@ -87,6 +87,11 @@ export interface LessonItem {
   classroom: string;
   isSubstitution?: boolean;
   substitutionNote?: string;
+  isCancelled?: boolean;
+  originalSubject?: string;
+  originalTeacher?: string;
+  flag?: string;
+  notes?: string;
   hasExam?: boolean;
 }
 

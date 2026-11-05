@@ -34,6 +34,7 @@ schoolRouter.get('/timetable', async (req: Request, res: Response) => {
       return {
         day,
         lessons,
+        substitutionsCount: lessons.filter((l) => l.isSubstitution || l.isCancelled).length,
         meta: {
           provider: 'System Dydaktyczny Sync',
           lastSynced: new Date().toISOString()
@@ -46,8 +47,41 @@ schoolRouter.get('/timetable', async (req: Request, res: Response) => {
     res.json({
       day,
       lessons,
+      substitutionsCount: lessons.filter((l) => l.isSubstitution || l.isCancelled).length,
       meta: {
         provider: 'System Dydaktyczny Sync',
+        lastSynced: new Date().toISOString()
+      }
+    });
+  }
+});
+
+schoolRouter.get('/substitutions', async (req: Request, res: Response) => {
+  const day = req.query.day ? parseInt(req.query.day as string, 10) : undefined;
+  const cacheKey = `school:substitutions:${day || 'all'}`;
+
+  try {
+    const data = await redisCache.getOrSet(cacheKey, 300, async () => {
+      const substitutions = dbStore.getSubstitutions(day);
+      return {
+        substitutions,
+        count: substitutions.length,
+        day: day || null,
+        meta: {
+          provider: 'Librus Synergia Substitution Engine',
+          lastSynced: new Date().toISOString()
+        }
+      };
+    });
+    res.json(data);
+  } catch {
+    const substitutions = dbStore.getSubstitutions(day);
+    res.json({
+      substitutions,
+      count: substitutions.length,
+      day: day || null,
+      meta: {
+        provider: 'Librus Synergia Substitution Engine',
         lastSynced: new Date().toISOString()
       }
     });

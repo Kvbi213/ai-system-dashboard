@@ -42,6 +42,7 @@ import {
   SEED_PERSONAL_GOALS,
   SEED_JOURNAL
 } from './seedData.js';
+import { parseLibrusTimetable, extractSubstitutions } from '../domains/school/librusTimetableParser.js';
 
 export * from './types.js';
 
@@ -493,6 +494,19 @@ ctx.log('Wysłano poranny briefing.');`,
           }
         }
       }
+
+      // 3. Parsowanie Planu Lekcji i Zastępstw z Librusa
+      if (data.timetable) {
+        const parsedTimetable = parseLibrusTimetable(data.timetable, this.events);
+        const hasLessons = Object.values(parsedTimetable).some((arr) => arr.length > 0);
+        if (hasLessons) {
+          for (let d = 1; d <= 5; d++) {
+            if (parsedTimetable[d] && parsedTimetable[d].length > 0) {
+              this.timetable[d] = parsedTimetable[d];
+            }
+          }
+        }
+      }
     } catch (err) {
       console.warn('[!] Nie udało się wczytać librusGroundTruth.json:', err);
     }
@@ -806,6 +820,10 @@ ctx.log('Wysłano poranny briefing.');`,
 
   public getAllTimetable(): Record<number, LessonItem[]> {
     return this.timetable;
+  }
+
+  public getSubstitutions(day?: number): Array<LessonItem & { day: number }> {
+    return extractSubstitutions(this.timetable, day);
   }
 
   public getGrades(): GradeItem[] {
