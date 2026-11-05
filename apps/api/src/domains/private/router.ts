@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { AuthenticatedRequest } from '../../core/authMiddleware.js';
 import { dbStore } from '../../db/store.js';
+import { sqliteStore } from '../../db/sqliteStore.js';
 import { redisCache } from '../../core/redisCache.js';
 
 export const privateRouter = Router();
@@ -52,54 +53,77 @@ privateRouter.delete('/routines/:id', async (req: AuthenticatedRequest, res: Res
   res.json({ success });
 });
 
-// Habits (Centralized in Private Hub)
+// Habits (Centralized in Private Hub - Backed by SQLite Relational Engine)
 privateRouter.get('/habits', async (_req: AuthenticatedRequest, res: Response) => {
   try {
-    const data = await redisCache.getOrSet('private:habits', 600, async () => {
-      return { habits: dbStore.getHabits() };
-    });
-    res.json(data);
-  } catch {
-    res.json({ habits: dbStore.getHabits() });
+    const habits = sqliteStore.getHabits();
+    res.json({ habits });
+  } catch (err: any) {
+    res.status(500).json({ error: 'DB_ERROR', message: err.message, habits: dbStore.getHabits() });
   }
 });
 
 privateRouter.post('/habits', async (req: AuthenticatedRequest, res: Response) => {
-  const { title } = req.body;
-  if (!title) {
+  const { title, name, category, frequency } = req.body;
+  const habitTitle = title || name;
+  if (!habitTitle) {
     res.status(400).json({ error: 'INVALID_HABIT', message: 'Tytuł nawyku jest wymagany.' });
     return;
   }
-  const habit = dbStore.addHabit(title);
+  const habit = sqliteStore.saveHabit({
+    title: habitTitle.trim(),
+    name: habitTitle.trim(),
+    category: category || 'zdrowie',
+    frequency: frequency || 'daily'
+  });
   await redisCache.invalidatePattern('private:habits*');
   res.status(201).json({ habit });
 });
 
-privateRouter.post('/habits/:id/toggle', async (req: AuthenticatedRequest, res: Response) => {
+privateRouter.put('/habits/:id', async (req: AuthenticatedRequest, res: Response) => {
   const id = Array.isArray(req.params.id) ? req.params.id[0] : String(req.params.id);
-  const habit = dbStore.toggleHabit(id);
-  if (!habit) {
-    res.status(404).json({ error: 'NOT_FOUND', message: 'Nawyk nie został znaleziony.' });
+  const { title, name, category, frequency } = req.body;
+  const habitTitle = title || name;
+  if (!habitTitle) {
+    res.status(400).json({ error: 'INVALID_HABIT', message: 'Tytuł nawyku jest wymagany.' });
     return;
   }
+  const habit = sqliteStore.saveHabit({
+    id,
+    title: habitTitle.trim(),
+    name: habitTitle.trim(),
+    category: category || 'zdrowie',
+    frequency: frequency || 'daily'
+  });
   await redisCache.invalidatePattern('private:habits*');
   res.json({ habit });
+});
+
+privateRouter.post('/habits/:id/toggle', async (req: AuthenticatedRequest, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : String(req.params.id);
+  try {
+    const result = sqliteStore.toggleHabit(id);
+    await redisCache.invalidatePattern('private:habits*');
+    res.json({ habit: result.habit, completedToday: result.completedToday, streak: result.streak });
+  } catch (err: any) {
+    res.status(404).json({ error: 'NOT_FOUND', message: err.message });
+  }
 });
 
 privateRouter.patch('/habits/:id/toggle', async (req: AuthenticatedRequest, res: Response) => {
   const id = Array.isArray(req.params.id) ? req.params.id[0] : String(req.params.id);
-  const habit = dbStore.toggleHabit(id);
-  if (!habit) {
-    res.status(404).json({ error: 'NOT_FOUND', message: 'Nawyk nie został znaleziony.' });
-    return;
+  try {
+    const result = sqliteStore.toggleHabit(id);
+    await redisCache.invalidatePattern('private:habits*');
+    res.json({ habit: result.habit, completedToday: result.completedToday, streak: result.streak });
+  } catch (err: any) {
+    res.status(404).json({ error: 'NOT_FOUND', message: err.message });
   }
-  await redisCache.invalidatePattern('private:habits*');
-  res.json({ habit });
 });
 
 privateRouter.delete('/habits/:id', async (req: AuthenticatedRequest, res: Response) => {
   const id = Array.isArray(req.params.id) ? req.params.id[0] : String(req.params.id);
-  const success = dbStore.deleteHabit(id);
+  const success = sqliteStore.deleteHabit(id);
   if (success) {
     await redisCache.invalidatePattern('private:habits*');
   }

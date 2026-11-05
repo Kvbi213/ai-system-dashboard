@@ -65,6 +65,7 @@ export const DAY_NAME_TO_NUMBER: Record<string, number> = {
 };
 
 const STANDARD_TIME_SLOTS: Array<{ start: string; end: string; order: number }> = [
+  { start: '07:10', end: '07:55', order: 0 },
   { start: '08:00', end: '08:45', order: 1 },
   { start: '08:50', end: '09:35', order: 2 },
   { start: '09:40', end: '10:25', order: 3 },
@@ -219,11 +220,15 @@ export function parseLibrusTimetable(
         if (!rawLesson) return;
 
         const rawTime = String(rawLesson.time || rawLesson.timeRange || '').replace(/\u00a0/g, ' ').trim();
-        const timeRange = rawTime || STANDARD_TIME_SLOTS[slotIdx]?.start
-          ? `${STANDARD_TIME_SLOTS[slotIdx]?.start} - ${STANDARD_TIME_SLOTS[slotIdx]?.end}`
-          : '08:00 - 08:45';
+        const timeRange = (rawTime && rawTime.includes('-'))
+          ? rawTime
+          : (STANDARD_TIME_SLOTS[slotIdx]
+              ? `${STANDARD_TIME_SLOTS[slotIdx].start} - ${STANDARD_TIME_SLOTS[slotIdx].end}`
+              : '08:00 - 08:45');
 
-        const order = rawLesson.order || inferLessonOrder(timeRange, visualOrderCounter - 1);
+        const order = typeof rawLesson.order === 'number' && rawLesson.order >= 0
+          ? rawLesson.order
+          : inferLessonOrder(timeRange, slotIdx);
         const subject = capitalize(rawLesson.subject || rawLesson.title || 'Lekcja');
         const teacher = cleanTeacherName(rawLesson.teacher);
         const classroom = formatClassroom(rawLesson.room || rawLesson.classroom);

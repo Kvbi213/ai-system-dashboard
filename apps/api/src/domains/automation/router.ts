@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { dbStore } from '../../db/store.js';
+import { sqliteStore } from '../../db/sqliteStore.js';
 import { AUTOMATION_TEMPLATES } from './automationTemplates.js';
 import { executeScript, calculateLessonInfo, buildScriptContext } from './scriptEngine.js';
 
@@ -69,6 +70,12 @@ automationRouter.post('/scripts', (req: Request, res: Response) => {
     code: code.trim()
   });
 
+  try {
+    sqliteStore.saveAutomationScript(saved);
+  } catch (err: any) {
+    console.warn(`[!] Ostrzeżenie zapisu skryptu do SQLite: ${err.message}`);
+  }
+
   res.status(201).json({ script: saved });
 });
 
@@ -79,12 +86,18 @@ automationRouter.patch('/scripts/:id/toggle', (req: Request, res: Response) => {
     res.status(404).json({ error: 'NOT_FOUND', message: 'Skrypt automatyzacji nie został znaleziony.' });
     return;
   }
+  try {
+    sqliteStore.saveAutomationScript(toggled);
+  } catch {}
   res.json({ script: toggled });
 });
 
 automationRouter.delete('/scripts/:id', (req: Request, res: Response) => {
   const id = Array.isArray(req.params.id) ? req.params.id[0] : String(req.params.id);
   const success = dbStore.deleteAutomationScript(id);
+  try {
+    sqliteStore.deleteAutomationScript(id);
+  } catch {}
   res.json({ success });
 });
 

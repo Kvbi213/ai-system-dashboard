@@ -725,3 +725,42 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - API Gateway Vitest: 123 passed (17 plików testowych, 100% green).
   - Web Build: `tsc && vite build` — 0 błędów, exit code 0.
   - Test live AI chat z modelem `openai/gpt-oss-120b` — synteza dzwonka na przerwę bez surowych enumów i z dołączeniem widżetu `timetable`.
+
+---
+
+### ## v4.0.0 — 2026-11-05 [SQLITE RELATIONAL ENGINE, HABIT STREAKS, SETUP WIZARD & TIMETABLE/GRADE RECTIFICATION]
+**Status:** WYDANE / STABILNE  
+**Typ:** MINOR / RECTIFICATION & PERSISTENCE  
+**Zakres Zmian:**
+- [!] **Eliminacja 1-Godzinnego Przesunięcia w Harmonogramie Lekcji (`apps/api/src/domains/school/librusTimetableParser.ts`):**
+  - Wykryto i usunięto błąd pierwszeństwa operatora ternarnego, który nadpisywał autentyczny `rawTime` lekcji standardowymi slotami przesuniętymi o 1 pozycję.
+  - Dodano brakujący slot zerowy 0 (07:10 - 07:55) do `STANDARD_TIME_SLOTS`.
+  - Harmonogram czwartkowy idealnie odzwierciedla Librus: Lekcja 2 to Angielski (08:50 - 09:35, s. Z2), Lekcja 3 to Angielski (09:40 - 10:25), Lekcja 4 i 5 to Zastępstwa Bartosza Gembiaka (10:40 - 12:15, s. 12), Lekcja 6 i 7 to Matematyka (12:20 - 14:00, s. 05), Lekcja 8 to Angielski zawodowy (14:05 - 14:50).
+- [!] **Poprawka Prezentacji Ocen Aktywności `+` i `-` (`apps/api/src/db/store.ts`):**
+  - Priorytetyzacja wartości znakowej `displayValue` nad wagą numeryczną 0.
+  - Odzyskiwanie symboli plus/minus z surowego stringa wpisu ocen, eliminując wyświetlanie `0` zamiast plusa lub minusa w widokach ocen.
+- [+] **Relacyjna Baza Danych SQLite (`node:sqlite DatabaseSync`) (`apps/api/src/db/sqliteStore.ts`):**
+  - Wdrożenie natywnej, bezserwerowej relacyjnej bazy danych SQLite z Node.js 26 (`data/omnidash.sqlite`).
+  - Utworzenie zindeksowanych tabel relacyjnych: `habits`, `habit_completions`, `finance_transactions`, `finance_envelopes`, `tasks`, `system_config`, `automation_scripts`.
+  - Przejście z ulotnych plików JSON na transakcyjny silnik relacyjny z pełną integracją CRUD.
+- [+] **Deterministyczny Silnik Nawyków & Streaków (Habits & Streaks Engine):**
+  - Ścisły algorytm badania ciągłości dobowej (`streak`, `best_streak`, `last_completed_date`). Ukończenie wczoraj i dzisiaj inkrementuje serię, pominięcie dnia resetuje serię do 1.
+  - Tabela `habit_completions` z kluczem unikalnym `(habit_id, completed_date)` uniemożliwia podwójne zliczanie w tym samym dniu.
+  - Pełne zmostkowanie z frontendem `DailyHabitStreaks.tsx` z reaktywnym odświeżaniem liczników płomieni.
+- [+] **Setup Wizard (Kreator Konfiguracji przy Pustej Bazie) (`apps/web/src/components/setup/SetupWizardModal.tsx`):**
+  - Automatyczna detekcja stanu `isConfigured == false` i wyświetlanie 3-etapowego kreatora konfiguracji.
+  - Konfiguracja profilu operatora (imię, klasa), natychmiastowa weryfikacja klucza Pushbullet przez `/v2/users/me`, definiowanie budżetu 50/30/20 oraz import HTML Librusa.
+- [+] **Zarządzanie Finansami (Reset, Pełny CRUD i Koperty 50/30/20):**
+  - Endpoint `POST /api/finance/reset` umożliwiający bezpieczne zerowanie sald i transakcji.
+  - Pełne wsparcie dla edycji (`PUT /transactions/:id`) oraz usuwania (`DELETE /transactions/:id`) w interfejsie `TransactionList.tsx`.
+  - Obsługa transakcji przychodowych (INCOME) i wydatkowych (EXPENSE) z automatycznym przeliczaniem salda kopert.
+- [+] **Prawdziwa Telemetria Sprzętowa (`node:os`) i Usunięcie Placeholderów (`HardwareMonitorCard.tsx`):**
+  - Całkowite usunięcie `Math.random()` i atrap w widżecie monitora sprzętowego.
+  - Prezentacja realnego obciążenia procesora (LoadAvg 1m z `os.loadavg()`), pamięci RAM hosta (`os.totalmem`, `os.freemem`), zużycia sterty Node.js V8 Heap oraz fizycznego rozmiaru bazy SQLite na dysku wraz z liczbą rekordów.
+- [!] **Niezawodność Doręczania Wiadomości Pushbullet ze Skryptów:**
+  - Wymuszenie `process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'` w `apps/api` i `apps/worker` eliminujące błędy łańcucha certyfikatów SSL na platformie Windows.
+  - Dynamiczny odczyt klucza Pushbullet z SQLite (`system_config`) bez konieczności restartowania serwera.
+- [+] **Weryfikacja Empiryczna i Testy:**
+  - `apps/api`: 18 test files passed (18/18), 135 unit & integration tests passed (135/135), 100% green.
+  - `apps/worker`: 3 test files passed (3/3), 8 tests passed (8/8), 100% green.
+  - `apps/web`: `pnpm build` (`tsc && vite build`) zakończone z kodem wyjścia 0.

@@ -11,17 +11,18 @@ import { SubTabBar } from '../../components/ui/SubTabBar';
 import { useToast } from '../../components/ui/Toast';
 
 const INITIAL_TX: TransactionItem[] = [
-  { id: '1', title: 'Serwer Mikr.us LXC (odnowienie)', category: 'potrzeby', amount: -65.0, date: '29 paź' },
-  { id: '2', title: 'Wypłata zlecenie Useme B2B', category: 'przychod', amount: 1800.0, date: '28 paź' },
-  { id: '3', title: 'Książka: Designing Data-Intensive Apps', category: 'zachcianki', amount: -119.0, date: '26 paź' },
-  { id: '4', title: 'Bilet miesięczny PKP / Polregio', category: 'potrzeby', amount: -160.0, date: '25 paź' },
-  { id: '5', title: 'Odłożenie do portfela inwestycyjnego', category: 'oszczednosci', amount: -360.0, date: '28 paź' }
+  { id: '1', title: 'Serwer Mikr.us LXC (odnowienie)', category: 'potrzeby', envelope: 'NEEDS', amount: -65.0, date: '29 paź' },
+  { id: '2', title: 'Wypłata zlecenie Useme B2B', category: 'przychod', envelope: 'NEEDS', type: 'INCOME', amount: 1800.0, date: '28 paź' },
+  { id: '3', title: 'Książka: Designing Data-Intensive Apps', category: 'zachcianki', envelope: 'WANTS', amount: -119.0, date: '26 paź' },
+  { id: '4', title: 'Bilet miesięczny PKP / Polregio', category: 'potrzeby', envelope: 'NEEDS', amount: -160.0, date: '25 paź' },
+  { id: '5', title: 'Odłożenie do portfela inwestycyjnego', category: 'oszczednosci', envelope: 'SAVINGS', amount: -360.0, date: '28 paź' }
 ];
 
 export const FinancePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'envelopes' | 'transactions' | 'subscriptions' | 'goals'>('envelopes');
   const [transactions, setTransactions] = useState<TransactionItem[]>(INITIAL_TX);
   const [isAdding, setIsAdding] = useState(false);
+  const [txType, setTxType] = useState<'EXPENSE' | 'INCOME'>('EXPENSE');
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState<'potrzeby' | 'zachcianki' | 'oszczednosci'>('potrzeby');
@@ -32,7 +33,7 @@ export const FinancePage: React.FC = () => {
     setIsRefreshing(true);
     try {
       const res = await financeApi.getTransactions();
-      if (res?.transactions && res.transactions.length > 0) {
+      if (res?.transactions) {
         setTransactions(res.transactions);
       }
       toast.success('Zaktualizowano dane finansowe');
@@ -45,7 +46,7 @@ export const FinancePage: React.FC = () => {
 
   useEffect(() => {
     financeApi.getTransactions()
-      .then(res => {
+      .then((res) => {
         if (res?.transactions && res.transactions.length > 0) {
           setTransactions(res.transactions);
         }
@@ -58,11 +59,16 @@ export const FinancePage: React.FC = () => {
   const handleAddTx = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !amount) return;
-    const parsedAmount = -Math.abs(parseFloat(amount));
+    const rawAmt = Math.abs(parseFloat(amount));
+    const parsedAmount = txType === 'INCOME' ? rawAmt : -rawAmt;
+    const envUpper = category === 'potrzeby' ? 'NEEDS' : category === 'zachcianki' ? 'WANTS' : 'SAVINGS';
+
     const newTx: TransactionItem = {
       id: Date.now().toString(),
       title,
       category,
+      envelope: envUpper,
+      type: txType,
       amount: parsedAmount,
       date: 'Dzisiaj'
     };
@@ -74,14 +80,53 @@ export const FinancePage: React.FC = () => {
     toast.success(`Zapisano transakcję: ${addedTitle}`);
 
     try {
-      await financeApi.addTransaction({
+      const res = await financeApi.addTransaction({
         title: addedTitle,
-        amount: parsedAmount,
-        envelope: category,
-        category: 'Inne'
+        amount: rawAmt,
+        envelope: envUpper,
+        category: category,
+        type: txType
       });
+      if (res?.transaction?.id) {
+        setTransactions((prev) =>
+          prev.map((t) => (t.id === newTx.id ? { ...t, id: res.transaction.id } : t))
+        );
+      }
     } catch {
       // Local transaction state already updated
+    }
+  };
+
+  const handleDeleteTx = async (id: string) => {
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
+    toast.success('Usunięto transakcję');
+    try {
+      await financeApi.deleteTransaction(id);
+    } catch {
+      toast.error('Błąd usuwania transakcji z bazy');
+    }
+  };
+
+  const handleEditTx = async (tx: TransactionItem) => {
+    setTransactions((prev) => prev.map((t) => (t.id === tx.id ? tx : t)));
+    toast.success('Zaktualizowano transakcję');
+    try {
+      await financeApi.updateTransaction(tx.id, {
+        title: tx.title,
+        amount: Math.abs(tx.amount)
+      });
+    } catch {
+      toast.error('Błąd aktualizacji transakcji w bazie');
+    }
+  };
+
+  const handleResetFinances = async () => {
+    setTransactions([]);
+    toast.success('Fundusze i historia transakcji zostały zresetowane');
+    try {
+      await financeApi.resetFinances();
+    } catch {
+      toast.error('Błąd resetowania funduszy');
     }
   };
 
@@ -109,7 +154,7 @@ export const FinancePage: React.FC = () => {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-600/20 active:scale-95 transition"
           >
             <Plus className="w-4 h-4" />
-            <span>Dodaj wydatek</span>
+            <span>Dodaj operację</span>
           </button>
         }
       />
@@ -139,10 +184,35 @@ export const FinancePage: React.FC = () => {
         <div className="space-y-3">
           {isAdding && (
             <form onSubmit={handleAddTx} className="p-4 rounded-2xl glass-panel-elevated border border-sky-300 dark:border-sky-500/40 space-y-3 shadow-lg">
+              <div className="flex items-center gap-2 mb-1">
+                <button
+                  type="button"
+                  onClick={() => setTxType('EXPENSE')}
+                  className={`px-3 py-1 rounded-xl text-xs font-bold transition ${
+                    txType === 'EXPENSE'
+                      ? 'bg-rose-600 text-white shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  }`}
+                >
+                  Wydatek (-)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTxType('INCOME')}
+                  className={`px-3 py-1 rounded-xl text-xs font-bold transition ${
+                    txType === 'INCOME'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  }`}
+                >
+                  Przychód (+)
+                </button>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <input
                   type="text"
-                  placeholder="Tytuł wydatku..."
+                  placeholder="Tytuł operacji..."
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500"
@@ -152,28 +222,33 @@ export const FinancePage: React.FC = () => {
                   placeholder="Kwota (PLN)..."
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500"
+                  className="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-sm font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500"
                 />
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value as any)}
                   className="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white font-medium focus:outline-none focus:border-sky-500"
                 >
-                  <option value="potrzeby">50% Potrzeby</option>
-                  <option value="zachcianki">30% Zachcianki</option>
-                  <option value="oszczednosci">20% Oszczędności</option>
+                  <option value="potrzeby">50% Potrzeby (Needs)</option>
+                  <option value="zachcianki">30% Zachcianki (Wants)</option>
+                  <option value="oszczednosci">20% Oszczędności (Savings)</option>
                 </select>
               </div>
               <button
                 type="submit"
                 className="w-full py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition shadow-sm active:scale-98"
               >
-                Zapisz transakcję
+                Zapisz operację w SQLite
               </button>
             </form>
           )}
 
-          <TransactionList transactions={transactions} />
+          <TransactionList
+            transactions={transactions}
+            onDelete={handleDeleteTx}
+            onEdit={handleEditTx}
+            onReset={handleResetFinances}
+          />
         </div>
       )}
 

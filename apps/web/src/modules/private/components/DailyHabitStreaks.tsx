@@ -59,7 +59,20 @@ export const DailyHabitStreaks: React.FC = () => {
     );
 
     try {
-      await privateApi.toggleHabit(id);
+      const res = await privateApi.toggleHabit(id);
+      if (res?.habit) {
+        setHabits((prev) =>
+          prev.map((h) =>
+            h.id === id
+              ? {
+                  ...h,
+                  completedToday: res.completedToday !== undefined ? res.completedToday : Boolean(res.habit.completedToday),
+                  streakDays: res.streak !== undefined ? res.streak : (res.habit.streakDays ?? res.habit.streak ?? 0)
+                }
+              : h
+          )
+        );
+      }
     } catch {
       // Optymistyczna aktualizacja lokalna
     }
@@ -77,9 +90,9 @@ export const DailyHabitStreaks: React.FC = () => {
           ...prev,
           {
             id: res.habit.id,
-            title: res.habit.title,
-            streakDays: res.habit.streakDays || 0,
-            completedToday: false,
+            title: res.habit.title || res.habit.name || titleVal,
+            streakDays: res.habit.streakDays ?? res.habit.streak ?? 0,
+            completedToday: Boolean(res.habit.completedToday),
             category: newCategory
           }
         ]);

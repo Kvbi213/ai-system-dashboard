@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { sqliteStore } from '../../db/sqliteStore.js';
 
 export const SendPushSchema = z.object({
   title: z.string().min(1, 'Tytuł powiadomienia jest wymagany'),
@@ -76,10 +77,18 @@ export class PushbulletService {
       return override.trim();
     }
     const envKey = process.env.PUSHBULLET_API_KEY || '';
-    if (envKey === 'twój_klucz_pushbullet_tutaj' || envKey === 'your_pushbullet_api_key') {
-      return '';
+    if (envKey && envKey !== 'twój_klucz_pushbullet_tutaj' && envKey !== 'your_pushbullet_api_key') {
+      return envKey.trim();
     }
-    return envKey.trim();
+    try {
+      const dbKey = sqliteStore.getConfig('pushbullet_api_key') || sqliteStore.getConfig('pushbulletKey');
+      if (dbKey && dbKey.trim().length > 0 && dbKey !== 'twój_klucz_pushbullet_tutaj') {
+        return dbKey.trim();
+      }
+    } catch {
+      // fallback
+    }
+    return '';
   }
 
   /**

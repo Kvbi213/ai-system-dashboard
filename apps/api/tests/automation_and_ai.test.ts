@@ -19,7 +19,7 @@ describe('Automation Engine & AI Function Calling Suite', () => {
     expect(info.currentLesson).toBeDefined();
     expect(info.currentLesson?.subject).toContain('angielski');
     expect(info.nextLesson).toBeDefined();
-    expect(info.nextLesson?.classroom).toContain('Z2');
+    expect(info.nextLesson?.subject).toContain('Pracownia urządzeń');
   });
 
   it('calculates break countdown when between lessons', () => {

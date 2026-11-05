@@ -2,10 +2,11 @@ export interface TaskItem {
   id: string;
   userId: string;
   title: string;
-  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  priority: 'HIGH' | 'MEDIUM' | 'LOW' | 'NORMAL';
   completed: boolean;
   category: string;
   createdAt: string;
+  dueDate?: string;
 }
 
 export interface TransactionItem {
@@ -48,8 +49,14 @@ export interface ExerciseItem {
 export interface HabitItem {
   id: string;
   title: string;
+  name?: string;
   streakDays: number;
+  streak?: number;
+  bestStreak?: number;
   completedToday: boolean;
+  lastCompletedDate?: string;
+  category?: 'zdrowie' | 'produktywnosc' | 'nauka' | 'sport' | string;
+  frequency?: 'daily' | 'workdays' | 'custom' | string;
 }
 
 export interface PersonalRecord {

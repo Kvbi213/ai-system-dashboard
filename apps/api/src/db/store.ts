@@ -304,9 +304,17 @@ ctx.log('Wysłano poranny briefing.');`,
             const infoInAvgMatch = rawInfo.match(/Licz do średniej:\s*([^\n\r]+)/i);
             const infoComment = rawInfo.match(/Komentarz:\s*([^\n\r]+)/i)?.[1]?.trim();
 
-            const rawVal = g.value !== undefined ? g.value : g.numericValue;
-            const displayVal = formatDisplayGrade(rawVal);
-            const val = parseGradeValue(g.numericValue !== undefined ? g.numericValue : g.value);
+            const rawDisplay = (g.displayValue !== undefined && g.displayValue !== null && String(g.displayValue).trim() !== '')
+              ? String(g.displayValue).trim()
+              : undefined;
+            let displayVal = rawDisplay || formatDisplayGrade(g.value !== undefined ? g.value : g.numericValue);
+            if (displayVal === '0') {
+              const gradeSymbolMatch = String(g.raw || rawInfo || '').match(/([+\-])/);
+              if (gradeSymbolMatch) {
+                displayVal = gradeSymbolMatch[1];
+              }
+            }
+            const val = parseGradeValue(g.numericValue !== undefined ? g.numericValue : (rawDisplay || g.value));
             const weight = g.details?.weight !== undefined
               ? Number(g.details.weight)
               : (g.weight !== undefined ? Number(g.weight) : (infoWeightMatch ? parseInt(infoWeightMatch[1], 10) : 1));
@@ -488,9 +496,9 @@ ctx.log('Wysłano poranny briefing.');`,
         // Połącz wydarzenia z zachowaniem unikalności ID
         const existingIds = new Set(this.events.map((ev) => String(ev.id)));
         for (const gte of gtEvents) {
-          if (!existingIds.has(gte.id)) {
+          if (!existingIds.has(String(gte.id))) {
             this.events.push(gte);
-            existingIds.add(gte.id);
+            existingIds.add(String(gte.id));
           }
         }
       }

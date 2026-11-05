@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Sidebar } from './components/navigation/Sidebar';
 import { AppHeader } from './components/navigation/AppHeader';
@@ -6,6 +6,8 @@ import { BottomTabBar } from './components/navigation/BottomTabBar';
 import { MoreDrawerSheet } from './components/navigation/MoreDrawerSheet';
 import { ToastProvider } from './components/ui/Toast';
 import { LockScreenOverlay } from './components/security/LockScreenOverlay';
+import { SetupWizardModal } from './components/setup/SetupWizardModal';
+import { systemApi } from './api/client';
 
 import { DashboardPage } from './modules/dashboard/page';
 import { ChatPage } from './modules/chat/page';
@@ -46,6 +48,7 @@ const ROUTE_TITLES: Record<string, { title: string; subtitle: string }> = {
 
 export const App: React.FC = () => {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isSetupOpen, setIsSetupOpen] = useState(false);
   const [isLocked, setIsLocked] = useState(() => {
     try {
       return localStorage.getItem('omnidash_pin_lock') === 'true';
@@ -53,6 +56,16 @@ export const App: React.FC = () => {
       return false;
     }
   });
+
+  useEffect(() => {
+    systemApi.getSetupStatus()
+      .then((res) => {
+        if (res && res.isConfigured === false) {
+          setIsSetupOpen(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const location = useLocation();
   const isChatRoute = location.pathname === '/chat';
@@ -74,6 +87,9 @@ export const App: React.FC = () => {
 
         {/* Lock Screen Overlay (Active when pin lock is enabled) */}
         {isLocked && <LockScreenOverlay onUnlock={() => setIsLocked(false)} />}
+
+        {/* First-Run Setup Wizard (Active when database is unconfigured) */}
+        <SetupWizardModal isOpen={isSetupOpen} onComplete={() => setIsSetupOpen(false)} />
 
         {/* Desktop Persistent Sidebar */}
         <Sidebar />

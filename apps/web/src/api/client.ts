@@ -48,8 +48,18 @@ export const tasksApi = {
 export const financeApi = {
   getOverview: () => apiFetch<any>('/finance/overview'),
   getTransactions: () => apiFetch<{ transactions: any[] }>('/finance/transactions'),
-  addTransaction: (data: { title: string; amount: number; envelope: string; category: string }) =>
+  addTransaction: (data: { title: string; amount: number; envelope: string; category?: string; type?: 'EXPENSE' | 'INCOME'; date?: string }) =>
     apiFetch<{ transaction: any }>('/finance/transactions', { method: 'POST', body: JSON.stringify(data) }),
+  updateTransaction: (id: string, data: Partial<{ title: string; amount: number; envelope: string; category: string; type: string; date: string }>) =>
+    apiFetch<{ transaction: any }>(`/finance/transactions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteTransaction: (id: string) =>
+    apiFetch<{ success: boolean }>(`/finance/transactions/${id}`, { method: 'DELETE' }),
+  resetFinances: () =>
+    apiFetch<{ success: boolean; clearedCount: number; message: string }>('/finance/reset', { method: 'POST' }),
+  getEnvelopes: () =>
+    apiFetch<{ envelopes: any }>('/finance/envelopes'),
+  updateEnvelopes: (data: Partial<{ needsBalance: number; wantsBalance: number; savingsBalance: number; needsTarget: number; wantsTarget: number; savingsTarget: number; monthlyIncome: number }>) =>
+    apiFetch<{ success: boolean; envelopes: any }>('/finance/envelopes', { method: 'PUT', body: JSON.stringify(data) }),
   getSubscriptions: () => apiFetch<{ subscriptions: any[] }>('/finance/subscriptions'),
   addSubscription: (data: { name: string; category?: string; costPln: number; renewalDay?: number }) =>
     apiFetch<{ subscription: any }>('/finance/subscriptions', { method: 'POST', body: JSON.stringify(data) }),
@@ -127,7 +137,7 @@ export const privateApi = {
   addHabit: (title: string) =>
     apiFetch<{ habit: any }>('/private/habits', { method: 'POST', body: JSON.stringify({ title }) }),
   toggleHabit: (id: string) =>
-    apiFetch<{ habit: any }>(`/private/habits/${id}/toggle`, { method: 'POST' }),
+    apiFetch<{ habit: any; completedToday?: boolean; streak?: number }>(`/private/habits/${id}/toggle`, { method: 'POST' }),
   deleteHabit: (id: string) =>
     apiFetch<{ success: boolean }>(`/private/habits/${id}`, { method: 'DELETE' })
 };
@@ -143,6 +153,10 @@ export const trafficApi = {
 export const systemApi = {
   getHealth: () => apiFetch<any>('/system/health'),
   getStatus: () => apiFetch<any>('/system/status'),
+  getTelemetry: () => apiFetch<any>('/system/telemetry'),
+  getSetupStatus: () => apiFetch<{ isConfigured: boolean; config: any }>('/system/setup-status'),
+  setupInitialize: (data: { operatorName?: string; schoolClass?: string; pushbulletKey?: string; monthlyIncome?: number; startingBalance?: number; theme?: string; timetableHtml?: string }) =>
+    apiFetch<{ success: boolean; message: string; config: any }>('/system/setup-initialize', { method: 'POST', body: JSON.stringify(data) }),
   getExportUrl: () => `${API_BASE_URL}/system/export`
 };
 
@@ -209,7 +223,7 @@ export const pushbulletApi = {
       body: JSON.stringify(data)
     }),
   testToken: (token?: string) =>
-    apiFetch<{ success: boolean; user?: { name: string; email: string; iden: string }; error?: string }>('/pushbullet/test', {
+    apiFetch<{ success?: boolean; valid?: boolean; user?: { name: string; email: string; iden: string }; error?: string }>('/pushbullet/test', {
       method: 'POST',
       body: JSON.stringify({ token })
     }),

@@ -209,7 +209,7 @@ describe('OmniDash Internal MCP Server Suite', () => {
     expect(res.day).toBe(2);
     expect(res.isBreak).toBe(false);
     expect(res.currentLesson).toBeDefined();
-    expect(res.currentLesson.subject).toContain('Wychowanie fizyczne');
+    expect(res.currentLesson.subject).toContain('Pracownia systemów operacyjnych');
     expect(res.currentLesson.minutesRemaining).toBe(30);
     expect(res.nextLesson).toBeDefined();
     expect(res.nextLesson.subject).toContain('Pracownia systemów operacyjnych');
