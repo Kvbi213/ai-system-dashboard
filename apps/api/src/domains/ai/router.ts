@@ -46,6 +46,10 @@ aiRouter.post('/chat', async (req: Request, res: Response) => {
         res.write(`data: ${JSON.stringify({ toolCall: result.toolCall })}\n\n`);
       }
 
+      if (result.widgets && result.widgets.length > 0) {
+        res.write(`data: ${JSON.stringify({ widgets: result.widgets })}\n\n`);
+      }
+
       res.write(`data: ${JSON.stringify({ meta: { provider: result.provider, model: result.model, latencyMs: result.latencyMs, fallbackCount: result.fallbackCount } })}\n\n`);
       res.write('data: [DONE]\n\n');
       res.end();
@@ -60,6 +64,7 @@ aiRouter.post('/chat', async (req: Request, res: Response) => {
       latencyMs: result.latencyMs,
       tokensUsed: result.tokensUsed,
       toolCall: result.toolCall,
+      widgets: result.widgets || [],
       fallbackCount: result.fallbackCount,
       timestamp: new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
     });

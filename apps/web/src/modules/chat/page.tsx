@@ -9,13 +9,14 @@ const INITIAL_MESSAGES: ChatMessage[] = [
     id: '1',
     role: 'assistant',
     content:
-      'Witaj! Jestem asystentem wykonawczym OmniDash v4.0 zasilanym silnikiem Groq (openai/gpt-oss-120b) z Function Calling. Posiadam bezpośredni dostęp do planu lekcji, statusu przerw, Librusa, Pushbullet oraz silnika skryptów automatyzacji. Możesz wydać mi polecenie lub poprosić o utworzenie skryptu przypominającego o dzwonku i sali.',
+      'Witaj! Jestem asystentem wykonawczym OmniDash v4.0 zasilanym silnikiem Groq (openai/gpt-oss-120b) z Function Calling. Posiadam bezpośredni dostęp do ponad 35 narzędzi produkcyjnych: planu lekcji, statusu przerw, ocen Librus, zastępstw, zadań todo, finansów 50/30/20, treningów FBW, Pushbullet oraz silnika skryptów automatyzacji. Możesz wydać mi polecenie lub poprosić o utworzenie skryptu przypominającego o dzwonku i sali.',
     timestamp: '09:00',
     toolCall: {
       toolName: 'get_current_lesson_status',
       args: {},
       output: '{"status": "Zsynchronizowano harmonogram i narzędzia automatyzacji", "model": "openai/gpt-oss-120b"}'
-    }
+    },
+    widgets: ['timetable']
   }
 ];
 
@@ -54,7 +55,8 @@ export const ChatPage: React.FC = () => {
         role: 'assistant',
         content: res.reply,
         timestamp: res.timestamp || new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
-        toolCall: res.toolCall
+        toolCall: res.toolCall,
+        widgets: res.widgets
       };
       setMessages((prev) => [...prev, assistantMsg]);
     } catch {

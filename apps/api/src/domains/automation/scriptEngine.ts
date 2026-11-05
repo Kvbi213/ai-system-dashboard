@@ -107,24 +107,47 @@ export function calculateLessonInfo(date = new Date()): CurrentLessonInfo {
     // Trwa bieżąca lekcja
     if (currentMinutes >= cur.parsed.startMins && currentMinutes < cur.parsed.endMins) {
       const diff = cur.parsed.endMins - currentMinutes;
+      const isConsecutiveSameSubject = Boolean(
+        next &&
+          cur.lesson.subject.trim().toLowerCase() === next.lesson.subject.trim().toLowerCase()
+      );
+      const currentLessonLabel = `Lekcja ${cur.lesson.order}. ${cur.lesson.subject} (${cur.lesson.timeRange}${cur.lesson.classroom ? `, s. ${cur.lesson.classroom}` : ''})`;
+      const nextLessonLabel = next
+        ? `Lekcja ${next.lesson.order}. ${next.lesson.subject} (${next.lesson.timeRange}${next.lesson.classroom ? `, s. ${next.lesson.classroom}` : ''}${isConsecutiveSameSubject ? ' - blok 2' : ''})`
+        : null;
+      const blockDescription = isConsecutiveSameSubject && next
+        ? `Blok dwugodzinny przedmiotu: ${cur.lesson.subject} (lekcja ${cur.lesson.order} i ${next.lesson.order})`
+        : undefined;
+
       return {
         currentLesson: cur.lesson,
         nextLesson: next ? next.lesson : null,
         minutesToBell: diff,
         bellType: 'LESSON_END',
-        timeUntilNextEventFormatted: `${diff} min do dzwonka na przerwę`
+        timeUntilNextEventFormatted: `${diff} min do dzwonka na przerwę`,
+        isConsecutiveSameSubject,
+        blockDescription,
+        currentLessonLabel,
+        nextLessonLabel: nextLessonLabel || undefined
       };
     }
 
     // Trwa przerwa między lekcją i następną
     if (next && currentMinutes >= cur.parsed.endMins && currentMinutes < next.parsed.startMins) {
       const diff = next.parsed.startMins - currentMinutes;
+      const isConsecutiveSameSubject = Boolean(
+        cur.lesson.subject.trim().toLowerCase() === next.lesson.subject.trim().toLowerCase()
+      );
+      const nextLessonLabel = `Lekcja ${next.lesson.order}. ${next.lesson.subject} (${next.lesson.timeRange}${next.lesson.classroom ? `, s. ${next.lesson.classroom}` : ''}${isConsecutiveSameSubject ? ' - blok 2' : ''})`;
+
       return {
         currentLesson: null,
         nextLesson: next.lesson,
         minutesToBell: diff,
         bellType: 'BREAK_END',
-        timeUntilNextEventFormatted: `${diff} min przerwy (do lekcji ${next.lesson.subject})`
+        timeUntilNextEventFormatted: `${diff} min przerwy (do lekcji ${next.lesson.subject})`,
+        isConsecutiveSameSubject,
+        nextLessonLabel
       };
     }
   }

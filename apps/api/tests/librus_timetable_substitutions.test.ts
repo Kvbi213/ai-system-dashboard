@@ -99,7 +99,7 @@ describe('Librus Timetable & Substitutions Engine Suite', () => {
       const friPol = parsed[5][0];
       expect(friPol.subject).toBe('Język polski');
       expect(friPol.isSubstitution).toBe(true);
-      expect(friPol.isCancelled).toBe(true);
+      expect(friPol.isCancelled).toBe(false);
       expect(friPol.originalSubject).toBe('Chemia');
       expect(friPol.substitutionNote).toContain('Chemia');
 

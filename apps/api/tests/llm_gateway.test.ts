@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { IterationBudget, IterationBudgetExhaustedError, LLMGateway, LLMTimeoutError } from '../src/domains/ai/index.js';
+import { LLM_TOOLS, determineWidgets } from '../src/domains/ai/llmGateway.js';
 
 describe('IterationBudget & LLMGateway Resilience Suite', () => {
   it('throws IterationBudgetExhaustedError when maxLoops is exceeded', () => {
@@ -73,8 +74,29 @@ describe('IterationBudget & LLMGateway Resilience Suite', () => {
       expect(res.tokensUsed).toBeDefined();
       expect(res.tokensUsed.total).toBeGreaterThan(0);
       expect(res.provider).toBe('local');
+      expect(res.widgets).toContain('timetable');
     } finally {
       process.env.GROQ_API_KEY = origKey;
     }
+  });
+
+  it('exposes expanded 35+ tools and routes them properly across MCP and automation', async () => {
+    expect(LLM_TOOLS.length).toBeGreaterThanOrEqual(35);
+    const toolNames = LLM_TOOLS.map((t) => t.function.name);
+    expect(toolNames).toContain('query_timetable');
+    expect(toolNames).toContain('get_current_lesson_status');
+    expect(toolNames).toContain('get_substitutions');
+    expect(toolNames).toContain('get_librus_grades');
+    expect(toolNames).toContain('add_to_do');
+    expect(toolNames).toContain('create_or_update_automation_script');
+    expect(toolNames).toContain('test_run_automation_script');
+
+    const gateway = new LLMGateway();
+    const subsRaw = await gateway.executeLiveTool('get_substitutions', { day: 5 });
+    const parsedSubs = JSON.parse(subsRaw);
+    expect(parsedSubs.substitutions).toBeDefined();
+
+    const widgets = determineWidgets('get_current_lesson_status', 'jaka jest następna lekcja');
+    expect(widgets).toContain('timetable');
   });
 });

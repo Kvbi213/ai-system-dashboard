@@ -237,11 +237,11 @@ export function parseLibrusTimetable(
         const isSubstitutionByOriginal = Boolean(
           !rawCancelled && original && (original.subject !== rawLesson.subject || original.teacher !== rawLesson.teacher)
         );
-        const isSubstitution = isSubstitutionByFlag || isSubstitutionByOriginal;
+        const isSubstitution = !rawCancelled && (isSubstitutionByFlag || isSubstitutionByOriginal);
 
-        // Wykrywanie odwołania
+        // Wykrywanie odwołania: aktywne lekcje zastępcze NIE są odwołane
         const isCancelledByFlag = Boolean(flag && /odwołan/i.test(flag));
-        const isCancelled = rawCancelled || isCancelledByFlag;
+        const isCancelled = rawCancelled || (!isSubstitution && isCancelledByFlag);
 
         // Formułowanie notatki o zastępstwie / odwołaniu
         let substitutionNote: string | undefined = undefined;
@@ -310,7 +310,9 @@ export function parseLibrusTimetable(
 
       const flag = l.flag ? String(l.flag).trim() : undefined;
       const isSubstitution = Boolean(l.isSubstitution || (flag && /zastęp/i.test(flag)));
-      const isCancelled = Boolean(l.isCancelled || l.status === 'cancelled' || (flag && /odwołan/i.test(flag)));
+      const isCancelled = Boolean(
+        l.isCancelled || l.status === 'cancelled' || (!isSubstitution && flag && /odwołan/i.test(flag))
+      );
 
       result[dayNum].push({
         id: l.id || `librus_flat_${dayNum}_${idx}`,

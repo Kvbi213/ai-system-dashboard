@@ -7,6 +7,7 @@ import { dbStore, LessonItem } from '../../db/store.js';
 import { pushbulletService } from '../pushbullet/pushbulletService.js';
 import { AUTOMATION_TEMPLATES } from '../automation/automationTemplates.js';
 import { calculateLessonInfo, executeScript } from '../automation/scriptEngine.js';
+import { mcpServer } from '../../mcp/internalMcpServer.js';
 
 export interface LLMRequestOptions {
   message: string;
@@ -24,6 +25,7 @@ export interface LLMResponse {
   latencyMs: number;
   tokensUsed: { prompt: number; completion: number; total: number };
   toolCall?: { toolName: string; args: Record<string, unknown>; output: string };
+  widgets?: string[];
   fallbackCount: number;
 }
 
@@ -73,38 +75,72 @@ async function withTimeout<T>(
   }
 }
 
-export const LLM_TOOLS = [
-  {
-    type: 'function',
-    function: {
-      name: 'get_current_lesson_status',
-      description: 'Zwraca aktualną godzinę, aktualnie trwającą lekcję, czas w minutach do dzwonka na przerwę, kolejną lekcję, salę oraz nazwisko nauczyciela.',
-      parameters: {
-        type: 'object',
-        properties: {},
-        additionalProperties: false
-      }
+/**
+ * Zwraca listę identyfikatorów widżetów do wyrenderowania w oknie czatu AI.
+ */
+export function determineWidgets(toolName?: string, userMessage: string = '', aiReply: string = ''): string[] {
+  const widgets = new Set<string>();
+  const combined = `${userMessage} ${aiReply}`.toLowerCase();
+
+  if (toolName) {
+    if (['query_timetable', 'get_current_lesson_status', 'timetable_get_schedule', 'get_school_timetable'].includes(toolName)) {
+      widgets.add('timetable');
     }
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'send_phone_notification',
-      description: 'Wysyła natychmiastowe powiadomienie Push na smartfon operatora przez Pushbullet Dispatcher.',
-      parameters: {
-        type: 'object',
-        properties: {
-          title: { type: 'string', description: 'Tytuł powiadomienia (np. Dzwonek za 5 min, Alert lekcji)' },
-          body: { type: 'string', description: 'Treść powiadomienia' },
-          priority: { type: 'string', enum: ['CRITICAL', 'HIGH', 'NORMAL', 'LOW'], description: 'Priorytet powiadomienia' }
-        },
-        required: ['title', 'body'],
-        additionalProperties: false
-      }
+    if (['get_substitutions'].includes(toolName)) {
+      widgets.add('substitutions');
     }
-  },
+    if (['get_librus_grades', 'get_grades_summary'].includes(toolName)) {
+      widgets.add('grades');
+    }
+    if (['get_librus_calendar', 'get_calendar_events', 'add_calendar_event', 'delete_calendar_event'].includes(toolName)) {
+      widgets.add('calendar');
+    }
+    if (['get_all_tasks', 'add_to_do', 'update_to_do', 'delete_to_do', 'add_task'].includes(toolName)) {
+      widgets.add('tasks');
+    }
+    if (['add_finance_record', 'delete_finance_record', 'transfer_funds', 'get_gcp_budget_status', 'add_finance_transaction'].includes(toolName)) {
+      widgets.add('finances');
+    }
+    if (['trigger_workout_sync', 'add_workout'].includes(toolName)) {
+      widgets.add('workouts');
+    }
+    if (['create_or_update_automation_script', 'test_run_automation_script', 'list_automation_scripts', 'list_automation_templates'].includes(toolName)) {
+      widgets.add('automation');
+    }
+  }
+
+  // Heurystyki tekstowe synchronizowane z wersją archiwalną
+  if (/(plan lekcji|harmonogram|kolejna lekcja|lekcje na dziś|sala lekcyjna|następna lekcja|dzwonek)/i.test(combined)) {
+    widgets.add('timetable');
+  }
+  if (/(zastępstw|zastępstwo|nieobecnoś|odwołan|zmiana sali)/i.test(combined)) {
+    widgets.add('substitutions');
+  }
+  if (/(oceny|średnia|stopnie|librus oceny|sprawdzian z|numerek)/i.test(combined)) {
+    widgets.add('grades');
+  }
+  if (/(zadania|todo|to-do|co mam zrobić|lista zadań)/i.test(combined)) {
+    widgets.add('tasks');
+  }
+  if (/(budżet|finanse|wydatek|przychód|portfel|pieniądze|saldo|rachunek)/i.test(combined)) {
+    widgets.add('finances');
+  }
+  if (/(trening|siłowni|fbw|ćwiczen|workout|serie)/i.test(combined)) {
+    widgets.add('workouts');
+  }
+  if (/(kalendarz|terminarz|wydarzen|sprawdziany|kartkówk)/i.test(combined)) {
+    widgets.add('calendar');
+  }
+  if (/(skrypt|automatyz|pushbullet|powiadomienie na telefon)/i.test(combined)) {
+    widgets.add('automation');
+  }
+
+  return Array.from(widgets);
+}
+
+const AUTOMATION_TOOLS = [
   {
-    type: 'function',
+    type: 'function' as const,
     function: {
       name: 'create_or_update_automation_script',
       description: 'Tworzy nowy skrypt automatyzacji lub aktualizuje istniejący na podstawie szablonu lub kodu JavaScript z obiektem ctx (odczyt czasu, lekcji, dzwonka, wysyłanie push).',
@@ -119,13 +155,12 @@ export const LLM_TOOLS = [
           code: { type: 'string', description: 'Ciało funkcji JavaScript otrzymującej obiekt ctx' },
           enabled: { type: 'boolean', description: 'Czy skrypt ma być od razu aktywny' }
         },
-        required: ['name', 'code'],
-        additionalProperties: false
+        required: ['name', 'code']
       }
     }
   },
   {
-    type: 'function',
+    type: 'function' as const,
     function: {
       name: 'test_run_automation_script',
       description: 'Testuje i uruchamia podany kod skryptu automatyzacji w bezpiecznej piaskownicy z wstrzykniętym obiektem ctx (odczyt czasu, lekcji, Pushbullet) i zwraca logi wykonania.',
@@ -135,96 +170,58 @@ export const LLM_TOOLS = [
           code: { type: 'string', description: 'Kod skryptu JavaScript do testowego wykonania' },
           scriptId: { type: 'string', description: 'ID zarejestrowanego skryptu (jeśli testujemy istniejący)' },
           simulatedDate: { type: 'string', description: 'Opcjonalna symulowana data ISO dla testu (np. 2026-11-05T09:30:00)' }
-        },
-        additionalProperties: false
+        }
       }
     }
   },
   {
-    type: 'function',
+    type: 'function' as const,
     function: {
       name: 'list_automation_scripts',
       description: 'Zwraca listę wszystkich zarejestrowanych skryptów automatyzacji w systemie OmniDash.',
       parameters: {
         type: 'object',
-        properties: {},
-        additionalProperties: false
+        properties: {}
       }
     }
   },
   {
-    type: 'function',
+    type: 'function' as const,
     function: {
       name: 'list_automation_templates',
       description: 'Zwraca listę gotowych szablonów automatyzacji (alert dzwonka, briefing, nawyki, custom).',
       parameters: {
         type: 'object',
-        properties: {},
-        additionalProperties: false
+        properties: {}
       }
     }
   },
   {
-    type: 'function',
+    type: 'function' as const,
     function: {
-      name: 'timetable_get_schedule',
-      description: 'Pobiera plan lekcji na wybrany dzień tygodnia (1=poniedziałek, ..., 5=piątek) lub cały tydzień.',
+      name: 'delete_automation_script',
+      description: 'Usuwa zarejestrowany skrypt automatyzacji po jego ID.',
       parameters: {
         type: 'object',
         properties: {
-          day: { type: 'number', description: 'Numer dnia tygodnia od 1 do 5 (domyślnie bieżący dzień)' }
+          scriptId: { type: 'string', description: 'ID skryptu do usunięcia' }
         },
-        additionalProperties: false
-      }
-    }
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'get_grades_summary',
-      description: 'Zwraca wykaz ocen z Librus Synergia, średnią ważoną GPA, liczbę ocen celujących i szczęśliwy numerek.',
-      parameters: {
-        type: 'object',
-        properties: {},
-        additionalProperties: false
-      }
-    }
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'add_task',
-      description: 'Dodaje nowe zadanie do listy zadań operatora.',
-      parameters: {
-        type: 'object',
-        properties: {
-          title: { type: 'string', description: 'Tytuł zadania' },
-          priority: { type: 'string', enum: ['HIGH', 'MEDIUM', 'LOW'], description: 'Priorytet zadania' },
-          category: { type: 'string', description: 'Kategoria zadania' }
-        },
-        required: ['title'],
-        additionalProperties: false
-      }
-    }
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'add_finance_transaction',
-      description: 'Rejestruje wydatek lub przychód w budżecie 50/30/20.',
-      parameters: {
-        type: 'object',
-        properties: {
-          title: { type: 'string', description: 'Nazwa transakcji' },
-          amount: { type: 'number', description: 'Kwota transakcji w PLN' },
-          envelope: { type: 'string', enum: ['NEEDS', 'WANTS', 'SAVINGS'], description: 'Koperta budżetowa' },
-          type: { type: 'string', enum: ['EXPENSE', 'INCOME'], description: 'Typ transakcji' }
-        },
-        required: ['title', 'amount', 'envelope'],
-        additionalProperties: false
+        required: ['scriptId']
       }
     }
   }
+];
+
+export const LLM_TOOLS = [
+  ...mcpServer.listTools().map((t) => ({
+    type: 'function' as const,
+    function: {
+      name: t.name,
+      description: t.description,
+      parameters: t.parameters
+    }
+  })),
+  ...AUTOMATION_TOOLS
 ];
 
 export class LLMGateway {
@@ -262,15 +259,19 @@ Odpowiadasz operatorowi w języku polskim: bezpośrednio, merytorycznie, bez zb�
 - Bieżąca data: ${dateFormatted}
 - Dzień roboczy: ${dayName} (Dzień ${currentDay}/5)
 - Status zajęć: ${lessonInfo.timeUntilNextEventFormatted}
-- Aktualna lekcja: ${lessonInfo.currentLesson ? `${lessonInfo.currentLesson.subject} w sali ${lessonInfo.currentLesson.classroom} (${lessonInfo.currentLesson.teacher || 'nauczyciel'})` : 'Brak (przerwa lub poza lekcjami)'}
-- Kolejna lekcja: ${lessonInfo.nextLesson ? `${lessonInfo.nextLesson.subject} w sali ${lessonInfo.nextLesson.classroom} (${lessonInfo.nextLesson.teacher || 'nauczyciel'})` : 'Koniec zajęć'}
-- Do dzwonka: ${lessonInfo.minutesToBell} min (${lessonInfo.bellType})
+- Aktualna lekcja: ${lessonInfo.currentLessonLabel || (lessonInfo.currentLesson ? `Lekcja ${lessonInfo.currentLesson.order}. ${lessonInfo.currentLesson.subject} (${lessonInfo.currentLesson.classroom}, ${lessonInfo.currentLesson.teacher})` : 'Brak (przerwa lub poza lekcjami)')}
+- Kolejna lekcja: ${lessonInfo.nextLessonLabel || (lessonInfo.nextLesson ? `Lekcja ${lessonInfo.nextLesson.order}. ${lessonInfo.nextLesson.subject} (${lessonInfo.nextLesson.classroom}, ${lessonInfo.nextLesson.teacher})` : 'Koniec zajęć')}
+- Czas do dzwonka: ${lessonInfo.minutesToBell} min (${lessonInfo.bellType === 'LESSON_END' ? 'dzwonek na przerwę kończący bieżącą lekcję' : (lessonInfo.bellType === 'BREAK_END' ? 'dzwonek na lekcję po przerwie' : 'poza godzinami szkolnymi')})
+${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lekcja i kolejna lekcja to dwugodzinny blok tego samego przedmiotu (${lessonInfo.currentLesson?.subject}). Wyjaśnij to operatorowi, rozróżniając lekcję ${lessonInfo.currentLesson?.order} oraz ${lessonInfo.nextLesson?.order}.` : ''}
 - Dzisiejsze lekcje (${todayLessons.length}): ${todayLessons.map((l) => `${l.order}. ${l.subject} (${l.timeRange}, s. ${l.classroom})`).join(', ')}
 - Dzisiejsze sprawdziany / kartkówki: ${todayExams.length > 0 ? todayExams.map((e) => `${e.title} (${e.subject || 'szkoła'})`).join('; ') : 'Brak zaplanowanych sprawdzianów na dziś'}
 
 --- ZASADY DZIAŁANIA I FUNCTION CALLING ---
-1. Posiadasz pełny zestaw narzędzi (tools). Gdy operator pyta o kolejną lekcję, dzwonek, wysłanie powiadomienia, dodanie zadania, wydatku, lub prosi o stworzenie skryptu automatyzacji (np. przypominającego przez Pushbullet przed dzwonkiem lub rano) — ZAWSZE wywołaj odpowiednie narzędzie!
-2. Po wykonaniu narzędzia przedstaw operatorowi zwięzłe inżynieryjne podsumowanie wykonanej akcji.
+1. Posiadasz pełny zestaw ponad 35 produkcyjnych narzędzi (tools): plan lekcji (query_timetable), stan lekcji i dzwonka (get_current_lesson_status), oceny Librus (get_librus_grades), terminarz i sprawdziany (get_librus_calendar), zastępstwa szkolne (get_substitutions), zadania todo (get_all_tasks, add_to_do, update_to_do, delete_to_do), finanse 50/30/20 (add_finance_record, delete_finance_record, transfer_funds, get_gcp_budget_status), kalendarz (add_calendar_event, get_calendar_events), treningi FBW (trigger_workout_sync), powiadomienia Pushbullet (send_phone_notification), telemetrię węzła (get_system_metrics), rekonesans OSINT (perform_osint_scan), przeszukiwanie internetu (execute_web_search), alerty drogowe CANARD (get_traffic_alerts), pamięć asocjacyjną (learn_fact, query_semantic_memory) oraz silnik skryptów automatyzacji (create_or_update_automation_script, test_run_automation_script, list_automation_scripts). ZAWSZE wywołuj odpowiednie narzędzie!
+2. Rygor interpretacji dzwonka i kolejnych lekcji:
+   - Gdy trwa lekcja i bellType to LESSON_END: dzwonek za X minut oznacza DZWONEK NA PRZERWĘ kończący bieżącą lekcję. NIE mów "kolejna lekcja rozpocznie się za X min", ponieważ najpierw jest przerwa!
+   - Kolejna lekcja rozpoczyna się po przerwie. Jeśli kolejną lekcją jest ten sam przedmiot, jest to kolejny blok zajęć (np. 2 godziny pod rząd w tej samej sali).
+   - Nigdy nie używaj w odpowiedzi technicznych nazw enumów typu "LESSON_END" ani "BREAK_END". Pisz po polsku: "dzwonek na przerwę" lub "dzwonek na rozpoczęcie lekcji".
 3. Gdy tworzysz skrypt automatyzacji, użyj create_or_update_automation_script lub test_run_automation_script. Obiekt ctx w skryptach posiada: ctx.time, ctx.school.getCurrentLesson(), ctx.school.getNextLesson(), ctx.school.getMinutesToBell(), ctx.school.getLessonInfo(), ctx.pushbullet.send(title, body, priority), ctx.tasks, ctx.habits, ctx.log(msg).`;
   }
 
@@ -354,6 +355,7 @@ Odpowiadasz operatorowi w języku polskim: bezpośrednio, merytorycznie, bez zb�
       latencyMs: durationMs,
       tokensUsed: { prompt: options.message.length, completion: localRes.reply.length, total: localTokens },
       toolCall: localRes.toolCall,
+      widgets: localRes.widgets,
       fallbackCount
     };
   }
@@ -369,7 +371,7 @@ Odpowiadasz operatorowi w języku polskim: bezpośrednio, merytorycznie, bez zb�
           { role: 'user', content: options.message }
         ];
 
-        // 1st Turn: Send user message with available tools
+        // 1st Turn: Send user message with all 35 available tools
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -407,7 +409,7 @@ Odpowiadasz operatorowi w języku polskim: bezpośrednio, merytorycznie, bez zb�
             fnArgs = {};
           }
 
-          // Execute tool call live
+          // Execute tool call live across MCP and Automation Engine
           const toolResult = await this.executeLiveTool(fnName, fnArgs, options.userId);
 
           // 2nd Turn: Feed tool response back to Groq for natural response synthesis
@@ -446,6 +448,8 @@ Odpowiadasz operatorowi w języku polskim: bezpośrednio, merytorycznie, bez zb�
               };
             }
 
+            const widgets = determineWidgets(fnName, options.message, finalReply);
+
             return {
               reply: finalReply,
               provider: 'groq',
@@ -455,13 +459,16 @@ Odpowiadasz operatorowi w języku polskim: bezpośrednio, merytorycznie, bez zb�
                 toolName: fnName,
                 args: fnArgs,
                 output: toolResult
-              }
+              },
+              widgets
             };
           }
 
           // If second turn failed, return tool result directly
+          const fallbackReply = assistantMsg.content || `Wykonano narzędzie ${fnName}: ${toolResult}`;
+          const widgets = determineWidgets(fnName, options.message, fallbackReply);
           return {
-            reply: assistantMsg.content || `Wykonano narzędzie ${fnName}: ${toolResult}`,
+            reply: fallbackReply,
             provider: 'groq',
             model: 'openai/gpt-oss-120b',
             tokensUsed: { prompt: totalUsage.prompt_tokens, completion: totalUsage.completion_tokens, total: totalUsage.total_tokens },
@@ -469,16 +476,19 @@ Odpowiadasz operatorowi w języku polskim: bezpośrednio, merytorycznie, bez zb�
               toolName: fnName,
               args: fnArgs,
               output: toolResult
-            }
+            },
+            widgets
           };
         }
 
         const reply = assistantMsg?.content || 'Pomyślnie przetworzono polecenie.';
+        const widgets = determineWidgets(undefined, options.message, reply);
         return {
           reply,
           provider: 'groq',
           model: 'openai/gpt-oss-120b',
-          tokensUsed: { prompt: totalUsage.prompt_tokens, completion: totalUsage.completion_tokens, total: totalUsage.total_tokens }
+          tokensUsed: { prompt: totalUsage.prompt_tokens, completion: totalUsage.completion_tokens, total: totalUsage.total_tokens },
+          widgets
         };
       },
       8000,
@@ -494,19 +504,17 @@ Odpowiadasz operatorowi w języku polskim: bezpośrednio, merytorycznie, bez zb�
         const info = calculateLessonInfo(new Date());
         return JSON.stringify({
           status: info.timeUntilNextEventFormatted,
-          currentLesson: info.currentLesson ? `${info.currentLesson.subject} (${info.currentLesson.classroom}, ${info.currentLesson.teacher})` : null,
-          nextLesson: info.nextLesson ? `${info.nextLesson.subject} (${info.nextLesson.classroom}, ${info.nextLesson.teacher})` : null,
+          currentLesson: info.currentLessonLabel || (info.currentLesson ? `Lekcja ${info.currentLesson.order}. ${info.currentLesson.subject} (${info.currentLesson.classroom}, ${info.currentLesson.teacher})` : 'Brak (przerwa lub poza lekcjami)'),
+          nextLesson: info.nextLessonLabel || (info.nextLesson ? `Lekcja ${info.nextLesson.order}. ${info.nextLesson.subject} (${info.nextLesson.classroom}, ${info.nextLesson.teacher})` : 'Koniec zajęć'),
           minutesToBell: info.minutesToBell,
-          bellType: info.bellType
+          bellType: info.bellType,
+          bellEvent: info.bellType === 'LESSON_END' ? 'Dzwonek na przerwę' : (info.bellType === 'BREAK_END' ? 'Dzwonek na lekcję' : 'Poza godzinami szkolnymi'),
+          isConsecutiveSameSubject: info.isConsecutiveSameSubject,
+          blockDescription: info.blockDescription,
+          instructionForAssistant: info.bellType === 'LESSON_END'
+            ? `Dzwonek za ${info.minutesToBell} min kończy BIEŻĄCĄ lekcję (dzwonek na przerwę). Następna lekcja zaczyna się po przerwie.`
+            : `Dzwonek za ${info.minutesToBell} min kończy przerwę i rozpoczyna kolejną lekcję.`
         });
-      }
-
-      case 'send_phone_notification': {
-        const title = args.title || 'OmniDash Powiadomienie';
-        const body = args.body || 'Wiadomość z asystenta AI';
-        const priority = args.priority || 'NORMAL';
-        const pushResult = await pushbulletService.sendPush({ title, body, priority });
-        return JSON.stringify({ success: true, pushResult });
       }
 
       case 'create_or_update_automation_script': {
@@ -552,38 +560,46 @@ Odpowiadasz operatorowi w języku polskim: bezpośrednio, merytorycznie, bez zb�
         return JSON.stringify(AUTOMATION_TEMPLATES.map((t) => ({ id: t.id, name: t.name, description: t.description })));
       }
 
+      case 'delete_automation_script': {
+        const scriptId = args.scriptId;
+        const deleted = dbStore.deleteAutomationScript(scriptId);
+        return JSON.stringify({ success: deleted, scriptId });
+      }
+
+      // Legacy Aliases
       case 'timetable_get_schedule':
       case 'get_school_timetable': {
-        const now = new Date();
-        const requestedDay = typeof args.day === 'number' && args.day >= 1 && args.day <= 5 ? args.day : (now.getDay() >= 1 && now.getDay() <= 5 ? now.getDay() : 1);
-        const lessons = dbStore.getTimetable(requestedDay);
-        return JSON.stringify({ day: requestedDay, lessonsCount: lessons.length, lessons });
+        return await this.executeLiveTool('query_timetable', args, userId);
       }
 
       case 'get_grades_summary': {
-        const gpa = dbStore.calculateGpa();
-        const luckyNumber = dbStore.getLuckyNumber();
-        const subjects = dbStore.getSubjectsWithGrades();
-        return JSON.stringify({ gpa, luckyNumber, subjectsCount: subjects.length });
+        return await this.executeLiveTool('get_librus_grades', args, userId);
       }
 
       case 'add_task': {
-        const title = args.title || 'Zadanie z asystenta AI';
-        const priority = args.priority || 'HIGH';
-        const created = dbStore.addTask(callerUserId, { title, priority, category: args.category || 'Asystent AI' });
-        return JSON.stringify({ success: true, taskId: created.id, title: created.title });
+        return await this.executeLiveTool('add_to_do', args, userId);
       }
 
       case 'add_finance_transaction': {
-        const title = args.title || 'Transakcja z AI';
-        const amount = typeof args.amount === 'number' ? args.amount : 0;
-        const envelope = args.envelope || 'NEEDS';
-        const tx = dbStore.addTransaction(callerUserId, { title, amount, envelope, category: 'AI', type: args.type || 'EXPENSE' });
-        return JSON.stringify({ success: true, txId: tx.id, amount: tx.amount });
+        return await this.executeLiveTool('add_finance_record', {
+          type: args.type === 'INCOME' ? 'income' : 'expense',
+          amount: args.amount,
+          currency: 'PLN',
+          category: args.category || 'Ogólne',
+          bucket: (args.envelope || 'needs').toLowerCase(),
+          description: args.title,
+          transaction_date: new Date().toISOString().split('T')[0]
+        }, userId);
       }
 
-      default:
-        return JSON.stringify({ error: `Nierozpoznane narzędzie: ${name}` });
+      default: {
+        try {
+          const res = await mcpServer.callTool(name, args);
+          return typeof res === 'string' ? res : JSON.stringify(res);
+        } catch (err: any) {
+          return JSON.stringify({ error: `Błąd wykonania narzędzia ${name}: ${err.message}` });
+        }
+      }
     }
   }
 
@@ -610,12 +626,14 @@ Odpowiadasz operatorowi w języku polskim: bezpośrednio, merytorycznie, bez zb�
         const data = (await response.json()) as any;
         const candidate = data.candidates?.[0];
         const reply = candidate?.content?.parts?.[0]?.text || 'Przetworzono polecenie w chmurze Gemini.';
+        const widgets = determineWidgets(undefined, options.message, reply);
 
         return {
           reply,
           provider: 'gemini',
           model: 'gemini-2.0-flash',
-          tokensUsed: { prompt: 160, completion: 90, total: 250 }
+          tokensUsed: { prompt: 160, completion: 90, total: 250 },
+          widgets
         };
       },
       7000,
@@ -623,7 +641,7 @@ Odpowiadasz operatorowi w języku polskim: bezpośrednio, merytorycznie, bez zb�
     );
   }
 
-  private async executeLocalAssistant(message: string, userId?: string): Promise<{ reply: string; toolCall?: { toolName: string; args: Record<string, unknown>; output: string } }> {
+  private async executeLocalAssistant(message: string, userId?: string): Promise<{ reply: string; toolCall?: { toolName: string; args: Record<string, unknown>; output: string }; widgets?: string[] }> {
     const query = message.toLowerCase();
     const now = new Date();
     const day = now.getDay();
@@ -634,79 +652,125 @@ Odpowiadasz operatorowi w języku polskim: bezpośrednio, merytorycznie, bez zb�
       const output = await this.executeLiveTool('get_current_lesson_status', {}, userId);
       const reply = `Aktualny status: ${lessonInfo.timeUntilNextEventFormatted}. ${
         lessonInfo.currentLesson
-          ? `Obecnie trwa: ${lessonInfo.currentLesson.subject} w sali ${lessonInfo.currentLesson.classroom} (${lessonInfo.currentLesson.teacher || 'nauczyciel'}).`
+          ? `Obecnie trwa: ${lessonInfo.currentLessonLabel || `${lessonInfo.currentLesson.subject} w sali ${lessonInfo.currentLesson.classroom}`}.`
           : 'Trwa przerwa.'
       } ${
         lessonInfo.nextLesson
-          ? `Kolejna lekcja: ${lessonInfo.nextLesson.subject} w sali ${lessonInfo.nextLesson.classroom} (${lessonInfo.nextLesson.teacher || 'nauczyciel'}). Do dzwonka: ${lessonInfo.minutesToBell} min.`
+          ? `Kolejna lekcja: ${lessonInfo.nextLessonLabel || `${lessonInfo.nextLesson.subject} w sali ${lessonInfo.nextLesson.classroom}`}. Czas do dzwonka: ${lessonInfo.minutesToBell} min.`
           : 'To ostatnia lekcja w dniu dzisiejszym.'
       }`;
+      const widgets = determineWidgets('get_current_lesson_status', message, reply);
       return {
         reply,
         toolCall: {
           toolName: 'get_current_lesson_status',
           args: {},
           output
-        }
+        },
+        widgets
       };
     }
 
     if (query.includes('skrypt') || query.includes('automatyz') || query.includes('przypom')) {
       const output = await this.executeLiveTool('list_automation_scripts', {}, userId);
       const reply = `W systemie zarejestrowane są aktywne skrypty automatyzacji, w tym monitor dzwonków szkolnych (wysyłający alert Pushbullet na 5 min przed końcem lekcji z kolejną salą) oraz poranny briefing. Możesz edytować ich kod lub stworzyć nowy z szablonu.`;
+      const widgets = determineWidgets('list_automation_scripts', message, reply);
       return {
         reply,
         toolCall: {
           toolName: 'list_automation_scripts',
           args: {},
           output
-        }
+        },
+        widgets
+      };
+    }
+
+    if (query.includes('zastępstw') || query.includes('odwołan')) {
+      const output = await this.executeLiveTool('get_substitutions', { day: currentDay }, userId);
+      const reply = `Pobrano aktualne zastępstwa szkolne oraz absencje nauczycieli dla dnia dzisiejszego.`;
+      const widgets = determineWidgets('get_substitutions', message, reply);
+      return {
+        reply,
+        toolCall: {
+          toolName: 'get_substitutions',
+          args: { day: currentDay },
+          output
+        },
+        widgets
+      };
+    }
+
+    if (query.includes('ocen') || query.includes('średni')) {
+      const output = await this.executeLiveTool('get_librus_grades', {}, userId);
+      const gpa = dbStore.calculateGpa();
+      const reply = `Twoja bieżąca średnia ważona wynosi ${gpa.toFixed(2)}. Poniżej znajduje się podsumowanie ocen z dziennika Librus Synergia.`;
+      const widgets = determineWidgets('get_librus_grades', message, reply);
+      return {
+        reply,
+        toolCall: {
+          toolName: 'get_librus_grades',
+          args: {},
+          output
+        },
+        widgets
       };
     }
 
     if (query.includes('plan') || query.includes('lekcj')) {
       const timetable = dbStore.getTimetable(currentDay);
-      const output = await this.executeLiveTool('get_school_timetable', { day: currentDay }, userId);
+      const output = await this.executeLiveTool('query_timetable', { day: currentDay }, userId);
       const reply = `W dzisiejszym harmonogramie masz ${timetable.length} lekcji: ` +
         timetable.map((t: LessonItem) => `${t.order}. ${t.subject} (${t.timeRange}, s. ${t.classroom})`).join(', ') + '.';
+      const widgets = determineWidgets('query_timetable', message, reply);
       return {
         reply,
         toolCall: {
-          toolName: 'get_school_timetable',
+          toolName: 'query_timetable',
           args: { day: currentDay },
           output
-        }
+        },
+        widgets
       };
     }
 
     if (query.includes('push') || query.includes('telefon') || query.includes('powiadom')) {
       const output = await this.executeLiveTool('send_phone_notification', { title: 'OmniDash Asystent', body: message, priority: 'HIGH' }, userId);
+      const reply = 'Wysłano powiadomienie na Twój smartfon przez Pushbullet Dispatcher.';
+      const widgets = determineWidgets('send_phone_notification', message, reply);
       return {
-        reply: 'Wysłano powiadomienie na Twój smartfon przez Pushbullet Dispatcher.',
+        reply,
         toolCall: {
           toolName: 'send_phone_notification',
           args: { title: 'OmniDash Asystent', body: message, priority: 'HIGH' },
           output
-        }
+        },
+        widgets
       };
     }
 
     if (query.includes('dodaj zadanie') || query.includes('nowe zadanie')) {
       const taskTitle = message.replace(/(dodaj zadanie|nowe zadanie|zadanie:?)/gi, '').trim() || 'Nowe zadanie z czatu';
-      const output = await this.executeLiveTool('add_task', { title: taskTitle, priority: 'HIGH' }, userId);
+      const output = await this.executeLiveTool('add_to_do', { title: taskTitle, priority: 'HIGH' }, userId);
+      const reply = `Zadanie "${taskTitle}" zostało pomyślnie dodane do listy zadań.`;
+      const widgets = determineWidgets('add_to_do', message, reply);
       return {
-        reply: `Zadanie "${taskTitle}" zostało pomyślnie dodane do listy zadań.`,
+        reply,
         toolCall: {
-          toolName: 'add_task',
+          toolName: 'add_to_do',
           args: { title: taskTitle },
           output
-        }
+        },
+        widgets
       };
     }
 
+    const reply = 'Zrozumiałem polecenie. System asystenta OmniDash v4.0 przetworzył operację.';
+    const widgets = determineWidgets(undefined, message, reply);
     return {
-      reply: 'Zrozumiałem polecenie. System asystenta OmniDash v4.0 przetworzył operację.',
-      toolCall: undefined
+      reply,
+      toolCall: undefined,
+      widgets
     };
   }
 }

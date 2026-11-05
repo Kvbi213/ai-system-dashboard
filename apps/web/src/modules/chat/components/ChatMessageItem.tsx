@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sparkles, User, Copy, Check } from 'lucide-react';
 import { ToolCallingAccordion } from './ToolCallingAccordion';
+import { ChatInlineWidgetsContainer } from './ChatInlineWidgets';
 
 export interface ChatMessage {
   id: string;
@@ -12,6 +13,7 @@ export interface ChatMessage {
     args: Record<string, unknown>;
     output: string;
   };
+  widgets?: string[];
 }
 
 interface ChatMessageItemProps {
@@ -59,6 +61,10 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message }) => 
           )}
 
           <div className="whitespace-pre-wrap font-normal">{message.content}</div>
+
+          {message.widgets && message.widgets.length > 0 && (
+            <ChatInlineWidgetsContainer widgets={message.widgets} />
+          )}
         </div>
 
         {/* Footer info: time & copy */}

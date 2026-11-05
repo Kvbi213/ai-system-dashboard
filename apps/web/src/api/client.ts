@@ -155,7 +155,7 @@ export const newsApi = {
 export const aiApi = {
   getModels: () => apiFetch<{ models: any[]; activeModel: string }>('/ai/models'),
   sendMessage: (message: string) =>
-    apiFetch<{ reply: string; toolCall?: any; timestamp: string }>('/ai/chat', {
+    apiFetch<{ reply: string; toolCall?: any; widgets?: string[]; timestamp: string }>('/ai/chat', {
       method: 'POST',
       body: JSON.stringify({ message })
     })

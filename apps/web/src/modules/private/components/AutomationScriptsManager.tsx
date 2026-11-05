@@ -159,24 +159,39 @@ export const AutomationScriptsManager: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-2 text-xs">
               <div className="bg-white/80 dark:bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
                 <span className="text-slate-500 font-medium">Aktualna: </span>
                 <span className="font-bold text-slate-900 dark:text-white">
-                  {contextStatus.lessonInfo?.currentLesson?.subject || 'Przerwa / Wolne'}
+                  {contextStatus.lessonInfo?.currentLesson
+                    ? `Lekcja ${contextStatus.lessonInfo.currentLesson.order}. ${contextStatus.lessonInfo.currentLesson.subject}`
+                    : 'Przerwa / Wolne'}
                 </span>
+                {contextStatus.lessonInfo?.currentLesson?.timeRange && (
+                  <span className="ml-1 text-[11px] text-slate-400 font-mono">({contextStatus.lessonInfo.currentLesson.timeRange})</span>
+                )}
                 {contextStatus.lessonInfo?.currentLesson?.classroom && (
-                  <span className="ml-1 text-sky-600 font-bold">({contextStatus.lessonInfo.currentLesson.classroom})</span>
+                  <span className="ml-1 text-sky-600 font-bold">s. {contextStatus.lessonInfo.currentLesson.classroom}</span>
                 )}
               </div>
 
               <div className="bg-white/80 dark:bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
                 <span className="text-slate-500 font-medium">Kolejna: </span>
                 <span className="font-bold text-slate-900 dark:text-white">
-                  {contextStatus.lessonInfo?.nextLesson?.subject || 'Koniec zajęć'}
+                  {contextStatus.lessonInfo?.nextLesson
+                    ? `Lekcja ${contextStatus.lessonInfo.nextLesson.order}. ${contextStatus.lessonInfo.nextLesson.subject}`
+                    : 'Koniec zajęć'}
                 </span>
+                {contextStatus.lessonInfo?.nextLesson?.timeRange && (
+                  <span className="ml-1 text-[11px] text-slate-400 font-mono">({contextStatus.lessonInfo.nextLesson.timeRange})</span>
+                )}
+                {contextStatus.lessonInfo?.isConsecutiveSameSubject && (
+                  <span className="ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300">
+                    Blok 2
+                  </span>
+                )}
                 {contextStatus.lessonInfo?.nextLesson?.classroom && (
-                  <span className="ml-1 text-emerald-600 font-bold">({contextStatus.lessonInfo.nextLesson.classroom})</span>
+                  <span className="ml-1 text-emerald-600 font-bold">s. {contextStatus.lessonInfo.nextLesson.classroom}</span>
                 )}
               </div>
             </div>

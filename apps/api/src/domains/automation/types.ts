@@ -34,6 +34,10 @@ export interface CurrentLessonInfo {
   minutesToBell: number;
   bellType: 'LESSON_END' | 'BREAK_END' | 'OUTSIDE_HOURS';
   timeUntilNextEventFormatted: string;
+  isConsecutiveSameSubject?: boolean;
+  blockDescription?: string;
+  currentLessonLabel?: string;
+  nextLessonLabel?: string;
 }
 
 export interface ScriptExecutionContext {

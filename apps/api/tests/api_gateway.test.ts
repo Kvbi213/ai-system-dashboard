@@ -90,8 +90,9 @@ describe('OmniDash API Gateway Integration Suite', () => {
     const data = await res.json();
     expect(data.reply).toBeDefined();
     if (data.toolCall) {
-      expect(['timetable_get_schedule', 'get_current_lesson_status']).toContain(data.toolCall.toolName);
+      expect(['query_timetable', 'timetable_get_schedule', 'get_current_lesson_status']).toContain(data.toolCall.toolName);
     }
+    expect(data.widgets).toBeDefined();
   });
 
   it('POST /api/pushbullet/webhook parses bank SMS and creates transaction with valid secret', async () => {

@@ -694,3 +694,34 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - API Gateway Vitest: 122 passed (17 plików testowych, 100% green).
   - Web Build: `tsc && vite build` — 0 błędów, exit code 0.
   - Live API: 5 autentycznych zastępstw zsynchronizowanych w `GET /api/school/substitutions`.
+
+
+## v4.0.0-rc.14 — 2026-11-05
+### Rozszerzenie Katalogu Narzędzi AI (35+ Tools), Interaktywne Widżety Czatu oraz Eliminacja Anomalii Kolejnych Lekcji i Zastępstw
+- [+] **Rozszerzenie Katalogu Narzędzi AI do 35+ Toolsów (`apps/api/src/domains/ai/llmGateway.ts`):**
+  - Pełne zmostkowanie wszystkich 30 narzędzi z `InternalMcpServer` do formatu OpenAI/Groq Function Calling (`query_timetable`, `get_current_lesson_status`, `get_librus_grades`, `get_librus_calendar`, `get_substitutions`, `get_all_tasks`, `add_to_do`, `update_to_do`, `delete_to_do`, `get_calendar_events`, `add_calendar_event`, `delete_calendar_event`, `add_finance_record`, `delete_finance_record`, `transfer_funds`, `get_gcp_budget_status`, `trigger_workout_sync`, `get_system_metrics`, `perform_osint_scan`, `execute_web_search`, `read_project_file`, `scan_project_directory`, `get_active_alerts`, `get_traffic_alerts`, `send_phone_notification`, `get_phone_notifications`, `save_student_directive`, `learn_fact`, `query_semantic_memory`, `schedule_lesson_transition_alert`).
+  - Dołączenie 5 narzędzi silnika automatyzacji: `create_or_update_automation_script`, `test_run_automation_script`, `list_automation_scripts`, `list_automation_templates`, `delete_automation_script`.
+  - Uniwersalna delegacja live wywołań narzędzi bezpośrednio do instancji `mcpServer.callTool(name, args)` z obsługą aliasów legacy i raportowaniem błędów.
+- [+] **Interaktywne Widżety Czatu AI w Frontendzie (`apps/web/src/modules/chat/components/ChatInlineWidgets.tsx`):**
+  - Implementacja pełnej palety 8 widżetów renderowanych wewnątrz dymków czatu asystenta AI:
+    - `TimetableChatWidget`: interaktywny plan lekcji na dziś/najbliższy dzień z numeracją, salami, czasem i badge'ami zastępstw.
+    - `GradesChatWidget`: podsumowanie ocen z Librusa, ogólna średnia GPA, szczęśliwy numerek i średnie przedmiotowe z kolorystycznym kodowaniem.
+    - `SubstitutionsChatWidget`: wykaz bieżących zastępstw, zmian sal i absencji nauczycieli.
+    - `TasksChatWidget`: lista oczekujących zadań z interaktywnymi checkboxami statusu i priorytetami.
+    - `FinancesChatWidget`: bilans budżetu 50/30/20, saldo bieżące, wydatki miesięczne i stan kopert.
+    - `WorkoutsChatWidget`: ostatnie sesje treningowe i obciążenia FBW.
+    - `CalendarChatWidget`: zbliżające się sprawdziany, kartkówki i wydarzenia terminarza.
+    - `AutomationChatWidget`: aktywne skrypty powiadomień Pushbullet i ich statusy.
+  - Funkcja `determineWidgets` w backendzie i obsługa pola `widgets` w API `/api/ai/chat` oraz w `ChatMessageItem.tsx`.
+- [!] **Eliminacja Anomalii Nakładających się / Kolejnych Lekcji i Formatowania Dzwonków (`apps/api/src/domains/automation/scriptEngine.ts` & `llmGateway.ts`):**
+  - Wykrywanie kolejnych lekcji tego samego przedmiotu (`isConsecutiveSameSubject: true`) tworzących bloki wielogodzinne (np. 2 godziny Pracowni urządzeń techniki komputerowej).
+  - Wzbogacenie etykiet lekcji o numer slotu, godziny i salę: `currentLessonLabel` i `nextLessonLabel` (np. `Lekcja 5 (11:30 - 12:15, s. 12)` oraz `Lekcja 6 (12:20 - 13:05, s. 12 - blok 2)`).
+  - Precyzyjny podział pojęciowy dzwonka: `minutesToCurrentLessonEnd` (dzwonek na przerwę kończący trwającą lekcję) vs rozpoczęcie kolejnej lekcji po przerwie. Wyeliminowanie błędnego komunikatu "rozpocznie się za X min (dzwonek LESSON_END)".
+  - Zaktualizowanie HUD stanu kontekstu w `AutomationScriptsManager.tsx` o czytelne numery lekcji, godziny i oznaczenie `Blok 2`.
+- [!] **Naprawa Klasyfikacji Aktywnych Zastępstw vs Odwołania w Parserze Librusa (`apps/api/src/domains/school/librusTimetableParser.ts`):**
+  - Wyeliminowanie fałszywego odznaczania aktywnych lekcji zastępczych jako odwołanych (flaga `isCancelled: false` gdy `isSubstitution && !rawCancelled`).
+  - Lekcja 6 w piątek (`Język polski` zastępujący `Chemię` Pani Kolasińskiej) wyświetla się jako aktywna z bursztynowym badge'em zastępstwa, bez przekreślenia i bez fałszywego statusu `Odwołana`.
+- [+] **Weryfikacja Empiryczna:**
+  - API Gateway Vitest: 123 passed (17 plików testowych, 100% green).
+  - Web Build: `tsc && vite build` — 0 błędów, exit code 0.
+  - Test live AI chat z modelem `openai/gpt-oss-120b` — synteza dzwonka na przerwę bez surowych enumów i z dołączeniem widżetu `timetable`.

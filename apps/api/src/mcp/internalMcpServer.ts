@@ -563,6 +563,19 @@ export class InternalMcpServer {
         type: 'object',
         properties: {}
       }
+    },
+    {
+      name: 'get_substitutions',
+      description: 'Zwraca aktywne zastępstwa szkolne, zmiany sal, odwołane lekcje i absencje nauczycieli dla wybranego dnia tygodnia (1-5) lub całego tygodnia.',
+      parameters: {
+        type: 'object',
+        properties: {
+          day: {
+            type: 'number',
+            description: 'Numer dnia tygodnia (1 = Poniedziałek ... 5 = Piątek). Jeśli pominięto, zwraca wszystkie.'
+          }
+        }
+      }
     }
   ];
 
@@ -617,6 +630,19 @@ export class InternalMcpServer {
           day,
           count: lessons.length,
           lessons
+        };
+      }
+
+      case 'get_substitutions': {
+        const day = args.day !== undefined && args.day !== null ? Number(args.day) : undefined;
+        if (day !== undefined) {
+          validateWorkday(day);
+        }
+        const substitutions = dbStore.getSubstitutions(day);
+        return {
+          day: day ?? null,
+          count: substitutions.length,
+          substitutions
         };
       }
 

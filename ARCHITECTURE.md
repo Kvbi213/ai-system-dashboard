@@ -7,14 +7,14 @@
 
 ## 1. STATUS SYSTEMU I METRYKI WYDANIA
 
-- **Wersja:** `v4.0.0-rc.13`
+- **Wersja:** `v4.0.0-rc.14`
 - **Typ Architektury:** Domain-Driven Modular Monolith w kontenerach Docker Compose
 - **Standard Jakości:** 100% TypeScript (`strict: true`, zero `any`), Zero-Placeholder Policy
 - **Środowisko:** Node.js 22 LTS, Vite 6, React 19, TailwindCSS v4, Vitest, Playwright 1.50
-- **Metryki Testowe:** 184 passed (54 Playwright E2E + 122 API Vitest + 8 Worker Vitest, 100% green)
+- **Metryki Testowe:** 185 passed (54 Playwright E2E + 123 API Vitest + 8 Worker Vitest, 100% green)
 - **Warstwa Pamięci Podręcznej:** Redis 7 Alpine (`omnidash-redis`) z resilientnym in-memory fallbackiem TTL
-- **Silnik Szkolny i Zastępstw:** Autorytatywny parser planu lekcji Librus Synergia (`librusTimetableParser.ts`), korelacja absencji i endpoint `/api/school/substitutions`
-- **Silnik AI & Automatyzacji:** Groq API (`openai/gpt-oss-120b`, ~500 t/s) z Function Calling + Sandboxed Automation Scripts Engine (`/api/automation`)
+- **Silnik Szkolny i Zastępstw:** Autorytatywny parser planu lekcji Librus Synergia (`librusTimetableParser.ts`), korelacja absencji i endpoint `/api/school/substitutions` z bezbłędnym odróżnieniem aktywnych zastępstw od odwołań
+- **Silnik AI & Automatyzacji:** Groq API (`openai/gpt-oss-120b`, ~500 t/s) z pełnym katalogiem 35+ narzędzi Function Calling zmostkowanych z Internal MCP Server + Sandboxed Automation Scripts Engine + 8 interaktywnych widżetów czatu (Timetable, Grades, Substitutions, Tasks, Finances, Workouts, Calendar, Automation)
 - **Dostępne Porty Usług:**
   - `3000`: Frontend SPA (`apps/web` Vite Dev / Nginx Alpine)
   - `5000`: API Gateway (`apps/api` Express TS Zero-Trust)
