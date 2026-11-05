@@ -43,6 +43,11 @@ export function formatClassroomLabel(room?: string): string {
   return `s. ${trimmed}`;
 }
 
+export function buildLessonLabel(lesson: LessonItem, isBlock2 = false): string {
+  const room = formatClassroomLabel(lesson.classroom);
+  return `Lekcja ${lesson.order}. ${lesson.subject} (${lesson.timeRange}${room ? `, ${room}` : ''}${isBlock2 ? ' - blok 2' : ''})`;
+}
+
 /**
  * Oblicza stan bieżącej lekcji, dzwonka i kolejnej lekcji na podstawie przekazanej daty.
  */
@@ -120,11 +125,9 @@ export function calculateLessonInfo(date = new Date()): CurrentLessonInfo {
         next &&
           cur.lesson.subject.trim().toLowerCase() === next.lesson.subject.trim().toLowerCase()
       );
-      const curRoom = formatClassroomLabel(cur.lesson.classroom);
-      const currentLessonLabel = `Lekcja ${cur.lesson.order}. ${cur.lesson.subject} (${cur.lesson.timeRange}${curRoom ? `, ${curRoom}` : ''})`;
-      const nextRoom = next ? formatClassroomLabel(next.lesson.classroom) : '';
+      const currentLessonLabel = buildLessonLabel(cur.lesson);
       const nextLessonLabel = next
-        ? `Lekcja ${next.lesson.order}. ${next.lesson.subject} (${next.lesson.timeRange}${nextRoom ? `, ${nextRoom}` : ''}${isConsecutiveSameSubject ? ' - blok 2' : ''})`
+        ? buildLessonLabel(next.lesson, isConsecutiveSameSubject)
         : null;
       const blockDescription = isConsecutiveSameSubject && next
         ? `Blok dwugodzinny przedmiotu: ${cur.lesson.subject} (lekcja ${cur.lesson.order} i ${next.lesson.order})`
@@ -149,8 +152,7 @@ export function calculateLessonInfo(date = new Date()): CurrentLessonInfo {
       const isConsecutiveSameSubject = Boolean(
         cur.lesson.subject.trim().toLowerCase() === next.lesson.subject.trim().toLowerCase()
       );
-      const nextRoom = formatClassroomLabel(next.lesson.classroom);
-      const nextLessonLabel = `Lekcja ${next.lesson.order}. ${next.lesson.subject} (${next.lesson.timeRange}${nextRoom ? `, ${nextRoom}` : ''}${isConsecutiveSameSubject ? ' - blok 2' : ''})`;
+      const nextLessonLabel = buildLessonLabel(next.lesson, isConsecutiveSameSubject);
 
       return {
         currentLesson: null,

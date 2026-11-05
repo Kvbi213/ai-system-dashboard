@@ -569,9 +569,10 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
       // Powiadomienia Pushbullet
       case 'send_phone_notification':
       case 'send_pushbullet_notification': {
-        const title = String(args.title || 'OmniDash Powiadomienie').trim();
-        const body = String(args.body || 'Wiadomość z asystenta AI').trim();
-        const priority = args.priority || 'NORMAL';
+        const safeArgs = args ?? {};
+        const title = String(safeArgs.title || 'OmniDash Powiadomienie').trim();
+        const body = String(safeArgs.body || 'Wiadomość z asystenta AI').trim();
+        const priority = safeArgs.priority || 'NORMAL';
         const pushRes = await pushbulletService.sendPush({ title, body, priority });
         return JSON.stringify({
           success: pushRes.success,
