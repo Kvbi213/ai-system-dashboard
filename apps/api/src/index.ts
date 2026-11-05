@@ -24,6 +24,7 @@ import { privateRouter } from './domains/private/router.js';
 import { memoryRouter } from './domains/memory/router.js';
 import { rulesRouter } from './domains/rules/router.js';
 import { mcpRouter } from './mcp/internalMcpServer.js';
+import { automationRouter } from './domains/automation/router.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -80,6 +81,7 @@ app.use('/api/private', privateRouter);
 app.use('/api/memory', memoryRouter);
 app.use('/api/rules', rulesRouter);
 app.use('/api/mcp', mcpRouter);
+app.use('/api/automation', automationRouter);
 
 // Global Error Handler
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

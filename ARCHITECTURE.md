@@ -7,12 +7,13 @@
 
 ## 1. STATUS SYSTEMU I METRYKI WYDANIA
 
-- **Wersja:** `v4.0.0-rc.11`
+- **Wersja:** `v4.0.0-rc.12`
 - **Typ Architektury:** Domain-Driven Modular Monolith w kontenerach Docker Compose
 - **Standard Jakości:** 100% TypeScript (`strict: true`, zero `any`), Zero-Placeholder Policy
 - **Środowisko:** Node.js 22 LTS, Vite 6, React 19, TailwindCSS v4, Vitest, Playwright 1.50
-- **Metryki Testowe:** 163 passed (54 Playwright E2E + 109 API Vitest + 8 Worker Vitest, 100% green)
+- **Metryki Testowe:** 176 passed (54 Playwright E2E + 114 API Vitest + 8 Worker Vitest, 100% green)
 - **Warstwa Pamięci Podręcznej:** Redis 7 Alpine (`omnidash-redis`) z resilientnym in-memory fallbackiem TTL
+- **Silnik AI & Automatyzacji:** Groq API (`openai/gpt-oss-120b`, ~500 t/s) z Function Calling + Sandboxed Automation Scripts Engine (`/api/automation`)
 - **Dostępne Porty Usług:**
   - `3000`: Frontend SPA (`apps/web` Vite Dev / Nginx Alpine)
   - `5000`: API Gateway (`apps/api` Express TS Zero-Trust)
@@ -57,7 +58,7 @@ $PROJECT_ROOT/OmniDash/
 │   │           ├── grades/         # LibrusTableView (tabela 1:1 Synergia), SubjectGradesGrid, GradeStatsSummary, fallbackData
 │   │           ├── finance/        # Budżet 50/30/20, BudgetPredictionCard z Write-Back, abonamenty, cele
 │   │           ├── workouts/       # Trening FBW (AtticFBWTracker), RestTimerOverlay (OLED True Black), rekordy osobiste PR
-│   │           ├── private/        # Strefa Prywatna: Nawyki i rutyny dobowe (DailyHabitStreaks, PrivateRoutinesCard), cele, dziennik
+│   │           ├── private/        # Strefa Prywatna: Nawyki, rutyny, cele, dziennik, AutomationScriptsManager
 │   │           ├── traffic/        # Kamery GDDKiA, radary CANARD, alerty drogowe
 │   │           ├── osint/          # Inspekcja domen, ThreatMonitoringTimeline (SSRF Shield), certyfikaty SSL
 │   │           ├── server/         # Telemetria kontenerów Docker, węzeł Mikr.us LXC, kopia zapasowa
@@ -66,12 +67,15 @@ $PROJECT_ROOT/OmniDash/
 │   ├── api/                        # [API Gateway] Port 5000, Zero-Trust, Drizzle Store
 │   │   └── src/
 │   │       ├── domains/
+│   │       │   ├── ai/             # Groq LLM Gateway (openai/gpt-oss-120b) z Function Calling & tools loop
+│   │       │   ├── automation/     # Piaskownica skryptów JS, szablony, runtime context, scheduler
 │   │       │   ├── memory/         # Lab-Zero Semantic Recall Engine (128-dim dense embedding)
 │   │       │   ├── system/         # FinOpsCollector (kolektor tokenów AI & TTS, detektor coverage gaps)
 │   │       │   └── ...             # Domeny biznesowe (school, finance, workouts, traffic, osint)
 │   │
 │   └── worker/                     # [Background Worker] Daemon zadań w tle i synchronizacji
 │       └── src/
+│           ├── automation/         # LessonAlertMonitor (alert 5 min przed dzwonkiem, poranny briefing)
 │           ├── cron/               # SystemScheduler z synchronizacją czasu autorytatywnego co 1 min
 │           └── pushbullet/         # Deterministyczny PushbulletDispatcher (kolejka priorytetyzowana, rate-limiter)
 ```

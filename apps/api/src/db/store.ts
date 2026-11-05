@@ -21,7 +21,8 @@ import {
   EventId,
   TEMP_EVENT_ID,
   SubjectWithGrades,
-  SingleGradeDetail
+  SingleGradeDetail,
+  AutomationScriptItem
 } from './types.js';
 
 import {
@@ -135,6 +136,7 @@ export class DatabaseStore {
   private routines: RoutineItem[] = [];
   private personalGoals: PersonalGoalItem[] = [];
   private journal: JournalEntry[] = [];
+  private automationScripts: AutomationScriptItem[] = [];
   private luckyNumber = 3;
 
   constructor() {
@@ -173,7 +175,8 @@ export class DatabaseStore {
         events: this.events,
         routines: this.routines,
         personalGoals: this.personalGoals,
-        journal: this.journal
+        journal: this.journal,
+        automationScripts: this.automationScripts
       };
       fs.writeFileSync(p, JSON.stringify(payload, null, 2), 'utf8');
     } catch (err) {
@@ -198,6 +201,7 @@ export class DatabaseStore {
       if (Array.isArray(data.routines) && data.routines.length > 0) this.routines = data.routines;
       if (Array.isArray(data.personalGoals) && data.personalGoals.length > 0) this.personalGoals = data.personalGoals;
       if (Array.isArray(data.journal) && data.journal.length > 0) this.journal = data.journal;
+      if (Array.isArray(data.automationScripts) && data.automationScripts.length > 0) this.automationScripts = data.automationScripts;
       return true;
     } catch {
       return false;
@@ -220,6 +224,49 @@ export class DatabaseStore {
     this.routines = JSON.parse(JSON.stringify(SEED_ROUTINES));
     this.personalGoals = JSON.parse(JSON.stringify(SEED_PERSONAL_GOALS));
     this.journal = JSON.parse(JSON.stringify(SEED_JOURNAL));
+    this.automationScripts = [
+      {
+        id: 'script_lesson_bell',
+        name: 'Monitor Dzwonków i Zmiany Sal (5 min przed)',
+        description: 'Bada czas do dzwonka i gdy zostaje 5 minut, wysyła alert Pushbullet z nazwą sali, kolejnym przedmiotem i nauczycielem.',
+        templateId: 'template_lesson_bell',
+        enabled: true,
+        triggerType: 'lesson_bell',
+        code: `if (!ctx.school.isSchoolHours()) return;
+const info = ctx.school.getLessonInfo();
+if (info.bellType === 'LESSON_END' && info.minutesToBell <= 5 && info.minutesToBell >= 1) {
+  const next = info.nextLesson;
+  const title = \`DZWONEK ZA \${info.minutesToBell} MIN :: \${info.currentLesson?.subject || 'Lekcja'}\`;
+  const body = next
+    ? \`Za \${info.minutesToBell} min koniec lekcji. Kolejna: \${next.subject} w sali \${next.classroom} (\${next.teacher || 'nauczyciel'}).\`
+    : \`Za \${info.minutesToBell} min koniec lekcji. To ostatnia lekcja w dniu dzisiejszym!\`;
+  await ctx.pushbullet.send(title, body, 'HIGH');
+  ctx.log(\`Wysłano alert dzwonka: \${title}\`);
+}`,
+        createdAt: '2026-11-05T08:00:00.000Z',
+        updatedAt: '2026-11-05T08:00:00.000Z'
+      },
+      {
+        id: 'script_morning_briefing',
+        name: 'Poranny Briefing Ucznia (07:15)',
+        description: 'Poranne zestawienie: liczba lekcji, sala pierwszej lekcji, sprawdziany i zadania.',
+        templateId: 'template_morning_briefing',
+        enabled: true,
+        triggerType: 'cron',
+        cronExpression: '15 7 * * 1-5',
+        code: `const lessons = ctx.school.getTodayLessons();
+const exams = ctx.school.getTodayExams();
+const pendingTasks = ctx.tasks.getPending();
+let body = \`Plan na dziś (\${ctx.time.dayName}): \${lessons.length} lekcji.\\n\`;
+if (lessons.length > 0) body += \`Pierwsza lekcja: \${lessons[0].subject} o \${lessons[0].timeRange} w sali \${lessons[0].classroom}.\\n\`;
+if (exams.length > 0) body += \`UWAGA SPRAWDZIANY: \${exams.map(e => e.title).join(', ')}!\\n\`;
+body += \`Zadania: \${pendingTasks.length} do zrobienia.\`;
+await ctx.pushbullet.send(\`Poranny Briefing :: \${ctx.time.dayName}\`, body, 'HIGH');
+ctx.log('Wysłano poranny briefing.');`,
+        createdAt: '2026-11-05T08:00:00.000Z',
+        updatedAt: '2026-11-05T08:00:00.000Z'
+      }
+    ];
 
     // Ładowanie i wzbogacanie autorytatywnych danych z librusGroundTruth.json
     this.loadLibrusGroundTruth();
@@ -941,6 +988,81 @@ export class DatabaseStore {
     const deleted = this.journal.length < len;
     if (deleted) this.persist();
     return deleted;
+  }
+
+  // Automation Scripts CRUD
+  public getAutomationScripts(): AutomationScriptItem[] {
+    return this.automationScripts;
+  }
+
+  public getAutomationScript(id: string): AutomationScriptItem | null {
+    return this.automationScripts.find((s) => s.id === id) || null;
+  }
+
+  public saveAutomationScript(
+    data: Omit<AutomationScriptItem, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }
+  ): AutomationScriptItem {
+    const nowIso = new Date().toISOString();
+    if (data.id) {
+      const idx = this.automationScripts.findIndex((s) => s.id === data.id);
+      if (idx >= 0) {
+        const updated: AutomationScriptItem = {
+          ...this.automationScripts[idx],
+          ...data,
+          id: data.id,
+          updatedAt: nowIso
+        };
+        this.automationScripts[idx] = updated;
+        this.persist();
+        return updated;
+      }
+    }
+
+    const newScript: AutomationScriptItem = {
+      id: data.id || `script_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      name: data.name,
+      description: data.description,
+      templateId: data.templateId || 'template_custom_script',
+      enabled: data.enabled ?? true,
+      triggerType: data.triggerType || 'interval',
+      cronExpression: data.cronExpression,
+      code: data.code,
+      createdAt: nowIso,
+      updatedAt: nowIso
+    };
+    this.automationScripts.unshift(newScript);
+    this.persist();
+    return newScript;
+  }
+
+  public toggleAutomationScript(id: string): AutomationScriptItem | null {
+    const script = this.automationScripts.find((s) => s.id === id);
+    if (!script) return null;
+    script.enabled = !script.enabled;
+    script.updatedAt = new Date().toISOString();
+    this.persist();
+    return script;
+  }
+
+  public deleteAutomationScript(id: string): boolean {
+    const len = this.automationScripts.length;
+    this.automationScripts = this.automationScripts.filter((s) => s.id !== id);
+    const deleted = this.automationScripts.length < len;
+    if (deleted) this.persist();
+    return deleted;
+  }
+
+  public updateAutomationScriptRunResult(
+    id: string,
+    status: 'SUCCESS' | 'ERROR' | 'SKIPPED',
+    log: string
+  ): void {
+    const script = this.automationScripts.find((s) => s.id === id);
+    if (!script) return;
+    script.lastRunAt = new Date().toISOString();
+    script.lastStatus = status;
+    script.lastLog = log;
+    this.persist();
   }
 }
 

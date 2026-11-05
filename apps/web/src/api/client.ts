@@ -160,6 +160,30 @@ export const aiApi = {
     })
 };
 
+// Automation Domain
+export const automationApi = {
+  getTemplates: () => apiFetch<{ templates: any[] }>('/automation/templates'),
+  getContextStatus: () => apiFetch<any>('/automation/context-status'),
+  getScripts: () => apiFetch<{ scripts: any[] }>('/automation/scripts'),
+  getScript: (id: string) => apiFetch<{ script: any }>(`/automation/scripts/${id}`),
+  saveScript: (data: any) =>
+    apiFetch<{ script: any }>('/automation/scripts', { method: 'POST', body: JSON.stringify(data) }),
+  toggleScript: (id: string) =>
+    apiFetch<{ script: any }>(`/automation/scripts/${id}/toggle`, { method: 'PATCH' }),
+  deleteScript: (id: string) =>
+    apiFetch<{ success: boolean }>(`/automation/scripts/${id}`, { method: 'DELETE' }),
+  runScript: (id: string, simulatedDate?: string) =>
+    apiFetch<{ scriptId: string; execution: any }>(`/automation/scripts/${id}/run`, {
+      method: 'POST',
+      body: JSON.stringify({ simulatedDate })
+    }),
+  previewScript: (code: string, simulatedDate?: string) =>
+    apiFetch<{ execution: any }>('/automation/preview', {
+      method: 'POST',
+      body: JSON.stringify({ code, simulatedDate })
+    })
+};
+
 // Memory Domain (Lab-Zero Semantic Recall)
 export const memoryApi = {
   recall: (query: string, limit = 4, minScore = 0.2) =>

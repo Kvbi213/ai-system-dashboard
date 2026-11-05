@@ -643,3 +643,31 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - API Gateway Vitest: 109 passed (15 plików testowych, 100% green).
   - Web Build: `tsc && vite build` — 0 błędów, exit code 0.
   - Dostępność demonów: API :5000, Web :3000, Worker nominalne.
+
+
+## v4.0.0-rc.12 — 2026-11-05
+### Autonomiczny Agent AI (Groq gpt-oss-120b Function Calling), Silnik Skryptów Automatyzacji i Dzwonkowy Monitor Pushbullet
+- [+] **Autonomiczny Agent AI z OpenAI-Compatible Function Calling (`apps/api/src/domains/ai/llmGateway.ts`):**
+  - Aktywacja modelu produkcyjnego `openai/gpt-oss-120b` na Groq API (przepustowość ~500 t/s, natywne wsparcie wywołań narzędziowych).
+  - Wdrożenie 2-turowej pętli wykonawczej: model generuje wywołanie narzędzia, API Gateway wykonuje je na żywo w systemie, a wynik zwraca modelowi w celu syntezy naturalnej odpowiedzi.
+  - Rejestr narzędzi LLM: `get_current_lesson_status`, `send_phone_notification`, `create_or_update_automation_script`, `test_run_automation_script`, `list_automation_scripts`, `list_automation_templates`, `timetable_get_schedule`, `get_grades_summary`, `add_task`, `add_finance_transaction`.
+  - Dynamiczny system prompt z kontekstem rzeczywistego dnia tygodnia, aktualnego planu lekcji i trwających/zbliżających się wydarzeń.
+- [+] **Nowa Domena Automatyzacji (`apps/api/src/domains/automation/`):**
+  - Bezpieczna piaskownica JavaScript (`scriptEngine.ts`) z izolowanym kontekstem `ctx`: `ctx.time`, `ctx.school` (`getLessonInfo`, `getCurrentLesson`, `getNextLesson`, `getMinutesToBell`, `getTodayLessons`, `getTodayExams`, `isSchoolHours`), `ctx.pushbullet` (`send`), `ctx.tasks`, `ctx.log`.
+  - Szablony automatyzacji (`automationTemplates.ts`): `template_lesson_bell` (monitor 5 min przed dzwonkiem), `template_morning_briefing` (07:15 poranny briefing), `template_habit_reminder`, `template_custom_script`.
+  - Router API `/api/automation`: `/templates`, `/context-status`, `/scripts` (CRUD), `/scripts/:id/run`, `/preview`.
+  - Trwałe składowanie skryptów w `DatabaseStore` (`automationScripts`) z automatycznym siewnikiem skryptów domyślnych.
+- [+] **Automatyczny Monitor Dzwonków i Zmiany Sal w Workerze (`apps/worker/src/automation/lessonAlertMonitor.ts`):**
+  - Minutowy cykl sprawdzania `/api/automation/context-status` z deduplikacją alertów per dzień.
+  - Automatyczne powiadamianie Pushbullet na 5 minut przed dzwonkiem na przerwę z informacją o numerze kolejnej sali lekcyjnej, przedmiocie i nauczycielu.
+  - Poranne zestawienie dnia o 07:15 z planem lekcji i sprawdzianami.
+- [+] **Frontend SPA (`apps/web`):**
+  - Nowy komponent `AutomationScriptsManager.tsx` w zakładce "Automatyzacje i Skrypty" w `/private`.
+  - Wizualny HUD stanu lekcyjnego (aktualna lekcja, kolejna sala, czas do dzwonka).
+  - Interaktywny edytor skryptów, natychmiastowe testowanie (Dry-Run / Live Run) oraz przełączniki aktywności.
+  - Zaktualizowany Czat AI (`ChatPage.tsx`) z indykatorem Groq, chipami szybkich akcji i kasetkami wywołań funkcyjnych.
+- [+] **Weryfikacja Empiryczna:**
+  - API Gateway Vitest: 114 passed (16 plików testowych, 100% green).
+  - Worker Vitest: 8 passed (3 pliki testowe, 100% green).
+  - Web Build: `tsc && vite build` — 0 błędów, exit code 0.
+  - Test live AI Function Calling (`POST /api/ai/chat`) z modelem `openai/gpt-oss-120b` — 100% sukcesu.

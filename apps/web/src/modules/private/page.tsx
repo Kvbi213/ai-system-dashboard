@@ -3,13 +3,14 @@ import { PrivateRoutinesCard } from './components/PrivateRoutinesCard';
 import { DailyHabitStreaks } from './components/DailyHabitStreaks';
 import { PersonalGoalsCard } from './components/PersonalGoalsCard';
 import { PrivateJournalCard } from './components/PrivateJournalCard';
-import { Sun, Target, BookOpen } from 'lucide-react';
+import { AutomationScriptsManager } from './components/AutomationScriptsManager';
+import { Sun, Target, BookOpen, Sparkles } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { SubTabBar } from '../../components/ui/SubTabBar';
 import { useToast } from '../../components/ui/Toast';
 
 export const PrivatePage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'routines' | 'goals' | 'journal'>('routines');
+  const [activeTab, setActiveTab] = useState<'routines' | 'goals' | 'journal' | 'automation'>('routines');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const toast = useToast();
 
@@ -17,12 +18,13 @@ export const PrivatePage: React.FC = () => {
     setIsRefreshing(true);
     setTimeout(() => {
       setIsRefreshing(false);
-      toast.success('Pobrano aktualne nawyki, rutyny i cele osobiste');
+      toast.success('Pobrano aktualne nawyki, rutyny, cele i automatyzacje');
     }, 600);
   };
 
   const tabs = [
     { id: 'routines', label: 'Nawyki i Rutyny Dobowe', icon: Sun },
+    { id: 'automation', label: 'Skrypty i Automatyzacje', icon: Sparkles },
     { id: 'goals', label: 'Cele i Projekty Osobiste', icon: Target },
     { id: 'journal', label: 'Dziennik i Refleksje', icon: BookOpen }
   ] as const;
@@ -33,7 +35,7 @@ export const PrivatePage: React.FC = () => {
       <PageHeader
         icon={Sun}
         title="Strefa Prywatna i Rozwój"
-        subtitle="Zsynchronizowane nawyki, rutyny dobowe, cele strategiczne i dziennik refleksji"
+        subtitle="Zsynchronizowane nawyki, automatyzacje Pushbullet, cele strategiczne i dziennik"
         badge="Prywatne"
         badgeVariant="purple"
         onRefresh={handleRefresh}
@@ -54,6 +56,7 @@ export const PrivatePage: React.FC = () => {
           <PrivateRoutinesCard />
         </div>
       )}
+      {activeTab === 'automation' && <AutomationScriptsManager />}
       {activeTab === 'goals' && <PersonalGoalsCard />}
       {activeTab === 'journal' && <PrivateJournalCard />}
     </div>

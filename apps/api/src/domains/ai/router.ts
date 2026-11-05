@@ -6,12 +6,12 @@ export const aiRouter = Router();
 aiRouter.get('/models', (_req: Request, res: Response) => {
   res.json({
     models: [
-      { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B (Groq Engine)', speed: '380 t/s', recommended: true },
+      { id: 'openai/gpt-oss-120b', name: 'GPT-OSS 120B (Groq Engine)', speed: '500 t/s', recommended: true },
       { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (Google Cloud)', speed: '240 t/s', recommended: false },
-      { id: 'gpt-4o-mini', name: 'GPT-4o Mini (OpenAI)', speed: '120 t/s', recommended: false },
+      { id: 'openai/gpt-oss-20b', name: 'GPT-OSS 20B (Groq Edge Fast)', speed: '750 t/s', recommended: false },
       { id: 'omnidash-deterministic-core-v4', name: 'Lokalny Rdzeń Zero-Trust', speed: 'Instant (<5ms)', recommended: false }
     ],
-    activeModel: 'llama-3.3-70b-versatile'
+    activeModel: 'openai/gpt-oss-120b'
   });
 });
 

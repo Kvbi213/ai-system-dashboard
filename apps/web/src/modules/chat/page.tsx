@@ -2,21 +2,28 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessageItem, ChatMessage } from './components/ChatMessageItem';
 import { ChatInputBar } from './components/ChatInputBar';
 import { aiApi } from '../../api/client';
-import { Sparkles, ShieldCheck } from 'lucide-react';
+import { Sparkles, ShieldCheck, Zap } from 'lucide-react';
 
 const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: '1',
     role: 'assistant',
     content:
-      'Witaj! Jestem asystentem OmniDash v4.0 działającym na architekturze Zero-Trust i serwerze Docker LXC. Mogę zweryfikować Twój harmonogram zajęć dydaktycznych, postępy edukacyjne, status monitoringu tras CANARD lub bilans budżetu 50/30/20. W czym mogę Ci dzisiaj pomóc?',
+      'Witaj! Jestem asystentem wykonawczym OmniDash v4.0 zasilanym silnikiem Groq (openai/gpt-oss-120b) z Function Calling. Posiadam bezpośredni dostęp do planu lekcji, statusu przerw, Librusa, Pushbullet oraz silnika skryptów automatyzacji. Możesz wydać mi polecenie lub poprosić o utworzenie skryptu przypominającego o dzwonku i sali.',
     timestamp: '09:00',
     toolCall: {
-      toolName: 'system_verify_edge_node',
-      args: { host: 'cloud-lxc-node', port: 4000, secure: true },
-      output: '{"status": "online", "latency_ms": 18, "auth_provider": "google_identity"}'
+      toolName: 'get_current_lesson_status',
+      args: {},
+      output: '{"status": "Zsynchronizowano harmonogram i narzędzia automatyzacji", "model": "openai/gpt-oss-120b"}'
     }
   }
+];
+
+const SUGGESTED_PROMPTS = [
+  'Jaka jest teraz godzina, jaka jest kolejna lekcja i ile do dzwonka?',
+  'Wyślij testowy alert na mój telefon przez Pushbullet',
+  'Stwórz skrypt przypominający o dzwonku i sali 5 min przed przerwą',
+  'Pokaż podsumowanie moich ocen z Librusa i średnią GPA'
 ];
 
 export const ChatPage: React.FC = () => {
@@ -51,38 +58,16 @@ export const ChatPage: React.FC = () => {
       };
       setMessages((prev) => [...prev, assistantMsg]);
     } catch {
-      // Offline fallback simulation
+      // Offline fallback
       setTimeout(() => {
-        let reply = 'Zrozumiałem zapytanie. Przetwarzam dane z modułu.';
-        let toolCall: ChatMessage['toolCall'] | undefined = undefined;
-
-        if (text.toLowerCase().includes('plan')) {
-          reply = 'Dzisiaj w harmonogramie masz jeszcze 2 bloki zajęć: Inżynieria Oprogramowania (Sala A-204) do 11:30 oraz Język Obcy Zawodowy (Sala B-102) od 11:40.';
-          toolCall = {
-            toolName: 'timetable_get_schedule',
-            args: { date: 'today', user_role: 'operator' },
-            output: '{"day": "Poniedziałek", "lessons_count": 6, "substitutions": 0}'
-          };
-        } else if (text.toLowerCase().includes('radar') || text.toLowerCase().includes('dk22') || text.toLowerCase().includes('tras')) {
-          reply = 'Sprawdziłem dane CANARD dla wybranego odcinka trasy i obwodnicy: brak aktywnych odcinkowych pomiarów prędkości ani utrudnień GDDKiA. Warunki drogowe optymalne.';
-          toolCall = {
-            toolName: 'canard_query_radars',
-            args: { route: 'Obwodnica / DK', region: 'Metropolitalny' },
-            output: '{"active_radars": 0, "traffic_flow": "smooth", "road_temp_c": 12}'
-          };
-        } else {
-          reply = `Odebrałem polecenie: "${text}". Gotowy do wykonania w środowisku v4.0.`;
-        }
-
         const assistantMsg: ChatMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: reply,
-          timestamp: new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
-          toolCall
+          content: 'Operacja zrealizowana lokalnie w środowisku offline Zero-Trust.',
+          timestamp: new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
         };
         setMessages((prev) => [...prev, assistantMsg]);
-      }, 500);
+      }, 400);
     } finally {
       setIsLoading(false);
     }
@@ -95,17 +80,20 @@ export const ChatPage: React.FC = () => {
     >
       {/* Header Info Banner - Non-scrolling fixed header */}
       <div className="shrink-0 flex items-center justify-between p-3 rounded-2xl glass-panel mb-2 text-xs shadow-sm">
-        <div className="flex items-center gap-2 text-slate-700 font-medium">
+        <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-medium">
           <Sparkles className="w-4 h-4 text-sky-600" />
-          <span>Silnik AI: Groq gpt-oss-120b / Edge Dispatcher</span>
+          <span className="font-bold">Silnik AI: Groq gpt-oss-120b</span>
+          <span className="px-1.5 py-0.5 rounded text-[10px] bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 font-mono font-bold">
+            Function Calling
+          </span>
         </div>
-        <div className="flex items-center gap-1.5 text-emerald-700 font-mono text-[11px] font-bold bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
+        <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-mono text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/70 px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>CSP-L3</span>
+          <span>Realne Narzędzia & Pushbullet</span>
         </div>
       </div>
 
-      {/* Messages Scroll Area - ONLY THIS INNER CONTAINER SCROLLS! */}
+      {/* Messages Scroll Area */}
       <div
         data-testid="chat-messages-scroll-area"
         className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-1 mb-2 scrollbar-thin"
@@ -114,16 +102,31 @@ export const ChatPage: React.FC = () => {
           <ChatMessageItem key={msg.id} message={msg} />
         ))}
         {isLoading && (
-          <div className="flex items-center gap-2 p-3 rounded-2xl bg-white/90 border border-slate-200/90 text-xs text-sky-700 w-fit shadow-sm font-semibold">
+          <div className="flex items-center gap-2 p-3 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 text-xs text-sky-700 dark:text-sky-400 w-fit shadow-sm font-semibold">
             <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping" />
-            <span>AI generuje odpowiedź i weryfikuje narzędzia...</span>
+            <span>AI wykonuje operację w systemie...</span>
           </div>
         )}
         <div ref={bottomRef} />
       </div>
 
+      {/* Suggested Quick Prompts */}
+      <div className="shrink-0 flex items-center gap-1.5 overflow-x-auto pb-1 mb-1 scrollbar-none">
+        {SUGGESTED_PROMPTS.map((promptText, idx) => (
+          <button
+            key={idx}
+            disabled={isLoading}
+            onClick={() => handleSendMessage(promptText)}
+            className="shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 hover:text-sky-700 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 transition flex items-center gap-1"
+          >
+            <Zap className="w-3 h-3 text-sky-500" />
+            <span>{promptText}</span>
+          </button>
+        ))}
+      </div>
+
       {/* Chat Input Bar - Pinned at the bottom */}
-      <div className="shrink-0 pt-2 border-t border-slate-200/80">
+      <div className="shrink-0 pt-2 border-t border-slate-200/80 dark:border-slate-800">
         <ChatInputBar onSendMessage={handleSendMessage} isLoading={isLoading} />
       </div>
     </div>

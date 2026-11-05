@@ -64,11 +64,17 @@ describe('IterationBudget & LLMGateway Resilience Suite', () => {
   });
 
   it('LLMGateway falls back to local deterministic engine gracefully for standard queries', async () => {
-    const gateway = new LLMGateway();
-    const res = await gateway.complete({ message: 'podaj plan lekcji' });
-    expect(res.reply).toBeDefined();
-    expect(res.tokensUsed).toBeDefined();
-    expect(res.tokensUsed.total).toBeGreaterThan(0);
-    expect(res.provider).toBe('local');
+    const origKey = process.env.GROQ_API_KEY;
+    delete process.env.GROQ_API_KEY;
+    try {
+      const gateway = new LLMGateway();
+      const res = await gateway.complete({ message: 'podaj plan lekcji' });
+      expect(res.reply).toBeDefined();
+      expect(res.tokensUsed).toBeDefined();
+      expect(res.tokensUsed.total).toBeGreaterThan(0);
+      expect(res.provider).toBe('local');
+    } finally {
+      process.env.GROQ_API_KEY = origKey;
+    }
   });
 });

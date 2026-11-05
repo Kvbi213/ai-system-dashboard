@@ -1,9 +1,11 @@
 import { PushbulletDispatcher } from '../pushbullet/dispatcher.js';
+import { LessonAlertMonitor } from '../automation/lessonAlertMonitor.js';
 
 export class SystemScheduler {
   private timers: NodeJS.Timeout[] = [];
   private apiGatewayUrl: string;
   private dispatcher?: PushbulletDispatcher;
+  private lessonAlertMonitor: LessonAlertMonitor;
 
   // Master Clock & Continuous Drift-Compensated Chronometer
   private lastSyncedServerTimeMs: number = Date.now();
@@ -13,6 +15,10 @@ export class SystemScheduler {
   constructor(apiGatewayUrl = 'http://localhost:5000/api', dispatcher?: PushbulletDispatcher) {
     this.apiGatewayUrl = apiGatewayUrl;
     this.dispatcher = dispatcher;
+    this.lessonAlertMonitor = new LessonAlertMonitor({
+      apiGatewayUrl: this.apiGatewayUrl,
+      dispatcher: this.dispatcher
+    });
   }
 
   public start(): void {
@@ -99,6 +105,11 @@ export class SystemScheduler {
 
     // Sprawdzenie zakończenia lekcji lub bloków dnia o pełnych minutach
     this.evaluateMinuteScheduleEvents(hours, minutes);
+
+    // Automatyczny monitor lekcji i dzwonków szkolnych (Pushbullet Alert)
+    this.lessonAlertMonitor.checkAndDispatch(date).catch((err) => {
+      console.warn('[!] Błąd ewaluacji monitora lekcji:', err);
+    });
   }
 
   private evaluateMinuteScheduleEvents(hours: number, minutes: number): void {

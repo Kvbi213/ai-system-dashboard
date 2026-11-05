@@ -169,3 +169,20 @@ export interface JournalEntry {
   category: string;
   date: string;
 }
+
+export interface AutomationScriptItem {
+  id: string;
+  name: string;
+  description?: string;
+  templateId: string;
+  enabled: boolean;
+  triggerType: 'interval' | 'cron' | 'lesson_bell' | 'manual';
+  cronExpression?: string;
+  code: string;
+  lastRunAt?: string;
+  lastStatus?: 'SUCCESS' | 'ERROR' | 'SKIPPED';
+  lastLog?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+

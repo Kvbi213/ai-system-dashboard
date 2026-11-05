@@ -1,11 +1,17 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { finOpsCollector } from '../system/finopsCollector.js';
 import { IterationBudget } from './iterationBudget.js';
 import { dbStore, LessonItem } from '../../db/store.js';
+import { pushbulletService } from '../pushbullet/pushbulletService.js';
+import { AUTOMATION_TEMPLATES } from '../automation/automationTemplates.js';
+import { calculateLessonInfo, executeScript } from '../automation/scriptEngine.js';
 
 export interface LLMRequestOptions {
   message: string;
   userId?: string;
-  history?: { role: 'user' | 'assistant' | 'system'; content: string }[];
+  history?: { role: 'user' | 'assistant' | 'system' | 'tool'; content: string; tool_call_id?: string }[];
   temperature?: number;
   maxTokens?: number;
   maxLoops?: number;
@@ -21,9 +27,16 @@ export interface LLMResponse {
   fallbackCount: number;
 }
 
-/**
- * Custom error thrown when an upstream LLM provider exceeds the timeout window.
- */
+const POLISH_DAYS = [
+  'Niedziela',
+  'Poniedziałek',
+  'Wtorek',
+  'Środa',
+  'Czwartek',
+  'Piątek',
+  'Sobota'
+];
+
 export class LLMTimeoutError extends Error {
   public readonly provider: string;
   public readonly code: string = 'LLM_TIMEOUT';
@@ -39,10 +52,6 @@ export class LLMTimeoutError extends Error {
   }
 }
 
-/**
- * Executes an asynchronous function with an AbortSignal timeout.
- * Guaranteed to clear timer on both success and rejection, converting aborts into LLMTimeoutError.
- */
 async function withTimeout<T>(
   fn: (signal: AbortSignal) => Promise<T>,
   ms: number,
@@ -64,41 +73,159 @@ async function withTimeout<T>(
   }
 }
 
-export interface GroqChatResponse {
-  choices?: Array<{
-    message?: {
-      content?: string;
-    };
-  }>;
-  usage?: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-}
-
-export interface GeminiChatResponse {
-  candidates?: Array<{
-    content?: {
-      parts?: Array<{
-        text?: string;
-      }>;
-    };
-  }>;
-}
-
-export interface OpenAIChatResponse {
-  choices?: Array<{
-    message?: {
-      content?: string;
-    };
-  }>;
-  usage?: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-}
+export const LLM_TOOLS = [
+  {
+    type: 'function',
+    function: {
+      name: 'get_current_lesson_status',
+      description: 'Zwraca aktualną godzinę, aktualnie trwającą lekcję, czas w minutach do dzwonka na przerwę, kolejną lekcję, salę oraz nazwisko nauczyciela.',
+      parameters: {
+        type: 'object',
+        properties: {},
+        additionalProperties: false
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'send_phone_notification',
+      description: 'Wysyła natychmiastowe powiadomienie Push na smartfon operatora przez Pushbullet Dispatcher.',
+      parameters: {
+        type: 'object',
+        properties: {
+          title: { type: 'string', description: 'Tytuł powiadomienia (np. Dzwonek za 5 min, Alert lekcji)' },
+          body: { type: 'string', description: 'Treść powiadomienia' },
+          priority: { type: 'string', enum: ['CRITICAL', 'HIGH', 'NORMAL', 'LOW'], description: 'Priorytet powiadomienia' }
+        },
+        required: ['title', 'body'],
+        additionalProperties: false
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'create_or_update_automation_script',
+      description: 'Tworzy nowy skrypt automatyzacji lub aktualizuje istniejący na podstawie szablonu lub kodu JavaScript z obiektem ctx (odczyt czasu, lekcji, dzwonka, wysyłanie push).',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Nazwa skryptu automatyzacji' },
+          description: { type: 'string', description: 'Krótki opis zadania skryptu' },
+          templateId: { type: 'string', description: 'ID szablonu: template_lesson_bell, template_morning_briefing, template_habit_reminder, template_custom_script' },
+          triggerType: { type: 'string', enum: ['interval', 'cron', 'lesson_bell', 'manual'], description: 'Typ wyzwalacza' },
+          cronExpression: { type: 'string', description: 'Wyrażenie CRON (np. 15 7 * * 1-5)' },
+          code: { type: 'string', description: 'Ciało funkcji JavaScript otrzymującej obiekt ctx' },
+          enabled: { type: 'boolean', description: 'Czy skrypt ma być od razu aktywny' }
+        },
+        required: ['name', 'code'],
+        additionalProperties: false
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'test_run_automation_script',
+      description: 'Testuje i uruchamia podany kod skryptu automatyzacji w bezpiecznej piaskownicy z wstrzykniętym obiektem ctx (odczyt czasu, lekcji, Pushbullet) i zwraca logi wykonania.',
+      parameters: {
+        type: 'object',
+        properties: {
+          code: { type: 'string', description: 'Kod skryptu JavaScript do testowego wykonania' },
+          scriptId: { type: 'string', description: 'ID zarejestrowanego skryptu (jeśli testujemy istniejący)' },
+          simulatedDate: { type: 'string', description: 'Opcjonalna symulowana data ISO dla testu (np. 2026-11-05T09:30:00)' }
+        },
+        additionalProperties: false
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'list_automation_scripts',
+      description: 'Zwraca listę wszystkich zarejestrowanych skryptów automatyzacji w systemie OmniDash.',
+      parameters: {
+        type: 'object',
+        properties: {},
+        additionalProperties: false
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'list_automation_templates',
+      description: 'Zwraca listę gotowych szablonów automatyzacji (alert dzwonka, briefing, nawyki, custom).',
+      parameters: {
+        type: 'object',
+        properties: {},
+        additionalProperties: false
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'timetable_get_schedule',
+      description: 'Pobiera plan lekcji na wybrany dzień tygodnia (1=poniedziałek, ..., 5=piątek) lub cały tydzień.',
+      parameters: {
+        type: 'object',
+        properties: {
+          day: { type: 'number', description: 'Numer dnia tygodnia od 1 do 5 (domyślnie bieżący dzień)' }
+        },
+        additionalProperties: false
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_grades_summary',
+      description: 'Zwraca wykaz ocen z Librus Synergia, średnią ważoną GPA, liczbę ocen celujących i szczęśliwy numerek.',
+      parameters: {
+        type: 'object',
+        properties: {},
+        additionalProperties: false
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'add_task',
+      description: 'Dodaje nowe zadanie do listy zadań operatora.',
+      parameters: {
+        type: 'object',
+        properties: {
+          title: { type: 'string', description: 'Tytuł zadania' },
+          priority: { type: 'string', enum: ['HIGH', 'MEDIUM', 'LOW'], description: 'Priorytet zadania' },
+          category: { type: 'string', description: 'Kategoria zadania' }
+        },
+        required: ['title'],
+        additionalProperties: false
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'add_finance_transaction',
+      description: 'Rejestruje wydatek lub przychód w budżecie 50/30/20.',
+      parameters: {
+        type: 'object',
+        properties: {
+          title: { type: 'string', description: 'Nazwa transakcji' },
+          amount: { type: 'number', description: 'Kwota transakcji w PLN' },
+          envelope: { type: 'string', enum: ['NEEDS', 'WANTS', 'SAVINGS'], description: 'Koperta budżetowa' },
+          type: { type: 'string', enum: ['EXPENSE', 'INCOME'], description: 'Typ transakcji' }
+        },
+        required: ['title', 'amount', 'envelope'],
+        additionalProperties: false
+      }
+    }
+  }
+];
 
 export class LLMGateway {
   private readonly groqApiKey: string;
@@ -109,6 +236,42 @@ export class LLMGateway {
     this.groqApiKey = process.env.GROQ_API_KEY || '';
     this.geminiApiKey = process.env.GEMINI_API_KEY || '';
     this.openaiApiKey = process.env.OPENAI_API_KEY || '';
+  }
+
+  private getGroqKey(): string {
+    return process.env.GROQ_API_KEY || this.groqApiKey || '';
+  }
+
+  public buildSystemPrompt(): string {
+    const now = new Date();
+    const day = now.getDay();
+    const dayName = POLISH_DAYS[day] || 'Dzień';
+    const currentDay = day >= 1 && day <= 5 ? day : 1;
+    const formattedTime = now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+    const dateFormatted = `${now.getDate()} listopada ${now.getFullYear()} (${dayName})`;
+    const lessonInfo = calculateLessonInfo(now);
+    const todayLessons = dbStore.getTimetable(currentDay);
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const todayExams = dbStore.getEvents().filter((e) => e.date === dateStr);
+
+    return `Jesteś autonomicznym, wysoce precyzyjnym asystentem inżynieryjnym i wykonawczym ekosystemu OmniDash v4.0.0.
+Odpowiadasz operatorowi w języku polskim: bezpośrednio, merytorycznie, bez zbędnych wstępów, przeprosin i small-talku.
+
+--- AUTORYTATYWNY KONTEKST SYSTEMU ---
+- Aktualny czas: ${formattedTime}
+- Bieżąca data: ${dateFormatted}
+- Dzień roboczy: ${dayName} (Dzień ${currentDay}/5)
+- Status zajęć: ${lessonInfo.timeUntilNextEventFormatted}
+- Aktualna lekcja: ${lessonInfo.currentLesson ? `${lessonInfo.currentLesson.subject} w sali ${lessonInfo.currentLesson.classroom} (${lessonInfo.currentLesson.teacher || 'nauczyciel'})` : 'Brak (przerwa lub poza lekcjami)'}
+- Kolejna lekcja: ${lessonInfo.nextLesson ? `${lessonInfo.nextLesson.subject} w sali ${lessonInfo.nextLesson.classroom} (${lessonInfo.nextLesson.teacher || 'nauczyciel'})` : 'Koniec zajęć'}
+- Do dzwonka: ${lessonInfo.minutesToBell} min (${lessonInfo.bellType})
+- Dzisiejsze lekcje (${todayLessons.length}): ${todayLessons.map((l) => `${l.order}. ${l.subject} (${l.timeRange}, s. ${l.classroom})`).join(', ')}
+- Dzisiejsze sprawdziany / kartkówki: ${todayExams.length > 0 ? todayExams.map((e) => `${e.title} (${e.subject || 'szkoła'})`).join('; ') : 'Brak zaplanowanych sprawdzianów na dziś'}
+
+--- ZASADY DZIAŁANIA I FUNCTION CALLING ---
+1. Posiadasz pełny zestaw narzędzi (tools). Gdy operator pyta o kolejną lekcję, dzwonek, wysłanie powiadomienia, dodanie zadania, wydatku, lub prosi o stworzenie skryptu automatyzacji (np. przypominającego przez Pushbullet przed dzwonkiem lub rano) — ZAWSZE wywołaj odpowiednie narzędzie!
+2. Po wykonaniu narzędzia przedstaw operatorowi zwięzłe inżynieryjne podsumowanie wykonanej akcji.
+3. Gdy tworzysz skrypt automatyzacji, użyj create_or_update_automation_script lub test_run_automation_script. Obiekt ctx w skryptach posiada: ctx.time, ctx.school.getCurrentLesson(), ctx.school.getNextLesson(), ctx.school.getMinutesToBell(), ctx.school.getLessonInfo(), ctx.pushbullet.send(title, body, priority), ctx.tasks, ctx.habits, ctx.log(msg).`;
   }
 
   public async complete(options: LLMRequestOptions): Promise<LLMResponse> {
@@ -123,11 +286,12 @@ export class LLMGateway {
     const startTime = Date.now();
     let fallbackCount = 0;
 
-    // 1. Primary: Groq API
-    if (this.groqApiKey?.trim()) {
+    // 1. Primary: Groq API with openai/gpt-oss-120b & Function Calling
+    const groqKey = this.getGroqKey();
+    if (groqKey?.trim()) {
       try {
         budget.recordStep();
-        const res = await this.callGroq(options);
+        const res = await this.callGroqWithTools(options, groqKey);
         budget.recordTokens(res.tokensUsed.total);
         const durationMs = Date.now() - startTime;
         finOpsCollector.recordMetric({
@@ -167,31 +331,9 @@ export class LLMGateway {
       }
     }
 
-    // 3. Tertiary: OpenAI API
-    if (this.openaiApiKey?.trim()) {
-      try {
-        budget.recordStep();
-        const res = await this.callOpenAI(options);
-        budget.recordTokens(res.tokensUsed.total);
-        const durationMs = Date.now() - startTime;
-        finOpsCollector.recordMetric({
-          module: 'ai_chat',
-          provider: 'openai',
-          inputUnits: res.tokensUsed.prompt,
-          outputUnits: res.tokensUsed.completion,
-          costPln: (res.tokensUsed.total / 1000) * 0.006,
-          durationMs
-        });
-        return { ...res, latencyMs: durationMs, fallbackCount };
-      } catch (err) {
-        console.warn('[!] LLMGateway: OpenAI provider failed, falling back to local core:', err);
-        fallbackCount++;
-      }
-    }
-
-    // 4. Deterministic Local Executive Assistant Fallback
+    // 3. Deterministic Local Executive Assistant Fallback
     budget.recordStep();
-    const localRes = this.executeLocalAssistant(options.message, options.userId);
+    const localRes = await this.executeLocalAssistant(options.message, options.userId);
     const durationMs = Date.now() - startTime;
     const localTokens = options.message.length + localRes.reply.length;
     budget.recordTokens(localTokens);
@@ -216,25 +358,29 @@ export class LLMGateway {
     };
   }
 
-  private async callGroq(options: LLMRequestOptions): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
+  private async callGroqWithTools(options: LLMRequestOptions, apiKey?: string): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
+    const key = apiKey || this.getGroqKey();
     return await withTimeout(
       async (signal) => {
+        const systemPrompt = this.buildSystemPrompt();
+        const messages: any[] = [
+          { role: 'system', content: systemPrompt },
+          ...(options.history || []),
+          { role: 'user', content: options.message }
+        ];
+
+        // 1st Turn: Send user message with available tools
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.groqApiKey}`
+            Authorization: `Bearer ${key}`
           },
           body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
-            messages: [
-              {
-                role: 'system',
-                content: 'Jesteś asystentem wykonawczym OmniDash v4.0.0. Udzielasz zwięzłych, technicznych i bezpośrednich odpowiedzi inżynieryjnych w języku polskim.'
-              },
-              ...(options.history || []),
-              { role: 'user', content: options.message }
-            ],
+            model: 'openai/gpt-oss-120b',
+            messages,
+            tools: LLM_TOOLS,
+            tool_choice: 'auto',
             temperature: options.temperature ?? 0.3,
             max_tokens: options.maxTokens ?? 1024
           }),
@@ -244,31 +390,201 @@ export class LLMGateway {
         if (!response.ok) {
           throw new Error(`Groq HTTP error ${response.status}: ${response.statusText}`);
         }
-        return await this.parseGroqResponse(response);
+
+        const data = (await response.json()) as any;
+        const choice = data.choices?.[0];
+        const assistantMsg = choice?.message;
+        let totalUsage = data.usage || { prompt_tokens: 200, completion_tokens: 100, total_tokens: 300 };
+
+        // Check if model called tools
+        if (assistantMsg?.tool_calls && Array.isArray(assistantMsg.tool_calls) && assistantMsg.tool_calls.length > 0) {
+          const firstToolCall = assistantMsg.tool_calls[0];
+          const fnName = firstToolCall.function?.name;
+          let fnArgs: Record<string, any> = {};
+          try {
+            fnArgs = JSON.parse(firstToolCall.function?.arguments || '{}');
+          } catch {
+            fnArgs = {};
+          }
+
+          // Execute tool call live
+          const toolResult = await this.executeLiveTool(fnName, fnArgs, options.userId);
+
+          // 2nd Turn: Feed tool response back to Groq for natural response synthesis
+          messages.push(assistantMsg);
+          messages.push({
+            role: 'tool',
+            tool_call_id: firstToolCall.id,
+            name: fnName,
+            content: toolResult
+          });
+
+          const secondResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${key}`
+            },
+            body: JSON.stringify({
+              model: 'openai/gpt-oss-120b',
+              messages,
+              temperature: options.temperature ?? 0.3,
+              max_tokens: options.maxTokens ?? 1024
+            }),
+            signal
+          });
+
+          if (secondResponse.ok) {
+            const secondData = (await secondResponse.json()) as any;
+            const secondChoice = secondData.choices?.[0];
+            const finalReply = secondChoice?.message?.content || assistantMsg.content || 'Pomyślnie zrealizowano narzędzie.';
+            if (secondData.usage) {
+              totalUsage = {
+                prompt_tokens: totalUsage.prompt_tokens + secondData.usage.prompt_tokens,
+                completion_tokens: totalUsage.completion_tokens + secondData.usage.completion_tokens,
+                total_tokens: totalUsage.total_tokens + secondData.usage.total_tokens
+              };
+            }
+
+            return {
+              reply: finalReply,
+              provider: 'groq',
+              model: 'openai/gpt-oss-120b',
+              tokensUsed: { prompt: totalUsage.prompt_tokens, completion: totalUsage.completion_tokens, total: totalUsage.total_tokens },
+              toolCall: {
+                toolName: fnName,
+                args: fnArgs,
+                output: toolResult
+              }
+            };
+          }
+
+          // If second turn failed, return tool result directly
+          return {
+            reply: assistantMsg.content || `Wykonano narzędzie ${fnName}: ${toolResult}`,
+            provider: 'groq',
+            model: 'openai/gpt-oss-120b',
+            tokensUsed: { prompt: totalUsage.prompt_tokens, completion: totalUsage.completion_tokens, total: totalUsage.total_tokens },
+            toolCall: {
+              toolName: fnName,
+              args: fnArgs,
+              output: toolResult
+            }
+          };
+        }
+
+        const reply = assistantMsg?.content || 'Pomyślnie przetworzono polecenie.';
+        return {
+          reply,
+          provider: 'groq',
+          model: 'openai/gpt-oss-120b',
+          tokensUsed: { prompt: totalUsage.prompt_tokens, completion: totalUsage.completion_tokens, total: totalUsage.total_tokens }
+        };
       },
-      7000,
+      8000,
       'groq'
     );
   }
 
-  private async parseGroqResponse(response: Response): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
-    let data: GroqChatResponse;
-    try {
-      data = (await response.json()) as GroqChatResponse;
-    } catch (parseErr) {
-      throw new Error(`Failed to parse Groq response JSON: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`);
+  public async executeLiveTool(name: string, args: Record<string, any>, userId?: string): Promise<string> {
+    const callerUserId = userId && userId.trim() ? userId.trim() : 'operator-system-core';
+
+    switch (name) {
+      case 'get_current_lesson_status': {
+        const info = calculateLessonInfo(new Date());
+        return JSON.stringify({
+          status: info.timeUntilNextEventFormatted,
+          currentLesson: info.currentLesson ? `${info.currentLesson.subject} (${info.currentLesson.classroom}, ${info.currentLesson.teacher})` : null,
+          nextLesson: info.nextLesson ? `${info.nextLesson.subject} (${info.nextLesson.classroom}, ${info.nextLesson.teacher})` : null,
+          minutesToBell: info.minutesToBell,
+          bellType: info.bellType
+        });
+      }
+
+      case 'send_phone_notification': {
+        const title = args.title || 'OmniDash Powiadomienie';
+        const body = args.body || 'Wiadomość z asystenta AI';
+        const priority = args.priority || 'NORMAL';
+        const pushResult = await pushbulletService.sendPush({ title, body, priority });
+        return JSON.stringify({ success: true, pushResult });
+      }
+
+      case 'create_or_update_automation_script': {
+        const script = dbStore.saveAutomationScript({
+          name: args.name || 'Nowy skrypt automatyzacji',
+          description: args.description,
+          templateId: args.templateId || 'template_custom_script',
+          triggerType: args.triggerType || 'lesson_bell',
+          cronExpression: args.cronExpression,
+          code: args.code,
+          enabled: args.enabled !== undefined ? !!args.enabled : true
+        });
+        return JSON.stringify({ success: true, createdScriptId: script.id, scriptName: script.name });
+      }
+
+      case 'test_run_automation_script': {
+        let codeToRun = args.code;
+        if (!codeToRun && args.scriptId) {
+          const s = dbStore.getAutomationScript(args.scriptId);
+          codeToRun = s ? s.code : '';
+        }
+        if (!codeToRun) {
+          return JSON.stringify({ success: false, error: 'Brak kodu do testu.' });
+        }
+        const customDate = args.simulatedDate ? new Date(args.simulatedDate) : undefined;
+        const res = await executeScript(codeToRun, customDate);
+        return JSON.stringify({
+          success: res.success,
+          logs: res.logs,
+          notificationsCount: res.notificationsSent.length,
+          notificationsSent: res.notificationsSent,
+          durationMs: res.durationMs,
+          error: res.error
+        });
+      }
+
+      case 'list_automation_scripts': {
+        const scripts = dbStore.getAutomationScripts();
+        return JSON.stringify(scripts.map((s) => ({ id: s.id, name: s.name, enabled: s.enabled, trigger: s.triggerType, lastStatus: s.lastStatus })));
+      }
+
+      case 'list_automation_templates': {
+        return JSON.stringify(AUTOMATION_TEMPLATES.map((t) => ({ id: t.id, name: t.name, description: t.description })));
+      }
+
+      case 'timetable_get_schedule':
+      case 'get_school_timetable': {
+        const now = new Date();
+        const requestedDay = typeof args.day === 'number' && args.day >= 1 && args.day <= 5 ? args.day : (now.getDay() >= 1 && now.getDay() <= 5 ? now.getDay() : 1);
+        const lessons = dbStore.getTimetable(requestedDay);
+        return JSON.stringify({ day: requestedDay, lessonsCount: lessons.length, lessons });
+      }
+
+      case 'get_grades_summary': {
+        const gpa = dbStore.calculateGpa();
+        const luckyNumber = dbStore.getLuckyNumber();
+        const subjects = dbStore.getSubjectsWithGrades();
+        return JSON.stringify({ gpa, luckyNumber, subjectsCount: subjects.length });
+      }
+
+      case 'add_task': {
+        const title = args.title || 'Zadanie z asystenta AI';
+        const priority = args.priority || 'HIGH';
+        const created = dbStore.addTask(callerUserId, { title, priority, category: args.category || 'Asystent AI' });
+        return JSON.stringify({ success: true, taskId: created.id, title: created.title });
+      }
+
+      case 'add_finance_transaction': {
+        const title = args.title || 'Transakcja z AI';
+        const amount = typeof args.amount === 'number' ? args.amount : 0;
+        const envelope = args.envelope || 'NEEDS';
+        const tx = dbStore.addTransaction(callerUserId, { title, amount, envelope, category: 'AI', type: args.type || 'EXPENSE' });
+        return JSON.stringify({ success: true, txId: tx.id, amount: tx.amount });
+      }
+
+      default:
+        return JSON.stringify({ error: `Nierozpoznane narzędzie: ${name}` });
     }
-
-    const choice = data.choices?.[0];
-    const reply = choice?.message?.content || 'Pomyślnie przetworzono polecenie.';
-    const usage = data.usage || { prompt_tokens: 150, completion_tokens: 80, total_tokens: 230 };
-
-    return {
-      reply,
-      provider: 'groq',
-      model: 'llama-3.3-70b-versatile',
-      tokensUsed: { prompt: usage.prompt_tokens, completion: usage.completion_tokens, total: usage.total_tokens }
-    };
   }
 
   private async callGemini(options: LLMRequestOptions): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
@@ -281,7 +597,7 @@ export class LLMGateway {
           body: JSON.stringify({
             contents: [
               {
-                parts: [{ text: `Kontekst: System OmniDash v4.0. Zwięzła odpowiedź inżynieryjna po polsku.\n\nZapytanie: ${options.message}` }]
+                parts: [{ text: `${this.buildSystemPrompt()}\n\nZapytanie operatora: ${options.message}` }]
               }
             ]
           }),
@@ -291,170 +607,107 @@ export class LLMGateway {
         if (!response.ok) {
           throw new Error(`Gemini HTTP error ${response.status}: ${response.statusText}`);
         }
-        return await this.parseGeminiResponse(response);
+        const data = (await response.json()) as any;
+        const candidate = data.candidates?.[0];
+        const reply = candidate?.content?.parts?.[0]?.text || 'Przetworzono polecenie w chmurze Gemini.';
+
+        return {
+          reply,
+          provider: 'gemini',
+          model: 'gemini-2.0-flash',
+          tokensUsed: { prompt: 160, completion: 90, total: 250 }
+        };
       },
       7000,
       'gemini'
     );
   }
 
-  private async parseGeminiResponse(response: Response): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
-    let data: GeminiChatResponse;
-    try {
-      data = (await response.json()) as GeminiChatResponse;
-    } catch (parseErr) {
-      throw new Error(`Failed to parse Gemini response JSON: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`);
-    }
-
-    const candidate = data.candidates?.[0];
-    const reply = candidate?.content?.parts?.[0]?.text || 'Przetworzono polecenie w chmurze Gemini.';
-
-    return {
-      reply,
-      provider: 'gemini',
-      model: 'gemini-2.0-flash',
-      tokensUsed: { prompt: 160, completion: 90, total: 250 }
-    };
-  }
-
-  private async callOpenAI(options: LLMRequestOptions): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
-    return await withTimeout(
-      async (signal) => {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.openaiApiKey}`
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [
-              {
-                role: 'system',
-                content: 'Jesteś asystentem OmniDash v4.0. Odpowiadaj zwięźle i precyzyjnie po polsku.'
-              },
-              ...(options.history || []),
-              { role: 'user', content: options.message }
-            ],
-            temperature: options.temperature ?? 0.3
-          }),
-          signal
-        });
-
-        if (!response.ok) {
-          throw new Error(`OpenAI HTTP error ${response.status}: ${response.statusText}`);
-        }
-        return await this.parseOpenAIResponse(response);
-      },
-      7000,
-      'openai'
-    );
-  }
-
-  private async parseOpenAIResponse(response: Response): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
-    let data: OpenAIChatResponse;
-    try {
-      data = (await response.json()) as OpenAIChatResponse;
-    } catch (parseErr) {
-      throw new Error(`Failed to parse OpenAI response JSON: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`);
-    }
-
-    const choice = data.choices?.[0];
-    const reply = choice?.message?.content || 'Polecenie przetworzone przez silnik OpenAI.';
-    const usage = data.usage || { prompt_tokens: 180, completion_tokens: 95, total_tokens: 275 };
-
-    return {
-      reply,
-      provider: 'openai',
-      model: 'gpt-4o-mini',
-      tokensUsed: { prompt: usage.prompt_tokens, completion: usage.completion_tokens, total: usage.total_tokens }
-    };
-  }
-
-  private executeLocalAssistant(message: string, userId?: string): { reply: string; toolCall?: { toolName: string; args: Record<string, unknown>; output: string } } {
+  private async executeLocalAssistant(message: string, userId?: string): Promise<{ reply: string; toolCall?: { toolName: string; args: Record<string, unknown>; output: string } }> {
     const query = message.toLowerCase();
-    let reply = 'Zrozumiałem polecenie. Silnik asystenta zrealizował operację lokalnie w środowisku Zero-Trust.';
-    let toolCall: { toolName: string; args: Record<string, unknown>; output: string } | undefined = undefined;
+    const now = new Date();
+    const day = now.getDay();
+    const currentDay = day >= 1 && day <= 5 ? day : 1;
+    const lessonInfo = calculateLessonInfo(now);
 
-    if (query.includes('przerw') || query.includes('dzwonek') || query.includes('następn') || query.includes('gdzie mam')) {
-      const timetable = dbStore.getTimetable(2);
-      const currentLesson = timetable.find((t) => t.order === 4) || timetable[0]; // wtorek 4 lekcja (Wychowanie fizyczne)
-      const nextLesson = timetable.find((t) => t.order === 5);
-      reply = `Aktualnie trwa ${currentLesson.subject} (${currentLesson.classroom}). Do dzwonka pozostało 15 minut. Następna lekcja: ${nextLesson ? nextLesson.subject + ' w sali ' + nextLesson.classroom + ' z ' + nextLesson.teacher : 'Koniec zajęć'}.`;
-      toolCall = {
-        toolName: 'get_current_lesson_status',
-        args: { day: 2 },
-        output: JSON.stringify({ current: currentLesson.subject, room: currentLesson.classroom, next: nextLesson?.subject, nextRoom: nextLesson?.classroom })
-      };
-    } else if (query.includes('dyrektyw') || (query.includes('zapisz') && query.includes('lekcj'))) {
-      reply = `Zarejestrowano nową dyrektywę w pamięci asystenta: przed zakończeniem każdej lekcji będziesz otrzymywać powiadomienie o czasie do dzwonka, przerwie oraz kolejnej sali i nauczycielu.`;
-      toolCall = {
-        toolName: 'save_student_directive',
-        args: { directive: message, tags: 'szkoła,przerwy,dzwonek' },
-        output: JSON.stringify({ status: 'saved', category: 'SCHOOL' })
-      };
-    } else if (query.includes('plan') || query.includes('lekcj')) {
-      const timetable = dbStore.getTimetable(2); // Domyślnie bieżący dzień roboczy
-      reply = `W dzisiejszym harmonogramie masz zaplanowane ${timetable.length} bloków zajęć: ` +
-        timetable.map((t: LessonItem) => `${t.subject} (${t.classroom})`).join(', ') + '.';
-      toolCall = {
-        toolName: 'timetable_get_schedule',
-        args: { day: 2 },
-        output: JSON.stringify({ count: timetable.length, status: 'synced' })
-      };
-    } else if (query.includes('radar') || query.includes('tras')) {
-      const radars = dbStore.getSpeedRadars();
-      reply = `Rejestr CANARD: ${radars.length} aktywnych stacji pomiarowych. Trasa DK22 / A1 przejezdna bez opóźnień.`;
-      toolCall = {
-        toolName: 'canard_query_radars',
-        args: { route: 'DK22 / A1' },
-        output: JSON.stringify({ activeRadars: radars.length, flow: 'smooth' })
-      };
-    } else if (query.includes('ocen') || query.includes('średni')) {
-      const gpa = dbStore.calculateGpa();
-      reply = `Średnia ważona ocen wynosi obecnie ${gpa}. Szczęśliwy numerek na dzisiaj to 21.`;
-      toolCall = {
-        toolName: 'grades_get_gpa',
-        args: { semester: 2 },
-        output: JSON.stringify({ gpa, luckyNumber: 21 })
-      };
-    } else if (query.includes('push') || query.includes('telefon') || query.includes('powiadom')) {
-      reply = `Wysłano powiadomienie na Twój smartfon przez Pushbullet. Status doręczenia: NOMINALNY.`;
-      toolCall = {
-        toolName: 'send_phone_notification',
-        args: { title: 'OmniDash Asystent', body: message, priority: 'HIGH' },
-        output: JSON.stringify({ success: true, simulated: true, sentAt: new Date().toISOString() })
-      };
-    } else if (query.includes('dodaj zadanie') || query.includes('nowe zadanie')) {
-      const taskTitle = message.replace(/(dodaj zadanie|nowe zadanie|zadanie:?)/gi, '').trim() || 'Nowe zadanie z czatu';
-      const callerUserId = userId && userId.trim() ? userId.trim() : 'operator-system-core';
-      const createdTask = dbStore.addTask(callerUserId, { title: taskTitle, priority: 'HIGH', category: 'Czat AI' });
-      reply = `Zadanie "${createdTask.title}" zostało pomyślnie dodane do Twojej listy zadań.`;
-      toolCall = {
-        toolName: 'add_to_do',
-        args: { title: createdTask.title, priority: 'HIGH', category: 'Czat AI' },
-        output: JSON.stringify({ id: createdTask.id, title: createdTask.title })
-      };
-    } else if (query.includes('wydatek') || query.includes('kupił') || query.includes('zapłacił')) {
-      reply = `Zarejestrowano transakcję w budżecie 50/30/20. Koperta została zaktualizowana.`;
-      toolCall = {
-        toolName: 'add_finance_record',
-        args: { title: 'Transakcja z czatu AI', amount: 50.0, envelope: 'NEEDS' },
-        output: JSON.stringify({ success: true, envelope: 'NEEDS', amount: 50.0 })
-      };
-    } else if (query.includes('trening') || query.includes('fbw') || query.includes('seri')) {
-      const exercises = dbStore.getExercises();
-      const completed = exercises.reduce((acc, ex) => acc + (ex.completedSets || 0), 0);
-      const total = exercises.reduce((acc, ex) => acc + (ex.sets || 0), 0);
-      reply = `Aktualny postęp sesji FBW (Cykl A): ukończono ${completed} z ${total} serii.`;
-      toolCall = {
-        toolName: 'workouts_get_progress',
-        args: { cycle: 'A' },
-        output: JSON.stringify({ completed, total })
+    if (query.includes('przerw') || query.includes('dzwonek') || query.includes('następn') || query.includes('gdzie mam') || query.includes('jaka lekcja')) {
+      const output = await this.executeLiveTool('get_current_lesson_status', {}, userId);
+      const reply = `Aktualny status: ${lessonInfo.timeUntilNextEventFormatted}. ${
+        lessonInfo.currentLesson
+          ? `Obecnie trwa: ${lessonInfo.currentLesson.subject} w sali ${lessonInfo.currentLesson.classroom} (${lessonInfo.currentLesson.teacher || 'nauczyciel'}).`
+          : 'Trwa przerwa.'
+      } ${
+        lessonInfo.nextLesson
+          ? `Kolejna lekcja: ${lessonInfo.nextLesson.subject} w sali ${lessonInfo.nextLesson.classroom} (${lessonInfo.nextLesson.teacher || 'nauczyciel'}). Do dzwonka: ${lessonInfo.minutesToBell} min.`
+          : 'To ostatnia lekcja w dniu dzisiejszym.'
+      }`;
+      return {
+        reply,
+        toolCall: {
+          toolName: 'get_current_lesson_status',
+          args: {},
+          output
+        }
       };
     }
 
-    return { reply, toolCall };
+    if (query.includes('skrypt') || query.includes('automatyz') || query.includes('przypom')) {
+      const output = await this.executeLiveTool('list_automation_scripts', {}, userId);
+      const reply = `W systemie zarejestrowane są aktywne skrypty automatyzacji, w tym monitor dzwonków szkolnych (wysyłający alert Pushbullet na 5 min przed końcem lekcji z kolejną salą) oraz poranny briefing. Możesz edytować ich kod lub stworzyć nowy z szablonu.`;
+      return {
+        reply,
+        toolCall: {
+          toolName: 'list_automation_scripts',
+          args: {},
+          output
+        }
+      };
+    }
+
+    if (query.includes('plan') || query.includes('lekcj')) {
+      const timetable = dbStore.getTimetable(currentDay);
+      const output = await this.executeLiveTool('get_school_timetable', { day: currentDay }, userId);
+      const reply = `W dzisiejszym harmonogramie masz ${timetable.length} lekcji: ` +
+        timetable.map((t: LessonItem) => `${t.order}. ${t.subject} (${t.timeRange}, s. ${t.classroom})`).join(', ') + '.';
+      return {
+        reply,
+        toolCall: {
+          toolName: 'get_school_timetable',
+          args: { day: currentDay },
+          output
+        }
+      };
+    }
+
+    if (query.includes('push') || query.includes('telefon') || query.includes('powiadom')) {
+      const output = await this.executeLiveTool('send_phone_notification', { title: 'OmniDash Asystent', body: message, priority: 'HIGH' }, userId);
+      return {
+        reply: 'Wysłano powiadomienie na Twój smartfon przez Pushbullet Dispatcher.',
+        toolCall: {
+          toolName: 'send_phone_notification',
+          args: { title: 'OmniDash Asystent', body: message, priority: 'HIGH' },
+          output
+        }
+      };
+    }
+
+    if (query.includes('dodaj zadanie') || query.includes('nowe zadanie')) {
+      const taskTitle = message.replace(/(dodaj zadanie|nowe zadanie|zadanie:?)/gi, '').trim() || 'Nowe zadanie z czatu';
+      const output = await this.executeLiveTool('add_task', { title: taskTitle, priority: 'HIGH' }, userId);
+      return {
+        reply: `Zadanie "${taskTitle}" zostało pomyślnie dodane do listy zadań.`,
+        toolCall: {
+          toolName: 'add_task',
+          args: { title: taskTitle },
+          output
+        }
+      };
+    }
+
+    return {
+      reply: 'Zrozumiałem polecenie. System asystenta OmniDash v4.0 przetworzył operację.',
+      toolCall: undefined
+    };
   }
 }
 
