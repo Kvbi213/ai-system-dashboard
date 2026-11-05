@@ -52,8 +52,11 @@ export class LessonAlertMonitor {
           this.sentAlertKeys.add(alertKey);
 
           const title = `DZWONEK ZA 5 MIN :: ${currentLesson.subject}`;
+          const isConsecutive = lessonInfo.isConsecutiveSameSubject;
           const body = nextLesson
-            ? `Za 5 minut koniec lekcji. Kolejna lekcja: ${nextLesson.subject} w sali ${nextLesson.classroom} (${nextLesson.teacher || 'nauczyciel'}).`
+            ? (isConsecutive
+                ? `Za 5 minut koniec lekcji ${currentLesson.order}. Kolejna lekcja to blok 2 (${nextLesson.subject}) w sali ${nextLesson.classroom || currentLesson.classroom} (lekcja ${nextLesson.order}).`
+                : `Za 5 minut koniec lekcji. Kolejna lekcja: ${nextLesson.subject} w sali ${nextLesson.classroom} (${nextLesson.teacher || 'nauczyciel'}).`)
             : `Za 5 minut koniec lekcji. To ostatnia lekcja w dniu dzisiejszym!`;
 
           this.dispatcher?.enqueue({

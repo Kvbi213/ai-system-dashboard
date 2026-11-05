@@ -171,7 +171,11 @@ export const AutomationScriptsManager: React.FC = () => {
                   <span className="ml-1 text-[11px] text-slate-400 font-mono">({contextStatus.lessonInfo.currentLesson.timeRange})</span>
                 )}
                 {contextStatus.lessonInfo?.currentLesson?.classroom && (
-                  <span className="ml-1 text-sky-600 font-bold">s. {contextStatus.lessonInfo.currentLesson.classroom}</span>
+                  <span className="ml-1 text-sky-600 font-bold">
+                    {contextStatus.lessonInfo.currentLesson.classroom.startsWith('s.')
+                      ? contextStatus.lessonInfo.currentLesson.classroom
+                      : `s. ${contextStatus.lessonInfo.currentLesson.classroom}`}
+                  </span>
                 )}
               </div>
 
@@ -191,7 +195,11 @@ export const AutomationScriptsManager: React.FC = () => {
                   </span>
                 )}
                 {contextStatus.lessonInfo?.nextLesson?.classroom && (
-                  <span className="ml-1 text-emerald-600 font-bold">s. {contextStatus.lessonInfo.nextLesson.classroom}</span>
+                  <span className="ml-1 text-emerald-600 font-bold">
+                    {contextStatus.lessonInfo.nextLesson.classroom.startsWith('s.')
+                      ? contextStatus.lessonInfo.nextLesson.classroom
+                      : `s. ${contextStatus.lessonInfo.nextLesson.classroom}`}
+                  </span>
                 )}
               </div>
             </div>

@@ -19,8 +19,11 @@ ctx.log(\`Godzina: \${ctx.time.formattedTime} | Lekcja: \${info.currentLesson?.s
 if (info.bellType === 'LESSON_END' && info.minutesToBell <= 5 && info.minutesToBell >= 1) {
   const next = info.nextLesson;
   const title = \`DZWONEK ZA \${info.minutesToBell} MIN :: \${info.currentLesson?.subject || 'Lekcja'}\`;
+  const isBlock = info.isConsecutiveSameSubject;
   const body = next
-    ? \`Za \${info.minutesToBell} min koniec lekcji. Kolejna: \${next.subject} w sali \${next.classroom} (\${next.teacher || 'nauczyciel'}).\`
+    ? (isBlock
+        ? \`Za \${info.minutesToBell} min koniec lekcji \${info.currentLesson?.order}. Kolejna lekcja to blok 2 (\${next.subject}) w sali \${next.classroom} (lekcja \${next.order}).\`
+        : \`Za \${info.minutesToBell} min koniec lekcji. Kolejna: \${next.subject} w sali \${next.classroom} (\${next.teacher || 'nauczyciel'}).\`)
     : \`Za \${info.minutesToBell} min koniec lekcji. To ostatnia lekcja w dniu dzisiejszym!\`;
   await ctx.pushbullet.send(title, body, 'HIGH');
   ctx.log(\`Wysłano powiadomienie Pushbullet: \${title}\`);

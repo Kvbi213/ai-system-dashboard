@@ -34,6 +34,15 @@ export function parseTimeRangeToMinutes(rawRange: string): { startMins: number; 
   };
 }
 
+export function formatClassroomLabel(room?: string): string {
+  if (!room) return '';
+  const trimmed = room.trim();
+  if (/^(s\.|sala)/i.test(trimmed)) {
+    return trimmed;
+  }
+  return `s. ${trimmed}`;
+}
+
 /**
  * Oblicza stan bieżącej lekcji, dzwonka i kolejnej lekcji na podstawie przekazanej daty.
  */
@@ -111,9 +120,11 @@ export function calculateLessonInfo(date = new Date()): CurrentLessonInfo {
         next &&
           cur.lesson.subject.trim().toLowerCase() === next.lesson.subject.trim().toLowerCase()
       );
-      const currentLessonLabel = `Lekcja ${cur.lesson.order}. ${cur.lesson.subject} (${cur.lesson.timeRange}${cur.lesson.classroom ? `, s. ${cur.lesson.classroom}` : ''})`;
+      const curRoom = formatClassroomLabel(cur.lesson.classroom);
+      const currentLessonLabel = `Lekcja ${cur.lesson.order}. ${cur.lesson.subject} (${cur.lesson.timeRange}${curRoom ? `, ${curRoom}` : ''})`;
+      const nextRoom = next ? formatClassroomLabel(next.lesson.classroom) : '';
       const nextLessonLabel = next
-        ? `Lekcja ${next.lesson.order}. ${next.lesson.subject} (${next.lesson.timeRange}${next.lesson.classroom ? `, s. ${next.lesson.classroom}` : ''}${isConsecutiveSameSubject ? ' - blok 2' : ''})`
+        ? `Lekcja ${next.lesson.order}. ${next.lesson.subject} (${next.lesson.timeRange}${nextRoom ? `, ${nextRoom}` : ''}${isConsecutiveSameSubject ? ' - blok 2' : ''})`
         : null;
       const blockDescription = isConsecutiveSameSubject && next
         ? `Blok dwugodzinny przedmiotu: ${cur.lesson.subject} (lekcja ${cur.lesson.order} i ${next.lesson.order})`
@@ -138,7 +149,8 @@ export function calculateLessonInfo(date = new Date()): CurrentLessonInfo {
       const isConsecutiveSameSubject = Boolean(
         cur.lesson.subject.trim().toLowerCase() === next.lesson.subject.trim().toLowerCase()
       );
-      const nextLessonLabel = `Lekcja ${next.lesson.order}. ${next.lesson.subject} (${next.lesson.timeRange}${next.lesson.classroom ? `, s. ${next.lesson.classroom}` : ''}${isConsecutiveSameSubject ? ' - blok 2' : ''})`;
+      const nextRoom = formatClassroomLabel(next.lesson.classroom);
+      const nextLessonLabel = `Lekcja ${next.lesson.order}. ${next.lesson.subject} (${next.lesson.timeRange}${nextRoom ? `, ${nextRoom}` : ''}${isConsecutiveSameSubject ? ' - blok 2' : ''})`;
 
       return {
         currentLesson: null,

@@ -7,6 +7,7 @@ describe('Pushbullet Domain Endpoints Suite', () => {
   let server: http.Server;
   let baseUrl: string;
   let originalWebhookSecret: string | undefined;
+  let originalApiKey: string | undefined;
   const authHeaders = {
     'Content-Type': 'application/json',
     'x-dev-bypass': 'true'
@@ -14,6 +15,7 @@ describe('Pushbullet Domain Endpoints Suite', () => {
 
   beforeAll(async () => {
     originalWebhookSecret = process.env.PUSHBULLET_WEBHOOK_SECRET;
+    originalApiKey = process.env.PUSHBULLET_API_KEY;
     process.env.PUSHBULLET_WEBHOOK_SECRET = 'omnidash-test-webhook-secret-999';
     await new Promise<void>((resolve) => {
       server = app.listen(0, () => {
@@ -32,6 +34,11 @@ describe('Pushbullet Domain Endpoints Suite', () => {
     } else {
       delete process.env.PUSHBULLET_WEBHOOK_SECRET;
     }
+    if (originalApiKey !== undefined) {
+      process.env.PUSHBULLET_API_KEY = originalApiKey;
+    } else {
+      delete process.env.PUSHBULLET_API_KEY;
+    }
     await new Promise<void>((resolve) => {
       server.close(() => resolve());
     });
@@ -48,9 +55,15 @@ describe('Pushbullet Domain Endpoints Suite', () => {
     } else {
       delete process.env.PUSHBULLET_WEBHOOK_SECRET;
     }
+    if (originalApiKey !== undefined) {
+      process.env.PUSHBULLET_API_KEY = originalApiKey;
+    } else {
+      delete process.env.PUSHBULLET_API_KEY;
+    }
   });
 
   it('POST /api/pushbullet/send sends push in simulated mode when no live API key', async () => {
+    delete process.env.PUSHBULLET_API_KEY;
     const res = await fetch(`${baseUrl}/api/pushbullet/send`, {
       method: 'POST',
       headers: authHeaders,

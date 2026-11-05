@@ -566,6 +566,22 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
         return JSON.stringify({ success: deleted, scriptId });
       }
 
+      // Powiadomienia Pushbullet
+      case 'send_phone_notification':
+      case 'send_pushbullet_notification': {
+        const title = String(args.title || 'OmniDash Powiadomienie').trim();
+        const body = String(args.body || 'Wiadomość z asystenta AI').trim();
+        const priority = args.priority || 'NORMAL';
+        const pushRes = await pushbulletService.sendPush({ title, body, priority });
+        return JSON.stringify({
+          success: pushRes.success,
+          iden: pushRes.iden,
+          simulated: pushRes.simulated,
+          message: pushRes.message,
+          sentAt: pushRes.sentAt
+        });
+      }
+
       // Legacy Aliases
       case 'timetable_get_schedule':
       case 'get_school_timetable': {
