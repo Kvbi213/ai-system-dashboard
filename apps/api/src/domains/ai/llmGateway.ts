@@ -574,7 +574,13 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
         const safeArgs = isPlainObject ? (args as Record<string, unknown>) : {};
         const title = String(safeArgs.title || 'OmniDash Powiadomienie').trim();
         const body = String(safeArgs.body || 'Wiadomość z asystenta AI').trim();
-        const priority = (safeArgs.priority as any) || 'NORMAL';
+        const validPriorities = ['CRITICAL', 'HIGH', 'NORMAL', 'LOW'] as const;
+        type ValidPriority = (typeof validPriorities)[number];
+        const rawPriority = typeof safeArgs.priority === 'string' ? safeArgs.priority.toUpperCase() : 'NORMAL';
+        const priority: ValidPriority = (validPriorities as readonly string[]).includes(rawPriority)
+          ? (rawPriority as ValidPriority)
+          : 'NORMAL';
+
         const pushRes = await pushbulletService.sendPush({ title, body, priority });
         return JSON.stringify({
           success: pushRes.success,
