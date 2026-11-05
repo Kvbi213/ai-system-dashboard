@@ -24,10 +24,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "4+",
         "weight": 1,
         "category": "odpowiedź ustna",
-        "date": "2026-10-01 (czw.)",
+        "color": "#FFD700",
+        "textColor": "#0f172a",
+        "date": "2026-10-01",
         "teacher": "Łukaszczyk-Wulgaris Joanna",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "5436827",
@@ -35,11 +39,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "3",
         "weight": 3,
         "category": "Praca klasowa",
-        "date": "2026-10-21 (śr.)",
+        "color": "#7CFC00",
+        "textColor": "#0f172a",
+        "date": "2026-10-21",
         "teacher": "Łukaszczyk-Wulgaris Joanna",
         "semester": 1,
         "isImprovement": false,
-        "improvedGradeId": "6517463"
+        "improvedGradeId": "6517463",
+        "inAverage": false,
+        "isInsideBracket": true
       },
       {
         "id": "6517463",
@@ -47,12 +55,16 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 3,
         "category": "Praca klasowa",
-        "date": "2026-10-28 (śr.)",
+        "color": "#7CFC00",
+        "textColor": "#0f172a",
+        "date": "2026-10-28",
         "teacher": "Łukaszczyk-Wulgaris Joanna",
         "semester": 1,
         "isImprovement": true,
-        "improvedValue": "3",
-        "improvedGradeId": "5436827"
+        "improvedGradeId": "5436827",
+        "improvedValue": "3 (Praca klasowa)",
+        "inAverage": true,
+        "isInsideBracket": true
       },
       {
         "id": "6542101",
@@ -60,10 +72,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "4+",
         "weight": 1,
         "category": "odpowiedź ustna",
-        "date": "2026-10-28 (śr.)",
+        "color": "#FFD700",
+        "textColor": "#0f172a",
+        "date": "2026-10-28",
         "teacher": "Łukaszczyk-Wulgaris Joanna",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       }
     ]
   },
@@ -79,11 +95,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "4+",
         "weight": 1,
         "category": "kartkówka",
-        "date": "2026-10-20 (wt.)",
+        "color": "#32CD32",
+        "textColor": "#0f172a",
+        "date": "2026-10-20",
         "teacher": "Sokół Paweł",
         "comment": "Pieniądz w gospodarce rynkowej, Rynek finansowy, Finanse osobiste",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       }
     ]
   },
@@ -99,11 +119,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "4+",
         "weight": 1,
         "category": "Praca w grupach",
-        "date": "2026-10-01 (czw.)",
+        "color": "#F5F5DC",
+        "textColor": "#0f172a",
+        "date": "2026-10-01",
         "teacher": "Kolasińska Paulina",
         "comment": "Roztwory wodne elektrolitów",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "6719070",
@@ -111,11 +135,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "1",
         "weight": 1,
         "category": "kartkówka",
-        "date": "2026-10-28 (śr.)",
+        "color": "#32CD32",
+        "textColor": "#0f172a",
+        "date": "2026-10-28",
         "teacher": "Kolasińska Paulina",
         "comment": "Nazewnictwo alkanów",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       }
     ]
   },
@@ -131,10 +159,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 1,
         "category": "aktywność",
-        "date": "2026-09-18 (pt.)",
+        "color": "#ADFF2F",
+        "textColor": "#0f172a",
+        "date": "2026-09-18",
         "teacher": "Czarna Alicja",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "6953970",
@@ -142,10 +174,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "-",
         "weight": 1,
         "category": "prasówka",
-        "date": "2026-10-30 (pt.)",
+        "color": "#F0E68C",
+        "textColor": "#0f172a",
+        "date": "2026-10-30",
         "teacher": "Czarna Alicja",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": false,
+        "isInsideBracket": false
       }
     ]
   },
@@ -167,10 +203,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "4",
         "weight": 1,
         "category": "kartkówka",
-        "date": "2026-09-28 (pon.)",
+        "color": "#32CD32",
+        "textColor": "#0f172a",
+        "date": "2026-09-28",
         "teacher": "Wardyn Wojciech",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "2677693",
@@ -178,10 +218,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "4",
         "weight": 1,
         "category": "Praca w grupach",
-        "date": "2026-10-01 (czw.)",
+        "color": "#F5F5DC",
+        "textColor": "#0f172a",
+        "date": "2026-10-01",
         "teacher": "Wardyn Wojciech",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "3632946",
@@ -189,10 +233,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "4",
         "weight": 1,
         "category": "zadanie",
-        "date": "2026-10-08 (czw.)",
+        "color": "#66CDAA",
+        "textColor": "#0f172a",
+        "date": "2026-10-08",
         "teacher": "Wardyn Wojciech",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       }
     ]
   },
@@ -208,11 +256,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "6",
         "weight": 1,
         "category": "zadanie",
-        "date": "2026-09-28 (pon.)",
+        "color": "#66CDAA",
+        "textColor": "#0f172a",
+        "date": "2026-09-28",
         "teacher": "Becker Adam",
         "comment": "bhp/cpp-bmi-debugging/ppt-nobliści",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "7233622",
@@ -220,11 +272,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 1,
         "category": "aktywność",
-        "date": "2026-11-02 (pon.)",
+        "color": "#ADFF2F",
+        "textColor": "#0f172a",
+        "date": "2026-11-02",
         "teacher": "Becker Adam",
         "comment": "portfolio",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       }
     ]
   },
@@ -240,11 +296,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 1,
         "category": "kartkówka",
-        "date": "2026-09-17 (czw.)",
+        "color": "#32CD32",
+        "textColor": "#0f172a",
+        "date": "2026-09-17",
         "teacher": "Ziemba Joanna",
         "comment": "słownictwo unit 4",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "909325",
@@ -252,10 +312,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 1,
         "category": "aktywność",
-        "date": "2026-09-18 (pt.)",
+        "color": "#ADFF2F",
+        "textColor": "#0f172a",
+        "date": "2026-09-18",
         "teacher": "Ziemba Joanna",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "1611467",
@@ -263,10 +327,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "-",
         "weight": 1,
         "category": "aktywność",
-        "date": "2026-09-24 (czw.)",
+        "color": "#ADFF2F",
+        "textColor": "#0f172a",
+        "date": "2026-09-24",
         "teacher": "Ziemba Joanna",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": false,
+        "isInsideBracket": false
       },
       {
         "id": "2824639",
@@ -274,10 +342,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "+",
         "weight": 1,
         "category": "aktywność",
-        "date": "2026-10-02 (pt.)",
+        "color": "#ADFF2F",
+        "textColor": "#0f172a",
+        "date": "2026-10-02",
         "teacher": "Ziemba Joanna",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": false,
+        "isInsideBracket": false
       },
       {
         "id": "5138679",
@@ -285,11 +357,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "3",
         "weight": 1,
         "category": "sprawdzian",
-        "date": "2026-10-20 (wt.)",
+        "color": "#FFA07A",
+        "textColor": "#0f172a",
+        "date": "2026-10-20",
         "teacher": "Ziemba Joanna",
         "comment": "question tags + defining relative clauses",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "6895219",
@@ -297,10 +373,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "+",
         "weight": 1,
         "category": "aktywność",
-        "date": "2026-10-29 (czw.)",
+        "color": "#ADFF2F",
+        "textColor": "#0f172a",
+        "date": "2026-10-29",
         "teacher": "Ziemba Joanna",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": false,
+        "isInsideBracket": false
       }
     ]
   },
@@ -316,11 +396,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 1,
         "category": "zadanie",
-        "date": "2026-10-01 (czw.)",
+        "color": "#66CDAA",
+        "textColor": "#0f172a",
+        "date": "2026-10-01",
         "teacher": "Ziemba Joanna",
         "comment": "job advertisement",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "6897196",
@@ -328,10 +412,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "+",
         "weight": 1,
         "category": "aktywność",
-        "date": "2026-10-29 (czw.)",
+        "color": "#ADFF2F",
+        "textColor": "#0f172a",
+        "date": "2026-10-29",
         "teacher": "Ziemba Joanna",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": false,
+        "isInsideBracket": false
       }
     ]
   },
@@ -347,10 +435,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "4+",
         "weight": 1,
         "category": "praca domowa",
-        "date": "2026-09-11 (pt.)",
+        "color": "#3333FF",
+        "textColor": "#ffffff",
+        "date": "2026-09-11",
         "teacher": "Chyła Beata",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "2119728",
@@ -358,10 +450,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "2+",
         "weight": 1,
         "category": "kartkówka",
-        "date": "2026-09-28 (pon.)",
+        "color": "#32CD32",
+        "textColor": "#0f172a",
+        "date": "2026-09-28",
         "teacher": "Chyła Beata",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "4691628",
@@ -369,10 +465,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "2",
         "weight": 1,
         "category": "słownictwo",
-        "date": "2026-10-16 (pt.)",
+        "color": "#BDB76B",
+        "textColor": "#0f172a",
+        "date": "2026-10-16",
         "teacher": "Chyła Beata",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "5863304",
@@ -380,10 +480,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "+",
         "weight": 1,
         "category": "aktywność",
-        "date": "2026-10-23 (pt.)",
+        "color": "#ADFF2F",
+        "textColor": "#0f172a",
+        "date": "2026-10-23",
         "teacher": "Chyła Beata",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": false,
+        "isInsideBracket": false
       },
       {
         "id": "6281328",
@@ -391,10 +495,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 1,
         "category": "prezentacja",
-        "date": "2026-10-27 (wt.)",
+        "color": "#66CDAA",
+        "textColor": "#0f172a",
+        "date": "2026-10-27",
         "teacher": "Chyła Beata",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       }
     ]
   },
@@ -410,12 +518,16 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "1",
         "weight": 1,
         "category": "kartkówka",
-        "date": "2026-09-17 (czw.)",
+        "color": "#32CD32",
+        "textColor": "#0f172a",
+        "date": "2026-09-17",
         "teacher": "Negowska Alicja",
         "comment": "barok- wprowadzenie",
         "semester": 1,
         "isImprovement": false,
-        "improvedGradeId": "1004112"
+        "improvedGradeId": "1004112",
+        "inAverage": false,
+        "isInsideBracket": true
       },
       {
         "id": "1004112",
@@ -423,12 +535,16 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "4",
         "weight": 1,
         "category": "kartkówka",
-        "date": "2026-09-18 (pt.)",
+        "color": "#32CD32",
+        "textColor": "#0f172a",
+        "date": "2026-09-18",
         "teacher": "Negowska Alicja",
         "semester": 1,
         "isImprovement": true,
-        "improvedValue": "1",
-        "improvedGradeId": "767218"
+        "improvedGradeId": "767218",
+        "improvedValue": "1 (kartkówka)",
+        "inAverage": true,
+        "isInsideBracket": true
       },
       {
         "id": "995881",
@@ -436,11 +552,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5+",
         "weight": 1,
         "category": "zadanie",
-        "date": "2026-09-18 (pt.)",
+        "color": "#66CDAA",
+        "textColor": "#0f172a",
+        "date": "2026-09-18",
         "teacher": "Negowska Alicja",
         "comment": "prezentacje - sztuka baroku",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "6191574",
@@ -448,10 +568,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "+",
         "weight": 1,
         "category": "aktywność",
-        "date": "2026-10-26 (pon.)",
+        "color": "#ADFF2F",
+        "textColor": "#0f172a",
+        "date": "2026-10-26",
         "teacher": "Negowska Alicja",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": false,
+        "isInsideBracket": false
       },
       {
         "id": "7091674",
@@ -459,11 +583,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 1,
         "category": "Test wiedzy z lektury",
-        "date": "2026-10-30 (pt.)",
+        "color": "#DC143C",
+        "textColor": "#ffffff",
+        "date": "2026-10-30",
         "teacher": "Negowska Alicja",
         "comment": "Makbet- test po przeczytaniu lektury",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "7299225",
@@ -471,10 +599,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "+",
         "weight": 1,
         "category": "aktywność",
-        "date": "2026-11-02 (pon.)",
+        "color": "#ADFF2F",
+        "textColor": "#0f172a",
+        "date": "2026-11-02",
         "teacher": "Negowska Alicja",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": false,
+        "isInsideBracket": false
       }
     ]
   },
@@ -490,11 +622,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 1,
         "category": "aktywność",
-        "date": "2026-10-09 (pt.)",
+        "color": "#ADFF2F",
+        "textColor": "#0f172a",
+        "date": "2026-10-09",
         "teacher": "Wojnarowski Przemysław",
         "comment": "symbole i piktogramy w sieciach komputerowych",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       }
     ]
   },
@@ -510,10 +646,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "3",
         "weight": 1,
         "category": "Odpowiedź/kartkówka",
-        "date": "2026-09-08 (wt.)",
+        "color": "#E6E6FA",
+        "textColor": "#0f172a",
+        "date": "2026-09-08",
         "teacher": "Bahr Zbigniew",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "611954",
@@ -521,10 +661,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 1,
         "category": "Odpowiedź/kartkówka",
-        "date": "2026-09-15 (wt.)",
+        "color": "#E6E6FA",
+        "textColor": "#0f172a",
+        "date": "2026-09-15",
         "teacher": "Bahr Zbigniew",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "1355469",
@@ -532,10 +676,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 1,
         "category": "Aktywność",
-        "date": "2026-09-22 (wt.)",
+        "color": "#FFD700",
+        "textColor": "#0f172a",
+        "date": "2026-09-22",
         "teacher": "Bahr Zbigniew",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "1660212",
@@ -543,11 +691,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "3",
         "weight": 2,
         "category": "sprawdzian",
-        "date": "2026-09-24 (czw.)",
+        "color": "#32CD32",
+        "textColor": "#0f172a",
+        "date": "2026-09-24",
         "teacher": "Bahr Zbigniew",
         "comment": "funkcja liniowa",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "3558014",
@@ -555,11 +707,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "3",
         "weight": 1,
         "category": "Odpowiedź/kartkówka",
-        "date": "2026-10-07 (śr.)",
+        "color": "#E6E6FA",
+        "textColor": "#0f172a",
+        "date": "2026-10-07",
         "teacher": "Bahr Zbigniew",
         "comment": "graficznie i algebraicznie",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "5974954",
@@ -567,11 +723,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "2",
         "weight": 3,
         "category": "Praca klasowa",
-        "date": "2026-10-25 (nd.)",
+        "color": "#FF0000",
+        "textColor": "#ffffff",
+        "date": "2026-10-25",
         "teacher": "Bahr Zbigniew",
         "comment": "funkcja liniowa",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "6567892",
@@ -579,11 +739,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "4",
         "weight": 1,
         "category": "Odpowiedź/kartkówka",
-        "date": "2026-10-28 (śr.)",
+        "color": "#E6E6FA",
+        "textColor": "#0f172a",
+        "date": "2026-10-28",
         "teacher": "Bahr Zbigniew",
         "comment": "Tales",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "7821437",
@@ -591,10 +755,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 1,
         "category": "Odpowiedź/kartkówka",
-        "date": "2026-11-04 (śr.)",
+        "color": "#E6E6FA",
+        "textColor": "#0f172a",
+        "date": "2026-11-04",
         "teacher": "Bahr Zbigniew",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       }
     ]
   },
@@ -610,10 +778,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 1,
         "category": "zadanie",
-        "date": "2026-09-17 (czw.)",
+        "color": "#66CDAA",
+        "textColor": "#0f172a",
+        "date": "2026-09-17",
         "teacher": "Kryła Łukasz",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "4534719",
@@ -621,10 +793,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 1,
         "category": "Gdniazo",
-        "date": "2026-10-15 (czw.)",
+        "color": "#FFA07A",
+        "textColor": "#0f172a",
+        "date": "2026-10-15",
         "teacher": "Kryła Łukasz",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       }
     ]
   },
@@ -646,11 +822,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 1,
         "category": "zadanie",
-        "date": "2026-09-22 (wt.)",
+        "color": "#66CDAA",
+        "textColor": "#0f172a",
+        "date": "2026-09-22",
         "teacher": "Wojnarowski Przemysław",
         "comment": "modernizacja zestawu komputerowego",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "6318131",
@@ -658,11 +838,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 1,
         "category": "zadanie",
-        "date": "2026-10-20 (wt.)",
+        "color": "#66CDAA",
+        "textColor": "#0f172a",
+        "date": "2026-10-20",
         "teacher": "Wojnarowski Przemysław",
         "comment": "Diagnostyka serwisowa zestawu komputerowego",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       }
     ]
   },
@@ -684,11 +868,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "5",
         "weight": 1,
         "category": "zadanie",
-        "date": "2026-09-21 (pon.)",
+        "color": "#66CDAA",
+        "textColor": "#0f172a",
+        "date": "2026-09-21",
         "teacher": "Wojnarowski Przemysław",
         "comment": "Struktura folderów i zarządzanie przez cud",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       },
       {
         "id": "2066473",
@@ -696,11 +884,15 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "-",
         "weight": 1,
         "category": "zadanie",
-        "date": "2026-09-28 (pon.)",
+        "color": "#66CDAA",
+        "textColor": "#0f172a",
+        "date": "2026-09-28",
         "teacher": "Wojnarowski Przemysław",
         "comment": "diagnostyka systemu",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": false,
+        "isInsideBracket": false
       }
     ]
   },
@@ -716,10 +908,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "3-",
         "weight": 1,
         "category": "sprawdzian",
-        "date": "2026-10-08 (czw.)",
+        "color": "#FFA07A",
+        "textColor": "#0f172a",
+        "date": "2026-10-08",
         "teacher": "Gembiak Bartosz",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": true,
+        "isInsideBracket": false
       }
     ]
   },
@@ -734,10 +930,14 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
         "displayValue": "-",
         "weight": 1,
         "category": "aktywność",
-        "date": "2026-09-29 (wt.)",
+        "color": "#ADFF2F",
+        "textColor": "#0f172a",
+        "date": "2026-09-29",
         "teacher": "Łysakowski Grzegorz",
         "semester": 1,
-        "isImprovement": false
+        "isImprovement": false,
+        "inAverage": false,
+        "isInsideBracket": false
       }
     ]
   },
@@ -747,4 +947,4 @@ export const FALLBACK_LIBRUS_SUBJECTS: readonly SubjectGradeItem[] = [
     "average": 0,
     "grades": []
   }
-];
+] as const;

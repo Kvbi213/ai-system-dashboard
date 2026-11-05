@@ -268,12 +268,17 @@ export class DatabaseStore {
             const gId = String(g.id || `gt_sem${semester}_${sIdx}_${gIdx}`);
             const imprMatch = rawInfo.match(/Poprawa oceny:\s*([0-9\+\-]+)/i);
             const isImprovement = Boolean(imprMatch || g.isImprovement);
-            const improvedValue = imprMatch ? imprMatch[1].trim() : (g.improvedValue ? String(g.improvedValue) : undefined);
+            const rawImpr = imprMatch ? imprMatch[1].trim() : (g.improvedValue ? String(g.improvedValue).trim() : undefined);
+            const cleanImprMatch = rawImpr ? rawImpr.match(/^([0-9\+\-]+)/) : null;
+            const improvedValue = cleanImprMatch ? cleanImprMatch[1] : rawImpr;
             const inAvg = g.details?.inAverage !== undefined
               ? Boolean(g.details.inAverage)
               : (g.inAverage !== undefined
                   ? Boolean(g.inAverage)
                   : (infoInAvgMatch ? infoInAvgMatch[1].trim().toLowerCase() === 'tak' : (val > 0 && weight > 0)));
+            const color = g.color || g.details?.color || '#FFD700';
+            const textColor = g.textColor || g.details?.textColor;
+            const isInsideBracket = g.isInsideBracket !== undefined ? Boolean(g.isInsideBracket) : undefined;
 
             return {
               id: gId,
@@ -287,7 +292,10 @@ export class DatabaseStore {
               semester,
               isImprovement,
               improvedValue,
-              inAverage: inAvg
+              inAverage: inAvg,
+              color,
+              textColor,
+              isInsideBracket
             };
           };
 
@@ -352,11 +360,13 @@ export class DatabaseStore {
             });
           });
 
-          const sem1Avg = parseSafeAverage(sub.sem1Avg) ??
+          const sem1Avg = parseSafeAverage(sub.semester1Average) ??
+            parseSafeAverage(sub.sem1Avg) ??
             parseSafeAverage(sub.tempAverage) ??
             parseSafeAverage(sub.semester?.[0]?.tempAverage);
 
-          const sem2Avg = parseSafeAverage(sub.sem2Avg) ??
+          const sem2Avg = parseSafeAverage(sub.semester2Average) ??
+            parseSafeAverage(sub.sem2Avg) ??
             parseSafeAverage(sub.semester?.[1]?.tempAverage);
 
           let weightedSum = 0;
@@ -368,9 +378,10 @@ export class DatabaseStore {
             }
           }
           const computedAvg = weightTotal > 0 ? Number((weightedSum / weightTotal).toFixed(2)) : 0;
-          const finalAvg = (sem1Avg !== undefined && sem1Avg > 0)
-            ? sem1Avg
-            : (computedAvg > 0 ? computedAvg : (sem2Avg !== undefined && sem2Avg > 0 ? sem2Avg : 0));
+          const finalAvg = parseSafeAverage(sub.average) ??
+            ((sem1Avg !== undefined && sem1Avg > 0)
+              ? sem1Avg
+              : (computedAvg > 0 ? computedAvg : (sem2Avg !== undefined && sem2Avg > 0 ? sem2Avg : 0)));
 
           parsedSubjects.push({
             id: `sub_${sIdx}_${normalizedName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,

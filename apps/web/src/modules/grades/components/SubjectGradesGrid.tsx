@@ -1,6 +1,6 @@
 import React from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
-import { getLibrusBadgeColor } from './LibrusTableView';
+import { getLibrusBadgeColor, getBadgeInlineStyle } from './LibrusTableView';
 
 export interface SingleGradeItem {
   id: string;
@@ -16,6 +16,9 @@ export interface SingleGradeItem {
   improvedGradeId?: string;
   improvedValue?: string;
   inAverage?: boolean;
+  color?: string;
+  textColor?: string;
+  isInsideBracket?: boolean;
 }
 
 export interface SubjectGradeItem {
@@ -108,20 +111,22 @@ export const SubjectGradesGrid: React.FC<SubjectGradesGridProps> = ({ subjects, 
                         {/* Pierwotna ocena */}
                         <div
                           title={createTooltip(g)}
-                          className={`min-w-[22px] h-5 px-1 rounded flex items-center justify-center font-bold text-xs border cursor-help ${getLibrusBadgeColor(
+                          style={getBadgeInlineStyle(g)}
+                          className={`min-w-[22px] h-5 px-1 rounded flex items-center justify-center font-bold text-xs border cursor-help ${!g.color ? getLibrusBadgeColor(
                             g.value,
                             g.displayValue
-                          )}`}
+                          ) : ''}`}
                         >
                           <span>{g.displayValue || g.value}</span>
                         </div>
                         {/* Nowa ocena z poprawy */}
                         <div
                           title={createTooltip(retakeGrade)}
-                          className={`min-w-[22px] h-5 px-1 rounded flex items-center justify-center font-bold text-xs border cursor-help ${getLibrusBadgeColor(
+                          style={getBadgeInlineStyle(retakeGrade)}
+                          className={`min-w-[22px] h-5 px-1 rounded flex items-center justify-center font-bold text-xs border cursor-help ${!retakeGrade.color ? getLibrusBadgeColor(
                             retakeGrade.value,
                             retakeGrade.displayValue
-                          )}`}
+                          ) : ''}`}
                         >
                           <span>{retakeGrade.displayValue || retakeGrade.value}</span>
                         </div>
@@ -136,10 +141,11 @@ export const SubjectGradesGrid: React.FC<SubjectGradesGridProps> = ({ subjects, 
                     <div
                       key={g.id}
                       title={createTooltip(g)}
-                      className={`min-w-[24px] h-6 px-1.5 rounded-md border text-xs font-mono font-bold flex items-center justify-center cursor-help transition hover:scale-105 ${getLibrusBadgeColor(
+                      style={getBadgeInlineStyle(g)}
+                      className={`min-w-[24px] h-6 px-1.5 rounded-md border text-xs font-mono font-bold flex items-center justify-center cursor-help transition hover:scale-105 ${!g.color ? getLibrusBadgeColor(
                         g.value,
                         g.displayValue
-                      )}`}
+                      ) : ''}`}
                     >
                       <span>{g.displayValue || g.value}</span>
                     </div>

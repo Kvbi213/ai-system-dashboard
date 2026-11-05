@@ -130,6 +130,9 @@ export interface SingleGradeDetail {
   improvedGradeId?: string;
   improvedValue?: string;
   inAverage?: boolean;
+  color?: string;
+  textColor?: string;
+  isInsideBracket?: boolean;
 }
 
 export interface SubjectWithGrades {

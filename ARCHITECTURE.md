@@ -7,11 +7,11 @@
 
 ## 1. STATUS SYSTEMU I METRYKI WYDANIA
 
-- **Wersja:** `v4.0.0-rc.6`
+- **Wersja:** `v4.0.0-rc.10`
 - **Typ Architektury:** Domain-Driven Modular Monolith w kontenerach Docker Compose
 - **Standard Jakości:** 100% TypeScript (`strict: true`, zero `any`), Zero-Placeholder Policy
 - **Środowisko:** Node.js 22 LTS, Vite 6, React 19, TailwindCSS v4, Vitest, Playwright 1.50
-- **Metryki Testowe:** 149 passed (52 Playwright E2E + 89 API Vitest + 8 Worker Vitest, 100% green)
+- **Metryki Testowe:** 163 passed (54 Playwright E2E + 109 API Vitest + 8 Worker Vitest, 100% green)
 - **Warstwa Pamięci Podręcznej:** Redis 7 Alpine (`omnidash-redis`) z resilientnym in-memory fallbackiem TTL
 - **Dostępne Porty Usług:**
   - `3000`: Frontend SPA (`apps/web` Vite Dev / Nginx Alpine)
@@ -91,7 +91,7 @@ $PROJECT_ROOT/OmniDash/
 │   │   │       ├── finance/        # /api/finance (50/30/20, transakcje)
 │   │   │       ├── workouts/       # /api/workouts (ćwiczenia, nawyki, serie)
 │   │   │       ├── traffic/        # /api/traffic (kamery, CANARD, alerty)
-│   │   │       ├── school/         # /api/school (plan, oceny, librusSyncService, /sync)
+│   │   │       ├── school/         # /api/school (plan, oceny, librusHtmlScraper, librusSyncService, /sync)
 │   │   │       ├── news/           # /api/news (ticker IT/CERT)
 │   │   │       ├── ai/             # /api/ai (SSE chat reasoning, tool calling)
 │   │   │       ├── osint/          # /api/osint (DNS, ASN, SSL inspect)

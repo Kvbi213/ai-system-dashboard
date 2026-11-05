@@ -600,3 +600,24 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - Playwright E2E: 8/8 passed w audycie kalendarza, osi czasu i ocen.
   - Web Build: `tsc && vite build` — 0 błędów, exit code 0.
 
+
+## v4.0.0-rc.10 — 2026-11-05
+### Autorytatywny Silnik Direct HTML Scraper dla Librus Synergia, Autentyczne Barwy Kategorii HEX i Weryfikacja Terminarza
+- [+] **Nowy Autorytatywny Silnik Scrapera HTML (`apps/api/src/domains/school/librusHtmlScraper.ts`):**
+  - Bezpośrednie pobieranie i parsowanie surowego dokumentu HTML `przegladaj_oceny/uczen` w pełnym kodowaniu UTF-8 z użyciem Cheerio (zastąpienie niekompletnego `client.info.getGrades()`).
+  - Ekstrakcja dokładnych kodów kolorów HEX (`style="background-color: #..."`) z węzłów `<span class="grade-box">` definiowanych przez szkołę i nauczycieli (m.in. `#E6E6FA` dla kartkówek/odpowiedzi z matematyki, `#ADFF2F` dla aktywności, `#7CFC00` dla prac klasowych, `#32CD32` dla sprawdzianów).
+  - Deterministyczne wykrywanie i parsowanie klamer poprawkowych `<span>[` oraz `]</span>` bezpośrednio z drzewa DOM.
+  - Wyliczanie kontrastowego koloru tekstu (`textColor`) na podstawie luminancji barwy tła (ciemny tekst na jasnych tłach, biały na ciemnych tłach).
+- [+] **Rozszerzenie Typów i Kontraktów Danych (`types.ts` & `SubjectGradesGrid.tsx`):**
+  - Wzbogacenie interfejsów `SingleGradeDetail` i `SingleGradeItem` o pola: `color?: string`, `textColor?: string`, `isInsideBracket?: boolean`.
+  - Obsługa nowych pól w `DatabaseStore.loadLibrusGroundTruth()` z sanityzacją wartości poprawkowych `improvedValue`.
+- [+] **Wierne Odwzorowanie Wizualne 1:1 w Frontendzie (`LibrusTableView.tsx`, `SubjectGradesGrid.tsx`):**
+  - Funkcja `getBadgeInlineStyle(g)` aplikująca autentyczne barwy HEX tła i tekstu z Librusa.
+  - Renderowanie par w klamrach `[ 3  5 ]` oraz `[ 1  4 ]` w oparciu o flagę `isInsideBracket` oraz powiązania ID.
+  - Aktualizacja danych fallback (`fallbackData.ts`) dla 21 przedmiotów oraz uaktualnienie cache klucza na `omnidash_grades_cache_v4_4`.
+- [+] **Weryfikacja Terminarza i Wydarzeń Kalendarza (`/api/calendar/events`):**
+  - Potwierdzenie bezbłędnego serwowania 55 wydarzeń kalendarzowych w `/api/calendar/events` oraz `/api/school/grades`.
+- [+] **Weryfikacja Empiryczna:**
+  - API Gateway Vitest: 109 passed (15 plików testowych, 100% green).
+  - Web Build: `tsc && vite build` — 0 błędów, exit code 0.
+  - Dostępność demonów: API :5000, Web :3000, Worker nominalne.

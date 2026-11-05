@@ -6,13 +6,13 @@ import { FALLBACK_LIBRUS_SUBJECTS } from './fallbackData';
 import { GraduationCap, RefreshCw, CheckCircle2, AlertCircle, Table as TableIcon, LayoutGrid } from 'lucide-react';
 import { schoolApi } from '../../api/client';
 
-const GRADES_CACHE_KEY = 'omnidash_grades_cache_v4_3';
+const GRADES_CACHE_KEY = 'omnidash_grades_cache_v4_4';
 
 function getInitialGradesData(): { subjects: SubjectGradeItem[]; stats: any } {
   if (typeof window === 'undefined') {
     return {
       subjects: [...FALLBACK_LIBRUS_SUBJECTS],
-      stats: { gpa: 4.29, luckyNumber: 3, threatsCount: 0, totalGrades: 40 }
+      stats: { gpa: 4.39, luckyNumber: 12, threatsCount: 0, totalGrades: 41 }
     };
   }
   try {
@@ -28,7 +28,7 @@ function getInitialGradesData(): { subjects: SubjectGradeItem[]; stats: any } {
   }
   return {
     subjects: [...FALLBACK_LIBRUS_SUBJECTS],
-    stats: { gpa: 4.29, luckyNumber: 3, threatsCount: 0, totalGrades: 40 }
+    stats: { gpa: 4.39, luckyNumber: 12, threatsCount: 0, totalGrades: 41 }
   };
 }
 

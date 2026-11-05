@@ -7,30 +7,57 @@ interface LibrusTableViewProps {
   activeSemester?: 1 | 2;
 }
 
+export const isLightColor = (hexColor: string): boolean => {
+  const cleanHex = hexColor.replace('#', '').trim();
+  if (cleanHex.length === 6) {
+    const r = parseInt(cleanHex.substring(0, 2), 16);
+    const g = parseInt(cleanHex.substring(2, 4), 16);
+    const b = parseInt(cleanHex.substring(4, 6), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.55;
+  }
+  return true;
+};
+
 /**
- * Autentyczna paleta barw Librus Synergia dla etykiet ocen.
+ * Zwraca autentyczny styl CSS dla plakietki oceny z Librusa (kolor HEX z systemu).
+ */
+export const getBadgeInlineStyle = (g: SingleGradeItem): React.CSSProperties => {
+  if (g.color) {
+    const isLight = isLightColor(g.color);
+    return {
+      backgroundColor: g.color,
+      color: g.textColor || (isLight ? '#0f172a' : '#ffffff'),
+      borderColor: 'rgba(0, 0, 0, 0.18)'
+    };
+  }
+  return {};
+};
+
+/**
+ * Rezerwowa paleta barw Librus Synergia dla etykiet ocen (w przypadku braku koloru HEX).
  */
 export const getLibrusBadgeColor = (val: number, displayVal?: string): string => {
   const d = (displayVal || String(val)).trim();
   if (d === '+' || d === '-') {
-    return 'bg-lime-300 text-slate-900 border-lime-400 shadow-sm dark:bg-lime-400 dark:text-slate-950 font-bold';
+    return 'bg-lime-300 text-slate-900 border-lime-400 font-bold';
   }
   if (d === '6') {
-    return 'bg-cyan-300 text-slate-950 border-cyan-400 shadow-sm dark:bg-cyan-400';
+    return 'bg-cyan-300 text-slate-950 border-cyan-400';
   }
   if (d === '5' || d === '5+') {
-    return 'bg-emerald-300 text-slate-950 border-emerald-400 shadow-sm dark:bg-emerald-400';
+    return 'bg-emerald-300 text-slate-950 border-emerald-400';
   }
   if (d === '4' || d === '4+') {
-    return 'bg-amber-300 text-slate-950 border-amber-400 shadow-sm dark:bg-amber-400';
+    return 'bg-amber-300 text-slate-950 border-amber-400';
   }
   if (d === '3' || d === '3-') {
-    return 'bg-sky-200 text-slate-950 border-sky-300 shadow-sm dark:bg-sky-300';
+    return 'bg-sky-200 text-slate-950 border-sky-300';
   }
   if (d === '2' || d === '2+') {
-    return 'bg-orange-300 text-slate-950 border-orange-400 shadow-sm dark:bg-orange-400';
+    return 'bg-orange-300 text-slate-950 border-orange-400';
   }
-  return 'bg-rose-400 text-white border-rose-500 shadow-sm dark:bg-rose-500';
+  return 'bg-rose-400 text-white border-rose-500';
 };
 
 const createGradeTooltip = (g: SingleGradeItem): string => {
@@ -188,6 +215,10 @@ export const LibrusTableView: React.FC<LibrusTableViewProps> = ({ subjects, acti
                             retakeGrade = sem1Grades.find(
                               (cand) => cand.id === g.improvedGradeId || (cand.isImprovement && cand.improvedGradeId === g.id)
                             );
+                          } else if (g.isInsideBracket) {
+                            retakeGrade = sem1Grades.find(
+                              (cand) => cand.isInsideBracket && cand.id !== g.id && !renderedIds.has(cand.id)
+                            );
                           }
 
                           if (retakeGrade) {
@@ -197,29 +228,26 @@ export const LibrusTableView: React.FC<LibrusTableViewProps> = ({ subjects, acti
                             return (
                               <div
                                 key={`pair_${g.id}_${retakeGrade.id}`}
-                                className="inline-flex items-center gap-1 font-mono text-xs select-none"
+                                className="inline-flex items-center gap-0.5 select-none"
                                 title={`Poprawa oceny: pierwotna ${g.displayValue || g.value} poprawiona na ${retakeGrade.displayValue || retakeGrade.value}`}
                               >
-                                <span className="text-slate-400 font-bold select-none">[</span>
+                                <span className="text-slate-700 dark:text-slate-300 font-bold select-none text-[13px] mr-0.5">[</span>
                                 <span
                                   title={createGradeTooltip(g)}
-                                  className={`min-w-[22px] h-5 px-1 rounded flex items-center justify-center font-bold text-xs border cursor-help ${getLibrusBadgeColor(
-                                    g.value,
-                                    g.displayValue
-                                  )}`}
+                                  style={getBadgeInlineStyle(g)}
+                                  className={`min-w-[20px] h-[22px] px-1 rounded-[3px] inline-flex items-center justify-center font-sans font-bold text-[12px] border cursor-help ${!g.color ? getLibrusBadgeColor(g.value, g.displayValue) : ''}`}
                                 >
                                   {g.displayValue || g.value}
                                 </span>
+                                <span className="w-0.5"></span>
                                 <span
                                   title={createGradeTooltip(retakeGrade)}
-                                  className={`min-w-[22px] h-5 px-1 rounded flex items-center justify-center font-bold text-xs border cursor-help ${getLibrusBadgeColor(
-                                    retakeGrade.value,
-                                    retakeGrade.displayValue
-                                  )}`}
+                                  style={getBadgeInlineStyle(retakeGrade)}
+                                  className={`min-w-[20px] h-[22px] px-1 rounded-[3px] inline-flex items-center justify-center font-sans font-bold text-[12px] border cursor-help ${!retakeGrade.color ? getLibrusBadgeColor(retakeGrade.value, retakeGrade.displayValue) : ''}`}
                                 >
                                   {retakeGrade.displayValue || retakeGrade.value}
                                 </span>
-                                <span className="text-slate-400 font-bold select-none">]</span>
+                                <span className="text-slate-700 dark:text-slate-300 font-bold select-none text-[13px] ml-0.5">]</span>
                               </div>
                             );
                           }
@@ -230,10 +258,8 @@ export const LibrusTableView: React.FC<LibrusTableViewProps> = ({ subjects, acti
                             <span
                               key={g.id}
                               title={createGradeTooltip(g)}
-                              className={`min-w-[22px] h-5 px-1.5 rounded flex items-center justify-center font-mono font-bold text-xs border cursor-help transition hover:scale-110 ${getLibrusBadgeColor(
-                                g.value,
-                                g.displayValue
-                              )}`}
+                              style={getBadgeInlineStyle(g)}
+                              className={`min-w-[20px] h-[22px] px-1 rounded-[3px] inline-flex items-center justify-center font-sans font-bold text-[12px] border cursor-help transition-transform hover:scale-110 shadow-xs ${!g.color ? getLibrusBadgeColor(g.value, g.displayValue) : ''}`}
                             >
                               {g.displayValue || g.value}
                             </span>
@@ -263,10 +289,8 @@ export const LibrusTableView: React.FC<LibrusTableViewProps> = ({ subjects, acti
                           <span
                             key={g.id}
                             title={createGradeTooltip(g)}
-                            className={`min-w-[22px] h-5 px-1.5 rounded flex items-center justify-center font-mono font-bold text-xs border cursor-help transition hover:scale-110 ${getLibrusBadgeColor(
-                              g.value,
-                              g.displayValue
-                            )}`}
+                            style={getBadgeInlineStyle(g)}
+                            className={`min-w-[20px] h-[22px] px-1 rounded-[3px] inline-flex items-center justify-center font-sans font-bold text-[12px] border cursor-help transition-transform hover:scale-110 shadow-xs ${!g.color ? getLibrusBadgeColor(g.value, g.displayValue) : ''}`}
                           >
                             {g.displayValue || g.value}
                           </span>
@@ -326,10 +350,8 @@ export const LibrusTableView: React.FC<LibrusTableViewProps> = ({ subjects, acti
                                   <tr key={`detail_${g.id}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                                     <td className="py-1.5 px-2">
                                       <span
-                                        className={`inline-block min-w-[24px] px-1.5 py-0.5 rounded font-mono font-bold text-center border text-xs ${getLibrusBadgeColor(
-                                          g.value,
-                                          g.displayValue
-                                        )}`}
+                                        style={getBadgeInlineStyle(g)}
+                                        className={`inline-block min-w-[22px] h-[22px] px-1 rounded-[3px] font-sans font-bold text-center border text-[12px] leading-[20px] ${!g.color ? getLibrusBadgeColor(g.value, g.displayValue) : ''}`}
                                       >
                                         {g.displayValue || g.value}
                                       </span>

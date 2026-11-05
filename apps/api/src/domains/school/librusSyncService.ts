@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dbStore, parseSafeAverage, parseLibrusDate, sanitizeEventInfo, parseEventId } from '../../db/store.js';
 import { redisCache } from '../../core/redisCache.js';
+import { parseLibrusGradesHtml } from './librusHtmlScraper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -82,9 +83,68 @@ export async function syncLibrusData(): Promise<LibrusSyncResult> {
       // Ignoruj błąd szczęśliwego numerka
     }
 
-    // 3. Oceny
-    const gradesRaw = await client.info.getGrades();
-    const subjects = gradesRaw || [];
+    // 3. Oceny (Direct HTML Scraping z zachowaniem stylów CSS HEX i klamer poprawek)
+    let enrichedSubjects: any[] = [];
+    try {
+      const gradesResponse = await client.caller.get('https://synergia.librus.pl/przegladaj_oceny/uczen', {
+        responseType: 'arraybuffer'
+      });
+      const htmlBuffer = Buffer.from(gradesResponse.data);
+      const gradesHtml = htmlBuffer.toString('utf8');
+      enrichedSubjects = parseLibrusGradesHtml(gradesHtml);
+    } catch (scrapErr) {
+      console.warn('[!] Direct HTML scraping ocen Librusa zgłosił błąd, używam client.info.getGrades():', scrapErr);
+      const gradesRaw = await client.info.getGrades();
+      const subjects = gradesRaw || [];
+
+      enrichedSubjects = subjects.map((sub: any) => {
+        const rawName = String(sub.name || '').trim();
+        const name = rawName ? rawName.charAt(0).toUpperCase() + rawName.slice(1) : 'Brak nazwy';
+
+        const enrichGradeItem = (g: any) => {
+          const infoStr = String(g.info || g.details?.raw || '');
+          const parsed = parseGradeInfoString(infoStr);
+          return {
+            ...g,
+            details: {
+              category: g.details?.category || parsed.category,
+              weight: g.details?.weight !== undefined ? Number(g.details.weight) : parsed.weight,
+              date: g.details?.date || parsed.date,
+              teacher: g.details?.teacher || parsed.teacher,
+              comment: g.details?.comment || parsed.comment,
+              raw: infoStr,
+              inAverage: g.details?.inAverage !== undefined ? Boolean(g.details.inAverage) : parsed.inAverage
+            },
+            inAverage: g.inAverage !== undefined ? Boolean(g.inAverage) : parsed.inAverage
+          };
+        };
+
+        const rawSem1 = Array.isArray(sub.sem1Grades)
+          ? sub.sem1Grades
+          : (Array.isArray(sub.semester?.[0]?.grades) ? sub.semester[0].grades : []);
+        const rawSem2 = Array.isArray(sub.sem2Grades)
+          ? sub.sem2Grades
+          : (Array.isArray(sub.semester?.[1]?.grades) ? sub.semester[1].grades : []);
+
+        const sem1Grades = rawSem1.map(enrichGradeItem);
+        const sem2Grades = rawSem2.map(enrichGradeItem);
+
+        const sem1Avg = parseSafeAverage(sub.semester?.[0]?.tempAverage) ?? parseSafeAverage(sub.sem1Avg) ?? null;
+        const sem2Avg = parseSafeAverage(sub.semester?.[1]?.tempAverage) ?? parseSafeAverage(sub.sem2Avg) ?? null;
+        const yearAvg = parseSafeAverage(sub.tempAverage) ?? sem1Avg;
+
+        return {
+          ...sub,
+          name,
+          sem1Grades,
+          sem2Grades,
+          sem1Avg,
+          sem2Avg,
+          tempAverage: sem1Avg,
+          average: yearAvg
+        };
+      });
+    }
 
     // 4. Terminarz i kalendarz
     let calendarEvents: any[] = [];
@@ -130,55 +190,6 @@ export async function syncLibrusData(): Promise<LibrusSyncResult> {
       // Ignoruj błąd planu lekcji
     }
 
-    // Wzbogać przedmioty o pola sem1Grades, sem2Grades, znormalizowane nazwy i szczegóły ocen
-    const enrichedSubjects = (subjects || []).map((sub: any) => {
-      const rawName = String(sub.name || '').trim();
-      const name = rawName ? rawName.charAt(0).toUpperCase() + rawName.slice(1) : 'Brak nazwy';
-
-      const enrichGradeItem = (g: any) => {
-        const infoStr = String(g.info || g.details?.raw || '');
-        const parsed = parseGradeInfoString(infoStr);
-        return {
-          ...g,
-          details: {
-            category: g.details?.category || parsed.category,
-            weight: g.details?.weight !== undefined ? Number(g.details.weight) : parsed.weight,
-            date: g.details?.date || parsed.date,
-            teacher: g.details?.teacher || parsed.teacher,
-            comment: g.details?.comment || parsed.comment,
-            raw: infoStr,
-            inAverage: g.details?.inAverage !== undefined ? Boolean(g.details.inAverage) : parsed.inAverage
-          },
-          inAverage: g.inAverage !== undefined ? Boolean(g.inAverage) : parsed.inAverage
-        };
-      };
-
-      const rawSem1 = Array.isArray(sub.sem1Grades)
-        ? sub.sem1Grades
-        : (Array.isArray(sub.semester?.[0]?.grades) ? sub.semester[0].grades : []);
-      const rawSem2 = Array.isArray(sub.sem2Grades)
-        ? sub.sem2Grades
-        : (Array.isArray(sub.semester?.[1]?.grades) ? sub.semester[1].grades : []);
-
-      const sem1Grades = rawSem1.map(enrichGradeItem);
-      const sem2Grades = rawSem2.map(enrichGradeItem);
-
-      const sem1Avg = parseSafeAverage(sub.semester?.[0]?.tempAverage) ?? parseSafeAverage(sub.sem1Avg) ?? null;
-      const sem2Avg = parseSafeAverage(sub.semester?.[1]?.tempAverage) ?? parseSafeAverage(sub.sem2Avg) ?? null;
-      const yearAvg = parseSafeAverage(sub.tempAverage) ?? sem1Avg;
-
-      return {
-        ...sub,
-        name,
-        sem1Grades,
-        sem2Grades,
-        sem1Avg,
-        sem2Avg,
-        tempAverage: sem1Avg,
-        average: yearAvg
-      };
-    });
-
     const payload = {
       success: true,
       isConfigured: true,
@@ -197,7 +208,7 @@ export async function syncLibrusData(): Promise<LibrusSyncResult> {
       lastSync: new Date().toISOString()
     };
 
-    // Zapisz do librusGroundTruth.json
+    // Zapisz autorytatywne dane do librusGroundTruth.json w kodowaniu UTF-8
     const groundTruthPath = path.resolve(__dirname, '../../db/librusGroundTruth.json');
     fs.writeFileSync(groundTruthPath, JSON.stringify(payload, null, 2), 'utf8');
 

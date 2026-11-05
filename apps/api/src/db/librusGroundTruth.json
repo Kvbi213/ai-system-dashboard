@@ -2,7 +2,7 @@
   "success": true,
   "isConfigured": true,
   "isDemo": false,
-  "timestamp": "2026-11-04T15:40:11.618Z",
+  "timestamp": "2026-11-05T05:46:02.920Z",
   "studentInfo": {
     "name": "Jakub Lis",
     "class": "2 TI T",
@@ -10,1693 +10,1878 @@
     "educator": "Ziemba Joanna",
     "accountLogin": "12538637u"
   },
-  "luckyNumber": 3,
+  "luckyNumber": 12,
   "grades": {
     "subjects": [
       {
+        "id": "sub_0_biologia",
         "name": "Biologia",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 2661119,
-                "info": "Kategoria: odpowiedź ustna\nData: 2026-10-01 (czw.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-                "value": "4+"
-              },
-              {
-                "id": 5436827,
-                "info": "Kategoria: Praca klasowa\nData: 2026-10-21 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-                "value": "3"
-              },
-              {
-                "id": 6517463,
-                "info": "Kategoria: Praca klasowa\nData: 2026-10-28 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna\n\nPoprawa oceny: 3 (Praca klasowa)",
-                "value": "5"
-              },
-              {
-                "id": 6542101,
-                "info": "Kategoria: odpowiedź ustna\nData: 2026-10-28 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-                "value": "4+"
-              }
-            ],
-            "tempAverage": 4.13,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 4.13
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 4.13,
         "average": 4.13,
+        "semester1Average": 4.13,
         "sem1Grades": [
           {
-            "id": 2661119,
-            "info": "Kategoria: odpowiedź ustna\nData: 2026-10-01 (czw.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-            "value": "4+",
-            "details": {
-              "category": "odpowiedź ustna",
-              "weight": 1,
-              "date": "2026-10-01 (czw.)",
-              "teacher": "Łukaszczyk-Wulgaris Joanna",
-              "comment": "",
-              "raw": "Kategoria: odpowiedź ustna\nData: 2026-10-01 (czw.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "2661119",
+            "value": 4.5,
+            "displayValue": "4+",
+            "weight": 1,
+            "category": "odpowiedź ustna",
+            "color": "#FFD700",
+            "textColor": "#0f172a",
+            "date": "2026-10-01",
+            "teacher": "Łukaszczyk-Wulgaris Joanna",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: odpowiedź ustna\nData: 2026-10-01 (czw.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Łukaszczyk-Wulgaris Joanna"
           },
           {
-            "id": 5436827,
-            "info": "Kategoria: Praca klasowa\nData: 2026-10-21 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-            "value": "3",
-            "details": {
-              "category": "Praca klasowa",
-              "weight": 3,
-              "date": "2026-10-21 (śr.)",
-              "teacher": "Łukaszczyk-Wulgaris Joanna",
-              "comment": "",
-              "raw": "Kategoria: Praca klasowa\nData: 2026-10-21 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "5436827",
+            "value": 3,
+            "displayValue": "3",
+            "weight": 3,
+            "category": "Praca klasowa",
+            "color": "#7CFC00",
+            "textColor": "#0f172a",
+            "date": "2026-10-21",
+            "teacher": "Łukaszczyk-Wulgaris Joanna",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": true,
+            "rawInfo": "Kategoria: Praca klasowa\nData: 2026-10-21 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna",
+            "improvedGradeId": "6517463"
           },
           {
-            "id": 6517463,
-            "info": "Kategoria: Praca klasowa\nData: 2026-10-28 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna\n\nPoprawa oceny: 3 (Praca klasowa)",
-            "value": "5",
-            "details": {
-              "category": "Praca klasowa",
-              "weight": 3,
-              "date": "2026-10-28 (śr.)",
-              "teacher": "Łukaszczyk-Wulgaris Joanna",
-              "comment": "",
-              "raw": "Kategoria: Praca klasowa\nData: 2026-10-28 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna\n\nPoprawa oceny: 3 (Praca klasowa)",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "6517463",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 3,
+            "category": "Praca klasowa",
+            "color": "#7CFC00",
+            "textColor": "#0f172a",
+            "date": "2026-10-28",
+            "teacher": "Łukaszczyk-Wulgaris Joanna",
+            "semester": 1,
+            "isImprovement": true,
+            "improvedValue": "3 (Praca klasowa)",
+            "inAverage": true,
+            "isInsideBracket": true,
+            "rawInfo": "Kategoria: Praca klasowa\nData: 2026-10-28 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna\n\nPoprawa oceny: 3 (Praca klasowa)",
+            "improvedGradeId": "5436827"
           },
           {
-            "id": 6542101,
-            "info": "Kategoria: odpowiedź ustna\nData: 2026-10-28 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-            "value": "4+",
-            "details": {
-              "category": "odpowiedź ustna",
-              "weight": 1,
-              "date": "2026-10-28 (śr.)",
-              "teacher": "Łukaszczyk-Wulgaris Joanna",
-              "comment": "",
-              "raw": "Kategoria: odpowiedź ustna\nData: 2026-10-28 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Łukaszczyk-Wulgaris Joanna\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "6542101",
+            "value": 4.5,
+            "displayValue": "4+",
+            "weight": 1,
+            "category": "odpowiedź ustna",
+            "color": "#FFD700",
+            "textColor": "#0f172a",
+            "date": "2026-10-28",
+            "teacher": "Łukaszczyk-Wulgaris Joanna",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: odpowiedź ustna\nData: 2026-10-28 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Łukaszczyk-Wulgaris Joanna"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": 4.13,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "2661119",
+            "value": 4.5,
+            "displayValue": "4+",
+            "weight": 1,
+            "category": "odpowiedź ustna",
+            "color": "#FFD700",
+            "textColor": "#0f172a",
+            "date": "2026-10-01",
+            "teacher": "Łukaszczyk-Wulgaris Joanna",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: odpowiedź ustna\nData: 2026-10-01 (czw.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Łukaszczyk-Wulgaris Joanna"
+          },
+          {
+            "id": "5436827",
+            "value": 3,
+            "displayValue": "3",
+            "weight": 3,
+            "category": "Praca klasowa",
+            "color": "#7CFC00",
+            "textColor": "#0f172a",
+            "date": "2026-10-21",
+            "teacher": "Łukaszczyk-Wulgaris Joanna",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": true,
+            "rawInfo": "Kategoria: Praca klasowa\nData: 2026-10-21 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna",
+            "improvedGradeId": "6517463"
+          },
+          {
+            "id": "6517463",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 3,
+            "category": "Praca klasowa",
+            "color": "#7CFC00",
+            "textColor": "#0f172a",
+            "date": "2026-10-28",
+            "teacher": "Łukaszczyk-Wulgaris Joanna",
+            "semester": 1,
+            "isImprovement": true,
+            "improvedValue": "3 (Praca klasowa)",
+            "inAverage": true,
+            "isInsideBracket": true,
+            "rawInfo": "Kategoria: Praca klasowa\nData: 2026-10-28 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna\n\nPoprawa oceny: 3 (Praca klasowa)",
+            "improvedGradeId": "5436827"
+          },
+          {
+            "id": "6542101",
+            "value": 4.5,
+            "displayValue": "4+",
+            "weight": 1,
+            "category": "odpowiedź ustna",
+            "color": "#FFD700",
+            "textColor": "#0f172a",
+            "date": "2026-10-28",
+            "teacher": "Łukaszczyk-Wulgaris Joanna",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: odpowiedź ustna\nData: 2026-10-28 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Łukaszczyk-Wulgaris Joanna"
+          }
+        ]
       },
       {
+        "id": "sub_1_biznes_i_zarz_dzanie",
         "name": "Biznes i zarządzanie",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 5307591,
-                "info": "Kategoria: kartkówka\nData: 2026-10-20 (wt.)\nNauczyciel: Sokół Paweł\nLicz do średniej: tak\nWaga: 1\nDodał: Sokół Paweł\n\nKomentarz: Pieniądz w gospodarce rynkowej, Rynek finansowy, Finanse osobiste ",
-                "value": "4+"
-              }
-            ],
-            "tempAverage": 4.5,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 4.5
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 4.5,
         "average": 4.5,
+        "semester1Average": 4.5,
         "sem1Grades": [
           {
-            "id": 5307591,
-            "info": "Kategoria: kartkówka\nData: 2026-10-20 (wt.)\nNauczyciel: Sokół Paweł\nLicz do średniej: tak\nWaga: 1\nDodał: Sokół Paweł\n\nKomentarz: Pieniądz w gospodarce rynkowej, Rynek finansowy, Finanse osobiste ",
-            "value": "4+",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-10-20 (wt.)",
-              "teacher": "Sokół Paweł",
-              "comment": "Pieniądz w gospodarce rynkowej, Rynek finansowy, Finanse osobiste",
-              "raw": "Kategoria: kartkówka\nData: 2026-10-20 (wt.)\nNauczyciel: Sokół Paweł\nLicz do średniej: tak\nWaga: 1\nDodał: Sokół Paweł\n\nKomentarz: Pieniądz w gospodarce rynkowej, Rynek finansowy, Finanse osobiste ",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "5307591",
+            "value": 4.5,
+            "displayValue": "4+",
+            "weight": 1,
+            "category": "kartkówka",
+            "color": "#32CD32",
+            "textColor": "#0f172a",
+            "date": "2026-10-20",
+            "teacher": "Sokół Paweł",
+            "comment": "Pieniądz w gospodarce rynkowej, Rynek finansowy, Finanse osobiste",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: kartkówka\nData: 2026-10-20 (wt.)\nNauczyciel: Sokół Paweł\nLicz do średniej: tak\nWaga: 1\nDodał: Sokół Paweł\n\nKomentarz: Pieniądz w gospodarce rynkowej, Rynek finansowy, Finanse osobiste"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": 4.5,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "5307591",
+            "value": 4.5,
+            "displayValue": "4+",
+            "weight": 1,
+            "category": "kartkówka",
+            "color": "#32CD32",
+            "textColor": "#0f172a",
+            "date": "2026-10-20",
+            "teacher": "Sokół Paweł",
+            "comment": "Pieniądz w gospodarce rynkowej, Rynek finansowy, Finanse osobiste",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: kartkówka\nData: 2026-10-20 (wt.)\nNauczyciel: Sokół Paweł\nLicz do średniej: tak\nWaga: 1\nDodał: Sokół Paweł\n\nKomentarz: Pieniądz w gospodarce rynkowej, Rynek finansowy, Finanse osobiste"
+          }
+        ]
       },
       {
+        "id": "sub_2_chemia",
         "name": "Chemia",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 2554576,
-                "info": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Kolasińska Paulina\nLicz do średniej: tak\nWaga: 1\nDodał: Kolasińska Paulina\n\nKomentarz: Roztwory wodne elektrolitów",
-                "value": "4+"
-              },
-              {
-                "id": 6719070,
-                "info": "Kategoria: kartkówka\nData: 2026-10-28 (śr.)\nNauczyciel: Kolasińska Paulina\nLicz do średniej: tak\nWaga: 1\nDodał: Kolasińska Paulina\n\nKomentarz: Nazewnictwo alkanów ",
-                "value": "1"
-              }
-            ],
-            "tempAverage": 2.75,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 2.75
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 2.75,
         "average": 2.75,
+        "semester1Average": 2.75,
         "sem1Grades": [
           {
-            "id": 2554576,
-            "info": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Kolasińska Paulina\nLicz do średniej: tak\nWaga: 1\nDodał: Kolasińska Paulina\n\nKomentarz: Roztwory wodne elektrolitów",
-            "value": "4+",
-            "details": {
-              "category": "Praca w grupach",
-              "weight": 1,
-              "date": "2026-10-01 (czw.)",
-              "teacher": "Kolasińska Paulina",
-              "comment": "Roztwory wodne elektrolitów",
-              "raw": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Kolasińska Paulina\nLicz do średniej: tak\nWaga: 1\nDodał: Kolasińska Paulina\n\nKomentarz: Roztwory wodne elektrolitów",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "2554576",
+            "value": 4.5,
+            "displayValue": "4+",
+            "weight": 1,
+            "category": "Praca w grupach",
+            "color": "#F5F5DC",
+            "textColor": "#0f172a",
+            "date": "2026-10-01",
+            "teacher": "Kolasińska Paulina",
+            "comment": "Roztwory wodne elektrolitów",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Kolasińska Paulina\nLicz do średniej: tak\nWaga: 1\nDodał: Kolasińska Paulina\n\nKomentarz: Roztwory wodne elektrolitów"
           },
           {
-            "id": 6719070,
-            "info": "Kategoria: kartkówka\nData: 2026-10-28 (śr.)\nNauczyciel: Kolasińska Paulina\nLicz do średniej: tak\nWaga: 1\nDodał: Kolasińska Paulina\n\nKomentarz: Nazewnictwo alkanów ",
-            "value": "1",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-10-28 (śr.)",
-              "teacher": "Kolasińska Paulina",
-              "comment": "Nazewnictwo alkanów",
-              "raw": "Kategoria: kartkówka\nData: 2026-10-28 (śr.)\nNauczyciel: Kolasińska Paulina\nLicz do średniej: tak\nWaga: 1\nDodał: Kolasińska Paulina\n\nKomentarz: Nazewnictwo alkanów ",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "6719070",
+            "value": 1,
+            "displayValue": "1",
+            "weight": 1,
+            "category": "kartkówka",
+            "color": "#32CD32",
+            "textColor": "#0f172a",
+            "date": "2026-10-28",
+            "teacher": "Kolasińska Paulina",
+            "comment": "Nazewnictwo alkanów",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: kartkówka\nData: 2026-10-28 (śr.)\nNauczyciel: Kolasińska Paulina\nLicz do średniej: tak\nWaga: 1\nDodał: Kolasińska Paulina\n\nKomentarz: Nazewnictwo alkanów"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": 2.75,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "2554576",
+            "value": 4.5,
+            "displayValue": "4+",
+            "weight": 1,
+            "category": "Praca w grupach",
+            "color": "#F5F5DC",
+            "textColor": "#0f172a",
+            "date": "2026-10-01",
+            "teacher": "Kolasińska Paulina",
+            "comment": "Roztwory wodne elektrolitów",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Kolasińska Paulina\nLicz do średniej: tak\nWaga: 1\nDodał: Kolasińska Paulina\n\nKomentarz: Roztwory wodne elektrolitów"
+          },
+          {
+            "id": "6719070",
+            "value": 1,
+            "displayValue": "1",
+            "weight": 1,
+            "category": "kartkówka",
+            "color": "#32CD32",
+            "textColor": "#0f172a",
+            "date": "2026-10-28",
+            "teacher": "Kolasińska Paulina",
+            "comment": "Nazewnictwo alkanów",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: kartkówka\nData: 2026-10-28 (śr.)\nNauczyciel: Kolasińska Paulina\nLicz do średniej: tak\nWaga: 1\nDodał: Kolasińska Paulina\n\nKomentarz: Nazewnictwo alkanów"
+          }
+        ]
       },
       {
+        "id": "sub_3_edukacja_obywatelska",
         "name": "Edukacja obywatelska",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 983480,
-                "info": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Czarna Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Czarna Alicja\n",
-                "value": "5"
-              },
-              {
-                "id": 6953970,
-                "info": "Kategoria: prasówka\nData: 2026-10-30 (pt.)\nNauczyciel: Czarna Alicja\nDodał: Czarna Alicja\n",
-                "value": "-"
-              }
-            ],
-            "tempAverage": 5,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 5
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 5,
         "average": 5,
+        "semester1Average": 5,
         "sem1Grades": [
           {
-            "id": 983480,
-            "info": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Czarna Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Czarna Alicja\n",
-            "value": "5",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-09-18 (pt.)",
-              "teacher": "Czarna Alicja",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Czarna Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Czarna Alicja\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "983480",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-09-18",
+            "teacher": "Czarna Alicja",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Czarna Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Czarna Alicja"
           },
           {
-            "id": 6953970,
-            "info": "Kategoria: prasówka\nData: 2026-10-30 (pt.)\nNauczyciel: Czarna Alicja\nDodał: Czarna Alicja\n",
-            "value": "-",
-            "details": {
-              "category": "prasówka",
-              "weight": 1,
-              "date": "2026-10-30 (pt.)",
-              "teacher": "Czarna Alicja",
-              "comment": "",
-              "raw": "Kategoria: prasówka\nData: 2026-10-30 (pt.)\nNauczyciel: Czarna Alicja\nDodał: Czarna Alicja\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "6953970",
+            "value": 0,
+            "displayValue": "-",
+            "weight": 1,
+            "category": "prasówka",
+            "color": "#F0E68C",
+            "textColor": "#0f172a",
+            "date": "2026-10-30",
+            "teacher": "Czarna Alicja",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: prasówka\nData: 2026-10-30 (pt.)\nNauczyciel: Czarna Alicja\nDodał: Czarna Alicja"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": 5,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "983480",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-09-18",
+            "teacher": "Czarna Alicja",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Czarna Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Czarna Alicja"
+          },
+          {
+            "id": "6953970",
+            "value": 0,
+            "displayValue": "-",
+            "weight": 1,
+            "category": "prasówka",
+            "color": "#F0E68C",
+            "textColor": "#0f172a",
+            "date": "2026-10-30",
+            "teacher": "Czarna Alicja",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: prasówka\nData: 2026-10-30 (pt.)\nNauczyciel: Czarna Alicja\nDodał: Czarna Alicja"
+          }
+        ]
       },
       {
+        "id": "sub_4_edukacja_zdrowotna",
         "name": "Edukacja zdrowotna",
-        "semester": [
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": null,
-        "average": null,
+        "average": 0,
         "sem1Grades": [],
         "sem2Grades": [],
-        "sem1Avg": null,
-        "sem2Avg": null
+        "grades": []
       },
       {
+        "id": "sub_5_historia",
         "name": "Historia",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 2034728,
-                "info": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-                "value": "4"
-              },
-              {
-                "id": 2677693,
-                "info": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-                "value": "4"
-              },
-              {
-                "id": 3632946,
-                "info": "Kategoria: zadanie\nData: 2026-10-08 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-                "value": "4"
-              }
-            ],
-            "tempAverage": 4,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 4
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 4,
         "average": 4,
+        "semester1Average": 4,
         "sem1Grades": [
           {
-            "id": 2034728,
-            "info": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-            "value": "4",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-09-28 (pon.)",
-              "teacher": "Wardyn Wojciech",
-              "comment": "",
-              "raw": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "2034728",
+            "value": 4,
+            "displayValue": "4",
+            "weight": 1,
+            "category": "kartkówka",
+            "color": "#32CD32",
+            "textColor": "#0f172a",
+            "date": "2026-09-28",
+            "teacher": "Wardyn Wojciech",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech"
           },
           {
-            "id": 2677693,
-            "info": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-            "value": "4",
-            "details": {
-              "category": "Praca w grupach",
-              "weight": 1,
-              "date": "2026-10-01 (czw.)",
-              "teacher": "Wardyn Wojciech",
-              "comment": "",
-              "raw": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "2677693",
+            "value": 4,
+            "displayValue": "4",
+            "weight": 1,
+            "category": "Praca w grupach",
+            "color": "#F5F5DC",
+            "textColor": "#0f172a",
+            "date": "2026-10-01",
+            "teacher": "Wardyn Wojciech",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech"
           },
           {
-            "id": 3632946,
-            "info": "Kategoria: zadanie\nData: 2026-10-08 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-            "value": "4",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-10-08 (czw.)",
-              "teacher": "Wardyn Wojciech",
-              "comment": "",
-              "raw": "Kategoria: zadanie\nData: 2026-10-08 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "3632946",
+            "value": 4,
+            "displayValue": "4",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-10-08",
+            "teacher": "Wardyn Wojciech",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-10-08 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": 4,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "2034728",
+            "value": 4,
+            "displayValue": "4",
+            "weight": 1,
+            "category": "kartkówka",
+            "color": "#32CD32",
+            "textColor": "#0f172a",
+            "date": "2026-09-28",
+            "teacher": "Wardyn Wojciech",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech"
+          },
+          {
+            "id": "2677693",
+            "value": 4,
+            "displayValue": "4",
+            "weight": 1,
+            "category": "Praca w grupach",
+            "color": "#F5F5DC",
+            "textColor": "#0f172a",
+            "date": "2026-10-01",
+            "teacher": "Wardyn Wojciech",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Praca w grupach\nData: 2026-10-01 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech"
+          },
+          {
+            "id": "3632946",
+            "value": 4,
+            "displayValue": "4",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-10-08",
+            "teacher": "Wardyn Wojciech",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-10-08 (czw.)\nNauczyciel: Wardyn Wojciech\nLicz do średniej: tak\nWaga: 1\nDodał: Wardyn Wojciech"
+          }
+        ]
       },
       {
+        "id": "sub_6_informatyka",
         "name": "Informatyka",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 1976428,
-                "info": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Becker Adam\nLicz do średniej: tak\nWaga: 1\nDodał: Becker Adam\n\nKomentarz: bhp/cpp-bmi-debugging/ppt-nobliści",
-                "value": "6"
-              },
-              {
-                "id": 7233622,
-                "info": "Kategoria: aktywność\nData: 2026-11-02 (pon.)\nNauczyciel: Becker Adam\nLicz do średniej: tak\nWaga: 1\nDodał: Becker Adam\n\nKomentarz: portfolio",
-                "value": "5"
-              }
-            ],
-            "tempAverage": 5.5,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 5.5
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 5.5,
         "average": 5.5,
+        "semester1Average": 5.5,
         "sem1Grades": [
           {
-            "id": 1976428,
-            "info": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Becker Adam\nLicz do średniej: tak\nWaga: 1\nDodał: Becker Adam\n\nKomentarz: bhp/cpp-bmi-debugging/ppt-nobliści",
-            "value": "6",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-28 (pon.)",
-              "teacher": "Becker Adam",
-              "comment": "bhp/cpp-bmi-debugging/ppt-nobliści",
-              "raw": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Becker Adam\nLicz do średniej: tak\nWaga: 1\nDodał: Becker Adam\n\nKomentarz: bhp/cpp-bmi-debugging/ppt-nobliści",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "1976428",
+            "value": 6,
+            "displayValue": "6",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-09-28",
+            "teacher": "Becker Adam",
+            "comment": "bhp/cpp-bmi-debugging/ppt-nobliści",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Becker Adam\nLicz do średniej: tak\nWaga: 1\nDodał: Becker Adam\n\nKomentarz: bhp/cpp-bmi-debugging/ppt-nobliści"
           },
           {
-            "id": 7233622,
-            "info": "Kategoria: aktywność\nData: 2026-11-02 (pon.)\nNauczyciel: Becker Adam\nLicz do średniej: tak\nWaga: 1\nDodał: Becker Adam\n\nKomentarz: portfolio",
-            "value": "5",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-11-02 (pon.)",
-              "teacher": "Becker Adam",
-              "comment": "portfolio",
-              "raw": "Kategoria: aktywność\nData: 2026-11-02 (pon.)\nNauczyciel: Becker Adam\nLicz do średniej: tak\nWaga: 1\nDodał: Becker Adam\n\nKomentarz: portfolio",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "7233622",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-11-02",
+            "teacher": "Becker Adam",
+            "comment": "portfolio",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-11-02 (pon.)\nNauczyciel: Becker Adam\nLicz do średniej: tak\nWaga: 1\nDodał: Becker Adam\n\nKomentarz: portfolio"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": 5.5,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "1976428",
+            "value": 6,
+            "displayValue": "6",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-09-28",
+            "teacher": "Becker Adam",
+            "comment": "bhp/cpp-bmi-debugging/ppt-nobliści",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Becker Adam\nLicz do średniej: tak\nWaga: 1\nDodał: Becker Adam\n\nKomentarz: bhp/cpp-bmi-debugging/ppt-nobliści"
+          },
+          {
+            "id": "7233622",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-11-02",
+            "teacher": "Becker Adam",
+            "comment": "portfolio",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-11-02 (pon.)\nNauczyciel: Becker Adam\nLicz do średniej: tak\nWaga: 1\nDodał: Becker Adam\n\nKomentarz: portfolio"
+          }
+        ]
       },
       {
+        "id": "sub_7_j_zyk_angielski",
         "name": "Język angielski",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 829132,
-                "info": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: słownictwo unit 4",
-                "value": "5"
-              },
-              {
-                "id": 909325,
-                "info": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n",
-                "value": "5"
-              },
-              {
-                "id": 1611467,
-                "info": "Kategoria: aktywność\nData: 2026-09-24 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
-                "value": "-"
-              },
-              {
-                "id": 2824639,
-                "info": "Kategoria: aktywność\nData: 2026-10-02 (pt.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
-                "value": "+"
-              },
-              {
-                "id": 5138679,
-                "info": "Kategoria: sprawdzian\nData: 2026-10-20 (wt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: question tags + defining relative clauses",
-                "value": "3"
-              },
-              {
-                "id": 6895219,
-                "info": "Kategoria: aktywność\nData: 2026-10-29 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
-                "value": "+"
-              }
-            ],
-            "tempAverage": 4.33,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 4.33
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 4.33,
         "average": 4.33,
+        "semester1Average": 4.33,
         "sem1Grades": [
           {
-            "id": 829132,
-            "info": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: słownictwo unit 4",
-            "value": "5",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-09-17 (czw.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "słownictwo unit 4",
-              "raw": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: słownictwo unit 4",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "829132",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "kartkówka",
+            "color": "#32CD32",
+            "textColor": "#0f172a",
+            "date": "2026-09-17",
+            "teacher": "Ziemba Joanna",
+            "comment": "słownictwo unit 4",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: słownictwo unit 4"
           },
           {
-            "id": 909325,
-            "info": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n",
-            "value": "5",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-09-18 (pt.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "909325",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-09-18",
+            "teacher": "Ziemba Joanna",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna"
           },
           {
-            "id": 1611467,
-            "info": "Kategoria: aktywność\nData: 2026-09-24 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
-            "value": "-",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-09-24 (czw.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-09-24 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "1611467",
+            "value": 0,
+            "displayValue": "-",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-09-24",
+            "teacher": "Ziemba Joanna",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-09-24 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna"
           },
           {
-            "id": 2824639,
-            "info": "Kategoria: aktywność\nData: 2026-10-02 (pt.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
-            "value": "+",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-10-02 (pt.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-10-02 (pt.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "2824639",
+            "value": 0,
+            "displayValue": "+",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-10-02",
+            "teacher": "Ziemba Joanna",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-10-02 (pt.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna"
           },
           {
-            "id": 5138679,
-            "info": "Kategoria: sprawdzian\nData: 2026-10-20 (wt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: question tags + defining relative clauses",
-            "value": "3",
-            "details": {
-              "category": "sprawdzian",
-              "weight": 1,
-              "date": "2026-10-20 (wt.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "question tags + defining relative clauses",
-              "raw": "Kategoria: sprawdzian\nData: 2026-10-20 (wt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: question tags + defining relative clauses",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "5138679",
+            "value": 3,
+            "displayValue": "3",
+            "weight": 1,
+            "category": "sprawdzian",
+            "color": "#FFA07A",
+            "textColor": "#0f172a",
+            "date": "2026-10-20",
+            "teacher": "Ziemba Joanna",
+            "comment": "question tags + defining relative clauses",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: sprawdzian\nData: 2026-10-20 (wt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: question tags + defining relative clauses"
           },
           {
-            "id": 6895219,
-            "info": "Kategoria: aktywność\nData: 2026-10-29 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
-            "value": "+",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-10-29 (czw.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-10-29 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "6895219",
+            "value": 0,
+            "displayValue": "+",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-10-29",
+            "teacher": "Ziemba Joanna",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-10-29 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": 4.33,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "829132",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "kartkówka",
+            "color": "#32CD32",
+            "textColor": "#0f172a",
+            "date": "2026-09-17",
+            "teacher": "Ziemba Joanna",
+            "comment": "słownictwo unit 4",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: słownictwo unit 4"
+          },
+          {
+            "id": "909325",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-09-18",
+            "teacher": "Ziemba Joanna",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-09-18 (pt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna"
+          },
+          {
+            "id": "1611467",
+            "value": 0,
+            "displayValue": "-",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-09-24",
+            "teacher": "Ziemba Joanna",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-09-24 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna"
+          },
+          {
+            "id": "2824639",
+            "value": 0,
+            "displayValue": "+",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-10-02",
+            "teacher": "Ziemba Joanna",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-10-02 (pt.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna"
+          },
+          {
+            "id": "5138679",
+            "value": 3,
+            "displayValue": "3",
+            "weight": 1,
+            "category": "sprawdzian",
+            "color": "#FFA07A",
+            "textColor": "#0f172a",
+            "date": "2026-10-20",
+            "teacher": "Ziemba Joanna",
+            "comment": "question tags + defining relative clauses",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: sprawdzian\nData: 2026-10-20 (wt.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: question tags + defining relative clauses"
+          },
+          {
+            "id": "6895219",
+            "value": 0,
+            "displayValue": "+",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-10-29",
+            "teacher": "Ziemba Joanna",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-10-29 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna"
+          }
+        ]
       },
       {
+        "id": "sub_8_j_zyk_angielski_zawodowy",
         "name": "Język angielski zawodowy",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 2552196,
-                "info": "Kategoria: zadanie\nData: 2026-10-01 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: job advertisement",
-                "value": "5"
-              },
-              {
-                "id": 6897196,
-                "info": "Kategoria: aktywność\nData: 2026-10-29 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
-                "value": "+"
-              }
-            ],
-            "tempAverage": 5,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 5
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 5,
         "average": 5,
+        "semester1Average": 5,
         "sem1Grades": [
           {
-            "id": 2552196,
-            "info": "Kategoria: zadanie\nData: 2026-10-01 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: job advertisement",
-            "value": "5",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-10-01 (czw.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "job advertisement",
-              "raw": "Kategoria: zadanie\nData: 2026-10-01 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: job advertisement",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "2552196",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-10-01",
+            "teacher": "Ziemba Joanna",
+            "comment": "job advertisement",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-10-01 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: job advertisement"
           },
           {
-            "id": 6897196,
-            "info": "Kategoria: aktywność\nData: 2026-10-29 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
-            "value": "+",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-10-29 (czw.)",
-              "teacher": "Ziemba Joanna",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-10-29 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "6897196",
+            "value": 0,
+            "displayValue": "+",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-10-29",
+            "teacher": "Ziemba Joanna",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-10-29 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": 5,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "2552196",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-10-01",
+            "teacher": "Ziemba Joanna",
+            "comment": "job advertisement",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-10-01 (czw.)\nNauczyciel: Ziemba Joanna\nLicz do średniej: tak\nWaga: 1\nDodał: Ziemba Joanna\n\nKomentarz: job advertisement"
+          },
+          {
+            "id": "6897196",
+            "value": 0,
+            "displayValue": "+",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-10-29",
+            "teacher": "Ziemba Joanna",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-10-29 (czw.)\nNauczyciel: Ziemba Joanna\nDodał: Ziemba Joanna"
+          }
+        ]
       },
       {
+        "id": "sub_9_j_zyk_niemiecki",
         "name": "Język niemiecki",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 316188,
-                "info": "Kategoria: praca domowa\nData: 2026-09-11 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-                "value": "4+"
-              },
-              {
-                "id": 2119728,
-                "info": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-                "value": "2+"
-              },
-              {
-                "id": 4691628,
-                "info": "Kategoria: słownictwo\nData: 2026-10-16 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-                "value": "2"
-              },
-              {
-                "id": 5863304,
-                "info": "Kategoria: aktywność\nData: 2026-10-23 (pt.)\nNauczyciel: Chyła Beata\nDodał: Chyła Beata\n",
-                "value": "+"
-              },
-              {
-                "id": 6281328,
-                "info": "Kategoria: prezentacja\nData: 2026-10-27 (wt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-                "value": "5"
-              }
-            ],
-            "tempAverage": 3.5,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 3.5
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 3.5,
         "average": 3.5,
+        "semester1Average": 3.5,
         "sem1Grades": [
           {
-            "id": 316188,
-            "info": "Kategoria: praca domowa\nData: 2026-09-11 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-            "value": "4+",
-            "details": {
-              "category": "praca domowa",
-              "weight": 1,
-              "date": "2026-09-11 (pt.)",
-              "teacher": "Chyła Beata",
-              "comment": "",
-              "raw": "Kategoria: praca domowa\nData: 2026-09-11 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "316188",
+            "value": 4.5,
+            "displayValue": "4+",
+            "weight": 1,
+            "category": "praca domowa",
+            "color": "#3333FF",
+            "textColor": "#ffffff",
+            "date": "2026-09-11",
+            "teacher": "Chyła Beata",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: praca domowa\nData: 2026-09-11 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata"
           },
           {
-            "id": 2119728,
-            "info": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-            "value": "2+",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-09-28 (pon.)",
-              "teacher": "Chyła Beata",
-              "comment": "",
-              "raw": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "2119728",
+            "value": 2.5,
+            "displayValue": "2+",
+            "weight": 1,
+            "category": "kartkówka",
+            "color": "#32CD32",
+            "textColor": "#0f172a",
+            "date": "2026-09-28",
+            "teacher": "Chyła Beata",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata"
           },
           {
-            "id": 4691628,
-            "info": "Kategoria: słownictwo\nData: 2026-10-16 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-            "value": "2",
-            "details": {
-              "category": "słownictwo",
-              "weight": 1,
-              "date": "2026-10-16 (pt.)",
-              "teacher": "Chyła Beata",
-              "comment": "",
-              "raw": "Kategoria: słownictwo\nData: 2026-10-16 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "4691628",
+            "value": 2,
+            "displayValue": "2",
+            "weight": 1,
+            "category": "słownictwo",
+            "color": "#BDB76B",
+            "textColor": "#0f172a",
+            "date": "2026-10-16",
+            "teacher": "Chyła Beata",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: słownictwo\nData: 2026-10-16 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata"
           },
           {
-            "id": 5863304,
-            "info": "Kategoria: aktywność\nData: 2026-10-23 (pt.)\nNauczyciel: Chyła Beata\nDodał: Chyła Beata\n",
-            "value": "+",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-10-23 (pt.)",
-              "teacher": "Chyła Beata",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-10-23 (pt.)\nNauczyciel: Chyła Beata\nDodał: Chyła Beata\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "5863304",
+            "value": 0,
+            "displayValue": "+",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-10-23",
+            "teacher": "Chyła Beata",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-10-23 (pt.)\nNauczyciel: Chyła Beata\nDodał: Chyła Beata"
           },
           {
-            "id": 6281328,
-            "info": "Kategoria: prezentacja\nData: 2026-10-27 (wt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-            "value": "5",
-            "details": {
-              "category": "prezentacja",
-              "weight": 1,
-              "date": "2026-10-27 (wt.)",
-              "teacher": "Chyła Beata",
-              "comment": "",
-              "raw": "Kategoria: prezentacja\nData: 2026-10-27 (wt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "6281328",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "prezentacja",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-10-27",
+            "teacher": "Chyła Beata",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: prezentacja\nData: 2026-10-27 (wt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": 3.5,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "316188",
+            "value": 4.5,
+            "displayValue": "4+",
+            "weight": 1,
+            "category": "praca domowa",
+            "color": "#3333FF",
+            "textColor": "#ffffff",
+            "date": "2026-09-11",
+            "teacher": "Chyła Beata",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: praca domowa\nData: 2026-09-11 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata"
+          },
+          {
+            "id": "2119728",
+            "value": 2.5,
+            "displayValue": "2+",
+            "weight": 1,
+            "category": "kartkówka",
+            "color": "#32CD32",
+            "textColor": "#0f172a",
+            "date": "2026-09-28",
+            "teacher": "Chyła Beata",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: kartkówka\nData: 2026-09-28 (pon.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata"
+          },
+          {
+            "id": "4691628",
+            "value": 2,
+            "displayValue": "2",
+            "weight": 1,
+            "category": "słownictwo",
+            "color": "#BDB76B",
+            "textColor": "#0f172a",
+            "date": "2026-10-16",
+            "teacher": "Chyła Beata",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: słownictwo\nData: 2026-10-16 (pt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata"
+          },
+          {
+            "id": "5863304",
+            "value": 0,
+            "displayValue": "+",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-10-23",
+            "teacher": "Chyła Beata",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-10-23 (pt.)\nNauczyciel: Chyła Beata\nDodał: Chyła Beata"
+          },
+          {
+            "id": "6281328",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "prezentacja",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-10-27",
+            "teacher": "Chyła Beata",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: prezentacja\nData: 2026-10-27 (wt.)\nNauczyciel: Chyła Beata\nLicz do średniej: tak\nWaga: 1\nDodał: Chyła Beata"
+          }
+        ]
       },
       {
+        "id": "sub_10_j_zyk_polski",
         "name": "Język polski",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 767218,
-                "info": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: barok- wprowadzenie",
-                "value": "1"
-              },
-              {
-                "id": 1004112,
-                "info": "Kategoria: kartkówka\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nPoprawa oceny: 1 (kartkówka)",
-                "value": "4"
-              },
-              {
-                "id": 995881,
-                "info": "Kategoria: zadanie\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: prezentacje - sztuka baroku",
-                "value": "5+"
-              },
-              {
-                "id": 6191574,
-                "info": "Kategoria: aktywność\nData: 2026-10-26 (pon.)\nNauczyciel: Negowska Alicja\nDodał: Negowska Alicja\n",
-                "value": "+"
-              },
-              {
-                "id": 7091674,
-                "info": "Kategoria: Test wiedzy z lektury\nData: 2026-10-30 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: Makbet- test po przeczytaniu lektury",
-                "value": "5"
-              },
-              {
-                "id": 7299225,
-                "info": "Kategoria: aktywność\nData: 2026-11-02 (pon.)\nNauczyciel: Negowska Alicja\nDodał: Negowska Alicja\n",
-                "value": "+"
-              }
-            ],
-            "tempAverage": 3.88,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 3.88
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 3.88,
         "average": 3.88,
+        "semester1Average": 3.88,
         "sem1Grades": [
           {
-            "id": 767218,
-            "info": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: barok- wprowadzenie",
-            "value": "1",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-09-17 (czw.)",
-              "teacher": "Negowska Alicja",
-              "comment": "barok- wprowadzenie",
-              "raw": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: barok- wprowadzenie",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "767218",
+            "value": 1,
+            "displayValue": "1",
+            "weight": 1,
+            "category": "kartkówka",
+            "color": "#32CD32",
+            "textColor": "#0f172a",
+            "date": "2026-09-17",
+            "teacher": "Negowska Alicja",
+            "comment": "barok- wprowadzenie",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": true,
+            "rawInfo": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: barok- wprowadzenie",
+            "improvedGradeId": "1004112"
           },
           {
-            "id": 1004112,
-            "info": "Kategoria: kartkówka\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nPoprawa oceny: 1 (kartkówka)",
-            "value": "4",
-            "details": {
-              "category": "kartkówka",
-              "weight": 1,
-              "date": "2026-09-18 (pt.)",
-              "teacher": "Negowska Alicja",
-              "comment": "",
-              "raw": "Kategoria: kartkówka\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nPoprawa oceny: 1 (kartkówka)",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "1004112",
+            "value": 4,
+            "displayValue": "4",
+            "weight": 1,
+            "category": "kartkówka",
+            "color": "#32CD32",
+            "textColor": "#0f172a",
+            "date": "2026-09-18",
+            "teacher": "Negowska Alicja",
+            "semester": 1,
+            "isImprovement": true,
+            "improvedValue": "1 (kartkówka)",
+            "inAverage": true,
+            "isInsideBracket": true,
+            "rawInfo": "Kategoria: kartkówka\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nPoprawa oceny: 1 (kartkówka)",
+            "improvedGradeId": "767218"
           },
           {
-            "id": 995881,
-            "info": "Kategoria: zadanie\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: prezentacje - sztuka baroku",
-            "value": "5+",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-18 (pt.)",
-              "teacher": "Negowska Alicja",
-              "comment": "prezentacje - sztuka baroku",
-              "raw": "Kategoria: zadanie\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: prezentacje - sztuka baroku",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "995881",
+            "value": 5.5,
+            "displayValue": "5+",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-09-18",
+            "teacher": "Negowska Alicja",
+            "comment": "prezentacje - sztuka baroku",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: prezentacje - sztuka baroku"
           },
           {
-            "id": 6191574,
-            "info": "Kategoria: aktywność\nData: 2026-10-26 (pon.)\nNauczyciel: Negowska Alicja\nDodał: Negowska Alicja\n",
-            "value": "+",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-10-26 (pon.)",
-              "teacher": "Negowska Alicja",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-10-26 (pon.)\nNauczyciel: Negowska Alicja\nDodał: Negowska Alicja\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "6191574",
+            "value": 0,
+            "displayValue": "+",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-10-26",
+            "teacher": "Negowska Alicja",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-10-26 (pon.)\nNauczyciel: Negowska Alicja\nDodał: Negowska Alicja"
           },
           {
-            "id": 7091674,
-            "info": "Kategoria: Test wiedzy z lektury\nData: 2026-10-30 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: Makbet- test po przeczytaniu lektury",
-            "value": "5",
-            "details": {
-              "category": "Test wiedzy z lektury",
-              "weight": 1,
-              "date": "2026-10-30 (pt.)",
-              "teacher": "Negowska Alicja",
-              "comment": "Makbet- test po przeczytaniu lektury",
-              "raw": "Kategoria: Test wiedzy z lektury\nData: 2026-10-30 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: Makbet- test po przeczytaniu lektury",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "7091674",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "Test wiedzy z lektury",
+            "color": "#DC143C",
+            "textColor": "#ffffff",
+            "date": "2026-10-30",
+            "teacher": "Negowska Alicja",
+            "comment": "Makbet- test po przeczytaniu lektury",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Test wiedzy z lektury\nData: 2026-10-30 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: Makbet- test po przeczytaniu lektury"
           },
           {
-            "id": 7299225,
-            "info": "Kategoria: aktywność\nData: 2026-11-02 (pon.)\nNauczyciel: Negowska Alicja\nDodał: Negowska Alicja\n",
-            "value": "+",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-11-02 (pon.)",
-              "teacher": "Negowska Alicja",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-11-02 (pon.)\nNauczyciel: Negowska Alicja\nDodał: Negowska Alicja\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "7299225",
+            "value": 0,
+            "displayValue": "+",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-11-02",
+            "teacher": "Negowska Alicja",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-11-02 (pon.)\nNauczyciel: Negowska Alicja\nDodał: Negowska Alicja"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": 3.88,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "767218",
+            "value": 1,
+            "displayValue": "1",
+            "weight": 1,
+            "category": "kartkówka",
+            "color": "#32CD32",
+            "textColor": "#0f172a",
+            "date": "2026-09-17",
+            "teacher": "Negowska Alicja",
+            "comment": "barok- wprowadzenie",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": true,
+            "rawInfo": "Kategoria: kartkówka\nData: 2026-09-17 (czw.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: barok- wprowadzenie",
+            "improvedGradeId": "1004112"
+          },
+          {
+            "id": "1004112",
+            "value": 4,
+            "displayValue": "4",
+            "weight": 1,
+            "category": "kartkówka",
+            "color": "#32CD32",
+            "textColor": "#0f172a",
+            "date": "2026-09-18",
+            "teacher": "Negowska Alicja",
+            "semester": 1,
+            "isImprovement": true,
+            "improvedValue": "1 (kartkówka)",
+            "inAverage": true,
+            "isInsideBracket": true,
+            "rawInfo": "Kategoria: kartkówka\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nPoprawa oceny: 1 (kartkówka)",
+            "improvedGradeId": "767218"
+          },
+          {
+            "id": "995881",
+            "value": 5.5,
+            "displayValue": "5+",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-09-18",
+            "teacher": "Negowska Alicja",
+            "comment": "prezentacje - sztuka baroku",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: prezentacje - sztuka baroku"
+          },
+          {
+            "id": "6191574",
+            "value": 0,
+            "displayValue": "+",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-10-26",
+            "teacher": "Negowska Alicja",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-10-26 (pon.)\nNauczyciel: Negowska Alicja\nDodał: Negowska Alicja"
+          },
+          {
+            "id": "7091674",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "Test wiedzy z lektury",
+            "color": "#DC143C",
+            "textColor": "#ffffff",
+            "date": "2026-10-30",
+            "teacher": "Negowska Alicja",
+            "comment": "Makbet- test po przeczytaniu lektury",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Test wiedzy z lektury\nData: 2026-10-30 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nKomentarz: Makbet- test po przeczytaniu lektury"
+          },
+          {
+            "id": "7299225",
+            "value": 0,
+            "displayValue": "+",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-11-02",
+            "teacher": "Negowska Alicja",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-11-02 (pon.)\nNauczyciel: Negowska Alicja\nDodał: Negowska Alicja"
+          }
+        ]
       },
       {
+        "id": "sub_11_lokalne_sieci_komputerowe",
         "name": "Lokalne sieci komputerowe",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 3927791,
-                "info": "Kategoria: aktywność\nData: 2026-10-09 (pt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: symbole i piktogramy w sieciach komputerowych",
-                "value": "5"
-              }
-            ],
-            "tempAverage": 5,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 5
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 5,
         "average": 5,
+        "semester1Average": 5,
         "sem1Grades": [
           {
-            "id": 3927791,
-            "info": "Kategoria: aktywność\nData: 2026-10-09 (pt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: symbole i piktogramy w sieciach komputerowych",
-            "value": "5",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-10-09 (pt.)",
-              "teacher": "Wojnarowski Przemysław",
-              "comment": "symbole i piktogramy w sieciach komputerowych",
-              "raw": "Kategoria: aktywność\nData: 2026-10-09 (pt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: symbole i piktogramy w sieciach komputerowych",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "3927791",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-10-09",
+            "teacher": "Wojnarowski Przemysław",
+            "comment": "symbole i piktogramy w sieciach komputerowych",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-10-09 (pt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: symbole i piktogramy w sieciach komputerowych"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": 5,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "3927791",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-10-09",
+            "teacher": "Wojnarowski Przemysław",
+            "comment": "symbole i piktogramy w sieciach komputerowych",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-10-09 (pt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: symbole i piktogramy w sieciach komputerowych"
+          }
+        ]
       },
       {
+        "id": "sub_12_matematyka",
         "name": "Matematyka",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 138759,
-                "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-08 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-                "value": "3"
-              },
-              {
-                "id": 611954,
-                "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-15 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-                "value": "5"
-              },
-              {
-                "id": 1355469,
-                "info": "Kategoria: Aktywność\nData: 2026-09-22 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-                "value": "5"
-              },
-              {
-                "id": 1660212,
-                "info": "Kategoria: sprawdzian\nData: 2026-09-24 (czw.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 2\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa",
-                "value": "3"
-              },
-              {
-                "id": 3558014,
-                "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-10-07 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n\nKomentarz: graficznie i algebraicznie",
-                "value": "3"
-              },
-              {
-                "id": 5974954,
-                "info": "Kategoria: Praca klasowa\nData: 2026-10-25 (nd.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 3\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa",
-                "value": "2"
-              },
-              {
-                "id": 6567892,
-                "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-10-28 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n\nKomentarz: Tales",
-                "value": "4"
-              },
-              {
-                "id": 7821437,
-                "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-11-04 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-                "value": "5"
-              }
-            ],
-            "tempAverage": 3.36,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 3.36
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 3.36,
         "average": 3.36,
+        "semester1Average": 3.36,
         "sem1Grades": [
           {
-            "id": 138759,
-            "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-08 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-            "value": "3",
-            "details": {
-              "category": "Odpowiedź/kartkówka",
-              "weight": 1,
-              "date": "2026-09-08 (wt.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "",
-              "raw": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-08 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "138759",
+            "value": 3,
+            "displayValue": "3",
+            "weight": 1,
+            "category": "Odpowiedź/kartkówka",
+            "color": "#E6E6FA",
+            "textColor": "#0f172a",
+            "date": "2026-09-08",
+            "teacher": "Bahr Zbigniew",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-08 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew"
           },
           {
-            "id": 611954,
-            "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-15 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-            "value": "5",
-            "details": {
-              "category": "Odpowiedź/kartkówka",
-              "weight": 1,
-              "date": "2026-09-15 (wt.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "",
-              "raw": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-15 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "611954",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "Odpowiedź/kartkówka",
+            "color": "#E6E6FA",
+            "textColor": "#0f172a",
+            "date": "2026-09-15",
+            "teacher": "Bahr Zbigniew",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-15 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew"
           },
           {
-            "id": 1355469,
-            "info": "Kategoria: Aktywność\nData: 2026-09-22 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-            "value": "5",
-            "details": {
-              "category": "Aktywność",
-              "weight": 1,
-              "date": "2026-09-22 (wt.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "",
-              "raw": "Kategoria: Aktywność\nData: 2026-09-22 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "1355469",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "Aktywność",
+            "color": "#FFD700",
+            "textColor": "#0f172a",
+            "date": "2026-09-22",
+            "teacher": "Bahr Zbigniew",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Aktywność\nData: 2026-09-22 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew"
           },
           {
-            "id": 1660212,
-            "info": "Kategoria: sprawdzian\nData: 2026-09-24 (czw.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 2\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa",
-            "value": "3",
-            "details": {
-              "category": "sprawdzian",
-              "weight": 2,
-              "date": "2026-09-24 (czw.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "funkcja liniowa",
-              "raw": "Kategoria: sprawdzian\nData: 2026-09-24 (czw.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 2\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "1660212",
+            "value": 3,
+            "displayValue": "3",
+            "weight": 2,
+            "category": "sprawdzian",
+            "color": "#32CD32",
+            "textColor": "#0f172a",
+            "date": "2026-09-24",
+            "teacher": "Bahr Zbigniew",
+            "comment": "funkcja liniowa",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: sprawdzian\nData: 2026-09-24 (czw.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 2\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa"
           },
           {
-            "id": 3558014,
-            "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-10-07 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n\nKomentarz: graficznie i algebraicznie",
-            "value": "3",
-            "details": {
-              "category": "Odpowiedź/kartkówka",
-              "weight": 1,
-              "date": "2026-10-07 (śr.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "graficznie i algebraicznie",
-              "raw": "Kategoria: Odpowiedź/kartkówka\nData: 2026-10-07 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n\nKomentarz: graficznie i algebraicznie",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "3558014",
+            "value": 3,
+            "displayValue": "3",
+            "weight": 1,
+            "category": "Odpowiedź/kartkówka",
+            "color": "#E6E6FA",
+            "textColor": "#0f172a",
+            "date": "2026-10-07",
+            "teacher": "Bahr Zbigniew",
+            "comment": "graficznie i algebraicznie",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Odpowiedź/kartkówka\nData: 2026-10-07 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n\nKomentarz: graficznie i algebraicznie"
           },
           {
-            "id": 5974954,
-            "info": "Kategoria: Praca klasowa\nData: 2026-10-25 (nd.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 3\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa",
-            "value": "2",
-            "details": {
-              "category": "Praca klasowa",
-              "weight": 3,
-              "date": "2026-10-25 (nd.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "funkcja liniowa",
-              "raw": "Kategoria: Praca klasowa\nData: 2026-10-25 (nd.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 3\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "5974954",
+            "value": 2,
+            "displayValue": "2",
+            "weight": 3,
+            "category": "Praca klasowa",
+            "color": "#FF0000",
+            "textColor": "#ffffff",
+            "date": "2026-10-25",
+            "teacher": "Bahr Zbigniew",
+            "comment": "funkcja liniowa",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Praca klasowa\nData: 2026-10-25 (nd.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 3\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa"
           },
           {
-            "id": 6567892,
-            "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-10-28 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n\nKomentarz: Tales",
-            "value": "4",
-            "details": {
-              "category": "Odpowiedź/kartkówka",
-              "weight": 1,
-              "date": "2026-10-28 (śr.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "Tales",
-              "raw": "Kategoria: Odpowiedź/kartkówka\nData: 2026-10-28 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n\nKomentarz: Tales",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "6567892",
+            "value": 4,
+            "displayValue": "4",
+            "weight": 1,
+            "category": "Odpowiedź/kartkówka",
+            "color": "#E6E6FA",
+            "textColor": "#0f172a",
+            "date": "2026-10-28",
+            "teacher": "Bahr Zbigniew",
+            "comment": "Tales",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Odpowiedź/kartkówka\nData: 2026-10-28 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n\nKomentarz: Tales"
           },
           {
-            "id": 7821437,
-            "info": "Kategoria: Odpowiedź/kartkówka\nData: 2026-11-04 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-            "value": "5",
-            "details": {
-              "category": "Odpowiedź/kartkówka",
-              "weight": 1,
-              "date": "2026-11-04 (śr.)",
-              "teacher": "Bahr Zbigniew",
-              "comment": "",
-              "raw": "Kategoria: Odpowiedź/kartkówka\nData: 2026-11-04 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "7821437",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "Odpowiedź/kartkówka",
+            "color": "#E6E6FA",
+            "textColor": "#0f172a",
+            "date": "2026-11-04",
+            "teacher": "Bahr Zbigniew",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Odpowiedź/kartkówka\nData: 2026-11-04 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": 3.36,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "138759",
+            "value": 3,
+            "displayValue": "3",
+            "weight": 1,
+            "category": "Odpowiedź/kartkówka",
+            "color": "#E6E6FA",
+            "textColor": "#0f172a",
+            "date": "2026-09-08",
+            "teacher": "Bahr Zbigniew",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-08 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew"
+          },
+          {
+            "id": "611954",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "Odpowiedź/kartkówka",
+            "color": "#E6E6FA",
+            "textColor": "#0f172a",
+            "date": "2026-09-15",
+            "teacher": "Bahr Zbigniew",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Odpowiedź/kartkówka\nData: 2026-09-15 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew"
+          },
+          {
+            "id": "1355469",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "Aktywność",
+            "color": "#FFD700",
+            "textColor": "#0f172a",
+            "date": "2026-09-22",
+            "teacher": "Bahr Zbigniew",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Aktywność\nData: 2026-09-22 (wt.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew"
+          },
+          {
+            "id": "1660212",
+            "value": 3,
+            "displayValue": "3",
+            "weight": 2,
+            "category": "sprawdzian",
+            "color": "#32CD32",
+            "textColor": "#0f172a",
+            "date": "2026-09-24",
+            "teacher": "Bahr Zbigniew",
+            "comment": "funkcja liniowa",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: sprawdzian\nData: 2026-09-24 (czw.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 2\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa"
+          },
+          {
+            "id": "3558014",
+            "value": 3,
+            "displayValue": "3",
+            "weight": 1,
+            "category": "Odpowiedź/kartkówka",
+            "color": "#E6E6FA",
+            "textColor": "#0f172a",
+            "date": "2026-10-07",
+            "teacher": "Bahr Zbigniew",
+            "comment": "graficznie i algebraicznie",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Odpowiedź/kartkówka\nData: 2026-10-07 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n\nKomentarz: graficznie i algebraicznie"
+          },
+          {
+            "id": "5974954",
+            "value": 2,
+            "displayValue": "2",
+            "weight": 3,
+            "category": "Praca klasowa",
+            "color": "#FF0000",
+            "textColor": "#ffffff",
+            "date": "2026-10-25",
+            "teacher": "Bahr Zbigniew",
+            "comment": "funkcja liniowa",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Praca klasowa\nData: 2026-10-25 (nd.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 3\nDodał: Bahr Zbigniew\n\nKomentarz: funkcja liniowa"
+          },
+          {
+            "id": "6567892",
+            "value": 4,
+            "displayValue": "4",
+            "weight": 1,
+            "category": "Odpowiedź/kartkówka",
+            "color": "#E6E6FA",
+            "textColor": "#0f172a",
+            "date": "2026-10-28",
+            "teacher": "Bahr Zbigniew",
+            "comment": "Tales",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Odpowiedź/kartkówka\nData: 2026-10-28 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew\n\nKomentarz: Tales"
+          },
+          {
+            "id": "7821437",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "Odpowiedź/kartkówka",
+            "color": "#E6E6FA",
+            "textColor": "#0f172a",
+            "date": "2026-11-04",
+            "teacher": "Bahr Zbigniew",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Odpowiedź/kartkówka\nData: 2026-11-04 (śr.)\nNauczyciel: Bahr Zbigniew\nLicz do średniej: tak\nWaga: 1\nDodał: Bahr Zbigniew"
+          }
+        ]
       },
       {
+        "id": "sub_13_pracownia_lokalnych_sieci_komputerowych",
         "name": "Pracownia lokalnych sieci komputerowych",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 816464,
-                "info": "Kategoria: zadanie\nData: 2026-09-17 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz\n",
-                "value": "5"
-              },
-              {
-                "id": 4534719,
-                "info": "Kategoria: Gdniazo\nData: 2026-10-15 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz\n",
-                "value": "5"
-              }
-            ],
-            "tempAverage": 5,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 5
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 5,
         "average": 5,
+        "semester1Average": 5,
         "sem1Grades": [
           {
-            "id": 816464,
-            "info": "Kategoria: zadanie\nData: 2026-09-17 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz\n",
-            "value": "5",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-17 (czw.)",
-              "teacher": "Kryła Łukasz",
-              "comment": "",
-              "raw": "Kategoria: zadanie\nData: 2026-09-17 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "816464",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-09-17",
+            "teacher": "Kryła Łukasz",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-09-17 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz"
           },
           {
-            "id": 4534719,
-            "info": "Kategoria: Gdniazo\nData: 2026-10-15 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz\n",
-            "value": "5",
-            "details": {
-              "category": "Gdniazo",
-              "weight": 1,
-              "date": "2026-10-15 (czw.)",
-              "teacher": "Kryła Łukasz",
-              "comment": "",
-              "raw": "Kategoria: Gdniazo\nData: 2026-10-15 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "4534719",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "Gdniazo",
+            "color": "#FFA07A",
+            "textColor": "#0f172a",
+            "date": "2026-10-15",
+            "teacher": "Kryła Łukasz",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Gdniazo\nData: 2026-10-15 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": 5,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "816464",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-09-17",
+            "teacher": "Kryła Łukasz",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-09-17 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz"
+          },
+          {
+            "id": "4534719",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "Gdniazo",
+            "color": "#FFA07A",
+            "textColor": "#0f172a",
+            "date": "2026-10-15",
+            "teacher": "Kryła Łukasz",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: Gdniazo\nData: 2026-10-15 (czw.)\nNauczyciel: Kryła Łukasz\nLicz do średniej: tak\nWaga: 1\nDodał: Kryła Łukasz"
+          }
+        ]
       },
       {
+        "id": "sub_14_pracownia_system_w_operacyjnych",
         "name": "Pracownia systemów operacyjnych",
-        "semester": [
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": null,
-        "average": null,
+        "average": 0,
         "sem1Grades": [],
         "sem2Grades": [],
-        "sem1Avg": null,
-        "sem2Avg": null
+        "grades": []
       },
       {
+        "id": "sub_15_pracownia_urz_dze__techniki_komputerowej",
         "name": "Pracownia urządzeń techniki komputerowej",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 1240939,
-                "info": "Kategoria: zadanie\nData: 2026-09-22 (wt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: modernizacja zestawu komputerowego",
-                "value": "5"
-              },
-              {
-                "id": 6318131,
-                "info": "Kategoria: zadanie\nData: 2026-10-20 (wt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: Diagnostyka serwisowa zestawu komputerowego ",
-                "value": "5"
-              }
-            ],
-            "tempAverage": 5,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 5
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 5,
         "average": 5,
+        "semester1Average": 5,
         "sem1Grades": [
           {
-            "id": 1240939,
-            "info": "Kategoria: zadanie\nData: 2026-09-22 (wt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: modernizacja zestawu komputerowego",
-            "value": "5",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-22 (wt.)",
-              "teacher": "Wojnarowski Przemysław",
-              "comment": "modernizacja zestawu komputerowego",
-              "raw": "Kategoria: zadanie\nData: 2026-09-22 (wt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: modernizacja zestawu komputerowego",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "1240939",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-09-22",
+            "teacher": "Wojnarowski Przemysław",
+            "comment": "modernizacja zestawu komputerowego",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-09-22 (wt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: modernizacja zestawu komputerowego"
           },
           {
-            "id": 6318131,
-            "info": "Kategoria: zadanie\nData: 2026-10-20 (wt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: Diagnostyka serwisowa zestawu komputerowego ",
-            "value": "5",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-10-20 (wt.)",
-              "teacher": "Wojnarowski Przemysław",
-              "comment": "Diagnostyka serwisowa zestawu komputerowego",
-              "raw": "Kategoria: zadanie\nData: 2026-10-20 (wt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: Diagnostyka serwisowa zestawu komputerowego ",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "6318131",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-10-20",
+            "teacher": "Wojnarowski Przemysław",
+            "comment": "Diagnostyka serwisowa zestawu komputerowego",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-10-20 (wt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: Diagnostyka serwisowa zestawu komputerowego"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": 5,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "1240939",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-09-22",
+            "teacher": "Wojnarowski Przemysław",
+            "comment": "modernizacja zestawu komputerowego",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-09-22 (wt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: modernizacja zestawu komputerowego"
+          },
+          {
+            "id": "6318131",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-10-20",
+            "teacher": "Wojnarowski Przemysław",
+            "comment": "Diagnostyka serwisowa zestawu komputerowego",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-10-20 (wt.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: Diagnostyka serwisowa zestawu komputerowego"
+          }
+        ]
       },
       {
+        "id": "sub_16_religia",
         "name": "Religia",
-        "semester": [
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": null,
-        "average": null,
+        "average": 0,
         "sem1Grades": [],
         "sem2Grades": [],
-        "sem1Avg": null,
-        "sem2Avg": null
+        "grades": []
       },
       {
+        "id": "sub_17_systemy_operacyjne",
         "name": "Systemy operacyjne",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 1171137,
-                "info": "Kategoria: zadanie\nData: 2026-09-21 (pon.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: Struktura folderów i zarządzanie przez cud",
-                "value": "5"
-              },
-              {
-                "id": 2066473,
-                "info": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Wojnarowski Przemysław\nDodał: Wojnarowski Przemysław\n\nKomentarz: diagnostyka systemu ",
-                "value": "-"
-              }
-            ],
-            "tempAverage": 5,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 5
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 5,
         "average": 5,
+        "semester1Average": 5,
         "sem1Grades": [
           {
-            "id": 1171137,
-            "info": "Kategoria: zadanie\nData: 2026-09-21 (pon.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: Struktura folderów i zarządzanie przez cud",
-            "value": "5",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-21 (pon.)",
-              "teacher": "Wojnarowski Przemysław",
-              "comment": "Struktura folderów i zarządzanie przez cud",
-              "raw": "Kategoria: zadanie\nData: 2026-09-21 (pon.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: Struktura folderów i zarządzanie przez cud",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "1171137",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-09-21",
+            "teacher": "Wojnarowski Przemysław",
+            "comment": "Struktura folderów i zarządzanie przez cud",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-09-21 (pon.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: Struktura folderów i zarządzanie przez cud"
           },
           {
-            "id": 2066473,
-            "info": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Wojnarowski Przemysław\nDodał: Wojnarowski Przemysław\n\nKomentarz: diagnostyka systemu ",
-            "value": "-",
-            "details": {
-              "category": "zadanie",
-              "weight": 1,
-              "date": "2026-09-28 (pon.)",
-              "teacher": "Wojnarowski Przemysław",
-              "comment": "diagnostyka systemu",
-              "raw": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Wojnarowski Przemysław\nDodał: Wojnarowski Przemysław\n\nKomentarz: diagnostyka systemu ",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "2066473",
+            "value": 0,
+            "displayValue": "-",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-09-28",
+            "teacher": "Wojnarowski Przemysław",
+            "comment": "diagnostyka systemu",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Wojnarowski Przemysław\nDodał: Wojnarowski Przemysław\n\nKomentarz: diagnostyka systemu"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": 5,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "1171137",
+            "value": 5,
+            "displayValue": "5",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-09-21",
+            "teacher": "Wojnarowski Przemysław",
+            "comment": "Struktura folderów i zarządzanie przez cud",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-09-21 (pon.)\nNauczyciel: Wojnarowski Przemysław\nLicz do średniej: tak\nWaga: 1\nDodał: Wojnarowski Przemysław\n\nKomentarz: Struktura folderów i zarządzanie przez cud"
+          },
+          {
+            "id": "2066473",
+            "value": 0,
+            "displayValue": "-",
+            "weight": 1,
+            "category": "zadanie",
+            "color": "#66CDAA",
+            "textColor": "#0f172a",
+            "date": "2026-09-28",
+            "teacher": "Wojnarowski Przemysław",
+            "comment": "diagnostyka systemu",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: zadanie\nData: 2026-09-28 (pon.)\nNauczyciel: Wojnarowski Przemysław\nDodał: Wojnarowski Przemysław\n\nKomentarz: diagnostyka systemu"
+          }
+        ]
       },
       {
+        "id": "sub_18_urz_dzenia_techniki_komputerowej",
         "name": "Urządzenia techniki komputerowej",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 3570755,
-                "info": "Kategoria: sprawdzian\nData: 2026-10-08 (czw.)\nNauczyciel: Gembiak Bartosz\nLicz do średniej: tak\nWaga: 1\nDodał: Gembiak Bartosz\n",
-                "value": "3-"
-              }
-            ],
-            "tempAverage": 2.75,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": 2.75
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": 2.75,
         "average": 2.75,
+        "semester1Average": 2.75,
         "sem1Grades": [
           {
-            "id": 3570755,
-            "info": "Kategoria: sprawdzian\nData: 2026-10-08 (czw.)\nNauczyciel: Gembiak Bartosz\nLicz do średniej: tak\nWaga: 1\nDodał: Gembiak Bartosz\n",
-            "value": "3-",
-            "details": {
-              "category": "sprawdzian",
-              "weight": 1,
-              "date": "2026-10-08 (czw.)",
-              "teacher": "Gembiak Bartosz",
-              "comment": "",
-              "raw": "Kategoria: sprawdzian\nData: 2026-10-08 (czw.)\nNauczyciel: Gembiak Bartosz\nLicz do średniej: tak\nWaga: 1\nDodał: Gembiak Bartosz\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "3570755",
+            "value": 2.75,
+            "displayValue": "3-",
+            "weight": 1,
+            "category": "sprawdzian",
+            "color": "#FFA07A",
+            "textColor": "#0f172a",
+            "date": "2026-10-08",
+            "teacher": "Gembiak Bartosz",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: sprawdzian\nData: 2026-10-08 (czw.)\nNauczyciel: Gembiak Bartosz\nLicz do średniej: tak\nWaga: 1\nDodał: Gembiak Bartosz"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": 2.75,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "3570755",
+            "value": 2.75,
+            "displayValue": "3-",
+            "weight": 1,
+            "category": "sprawdzian",
+            "color": "#FFA07A",
+            "textColor": "#0f172a",
+            "date": "2026-10-08",
+            "teacher": "Gembiak Bartosz",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": true,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: sprawdzian\nData: 2026-10-08 (czw.)\nNauczyciel: Gembiak Bartosz\nLicz do średniej: tak\nWaga: 1\nDodał: Gembiak Bartosz"
+          }
+        ]
       },
       {
+        "id": "sub_19_wychowanie_fizyczne",
         "name": "Wychowanie fizyczne",
-        "semester": [
-          {
-            "grades": [
-              {
-                "id": 2197682,
-                "info": "Kategoria: aktywność\nData: 2026-09-29 (wt.)\nNauczyciel: Łysakowski Grzegorz\nDodał: Łysakowski Grzegorz\n",
-                "value": "-"
-              }
-            ],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": null,
-        "average": null,
+        "average": 0,
         "sem1Grades": [
           {
-            "id": 2197682,
-            "info": "Kategoria: aktywność\nData: 2026-09-29 (wt.)\nNauczyciel: Łysakowski Grzegorz\nDodał: Łysakowski Grzegorz\n",
-            "value": "-",
-            "details": {
-              "category": "aktywność",
-              "weight": 1,
-              "date": "2026-09-29 (wt.)",
-              "teacher": "Łysakowski Grzegorz",
-              "comment": "",
-              "raw": "Kategoria: aktywność\nData: 2026-09-29 (wt.)\nNauczyciel: Łysakowski Grzegorz\nDodał: Łysakowski Grzegorz\n",
-              "inAverage": true
-            },
-            "inAverage": true
+            "id": "2197682",
+            "value": 0,
+            "displayValue": "-",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-09-29",
+            "teacher": "Łysakowski Grzegorz",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-09-29 (wt.)\nNauczyciel: Łysakowski Grzegorz\nDodał: Łysakowski Grzegorz"
           }
         ],
         "sem2Grades": [],
-        "sem1Avg": null,
-        "sem2Avg": null
+        "grades": [
+          {
+            "id": "2197682",
+            "value": 0,
+            "displayValue": "-",
+            "weight": 1,
+            "category": "aktywność",
+            "color": "#ADFF2F",
+            "textColor": "#0f172a",
+            "date": "2026-09-29",
+            "teacher": "Łysakowski Grzegorz",
+            "semester": 1,
+            "isImprovement": false,
+            "inAverage": false,
+            "isInsideBracket": false,
+            "rawInfo": "Kategoria: aktywność\nData: 2026-09-29 (wt.)\nNauczyciel: Łysakowski Grzegorz\nDodał: Łysakowski Grzegorz"
+          }
+        ]
       },
       {
+        "id": "sub_20_zaj_cia_z_wychowawc_",
         "name": "Zajęcia z wychowawcą",
-        "semester": [
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          },
-          {
-            "grades": [],
-            "tempAverage": null,
-            "average": null
-          }
-        ],
-        "tempAverage": null,
-        "average": null,
+        "average": 0,
         "sem1Grades": [],
         "sem2Grades": [],
-        "sem1Avg": null,
-        "sem2Avg": null
+        "grades": []
       }
     ]
   },
@@ -1797,6 +1982,14 @@
         "date": "2026-11-05",
         "category": "Terminarz Librus",
         "info": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
+      },
+      {
+        "id": 3529236,
+        "title": "Nieobecność:\nNauczyciel: Lorenz Krzysztof",
+        "day": "2026-11-05",
+        "date": "2026-11-05",
+        "category": "Terminarz Librus",
+        "info": "Nieobecność:\nNauczyciel: Lorenz Krzysztof"
       },
       {
         "id": "-1",
@@ -1968,6 +2161,14 @@
       "date": "2026-11-05",
       "category": "Terminarz Librus",
       "info": "Nieobecność:\nNauczyciel: Kolasińska Paulina"
+    },
+    {
+      "id": 3529236,
+      "title": "Nieobecność:\nNauczyciel: Lorenz Krzysztof",
+      "day": "2026-11-05",
+      "date": "2026-11-05",
+      "category": "Terminarz Librus",
+      "info": "Nieobecność:\nNauczyciel: Lorenz Krzysztof"
     },
     {
       "id": "-1",
@@ -2451,5 +2652,5 @@
       ]
     }
   },
-  "lastSync": "2026-11-04T15:40:11.618Z"
+  "lastSync": "2026-11-05T05:46:02.920Z"
 }
