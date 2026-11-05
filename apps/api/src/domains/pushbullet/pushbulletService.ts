@@ -12,8 +12,8 @@ export type SendPushPayload = z.infer<typeof SendPushSchema>;
 
 export interface PushResult {
   success: boolean;
+  simulated: boolean;
   iden?: string;
-  simulated?: boolean;
   message?: string;
   error?: string;
   sentAt: string;
@@ -212,6 +212,7 @@ export class PushbulletService {
         recordHistory(false, false);
         return {
           success: false,
+          simulated: false,
           error: `Błąd Pushbullet API (${response.status}): ${errorText}`,
           sentAt: nowIso
         };
