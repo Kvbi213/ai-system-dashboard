@@ -238,8 +238,9 @@ const info = ctx.school.getLessonInfo();
 if (info.bellType === 'LESSON_END' && info.minutesToBell <= 5 && info.minutesToBell >= 1) {
   const next = info.nextLesson;
   const title = \`DZWONEK ZA \${info.minutesToBell} MIN :: \${info.currentLesson?.subject || 'Lekcja'}\`;
+  const room = next?.classroom && next.classroom.trim() ? (next.classroom.trim().startsWith('s.') ? ' ' + next.classroom.trim() : ' w sali ' + next.classroom.trim()) : '';
   const body = next
-    ? \`Za \${info.minutesToBell} min koniec lekcji. Kolejna: \${next.subject} w sali \${next.classroom} (\${next.teacher || 'nauczyciel'}).\`
+    ? \`Za \${info.minutesToBell} min koniec lekcji. Kolejna: \${next.subject}\${room} (\${next.teacher || 'nauczyciel'}).\`
     : \`Za \${info.minutesToBell} min koniec lekcji. To ostatnia lekcja w dniu dzisiejszym!\`;
   await ctx.pushbullet.send(title, body, 'HIGH');
   ctx.log(\`Wysłano alert dzwonka: \${title}\`);

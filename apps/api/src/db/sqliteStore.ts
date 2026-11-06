@@ -651,7 +651,12 @@ export class SqliteStore {
     return true;
   }
 
-  public resetFinances(): { success: boolean; clearedCount: number } {
+  public resetFinances(options?: {
+    initialBalance?: number;
+    needsRatio?: number;
+    wantsRatio?: number;
+    savingsRatio?: number;
+  }): { success: boolean; clearedCount: number; newBalances: { total: number; needs: number; wants: number; savings: number } } {
     this.setConfig('finances_initialized', 'true');
     const countStmt = this.db.prepare('SELECT COUNT(*) as cnt FROM finance_transactions');
     const countRow = countStmt.get() as { cnt: number };
@@ -660,14 +665,32 @@ export class SqliteStore {
     this.db.exec('DELETE FROM finance_transactions;');
 
     const nowIso = new Date().toISOString();
+    const initBal = options?.initialBalance !== undefined ? Math.max(0, options.initialBalance) : 0;
+    const nRatio = options?.needsRatio !== undefined ? options.needsRatio : 0.5;
+    const wRatio = options?.wantsRatio !== undefined ? options.wantsRatio : 0.3;
+    const sRatio = options?.savingsRatio !== undefined ? options.savingsRatio : 0.2;
+
+    const needs = Number((initBal * nRatio).toFixed(2));
+    const wants = Number((initBal * wRatio).toFixed(2));
+    const savings = Number((initBal * sRatio).toFixed(2));
+
     const updateEnv = this.db.prepare(`
       UPDATE finance_envelopes
-      SET needs_balance = 0, wants_balance = 0, savings_balance = 0, monthly_income = 0, updated_at = ?
+      SET needs_balance = ?, wants_balance = ?, savings_balance = ?, monthly_income = ?, updated_at = ?
       WHERE id = 'primary'
     `);
-    updateEnv.run(nowIso);
+    updateEnv.run(needs, wants, savings, initBal, nowIso);
 
-    return { success: true, clearedCount };
+    return {
+      success: true,
+      clearedCount,
+      newBalances: {
+        total: initBal,
+        needs,
+        wants,
+        savings
+      }
+    };
   }
 
   public getFinanceEnvelopes() {

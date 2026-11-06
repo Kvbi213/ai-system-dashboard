@@ -37,9 +37,19 @@ export const getBadgeInlineStyle = (g: SingleGradeItem): React.CSSProperties => 
 /**
  * Rezerwowa paleta barw Librus Synergia dla etykiet ocen (w przypadku braku koloru HEX).
  */
+export const formatGradeBadgeText = (g: SingleGradeItem): string => {
+  const d = (g.displayValue || '').trim();
+  if (d && d !== '0') return d;
+  if (g.value === 0) {
+    if (d === '-' || g.category?.toLowerCase().includes('minus') || g.comment?.includes('-')) return '-';
+    return '+';
+  }
+  return String(g.value);
+};
+
 export const getLibrusBadgeColor = (val: number, displayVal?: string): string => {
   const d = (displayVal || String(val)).trim();
-  if (d === '+' || d === '-') {
+  if (d === '+' || d === '-' || val === 0) {
     return 'bg-lime-300 text-slate-900 border-lime-400 font-bold';
   }
   if (d === '6') {
@@ -229,7 +239,7 @@ export const LibrusTableView: React.FC<LibrusTableViewProps> = ({ subjects, acti
                               <div
                                 key={`pair_${g.id}_${retakeGrade.id}`}
                                 className="inline-flex items-center gap-0.5 select-none"
-                                title={`Poprawa oceny: pierwotna ${g.displayValue || g.value} poprawiona na ${retakeGrade.displayValue || retakeGrade.value}`}
+                                title={`Poprawa oceny: pierwotna ${formatGradeBadgeText(g)} poprawiona na ${formatGradeBadgeText(retakeGrade)}`}
                               >
                                 <span className="text-slate-700 dark:text-slate-300 font-bold select-none text-[13px] mr-0.5">[</span>
                                 <span
@@ -237,7 +247,7 @@ export const LibrusTableView: React.FC<LibrusTableViewProps> = ({ subjects, acti
                                   style={getBadgeInlineStyle(g)}
                                   className={`min-w-[20px] h-[22px] px-1 rounded-[3px] inline-flex items-center justify-center font-sans font-bold text-[12px] border cursor-help ${!g.color ? getLibrusBadgeColor(g.value, g.displayValue) : ''}`}
                                 >
-                                  {g.displayValue || g.value}
+                                  {formatGradeBadgeText(g)}
                                 </span>
                                 <span className="w-0.5"></span>
                                 <span
@@ -245,7 +255,7 @@ export const LibrusTableView: React.FC<LibrusTableViewProps> = ({ subjects, acti
                                   style={getBadgeInlineStyle(retakeGrade)}
                                   className={`min-w-[20px] h-[22px] px-1 rounded-[3px] inline-flex items-center justify-center font-sans font-bold text-[12px] border cursor-help ${!retakeGrade.color ? getLibrusBadgeColor(retakeGrade.value, retakeGrade.displayValue) : ''}`}
                                 >
-                                  {retakeGrade.displayValue || retakeGrade.value}
+                                  {formatGradeBadgeText(retakeGrade)}
                                 </span>
                                 <span className="text-slate-700 dark:text-slate-300 font-bold select-none text-[13px] ml-0.5">]</span>
                               </div>
@@ -261,7 +271,7 @@ export const LibrusTableView: React.FC<LibrusTableViewProps> = ({ subjects, acti
                               style={getBadgeInlineStyle(g)}
                               className={`min-w-[20px] h-[22px] px-1 rounded-[3px] inline-flex items-center justify-center font-sans font-bold text-[12px] border cursor-help transition-transform hover:scale-110 shadow-xs ${!g.color ? getLibrusBadgeColor(g.value, g.displayValue) : ''}`}
                             >
-                              {g.displayValue || g.value}
+                              {formatGradeBadgeText(g)}
                             </span>
                           );
                         })}
@@ -292,7 +302,7 @@ export const LibrusTableView: React.FC<LibrusTableViewProps> = ({ subjects, acti
                             style={getBadgeInlineStyle(g)}
                             className={`min-w-[20px] h-[22px] px-1 rounded-[3px] inline-flex items-center justify-center font-sans font-bold text-[12px] border cursor-help transition-transform hover:scale-110 shadow-xs ${!g.color ? getLibrusBadgeColor(g.value, g.displayValue) : ''}`}
                           >
-                            {g.displayValue || g.value}
+                            {formatGradeBadgeText(g)}
                           </span>
                         ))}
                       </div>
@@ -353,7 +363,7 @@ export const LibrusTableView: React.FC<LibrusTableViewProps> = ({ subjects, acti
                                         style={getBadgeInlineStyle(g)}
                                         className={`inline-block min-w-[22px] h-[22px] px-1 rounded-[3px] font-sans font-bold text-center border text-[12px] leading-[20px] ${!g.color ? getLibrusBadgeColor(g.value, g.displayValue) : ''}`}
                                       >
-                                        {g.displayValue || g.value}
+                                        {formatGradeBadgeText(g)}
                                       </span>
                                     </td>
                                     <td className="py-1.5 px-2 font-medium text-slate-700 dark:text-slate-300">

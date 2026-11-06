@@ -32,12 +32,16 @@ export interface CurrentLessonInfo {
   currentLesson: LessonItem | null;
   nextLesson: LessonItem | null;
   minutesToBell: number;
-  bellType: 'LESSON_END' | 'BREAK_END' | 'OUTSIDE_HOURS';
+  bellType: 'LESSON_END' | 'BREAK_END' | 'OUTSIDE_HOURS' | 'DAY_FINISHED';
   timeUntilNextEventFormatted: string;
   isConsecutiveSameSubject?: boolean;
   blockDescription?: string;
   currentLessonLabel?: string;
   nextLessonLabel?: string;
+  isDayFinished?: boolean;
+  nextSchoolDay?: number;
+  nextSchoolDayName?: string;
+  firstLessonNextDay?: LessonItem | null;
 }
 
 export interface ScriptExecutionContext {

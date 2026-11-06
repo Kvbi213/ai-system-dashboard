@@ -764,3 +764,35 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - `apps/api`: 18 test files passed (18/18), 135 unit & integration tests passed (135/135), 100% green.
   - `apps/worker`: 3 test files passed (3/3), 8 tests passed (8/8), 100% green.
   - `apps/web`: `pnpm build` (`tsc && vite build`) zakończone z kodem wyjścia 0.
+
+---
+
+### ## v4.0.1 — 2026-11-06 [DAY FINISH ENGINE, PUSHBULLET ALERTS RECTIFICATION, LIBRUS JITTER SCRAPER & WALLET BALANCE RESET]
+**Status:** WDROŻONE I ZWERYFIKOWANE PRODUKCYJNIE  
+**Typ:** PATCH (Precyzyjna Eliminacja Defektów Logiki Dobowej, Nowy Moduł Anty-botowego Scrapingu i Reset Salda Portfela)
+
+- [!] **Deterministyczny Silnik Zakończenia Dnia Szkolnego (`apps/api/src/domains/automation/scriptEngine.ts`):**
+  - Wyeliminowano mylący stan odliczania „45 min” po zakończeniu lekcji danego dnia.
+  - Wprowadzono status `bellType: 'DAY_FINISHED'` oraz `isDayFinished: true` po ostatnich zajęciach oraz w weekendy.
+  - Automatyczne wyznaczanie pierwszego przedmiotu, godziny i sali kolejnego dnia szkolnego (`firstLessonNextDay`, `nextSchoolDay`, `nextSchoolDayName`).
+- [!] **Naprawa i Odświeżenie Widżetu Hero Dnia (`apps/web/src/modules/dashboard/components/CurrentLessonHero.tsx`):**
+  - Nowy stan wizualny `finished`: etykieta „Zajęcia na dziś zakończone”, nagłówek z pierwszym przedmiotem kolejnego dnia szkolnego (np. „Piątek, 08:00 - 08:45”).
+  - Usunięto odliczanie 45 minut po lekcjach, wskaźnik wypełnia się do 100% z zielonym znacznikiem zakończenia `✓`.
+- [!] **Korekta Alertów Pushbullet i Eliminacja Fałszywych Notatek (`apps/worker/src/automation/lessonAlertMonitor.ts`, `apps/api/src/mcp/internalMcpServer.ts`):**
+  - Całkowita eliminacja pustych sal (`w ()`) poprzez inteligentny helper `formatRoomText` (uwzględniający prefiks `s.` i `sala`).
+  - Usunięto niepoprawne notatki o stroju na WF dołączane do innych przedmiotów (np. do języka polskiego). Ostrzeżenia o stroju sportowym są dołączane wyłącznie, gdy kolejnym przedmiotem jest faktycznie Wychowanie Fizyczne (`isWF === true`).
+- [!] **Trwała Eliminacja Wyświetlania `0` Zamiast Ocen Aktywności `+` i `-` (`apps/web`):**
+  - Dodano funkcję `formatGradeBadgeText` w `LibrusTableView.tsx` i `SubjectGradesGrid.tsx`.
+  - Wartość 0 w polskim systemie szkolnym jest jednoznacznie prezentowana jako `+` (lub `-` na podstawie metadanych).
+  - Bump klucza pamięci podręcznej do `omnidash_grades_cache_v4_6` unieważniający stare dane w przeglądarce.
+- [+] **Nieregularny Silnik Scrapingu Librusa z Jitterem Anti-Bot (`apps/worker/src/automation/librusAutoScraper.ts`):**
+  - Implementacja nieregularnego interwału losowego w zakresie 45–75 minut imitującego zachowanie człowieka i omijającego heurystyki antybotowe portalu.
+  - Zdarzeniowy wyzwalacz (data-driven): wywoływany automatycznie po zakończeniu lekcji (okno przerwowe, gdy nauczyciele wprowadzają oceny) z cooldownem 10 minut.
+  - Detekcja nowych ocen na podstawie bazy identyfikatorów i natychmiastowe wysyłanie alertu Pushbullet: `NOWA OCENA W LIBRUS :: [PRZEDMIOT]`.
+- [+] **Pełne Zerowanie Portfela i Definiowanie Sald Finansowych (`apps/api`, `apps/web`):**
+  - Rozszerzenie metody `sqliteStore.resetFinances` o parametr `initialBalance`, umożliwiający ustawienie dowolnej kwoty startowej portfela (np. 0 zł lub 1500 zł) z automatycznym podziałem 50/30/20.
+  - Interfejs szybkiej konfiguracji kwoty startowej w `TransactionList.tsx`.
+- [+] **Kompletna Weryfikacja Testowa:**
+  - `apps/api`: 18/18 zestawów testowych zaliczonych (135/135 testów green).
+  - `apps/worker`: 4/4 zestawy testowe zaliczone (10/10 testów green).
+  - `apps/web`: `tsc && vite build` czysty build produkcyjny (exit code 0).

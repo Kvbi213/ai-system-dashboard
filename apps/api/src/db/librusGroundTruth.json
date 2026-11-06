@@ -2,7 +2,7 @@
   "success": true,
   "isConfigured": true,
   "isDemo": false,
-  "timestamp": "2026-11-05T05:46:02.920Z",
+  "timestamp": "2026-11-06T09:07:54.910Z",
   "studentInfo": {
     "name": "Jakub Lis",
     "class": "2 TI T",
@@ -10,7 +10,7 @@
     "educator": "Ziemba Joanna",
     "accountLogin": "12538637u"
   },
-  "luckyNumber": 12,
+  "luckyNumber": 18,
   "grades": {
     "subjects": [
       {
@@ -64,7 +64,7 @@
             "teacher": "Łukaszczyk-Wulgaris Joanna",
             "semester": 1,
             "isImprovement": true,
-            "improvedValue": "3 (Praca klasowa)",
+            "improvedValue": "3",
             "inAverage": true,
             "isInsideBracket": true,
             "rawInfo": "Kategoria: Praca klasowa\nData: 2026-10-28 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna\n\nPoprawa oceny: 3 (Praca klasowa)",
@@ -134,7 +134,7 @@
             "teacher": "Łukaszczyk-Wulgaris Joanna",
             "semester": 1,
             "isImprovement": true,
-            "improvedValue": "3 (Praca klasowa)",
+            "improvedValue": "3",
             "inAverage": true,
             "isInsideBracket": true,
             "rawInfo": "Kategoria: Praca klasowa\nData: 2026-10-28 (śr.)\nNauczyciel: Łukaszczyk-Wulgaris Joanna\nLicz do średniej: tak\nWaga: 3\nDodał: Łukaszczyk-Wulgaris Joanna\n\nPoprawa oceny: 3 (Praca klasowa)",
@@ -285,8 +285,8 @@
       {
         "id": "sub_3_edukacja_obywatelska",
         "name": "Edukacja obywatelska",
-        "average": 5,
-        "semester1Average": 5,
+        "average": 5.5,
+        "semester1Average": 5.5,
         "sem1Grades": [
           {
             "id": "983480",
@@ -306,19 +306,19 @@
           },
           {
             "id": "6953970",
-            "value": 0,
-            "displayValue": "-",
+            "value": 6,
+            "displayValue": "6",
             "weight": 1,
             "category": "prasówka",
             "color": "#F0E68C",
             "textColor": "#0f172a",
-            "date": "2026-10-30",
+            "date": "2026-11-06",
             "teacher": "Czarna Alicja",
             "semester": 1,
             "isImprovement": false,
-            "inAverage": false,
+            "inAverage": true,
             "isInsideBracket": false,
-            "rawInfo": "Kategoria: prasówka\nData: 2026-10-30 (pt.)\nNauczyciel: Czarna Alicja\nDodał: Czarna Alicja"
+            "rawInfo": "Kategoria: prasówka\nData: 2026-11-06 (pt.)\nNauczyciel: Czarna Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Czarna Alicja"
           }
         ],
         "sem2Grades": [],
@@ -341,19 +341,19 @@
           },
           {
             "id": "6953970",
-            "value": 0,
-            "displayValue": "-",
+            "value": 6,
+            "displayValue": "6",
             "weight": 1,
             "category": "prasówka",
             "color": "#F0E68C",
             "textColor": "#0f172a",
-            "date": "2026-10-30",
+            "date": "2026-11-06",
             "teacher": "Czarna Alicja",
             "semester": 1,
             "isImprovement": false,
-            "inAverage": false,
+            "inAverage": true,
             "isInsideBracket": false,
-            "rawInfo": "Kategoria: prasówka\nData: 2026-10-30 (pt.)\nNauczyciel: Czarna Alicja\nDodał: Czarna Alicja"
+            "rawInfo": "Kategoria: prasówka\nData: 2026-11-06 (pt.)\nNauczyciel: Czarna Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Czarna Alicja"
           }
         ]
       },
@@ -1042,7 +1042,7 @@
             "teacher": "Negowska Alicja",
             "semester": 1,
             "isImprovement": true,
-            "improvedValue": "1 (kartkówka)",
+            "improvedValue": "1",
             "inAverage": true,
             "isInsideBracket": true,
             "rawInfo": "Kategoria: kartkówka\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nPoprawa oceny: 1 (kartkówka)",
@@ -1147,7 +1147,7 @@
             "teacher": "Negowska Alicja",
             "semester": 1,
             "isImprovement": true,
-            "improvedValue": "1 (kartkówka)",
+            "improvedValue": "1",
             "inAverage": true,
             "isInsideBracket": true,
             "rawInfo": "Kategoria: kartkówka\nData: 2026-09-18 (pt.)\nNauczyciel: Negowska Alicja\nLicz do średniej: tak\nWaga: 1\nDodał: Negowska Alicja\n\nPoprawa oceny: 1 (kartkówka)",
@@ -2008,6 +2008,14 @@
         "info": "Zastępstwo z Bartosz Gembiak na lekcji nr: 5 (pracownia urządzeń techniki komputerowej)"
       },
       {
+        "id": 3530156,
+        "title": "Nieobecność:\nNauczyciel: Spych Monika",
+        "day": "2026-11-06",
+        "date": "2026-11-06",
+        "category": "Terminarz Librus",
+        "info": "Nieobecność:\nNauczyciel: Spych Monika"
+      },
+      {
         "id": 3526895,
         "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina",
         "day": "2026-11-06",
@@ -2048,12 +2056,20 @@
         "info": "Święto Niepodległości: T"
       },
       {
+        "id": 12735160,
+        "title": "Nr lekcji: 0\nPraca Klasowa\n2TI T",
+        "day": "2026-11-12",
+        "date": "2026-11-12",
+        "category": "Terminarz Librus",
+        "info": "Nauczyciel: Bahr Zbigniew\nOpis: planimetria\nData dodania: 2026-11-05 12:30:29"
+      },
+      {
         "id": 12706162,
         "title": "Nr lekcji: 3\njęzyk niemiecki, Praca Klasowa\n2Ti/1\nSala: Z1",
         "day": "2026-11-13",
         "date": "2026-11-13",
         "category": "Terminarz Librus",
-        "info": "Nauczyciel: Chyła Beata\nOpis: Tolles Deutsch 1,dział 4\nData dodania: 2026-10-30 09:08:43"
+        "info": "Nauczyciel: Chyła Beata\nOpis: Tolles Deutsch 1,dział 4\nData dodania: 2026-11-06 09:45:21"
       },
       {
         "id": 12691840,
@@ -2062,6 +2078,14 @@
         "date": "2026-11-17",
         "category": "Terminarz Librus",
         "info": "Nauczyciel: Spych Monika\nOpis: Wartości i postawy (tematy 2-7)\nData dodania: 2026-10-29 08:56:02"
+      },
+      {
+        "id": 12736388,
+        "title": "Nr lekcji: 0\njęzyk niemiecki, Praca Klasowa\n2TI T\nSala: 33",
+        "day": "2026-11-19",
+        "date": "2026-11-19",
+        "category": "Terminarz Librus",
+        "info": "Nauczyciel: Piwowarczyk Grzegorz\nOpis: rozdział 4\nData dodania: 2026-11-05 14:37:47"
       }
     ]
   },
@@ -2187,6 +2211,14 @@
       "info": "Zastępstwo z Bartosz Gembiak na lekcji nr: 5 (pracownia urządzeń techniki komputerowej)"
     },
     {
+      "id": 3530156,
+      "title": "Nieobecność:\nNauczyciel: Spych Monika",
+      "day": "2026-11-06",
+      "date": "2026-11-06",
+      "category": "Terminarz Librus",
+      "info": "Nieobecność:\nNauczyciel: Spych Monika"
+    },
+    {
       "id": 3526895,
       "title": "Nieobecność:\nNauczyciel: Kolasińska Paulina",
       "day": "2026-11-06",
@@ -2227,12 +2259,20 @@
       "info": "Święto Niepodległości: T"
     },
     {
+      "id": 12735160,
+      "title": "Nr lekcji: 0\nPraca Klasowa\n2TI T",
+      "day": "2026-11-12",
+      "date": "2026-11-12",
+      "category": "Terminarz Librus",
+      "info": "Nauczyciel: Bahr Zbigniew\nOpis: planimetria\nData dodania: 2026-11-05 12:30:29"
+    },
+    {
       "id": 12706162,
       "title": "Nr lekcji: 3\njęzyk niemiecki, Praca Klasowa\n2Ti/1\nSala: Z1",
       "day": "2026-11-13",
       "date": "2026-11-13",
       "category": "Terminarz Librus",
-      "info": "Nauczyciel: Chyła Beata\nOpis: Tolles Deutsch 1,dział 4\nData dodania: 2026-10-30 09:08:43"
+      "info": "Nauczyciel: Chyła Beata\nOpis: Tolles Deutsch 1,dział 4\nData dodania: 2026-11-06 09:45:21"
     },
     {
       "id": 12691840,
@@ -2241,6 +2281,14 @@
       "date": "2026-11-17",
       "category": "Terminarz Librus",
       "info": "Nauczyciel: Spych Monika\nOpis: Wartości i postawy (tematy 2-7)\nData dodania: 2026-10-29 08:56:02"
+    },
+    {
+      "id": 12736388,
+      "title": "Nr lekcji: 0\njęzyk niemiecki, Praca Klasowa\n2TI T\nSala: 33",
+      "day": "2026-11-19",
+      "date": "2026-11-19",
+      "category": "Terminarz Librus",
+      "info": "Nauczyciel: Piwowarczyk Grzegorz\nOpis: rozdział 4\nData dodania: 2026-11-05 14:37:47"
     }
   ],
   "timetable": {
@@ -2652,5 +2700,5 @@
       ]
     }
   },
-  "lastSync": "2026-11-05T05:46:02.920Z"
+  "lastSync": "2026-11-06T09:07:54.910Z"
 }

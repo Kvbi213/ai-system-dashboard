@@ -120,11 +120,16 @@ export const FinancePage: React.FC = () => {
     }
   };
 
-  const handleResetFinances = async () => {
+  const handleResetFinances = async (options?: { initialBalance?: number }) => {
     setTransactions([]);
-    toast.success('Fundusze i historia transakcji zostały zresetowane');
+    const balMsg = options?.initialBalance ? ` (saldo startowe: ${options.initialBalance.toFixed(2)} zł)` : '';
+    toast.success(`Fundusze i portfel zostały zresetowane${balMsg}`);
     try {
-      await financeApi.resetFinances();
+      await financeApi.resetFinances(options);
+      const res = await financeApi.getTransactions();
+      if (res?.transactions) {
+        setTransactions(res.transactions);
+      }
     } catch {
       toast.error('Błąd resetowania funduszy');
     }

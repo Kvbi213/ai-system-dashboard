@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import app from '../src/index';
+import { dbStore } from '../src/db/store.js';
 import http from 'http';
 
 describe('OmniDash API Gateway Integration Suite', () => {
@@ -7,6 +8,7 @@ describe('OmniDash API Gateway Integration Suite', () => {
   let baseUrl: string;
 
   beforeAll(async () => {
+    dbStore.seed();
     await new Promise<void>((resolve) => {
       server = app.listen(0, () => {
         const addr = server.address();

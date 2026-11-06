@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from
 import app from '../src/index.js';
 import http from 'http';
 import { pushbulletService } from '../src/domains/pushbullet/pushbulletService.js';
+import { sqliteStore } from '../src/db/sqliteStore.js';
 
 describe('Pushbullet Domain Endpoints Suite', () => {
   let server: http.Server;
@@ -120,6 +121,8 @@ describe('Pushbullet Domain Endpoints Suite', () => {
   it('POST /api/pushbullet/test returns 401 when token is missing and no env var', async () => {
     const originalKey = process.env.PUSHBULLET_API_KEY;
     delete process.env.PUSHBULLET_API_KEY;
+    const origDbKey = sqliteStore.getConfig('pushbullet_api_key');
+    sqliteStore.setConfig('pushbullet_api_key', '');
 
     try {
       const res = await fetch(`${baseUrl}/api/pushbullet/test`, {
@@ -134,6 +137,9 @@ describe('Pushbullet Domain Endpoints Suite', () => {
       expect(data.error).toBeDefined();
     } finally {
       process.env.PUSHBULLET_API_KEY = originalKey;
+      if (origDbKey) {
+        sqliteStore.setConfig('pushbullet_api_key', origDbKey);
+      }
     }
   });
 

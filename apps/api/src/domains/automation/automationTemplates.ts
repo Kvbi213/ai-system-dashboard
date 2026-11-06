@@ -20,10 +20,11 @@ if (info.bellType === 'LESSON_END' && info.minutesToBell <= 5 && info.minutesToB
   const next = info.nextLesson;
   const title = \`DZWONEK ZA \${info.minutesToBell} MIN :: \${info.currentLesson?.subject || 'Lekcja'}\`;
   const isBlock = info.isConsecutiveSameSubject;
+  const room = next?.classroom && next.classroom.trim() ? (next.classroom.trim().startsWith('s.') ? ' ' + next.classroom.trim() : ' w sali ' + next.classroom.trim()) : '';
   const body = next
     ? (isBlock
-        ? \`Za \${info.minutesToBell} min koniec lekcji \${info.currentLesson?.order}. Kolejna lekcja to blok 2 (\${next.subject}) w sali \${next.classroom} (lekcja \${next.order}).\`
-        : \`Za \${info.minutesToBell} min koniec lekcji. Kolejna: \${next.subject} w sali \${next.classroom} (\${next.teacher || 'nauczyciel'}).\`)
+        ? \`Za \${info.minutesToBell} min koniec lekcji \${info.currentLesson?.order}. Kolejna lekcja to blok 2 (\${next.subject})\${room} (lekcja \${next.order}).\`
+        : \`Za \${info.minutesToBell} min koniec lekcji. Kolejna: \${next.subject}\${room} (\${next.teacher || 'nauczyciel'}).\`)
     : \`Za \${info.minutesToBell} min koniec lekcji. To ostatnia lekcja w dniu dzisiejszym!\`;
   await ctx.pushbullet.send(title, body, 'HIGH');
   ctx.log(\`Wysłano powiadomienie Pushbullet: \${title}\`);

@@ -5,6 +5,27 @@ export interface LessonAlertMonitorOptions {
   dispatcher?: PushbulletDispatcher;
 }
 
+function formatRoomText(classroom?: string | null): string {
+  if (!classroom || !classroom.trim()) return '';
+  const clean = classroom.trim();
+  if (/^(sala|s\.)/i.test(clean)) return ` w ${clean}`;
+  return ` w sali ${clean}`;
+}
+
+function formatTeacherText(teacher?: string | null): string {
+  if (!teacher || !teacher.trim()) return '';
+  return ` (${teacher.trim()})`;
+}
+
+function getSubjectNotes(subject?: string | null): string {
+  if (!subject) return '';
+  const isWF = Boolean(subject.toLowerCase().match(/(wychowanie fizyczne|\bwf\b)/i));
+  if (isWF) {
+    return ' Uwaga: Zabierz strój na salę gimnastyczną.';
+  }
+  return '';
+}
+
 export class LessonAlertMonitor {
   private apiGatewayUrl: string;
   private dispatcher?: PushbulletDispatcher;
@@ -36,8 +57,8 @@ export class LessonAlertMonitor {
 
       const data = (await res.json()) as any;
       const lessonInfo = data?.lessonInfo;
-      if (!lessonInfo || lessonInfo.bellType === 'OUTSIDE_HOURS') {
-        return { dispatched: false, message: 'Poza godzinami lekcyjnymi' };
+      if (!lessonInfo || lessonInfo.bellType === 'OUTSIDE_HOURS' || lessonInfo.bellType === 'DAY_FINISHED') {
+        return { dispatched: false, message: 'Poza godzinami lekcyjnymi / koniec dnia' };
       }
 
       const currentLesson = lessonInfo.currentLesson;
@@ -53,10 +74,14 @@ export class LessonAlertMonitor {
 
           const title = `DZWONEK ZA 5 MIN :: ${currentLesson.subject}`;
           const isConsecutive = lessonInfo.isConsecutiveSameSubject;
+          const roomText = formatRoomText(nextLesson?.classroom);
+          const teacherText = formatTeacherText(nextLesson?.teacher);
+          const noteText = getSubjectNotes(nextLesson?.subject);
+
           const body = nextLesson
             ? (isConsecutive
-                ? `Za 5 minut koniec lekcji ${currentLesson.order}. Kolejna lekcja to blok 2 (${nextLesson.subject}) w sali ${nextLesson.classroom || currentLesson.classroom} (lekcja ${nextLesson.order}).`
-                : `Za 5 minut koniec lekcji. Kolejna lekcja: ${nextLesson.subject} w sali ${nextLesson.classroom} (${nextLesson.teacher || 'nauczyciel'}).`)
+                ? `Za 5 minut koniec lekcji ${currentLesson.order}. Kolejna lekcja to blok 2 (${nextLesson.subject})${roomText}${teacherText} (lekcja ${nextLesson.order}).${noteText}`
+                : `Za 5 minut koniec lekcji. Kolejna lekcja: ${nextLesson.subject}${roomText}${teacherText}.${noteText}`)
             : `Za 5 minut koniec lekcji. To ostatnia lekcja w dniu dzisiejszym!`;
 
           this.dispatcher?.enqueue({
@@ -77,7 +102,10 @@ export class LessonAlertMonitor {
           this.sentAlertKeys.add(alertKey);
 
           const title = `DZWONEK NA LEKCJĘ ZA 2 MIN :: ${nextLesson.subject}`;
-          const body = `Koniec przerwy za 2 minuty! Udaj się do sali ${nextLesson.classroom} (${nextLesson.subject}, ${nextLesson.teacher || 'nauczyciel'}).`;
+          const roomText = formatRoomText(nextLesson.classroom);
+          const teacherText = formatTeacherText(nextLesson.teacher);
+          const noteText = getSubjectNotes(nextLesson.subject);
+          const body = `Koniec przerwy za 2 minuty! Udaj się${roomText ? roomText : ' na zajęcia'} (${nextLesson.subject}${teacherText}).${noteText}`;
 
           this.dispatcher?.enqueue({
             title,

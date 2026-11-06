@@ -1,11 +1,13 @@
 import { PushbulletDispatcher } from '../pushbullet/dispatcher.js';
 import { LessonAlertMonitor } from '../automation/lessonAlertMonitor.js';
+import { LibrusAutoScraper } from '../automation/librusAutoScraper.js';
 
 export class SystemScheduler {
   private timers: NodeJS.Timeout[] = [];
   private apiGatewayUrl: string;
   private dispatcher?: PushbulletDispatcher;
   private lessonAlertMonitor: LessonAlertMonitor;
+  private librusScraper: LibrusAutoScraper;
 
   // Master Clock & Continuous Drift-Compensated Chronometer
   private lastSyncedServerTimeMs: number = Date.now();
@@ -16,6 +18,10 @@ export class SystemScheduler {
     this.apiGatewayUrl = apiGatewayUrl;
     this.dispatcher = dispatcher;
     this.lessonAlertMonitor = new LessonAlertMonitor({
+      apiGatewayUrl: this.apiGatewayUrl,
+      dispatcher: this.dispatcher
+    });
+    this.librusScraper = new LibrusAutoScraper({
       apiGatewayUrl: this.apiGatewayUrl,
       dispatcher: this.dispatcher
     });
@@ -44,6 +50,9 @@ export class SystemScheduler {
       this.syncTrafficTelemetry();
     }, 15 * 60 * 1000);
     this.timers.push(trafficTimer);
+
+    // 5. Start Anti-Bot Jitter Scraper dla Librusa
+    this.librusScraper.start();
 
     // Initial warm-up ping
     this.pingHealth();
@@ -107,7 +116,14 @@ export class SystemScheduler {
     this.evaluateMinuteScheduleEvents(hours, minutes);
 
     // Automatyczny monitor lekcji i dzwonków szkolnych (Pushbullet Alert)
-    this.lessonAlertMonitor.checkAndDispatch(date).catch((err) => {
+    this.lessonAlertMonitor.checkAndDispatch(date).then((res) => {
+      // Data-driven trigger: po dzwonku na przerwę nauczyciele wprowadzają oceny
+      if (res.dispatched && res.alertType === 'LESSON_END_5MIN') {
+        setTimeout(() => {
+          this.librusScraper.triggerBreakScrape('LESSON_ENDED_BREAK_WINDOW');
+        }, 5 * 60 * 1000 + 30 * 1000);
+      }
+    }).catch((err) => {
       console.warn('[!] Błąd ewaluacji monitora lekcji:', err);
     });
   }
@@ -147,5 +163,6 @@ export class SystemScheduler {
   public stop(): void {
     this.timers.forEach((t) => clearInterval(t));
     this.timers = [];
+    this.librusScraper.stop();
   }
 }

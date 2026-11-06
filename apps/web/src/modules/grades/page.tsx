@@ -6,7 +6,7 @@ import { FALLBACK_LIBRUS_SUBJECTS } from './fallbackData';
 import { GraduationCap, RefreshCw, CheckCircle2, AlertCircle, Table as TableIcon, LayoutGrid } from 'lucide-react';
 import { schoolApi } from '../../api/client';
 
-const GRADES_CACHE_KEY = 'omnidash_grades_cache_v4_4';
+const GRADES_CACHE_KEY = 'omnidash_grades_cache_v4_6';
 
 function getInitialGradesData(): { subjects: SubjectGradeItem[]; stats: any } {
   if (typeof window === 'undefined') {

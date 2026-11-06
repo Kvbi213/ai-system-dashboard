@@ -41,6 +41,27 @@ export const CurrentLessonHero: React.FC<CurrentLessonHeroProps> = (props) => {
       const currentDay = (day >= 1 && day <= 5) ? day : 1;
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
+      if (day === 0 || day === 6) {
+        // Weekend: załaduj poniedziałek jako kolejny dzień zajęć
+        schoolApi.getTimetable(1)
+          .then((res) => {
+            const first = res?.lessons?.[0];
+            if (first) {
+              setLessonData({
+                status: 'finished',
+                subject: `Weekend (Następna: ${first.subject})`,
+                timeRange: `Poniedziałek, ${first.timeRange || `${first.time_start} - ${first.time_end}`}`,
+                room: first.classroom || first.room || 'Sala lekcyjna',
+                teacher: first.cleanTeacher || first.teacher || 'Nauczyciel',
+                remainingMinutes: 0,
+                substitutionNote: null
+              });
+            }
+          })
+          .catch(() => {});
+        return;
+      }
+
       schoolApi.getTimetable(currentDay)
         .then((res) => {
           if (!res?.lessons || res.lessons.length === 0) return;
@@ -91,19 +112,48 @@ export const CurrentLessonHero: React.FC<CurrentLessonHeroProps> = (props) => {
             return;
           }
 
-          // 3. Po lekcjach: weź pierwszą lekcję z planu na kolejny dzień / pierwszą lekcję
-          const first = parsed[0];
-          if (first) {
-            setLessonData({
-              status: 'finished',
-              subject: first.subject,
-              timeRange: first.timeRange,
-              room: first.classroom || first.room || 'Sala lekcyjna',
-              teacher: first.cleanTeacher || first.teacher || 'Nauczyciel',
-              remainingMinutes: 45,
-              substitutionNote: null
+          // 3. Po lekcjach: pobierz pierwszą lekcję z planu na kolejny dzień szkolny
+          const nextSchoolDay = (day >= 1 && day <= 4) ? day + 1 : 1;
+          const dayNames = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'];
+          const nextDayName = dayNames[nextSchoolDay];
+
+          schoolApi.getTimetable(nextSchoolDay)
+            .then((nextRes) => {
+              const nextLessons = nextRes?.lessons || [];
+              const firstNext = nextLessons[0];
+              if (firstNext) {
+                setLessonData({
+                  status: 'finished',
+                  subject: `Koniec zajęć (Następna: ${firstNext.subject})`,
+                  timeRange: `${nextDayName}, ${firstNext.timeRange || `${firstNext.time_start} - ${firstNext.time_end}`}`,
+                  room: firstNext.classroom || firstNext.room || 'Sala lekcyjna',
+                  teacher: firstNext.cleanTeacher || firstNext.teacher || 'Nauczyciel',
+                  remainingMinutes: 0,
+                  substitutionNote: null
+                });
+              } else {
+                setLessonData({
+                  status: 'finished',
+                  subject: 'Zajęcia na dziś zakończone',
+                  timeRange: nextDayName,
+                  room: 'Brak zajęć',
+                  teacher: '-',
+                  remainingMinutes: 0,
+                  substitutionNote: null
+                });
+              }
+            })
+            .catch(() => {
+              setLessonData({
+                status: 'finished',
+                subject: 'Zajęcia na dziś zakończone',
+                timeRange: 'Jutro',
+                room: 'Sala lekcyjna',
+                teacher: 'Nauczyciel',
+                remainingMinutes: 0,
+                substitutionNote: null
+              });
             });
-          }
         })
         .catch(() => {});
     };
@@ -123,15 +173,19 @@ export const CurrentLessonHero: React.FC<CurrentLessonHeroProps> = (props) => {
           <div className="flex items-center gap-2">
             <span
               className={`w-2.5 h-2.5 rounded-full ${
-                lessonData.status === 'in_progress' ? 'bg-emerald-500 animate-pulse' : 'bg-sky-500'
+                lessonData.status === 'in_progress'
+                  ? 'bg-emerald-500 animate-pulse'
+                  : lessonData.status === 'finished'
+                  ? 'bg-indigo-500'
+                  : 'bg-sky-500'
               }`}
             />
             <span className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-400">
               {lessonData.status === 'in_progress'
-                ? 'Trwa blok zajęć (Librus)'
+                ? 'Trwa lekcja (Librus)'
                 : lessonData.status === 'upcoming'
                 ? 'Następna lekcja z planu'
-                : 'Zajęcia zakończone'}
+                : 'Zajęcia na dziś zakończone'}
             </span>
           </div>
           <NavLink
@@ -171,22 +225,43 @@ export const CurrentLessonHero: React.FC<CurrentLessonHeroProps> = (props) => {
 
       {/* Progress & Remaining Time Capsule */}
       <div className="mt-4 pt-3 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-2xl bg-sky-50 dark:bg-sky-950/70 border border-sky-200 dark:border-sky-800 flex items-center justify-center font-bold text-xs text-sky-700 dark:text-sky-300 font-mono shadow-sm">
-            {lessonData.remainingMinutes}m
+        {lessonData.status === 'finished' ? (
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-2xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-800 flex items-center justify-center font-bold text-sm text-emerald-600 dark:text-emerald-400 shadow-sm">
+              ✓
+            </div>
+            <div>
+              <p className="text-[11px] text-slate-400 font-medium">Harmonogram szkolny</p>
+              <p className="text-xs font-bold text-slate-800 dark:text-slate-100">Koniec lekcji na dziś</p>
+            </div>
           </div>
-          <div>
-            <p className="text-[11px] text-slate-400 font-medium">
-              {lessonData.status === 'in_progress' ? 'Do dzwonka pozostało' : 'Czas do rozpoczęcia'}
-            </p>
-            <p className="text-xs font-bold text-slate-800 dark:text-slate-100">{lessonData.remainingMinutes} minut</p>
+        ) : (
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-2xl bg-sky-50 dark:bg-sky-950/70 border border-sky-200 dark:border-sky-800 flex items-center justify-center font-bold text-xs text-sky-700 dark:text-sky-300 font-mono shadow-sm">
+              {lessonData.remainingMinutes}m
+            </div>
+            <div>
+              <p className="text-[11px] text-slate-400 font-medium">
+                {lessonData.status === 'in_progress' ? 'Do dzwonka pozostało' : 'Czas do rozpoczęcia'}
+              </p>
+              <p className="text-xs font-bold text-slate-800 dark:text-slate-100">{lessonData.remainingMinutes} minut</p>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="w-28 sm:w-36 bg-slate-200/80 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-white/60 dark:border-slate-700">
           <div
-            className="bg-gradient-to-r from-sky-500 to-indigo-600 h-full rounded-full transition-all duration-500 shadow-sm"
-            style={{ width: `${Math.min(100, Math.max(10, ((45 - lessonData.remainingMinutes) / 45) * 100))}%` }}
+            className={`h-full rounded-full transition-all duration-500 shadow-sm ${
+              lessonData.status === 'finished'
+                ? 'bg-emerald-500 w-full'
+                : 'bg-gradient-to-r from-sky-500 to-indigo-600'
+            }`}
+            style={{
+              width:
+                lessonData.status === 'finished'
+                  ? '100%'
+                  : `${Math.min(100, Math.max(10, ((45 - lessonData.remainingMinutes) / 45) * 100))}%`
+            }}
           />
         </div>
       </div>

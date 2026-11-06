@@ -1,6 +1,6 @@
 import React from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
-import { getLibrusBadgeColor, getBadgeInlineStyle } from './LibrusTableView';
+import { getLibrusBadgeColor, getBadgeInlineStyle, formatGradeBadgeText } from './LibrusTableView';
 
 export interface SingleGradeItem {
   id: string;
@@ -117,7 +117,7 @@ export const SubjectGradesGrid: React.FC<SubjectGradesGridProps> = ({ subjects, 
                             g.displayValue
                           ) : ''}`}
                         >
-                          <span>{g.displayValue || g.value}</span>
+                          <span>{formatGradeBadgeText(g)}</span>
                         </div>
                         {/* Nowa ocena z poprawy */}
                         <div
@@ -128,7 +128,7 @@ export const SubjectGradesGrid: React.FC<SubjectGradesGridProps> = ({ subjects, 
                             retakeGrade.displayValue
                           ) : ''}`}
                         >
-                          <span>{retakeGrade.displayValue || retakeGrade.value}</span>
+                          <span>{formatGradeBadgeText(retakeGrade)}</span>
                         </div>
                         <span className="font-bold text-slate-400 select-none">]</span>
                       </div>
@@ -147,7 +147,7 @@ export const SubjectGradesGrid: React.FC<SubjectGradesGridProps> = ({ subjects, 
                         g.displayValue
                       ) : ''}`}
                     >
-                      <span>{g.displayValue || g.value}</span>
+                      <span>{formatGradeBadgeText(g)}</span>
                     </div>
                   );
                 })}

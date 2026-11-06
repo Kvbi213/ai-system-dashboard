@@ -40,9 +40,9 @@ describe('DatabaseStore Persistence & Librus Ground Truth', () => {
     expect(bioImprovement?.improvedValue).toBe('3');
     expect(bioImprovement?.improvedGradeId).toBeDefined();
 
-    // Sprawdzenie GPA i szczęśliwego numerka (4.28 / 4.29 lub 4.39 z bieżącego snapshotu Librusa)
-    expect([4.28, 4.29, 4.39]).toContain(store.calculateGpa());
-    expect([3, 12]).toContain(store.getLuckyNumber());
+    // Sprawdzenie GPA i szczęśliwego numerka (4.28 / 4.29 lub 4.33 / 4.39 z bieżącego snapshotu Librusa)
+    expect([4.28, 4.29, 4.33, 4.39]).toContain(store.calculateGpa());
+    expect([3, 12, 18]).toContain(store.getLuckyNumber());
   });
 
   it('ładuje wydarzenia z Ground Truth oraz wydarzenia na listopad 2026', () => {

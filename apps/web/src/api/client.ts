@@ -54,8 +54,11 @@ export const financeApi = {
     apiFetch<{ transaction: any }>(`/finance/transactions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteTransaction: (id: string) =>
     apiFetch<{ success: boolean }>(`/finance/transactions/${id}`, { method: 'DELETE' }),
-  resetFinances: () =>
-    apiFetch<{ success: boolean; clearedCount: number; message: string }>('/finance/reset', { method: 'POST' }),
+  resetFinances: (params?: { initialBalance?: number; needsRatio?: number; wantsRatio?: number; savingsRatio?: number }) =>
+    apiFetch<{ success: boolean; clearedCount: number; message: string; newBalances?: any }>('/finance/reset', {
+      method: 'POST',
+      body: params ? JSON.stringify(params) : undefined
+    }),
   getEnvelopes: () =>
     apiFetch<{ envelopes: any }>('/finance/envelopes'),
   updateEnvelopes: (data: Partial<{ needsBalance: number; wantsBalance: number; savingsBalance: number; needsTarget: number; wantsTarget: number; savingsTarget: number; monthlyIncome: number }>) =>

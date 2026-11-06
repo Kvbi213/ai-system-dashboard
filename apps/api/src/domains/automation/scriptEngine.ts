@@ -48,6 +48,23 @@ export function buildLessonLabel(lesson: LessonItem, isBlock2 = false): string {
   return `Lekcja ${lesson.order}. ${lesson.subject} (${lesson.timeRange}${room ? `, ${room}` : ''}${isBlock2 ? ' - blok 2' : ''})`;
 }
 
+function getNextSchoolDayInfo(currentDay: number): {
+  nextSchoolDay: number;
+  nextSchoolDayName: string;
+  firstLessonNextDay: LessonItem | null;
+} {
+  const nextSchoolDay = currentDay >= 1 && currentDay <= 4 ? currentDay + 1 : 1;
+  const nextSchoolDayName = POLISH_DAYS[nextSchoolDay];
+  const nextTimetable = dbStore.getTimetable(nextSchoolDay);
+  const parsedNext = nextTimetable
+    .map((l) => ({ lesson: l, parsed: parseTimeRangeToMinutes(l.timeRange) }))
+    .filter((item): item is { lesson: LessonItem; parsed: { startMins: number; endMins: number } } => item.parsed !== null)
+    .sort((a, b) => a.parsed.startMins - b.parsed.startMins);
+
+  const firstLessonNextDay = parsedNext.length > 0 ? parsedNext[0].lesson : null;
+  return { nextSchoolDay, nextSchoolDayName, firstLessonNextDay };
+}
+
 /**
  * Oblicza stan bieżącej lekcji, dzwonka i kolejnej lekcji na podstawie przekazanej daty.
  */
@@ -59,12 +76,19 @@ export function calculateLessonInfo(date = new Date()): CurrentLessonInfo {
   const timetable = dbStore.getTimetable(currentDay);
 
   if (timetable.length === 0 || day === 0 || day === 6) {
+    const { nextSchoolDay, nextSchoolDayName, firstLessonNextDay } = getNextSchoolDayInfo(day);
     return {
       currentLesson: null,
-      nextLesson: null,
+      nextLesson: firstLessonNextDay,
       minutesToBell: 0,
-      bellType: 'OUTSIDE_HOURS',
-      timeUntilNextEventFormatted: 'Poza godzinami lekcyjnymi (weekend / brak lekcji)'
+      bellType: 'DAY_FINISHED',
+      isDayFinished: true,
+      nextSchoolDay,
+      nextSchoolDayName,
+      firstLessonNextDay,
+      timeUntilNextEventFormatted: firstLessonNextDay
+        ? `Zajęcia na dziś zakończone. Pierwsza lekcja w ${nextSchoolDayName}: ${firstLessonNextDay.subject} (${firstLessonNextDay.timeRange})`
+        : 'Poza godzinami lekcyjnymi (weekend / brak lekcji)'
     };
   }
 
@@ -104,12 +128,19 @@ export function calculateLessonInfo(date = new Date()): CurrentLessonInfo {
 
   // Po ostatniej lekcji
   if (currentMinutes >= lastLesson.parsed.endMins) {
+    const { nextSchoolDay, nextSchoolDayName, firstLessonNextDay } = getNextSchoolDayInfo(day);
     return {
       currentLesson: null,
-      nextLesson: null,
+      nextLesson: firstLessonNextDay,
       minutesToBell: 0,
-      bellType: 'OUTSIDE_HOURS',
-      timeUntilNextEventFormatted: 'Koniec zajęć na dzisiaj'
+      bellType: 'DAY_FINISHED',
+      isDayFinished: true,
+      nextSchoolDay,
+      nextSchoolDayName,
+      firstLessonNextDay,
+      timeUntilNextEventFormatted: firstLessonNextDay
+        ? `Zajęcia na dziś zakończone. Pierwsza lekcja w ${nextSchoolDayName}: ${firstLessonNextDay.subject} (${firstLessonNextDay.timeRange})`
+        : 'Koniec zajęć na dzisiaj'
     };
   }
 

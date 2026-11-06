@@ -1,20 +1,21 @@
 # ARCHITECTURE.md — REJESTR ARCHITEKTURY OMNIDASH REBORN
 > Dokument nadrzędny architektury systemu OmniDash Reborn.
 > Standard: Protokół Antigravity v4.0 (Deterministic Edition).
-> Status: AKTYWNY (v4.0.0-rc.6) | Monorepo: `pnpm workspaces`
+> Status: AKTYWNY (v4.0.1) | Monorepo: `pnpm workspaces`
 
 ---
 
 ## 1. STATUS SYSTEMU I METRYKI WYDANIA
 
-- **Wersja:** `v4.0.0-rc.14`
+- **Wersja:** `v4.0.1`
 - **Typ Architektury:** Domain-Driven Modular Monolith w kontenerach Docker Compose
 - **Standard Jakości:** 100% TypeScript (`strict: true`, zero `any`), Zero-Placeholder Policy
-- **Środowisko:** Node.js 22 LTS, Vite 6, React 19, TailwindCSS v4, Vitest, Playwright 1.50
-- **Metryki Testowe:** 185 passed (54 Playwright E2E + 123 API Vitest + 8 Worker Vitest, 100% green)
+- **Środowisko:** Node.js 26/22 LTS, Vite 6, React 19, TailwindCSS v4, Vitest, Playwright 1.50
+- **Metryki Testowe:** 199 passed (135 API Vitest + 10 Worker Vitest + 54 Playwright E2E, 100% green)
 - **Warstwa Pamięci Podręcznej:** Redis 7 Alpine (`omnidash-redis`) z resilientnym in-memory fallbackiem TTL
-- **Silnik Szkolny i Zastępstw:** Autorytatywny parser planu lekcji Librus Synergia (`librusTimetableParser.ts`), korelacja absencji i endpoint `/api/school/substitutions` z bezbłędnym odróżnieniem aktywnych zastępstw od odwołań
-- **Silnik AI & Automatyzacji:** Groq API (`openai/gpt-oss-120b`, ~500 t/s) z pełnym katalogiem 35+ narzędzi Function Calling zmostkowanych z Internal MCP Server + Sandboxed Automation Scripts Engine + 8 interaktywnych widżetów czatu (Timetable, Grades, Substitutions, Tasks, Finances, Workouts, Calendar, Automation)
+- **Silnik Bazy Danych:** Natywny relacyjny SQLite (`node:sqlite DatabaseSync`) w `data/omnidash.sqlite`
+- **Silnik Szkolny i Zastępstw:** Autorytatywny parser planu lekcji Librus Synergia (`librusTimetableParser.ts`), korelacja zastępstw, stan dobowy (`DAY_FINISHED`, `isDayFinished`) oraz anty-botowy nieregularny scraper (`librusAutoScraper.ts`) z losowym jitterem 45–75 min i detekcją nowych ocen
+- **Silnik AI & Automatyzacji:** Groq API (`openai/gpt-oss-120b`, ~500 t/s) z pełnym katalogiem 35+ narzędzi Function Calling zmostkowanych z Internal MCP Server + Sandboxed Automation Scripts Engine + 8 interaktywnych widżetów czatu
 - **Dostępne Porty Usług:**
   - `3000`: Frontend SPA (`apps/web` Vite Dev / Nginx Alpine)
   - `5000`: API Gateway (`apps/api` Express TS Zero-Trust)

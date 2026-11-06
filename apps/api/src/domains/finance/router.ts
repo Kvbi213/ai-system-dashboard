@@ -125,12 +125,19 @@ financeRouter.delete('/transactions/:id', (req: AuthenticatedRequest, res: Respo
   res.json({ success });
 });
 
-financeRouter.post('/reset', (_req: AuthenticatedRequest, res: Response) => {
-  const result = sqliteStore.resetFinances();
+financeRouter.post('/reset', (req: AuthenticatedRequest, res: Response) => {
+  const { initialBalance, needsRatio, wantsRatio, savingsRatio } = req.body || {};
+  const result = sqliteStore.resetFinances({
+    initialBalance: typeof initialBalance === 'number' ? initialBalance : (initialBalance ? parseFloat(initialBalance) : undefined),
+    needsRatio: typeof needsRatio === 'number' ? needsRatio : undefined,
+    wantsRatio: typeof wantsRatio === 'number' ? wantsRatio : undefined,
+    savingsRatio: typeof savingsRatio === 'number' ? savingsRatio : undefined
+  });
   res.json({
     success: true,
     message: 'Fundusze oraz historia transakcji zostały pomyślnie zresetowane.',
-    clearedCount: result.clearedCount
+    clearedCount: result.clearedCount,
+    newBalances: result.newBalances
   });
 });
 

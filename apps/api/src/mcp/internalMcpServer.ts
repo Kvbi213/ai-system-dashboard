@@ -798,9 +798,28 @@ export class InternalMcpServer {
         const nextLesson = nextIdx >= 0 && nextIdx + 1 < lessons.length ? lessons[nextIdx + 1] : null;
 
         const title = `DZWONEK ZA ${minutesBeforeEnd} MIN :: ${targetLesson.subject.toUpperCase()}`;
-        const body = nextLesson
-          ? `Za ${minutesBeforeEnd} minut koniec lekcji. Kolejna lekcja: ${nextLesson.subject} w ${nextLesson.classroom} (${nextLesson.teacher}). ${args.customNote ? `Uwaga: ${args.customNote}` : ''}`
-          : `Za ${minutesBeforeEnd} minut koniec zajęć! To ostatnia lekcja w dniu dzisiejszym.`;
+        let body: string;
+        if (nextLesson) {
+          const roomText = nextLesson.classroom && nextLesson.classroom.trim()
+            ? (/^(s\.|sala)/i.test(nextLesson.classroom.trim()) ? ` w ${nextLesson.classroom.trim()}` : ` w sali ${nextLesson.classroom.trim()}`)
+            : '';
+          const teacherText = nextLesson.teacher && nextLesson.teacher.trim()
+            ? ` (${nextLesson.teacher.trim()})`
+            : '';
+          const isWF = Boolean(nextLesson.subject?.toLowerCase().match(/(wychowanie fizyczne|\bwf\b)/i));
+          let customNoteText = '';
+          if (args.customNote) {
+            const isGymNote = /strój|sala gimnastyczna|wf/i.test(args.customNote);
+            if (!isGymNote || isWF) {
+              customNoteText = ` Uwaga: ${args.customNote}`;
+            }
+          } else if (isWF) {
+            customNoteText = ' Uwaga: Zabierz strój na salę gimnastyczną.';
+          }
+          body = `Za ${minutesBeforeEnd} minut koniec lekcji. Kolejna lekcja: ${nextLesson.subject}${roomText}${teacherText}.${customNoteText}`;
+        } else {
+          body = `Za ${minutesBeforeEnd} minut koniec zajęć! To ostatnia lekcja w dniu dzisiejszym.`;
+        }
 
         // Integracja z Pushbullet
         const pushRes = await pushbulletService.sendPush({
