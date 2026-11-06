@@ -182,7 +182,7 @@ systemRouter.get('/health', (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
     system: 'OmniDash API Gateway',
-    version: '4.0.0',
+    version: '1.0.0',
     uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString()
   });
@@ -249,7 +249,7 @@ systemRouter.get('/status', (_req: Request, res: Response) => {
 systemRouter.get('/export', (_req: Request, res: Response) => {
   const exportPayload = {
     system: 'OmniDash Reborn',
-    version: 'v4.0.0',
+    version: 'v1.0.0',
     timestamp: new Date().toISOString(),
     tenant: 'operator-system-core',
     modules: ['timetable', 'grades', 'finance_50_30_20', 'workouts_fbw', 'canard_traffic', 'ai_chat', 'sqlite_habits'],

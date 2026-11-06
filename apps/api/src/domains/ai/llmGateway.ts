@@ -251,7 +251,7 @@ export class LLMGateway {
     const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const todayExams = dbStore.getEvents().filter((e) => e.date === dateStr);
 
-    return `Jesteś autonomicznym, wysoce precyzyjnym asystentem inżynieryjnym i wykonawczym ekosystemu OmniDash v4.0.0.
+    return `Jesteś autonomicznym, wysoce precyzyjnym asystentem inżynieryjnym i wykonawczym ekosystemu OmniDash v1.0.0.
 Odpowiadasz operatorowi w języku polskim: bezpośrednio, merytorycznie, bez zbędnych wstępów, przeprosin i small-talku.
 
 --- AUTORYTATYWNY KONTEKST SYSTEMU ---

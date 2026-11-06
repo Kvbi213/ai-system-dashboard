@@ -31,7 +31,7 @@ describe('OmniDash API Gateway Integration Suite', () => {
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.status).toBe('ok');
-    expect(data.version).toBe('4.0.0');
+    expect(data.version).toBe('1.0.0');
   });
 
   it('POST /api/auth/dev-login returns dev token', async () => {

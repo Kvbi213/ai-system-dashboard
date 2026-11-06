@@ -112,7 +112,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-50 to-indigo-50 border border-sky-200/90 text-xs text-sky-800 shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-sky-600 animate-pulse" />
             <span className="font-semibold hidden sm:inline">AI Agent</span>
-            <span className="font-mono text-[10px] text-slate-500 font-bold">v4</span>
+            <span className="font-mono text-[10px] text-slate-500 font-bold">v1.0</span>
           </div>
         </div>
       </div>

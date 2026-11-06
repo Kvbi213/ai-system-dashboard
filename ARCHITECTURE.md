@@ -1,13 +1,13 @@
 # ARCHITECTURE.md — REJESTR ARCHITEKTURY OMNIDASH REBORN
 > Dokument nadrzędny architektury systemu OmniDash Reborn.
 > Standard: Protokół Antigravity v4.0 (Deterministic Edition).
-> Status: AKTYWNY (v4.0.1) | Monorepo: `pnpm workspaces`
+> Status: AKTYWNY (v1.0.0 - Production Stable) | Monorepo: `pnpm workspaces`
 
 ---
 
 ## 1. STATUS SYSTEMU I METRYKI WYDANIA
 
-- **Wersja:** `v4.0.1`
+- **Wersja:** `v1.0.0 (Production Stable)`
 - **Typ Architektury:** Domain-Driven Modular Monolith w kontenerach Docker Compose
 - **Standard Jakości:** 100% TypeScript (`strict: true`, zero `any`), Zero-Placeholder Policy
 - **Środowisko:** Node.js 26/22 LTS, Vite 6, React 19, TailwindCSS v4, Vitest, Playwright 1.50

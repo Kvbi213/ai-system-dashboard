@@ -181,7 +181,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ systemStatus = 'nominal' }) =>
             <div className="flex items-center gap-1.5">
               <span className="font-bold text-base tracking-tight text-slate-900">OmniDash</span>
               <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-700 border border-sky-200 font-bold">
-                v4.0
+                v1.0
               </span>
             </div>
             <p className="text-xs text-slate-500 font-mono">Workspace System</p>

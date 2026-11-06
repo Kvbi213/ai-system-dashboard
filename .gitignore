@@ -44,6 +44,7 @@ test-results/
 # Temporary files
 tmp/
 scratch/
+graphify-out/cache/
 
 # Documentation filter (Only track canonical docs: README, TODO, HISTORY, ARCHITECTURE, and /docs/versions)
 docs/*

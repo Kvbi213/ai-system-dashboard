@@ -796,3 +796,19 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - `apps/api`: 18/18 zestawów testowych zaliczonych (135/135 testów green).
   - `apps/worker`: 4/4 zestawy testowe zaliczone (10/10 testów green).
   - `apps/web`: `tsc && vite build` czysty build produkcyjny (exit code 0).
+
+---
+
+### ## v1.0.0 — 2026-11-06 [CANONICAL BASELINE: CLEAN SEMVER RESET, GRAPHIFY KNOWLEDGE GRAPH & PRODUCTION CONSOLIDATION]
+**Status:** WYDANIE PRODUKCYJNE (CANONICAL PRODUCTION RELEASE)  
+**Typ:** MAJOR (Oficjalny Reset SemVer, Separacja od Prototypów Legacy i Wdrożenie Grafu Wiedzy Graphify)
+
+- [!] **Sanacja i Kalibracja Wersjonowania (Clean SemVer Baseline):**
+  - Zamknięcie historycznych wersji eksperymentalnych (1.x - 3.x z prototypów) oraz wersji roboczych 4.x.
+  - Usankcjonowanie pierwszego oficjalnego, stabilnego i w pełni zweryfikowanego wydania produkcyjnego jako **`v1.0.0`**.
+  - Zsynchronizowano wersję `1.0.0` we wszystkich pakietach monorepo (`package.json`, `@omnidash/api`, `@omnidash/web`, `@omnidash/worker`, `@omnidash/contracts`), nagłówkach API (`/api/system/health`), odznakach interfejsu użytkownika (`AppHeader`, `Sidebar`, `MoreDrawerSheet`) oraz w promptach asystenta LLM Gateway.
+- [+] **Integracja z Silnikiem Grafu Wiedzy AST Graphify (`Graphify-Labs/graphify`):**
+  - Przygotowanie środowiska i instalacja silnika `graphifyy` z deterministycznym parserem drzew składniowych AST.
+  - Generowanie grafu wiedzy dla całego monorepo OmniDash (`graphify-out/graph.json`, interaktywny `graph.html`, audyt architektoniczny `GRAPH_REPORT.md`).
+- [+] **Pełna Weryfikacja Systemowa:**
+  - Wszystkie testy jednostkowe, integracyjne i buildy frontendu w 100% sprawne ze statusem green.

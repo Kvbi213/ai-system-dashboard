@@ -117,7 +117,7 @@ export const MoreDrawerSheet: React.FC<MoreDrawerSheetProps> = ({ isOpen, onClos
             <ShieldCheck className="w-4 h-4 text-sky-600" />
             Zero-Trust Protected
           </span>
-          <span className="font-bold">v4.0.0-reborn</span>
+          <span className="font-bold">v1.0.0</span>
         </div>
       </div>
     </BottomActionSheet>

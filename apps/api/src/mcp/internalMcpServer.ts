@@ -1288,7 +1288,7 @@ export const mcpRouter = Router();
 
 mcpRouter.get('/tools', (_req: Request, res: Response) => {
   res.json({
-    server: 'OmniDash Internal MCP Server v4.0.0',
+    server: 'OmniDash Internal MCP Server v1.0.0',
     version: '1.0.0',
     tools: mcpServer.listTools()
   });
