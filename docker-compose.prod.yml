@@ -1,0 +1,94 @@
+version: '3.8'
+
+# OmniDash Production Stack — Zoptymalizowany dla VPS Mikrus (2 GB RAM / 25 GB NVMe)
+# Współistnienie z Portfolio: Zużycie RAM OmniDash ≤ 365 MB całkowicie.
+# Baza Danych: Wbudowany relacyjny SQLite (node:sqlite) montowany w trwałym wolumenie ./data/storage
+# Pamięć Podręczna: Mikro-kontener Redis 7 Alpine z twardym limitem 32 MB LRU
+
+services:
+  omnidash-web:
+    container_name: omnidash-web
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_BASE_URL=/api
+    depends_on:
+      - omnidash-api
+    restart: unless-stopped
+    mem_limit: 30m
+    mem_reservation: 15m
+    cpus: 0.25
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  omnidash-api:
+    container_name: omnidash-api
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=128
+      - REDIS_URL=redis://omnidash-redis:6379
+      - STORAGE_PATH=/app/apps/api/data
+    volumes:
+      - ./data/storage:/app/apps/api/data
+    depends_on:
+      - omnidash-redis
+    restart: unless-stopped
+    mem_limit: 180m
+    mem_reservation: 90m
+    cpus: 0.75
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  omnidash-worker:
+    container_name: omnidash-worker
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    environment:
+      - API_GATEWAY_URL=http://omnidash-api:5000/api
+      - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=80
+    depends_on:
+      - omnidash-api
+      - omnidash-redis
+    restart: unless-stopped
+    mem_limit: 110m
+    mem_reservation: 50m
+    cpus: 0.50
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  omnidash-redis:
+    container_name: omnidash-redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    # 32MB pamięci max, polityka kasowania najstarszych (LRU), wyłączony zapis na dysk RDB (brak fork OOM)
+    command: ["redis-server", "--maxmemory", "32mb", "--maxmemory-policy", "allkeys-lru", "--save", ""]
+    ports:
+      - "127.0.0.1:6379:6379"
+    mem_limit: 45m
+    mem_reservation: 20m
+    cpus: 0.25
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

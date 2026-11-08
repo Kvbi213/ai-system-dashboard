@@ -25,6 +25,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages/contracts ./packages/contracts
 COPY --from=builder /app/apps/api/package.json ./apps/api/
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/src/db/librusGroundTruth.json ./apps/api/dist/db/librusGroundTruth.json
+COPY --from=builder /app/apps/api/src/db/librusGroundTruth.json ./apps/api/src/db/librusGroundTruth.json
 COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 
 EXPOSE 5000

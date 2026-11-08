@@ -50,5 +50,7 @@ graphify-out/cache/
 docs/*
 !docs/versions/
 !docs/versions/*.md
+!docs/deploy/
+!docs/deploy/*.md
 *.draft.md
 *.spec.md

@@ -276,7 +276,13 @@ ctx.log('Wysłano poranny briefing.');`,
 
   private loadLibrusGroundTruth(): void {
     try {
-      const groundTruthPath = path.join(__dirname, 'librusGroundTruth.json');
+      let groundTruthPath = path.join(__dirname, 'librusGroundTruth.json');
+      if (!fs.existsSync(groundTruthPath)) {
+        groundTruthPath = path.join(process.cwd(), 'apps', 'api', 'src', 'db', 'librusGroundTruth.json');
+      }
+      if (!fs.existsSync(groundTruthPath)) {
+        groundTruthPath = path.join(process.cwd(), 'src', 'db', 'librusGroundTruth.json');
+      }
       if (!fs.existsSync(groundTruthPath)) return;
 
       const raw = fs.readFileSync(groundTruthPath, 'utf8');
@@ -825,6 +831,10 @@ ctx.log('Wysłano poranny briefing.');`,
   // School
   public getTimetable(day: number): LessonItem[] {
     return this.timetable[day] || [];
+  }
+
+  public setTimetableForDay(day: number, lessons: LessonItem[]): void {
+    this.timetable[day] = lessons;
   }
 
   public getAllTimetable(): Record<number, LessonItem[]> {

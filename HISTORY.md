@@ -812,3 +812,24 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - Generowanie grafu wiedzy dla całego monorepo OmniDash (`graphify-out/graph.json`, interaktywny `graph.html`, audyt architektoniczny `GRAPH_REPORT.md`).
 - [+] **Pełna Weryfikacja Systemowa:**
   - Wszystkie testy jednostkowe, integracyjne i buildy frontendu w 100% sprawne ze statusem green.
+
+---
+
+### ## v1.0.1 — 2026-11-08 [MIKRUS VPS DEPLOYMENT PROFILE & RESOURCE HARDENING]
+**Status:** WYDANIE PRODUKCYJNE (BRANCH: `mikr.us`)  
+**Typ:** MINOR / DEPLOYMENT HARDENING
+
+- [+] **Dedykowany Profil Wdrożeniowy Docker (`docker-compose.prod.yml`):**
+  - Wyeliminowano całkowicie kontener PostgreSQL (`omnidash-db`) — baza danych SQLite (`node:sqlite`) funkcjonuje bezpośrednio na trwałym wolumenie `./data/storage`.
+  - Wdrożono mikro-kontener Redis (`redis:7-alpine`) z twardym limitem pamięci `maxmemory 32mb`, polityką `allkeys-lru` i wyłączonym fork RDB (`--save ""`).
+  - Nałożono rygorystyczne limity cgroups (`mem_limit`): API (180M), Worker (110M), Redis (45M), Web Nginx (30M) — łączny budżet RAM OmniDash ≤ 365 MB (~18% pamięci Mikrusa 2 GB).
+  - Skonfigurowano rotację logów kontenerów (`json-file`, `max-size: 10m`, `max-file: 3`) chroniącą 25 GB dysku NVMe.
+- [+] **Nginx SPA Router (`apps/web/nginx.conf`):**
+  - Obsługa `try_files $uri $uri/ /index.html;` zapobiegająca błędom 404 przy odświeżaniu podstron React.
+  - Kompresja Gzip dla zasobów tekstowych i assetów oraz wewnętrzny reverse proxy `/api/`.
+- [+] **Zestaw Narzędzi Wdrożeniowych Mikrus (`deploy/`):**
+  - `deploy/mikrus-setup.sh`: automatyczna detekcja RAM, weryfikacja Dockera i alokacja 1.5 GB SWAP jako buforu przed OOM Killerem.
+  - `deploy/mikrus-deploy.sh`: jednoklikowe wdrożenie, test zdrowia i telemetria zużycia pamięci `docker stats`.
+  - `deploy/nginx/mikrus-reverse-proxy.conf.example`: wzorzec nadrzędnego reverse proxy rozdzielającego ruch pomiędzy OmniDash (`dash.*`) a Portfolio (`*`).
+- [+] **Izolacja na Dedykowanej Gałęzi Git:**
+  - Całość konfiguracji wdrożeniowej wydzielona na dedykowaną gałąź `mikr.us` na GitHubie.

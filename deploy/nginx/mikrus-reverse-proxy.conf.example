@@ -1,0 +1,57 @@
+# ==============================================================================
+# WZORZEC KONFIGURACJI NGINX DLA SERWERA MIKRUS (2 GB RAM)
+# Plik: /etc/nginx/sites-available/mikrus-ecosystem.conf
+#
+# Architektura współistnienia:
+# 1. Kvbi Portfolio (np. https://kvbi.pl) -> proxy do kontenera/procesu Portfolio (port 3001)
+# 2. OmniDash AI Dashboard (np. https://dash.kvbi.pl) -> proxy do omnidash-web (port 3000)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. OMNIDASH AI DASHBOARD (Subdomena dash.*)
+# ------------------------------------------------------------------------------
+server {
+    listen 80;
+    server_name dash.twojadomena.pl; # Podmień na swoją subdomenę lub IP Mikrusa
+
+    # Zwiększenie limitu wielkości ciała żądania dla uploadu planu Librus/awatarów
+    client_max_body_size 25M;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Buforowanie wyłączone dla strumieniowania SSE (Czat AI / Telemetria)
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 86400s;
+    }
+}
+
+# ------------------------------------------------------------------------------
+# 2. KVBI PORTFOLIO (Główna Domena)
+# ------------------------------------------------------------------------------
+server {
+    listen 80;
+    server_name twojadomena.pl www.twojadomena.pl; # Podmień na domenę portfolio
+
+    client_max_body_size 10M;
+
+    location / {
+        # Portfolio działające na osobnym porcie (np. 3001)
+        proxy_pass http://127.0.0.1:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
