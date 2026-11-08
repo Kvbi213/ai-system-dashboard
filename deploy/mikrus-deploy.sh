@@ -33,7 +33,13 @@ EOF
   echo "[+] Utworzono plik konfiguracyjny .env."
 fi
 
-# 2. Uruchomienie Stosu Kontenerowego
+# 2. Upewnienie się że sieć zewnętrzna istnieje
+if ! docker network inspect portfolio_portfolio-network > /dev/null 2>&1; then
+  echo "[*] Tworzenie sieci portfolio_portfolio-network..."
+  docker network create portfolio_portfolio-network || true
+fi
+
+# 3. Uruchomienie Stosu Kontenerowego
 echo "[>] Uruchamianie kompilacji i startu kontenerow (docker-compose.prod.yml)..."
 if docker compose version &> /dev/null; then
   DOCKER_COMPOSE_CMD="docker compose -f docker-compose.prod.yml"
@@ -44,7 +50,7 @@ fi
 $DOCKER_COMPOSE_CMD down --remove-orphans || true
 $DOCKER_COMPOSE_CMD up -d --build
 
-# 3. Oczekiwanie na Gotowość API Gateway
+# 4. Oczekiwanie na Gotowość API Gateway
 echo "[~] Oczekiwanie na start API Gateway (port 5000)..."
 READY=0
 for i in {1..20}; do
@@ -61,7 +67,7 @@ else
   echo "[!] OSTRZEZENIE: API Gateway jeszcze sie inicjalizuje. Sprawdz logi: docker logs omnidash-api"
 fi
 
-# 4. Sprawdzenie Zużycia Zasobów
+# 5. Sprawdzenie Zużycia Zasobów
 echo ""
 echo "======================================================================"
 echo "[*] RAPORT ALOKACJI PAMIECI RAM (DOCKER STATS):"
