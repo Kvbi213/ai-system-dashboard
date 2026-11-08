@@ -28,7 +28,7 @@
 4. Przebudowanie i restart kontenerów `omnidash-api` oraz `omnidash-worker` na Mikrus VPS.
 
 ## 3. POST-MORTEM
-- **STATUS:** IN_PROGRESS
-- **APPROACH:** Rozszerzenie autoryzowanych domen CORS z obsługą regex produkcyjnych subdomen, wstrzyknięcie pliku środowiskowego do kontenerów Dockera, deterministyczna weryfikacja żądaniem HTTP.
-- **IMPROVED:** Eliminacja fałszywych błędów 500 przy żądaniach z frontendu na produkcji, pełna dostępność API Setup Wizard i integracji Pushbullet.
-- **BROKE:** TBD
+- **STATUS:** CLOSED (exit code 0, 17/17 Vitest passed, Groq Code Reviewer passed, live HTTP 200 OK verified)
+- **APPROACH:** Rozszerzenie autoryzowanych domen CORS o `*.kvbi.pl`, wstrzyknięcie pliku środowiskowego `.env` w `docker-compose.prod.yml`, dodanie dozwolonych nagłówków `x-pushbullet-token`.
+- **IMPROVED:** Pełne odblokowanie żądań z `https://omni.kvbi.pl`, poprawna weryfikacja tokenu Pushbullet na produkcji (użytkownik zweryfikowany z API Pushbullet, HTTP 200 OK), zerowy narzut pamięciowy (łączny RAM OmniDash: 91.55 MiB).
+- **BROKE:** Brak regresji wstecznej.
