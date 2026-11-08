@@ -8,17 +8,26 @@
     file_server
     encode zstd gzip
 
+    # Blokada robotów, crawlerów i wyszukiwarek (Pełna Prywatność)
+    handle /robots.txt {
+        header Content-Type "text/plain"
+        respond "User-agent: *\nDisallow: /\n" 200
+    }
+
     # Prosty endpoint healthcheck dla Dockera i monitoringu
     handle /healthz {
         respond "OK" 200
     }
 
-    # Bezpieczne nagłówki
+    # Rygorystyczne nagłówki bezpieczeństwa i anty-indeksowania
     header {
-        X-Frame-Options "SAMEORIGIN"
+        # Całkowity zakaz indeksowania i archiwizowania przez wyszukiwarki i boty AI
+        X-Robots-Tag "noindex, nofollow, noarchive, nosnippet, notranslate, noimageindex"
+        X-Frame-Options "DENY"
         X-Content-Type-Options "nosniff"
         X-XSS-Protection "1; mode=block"
-        Referrer-Policy "strict-origin-when-cross-origin"
+        Referrer-Policy "no-referrer"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
     }
 
     # Proxy zapytań API do kontenera omnidash-api
