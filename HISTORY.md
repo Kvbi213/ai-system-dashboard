@@ -833,3 +833,22 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - `deploy/nginx/mikrus-reverse-proxy.conf.example`: wzorzec nadrzędnego reverse proxy rozdzielającego ruch pomiędzy OmniDash (`dash.*`) a Portfolio (`*`).
 - [+] **Izolacja na Dedykowanej Gałęzi Git:**
   - Całość konfiguracji wdrożeniowej wydzielona na dedykowaną gałąź `mikr.us` na GitHubie.
+
+---
+
+### ## v1.0.2 — 2026-11-08 [CORS BLOCKING FIX & PUSHBULLET WIZARD REPAIR]
+**Status:** WYDANIE PRODUKCYJNE (BRANCH: `mikr.us`)  
+**Typ:** PATCH / ONE-SHOT BUGFIX
+
+- [+] **Eliminacja Blokady CORS dla Domeny Produkcyjnej (`apps/api/src/core/corsConfig.ts`):**
+  - Rozszerzono `DEFAULT_ALLOWED_ORIGINS` o subdomeny produkcyjne: `https://omni.kvbi.pl`, `https://dash.kvbi.pl`, `https://omnidash.kvbi.pl`, `https://hub.kvbi.pl`, `https://kvbi.pl`.
+  - Wprowadzono regułę regex `^https:\/\/(.*\.)?kvbi\.pl$` autoryzującą wszystkie subdomeny produkcyjne z zachowaniem blokady wildcard `*` oraz domen zewnętrznych.
+- [+] **Wstrzyknięcie Zmiennych Środowiskowych do Kontenerów (`docker-compose.prod.yml`):**
+  - Dodano jawną deklarację `env_file: - .env` do serwisów `omnidash-api` oraz `omnidash-worker`, gwarantując przekazanie `ALLOWED_ORIGINS` oraz kluczy API z pliku `.env`.
+- [+] **Uzupełnienie Dozwolonych Nagłówków CORS (`apps/api/src/index.ts`):**
+  - Dodano nagłówek `x-pushbullet-token` do listy `allowedHeaders` w middleware CORS.
+- [+] **Automatyczne Testy Regresyjne (`apps/api/tests/api_gateway.test.ts`):**
+  - Dodano testy jednostkowe `isOriginAllowed` weryfikujące akceptację domen `*.kvbi.pl` i odrzucenie domen podszywających się.
+  - Dodano test integracyjny żądania POST z nagłówkiem `Origin: https://omni.kvbi.pl` do endpointu `/api/pushbullet/test` (status 200, nagłówek CORS obecny, brak błędu 500).
+- [+] **Zamknięcie Rejestru Błędu:**
+  - Utworzono i zamknięto dokumentację `/docs/errors/ERROR_DIFF_2026-11-08_cors_blocked_pushbullet_500.md`.

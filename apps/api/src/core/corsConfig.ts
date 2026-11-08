@@ -5,7 +5,12 @@ const DEFAULT_ALLOWED_ORIGINS = [
   'http://127.0.0.1:5000',
   'http://localhost:4173',
   'http://127.0.0.1:4173',
-  'https://omnidash.internal'
+  'https://omnidash.internal',
+  'https://omni.kvbi.pl',
+  'https://dash.kvbi.pl',
+  'https://omnidash.kvbi.pl',
+  'https://hub.kvbi.pl',
+  'https://kvbi.pl'
 ];
 
 export const isOriginAllowed = (origin: string | undefined): boolean => {
@@ -21,5 +26,9 @@ export const isOriginAllowed = (origin: string | undefined): boolean => {
 
   // Regex pattern matching localhost/127.0.0.1 on any port in development
   const localRegex = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
-  return localRegex.test(origin);
+  if (localRegex.test(origin)) return true;
+
+  // Regex pattern matching production kvbi.pl domain and subdomains
+  const kvbiRegex = /^https:\/\/(.*\.)?kvbi\.pl$/;
+  return kvbiRegex.test(origin);
 };

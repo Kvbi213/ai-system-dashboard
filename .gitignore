@@ -52,5 +52,7 @@ docs/*
 !docs/versions/*.md
 !docs/deploy/
 !docs/deploy/*.md
+!docs/errors/
+!docs/errors/*.md
 *.draft.md
 *.spec.md

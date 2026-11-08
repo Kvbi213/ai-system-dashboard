@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import app from '../src/index';
 import { dbStore } from '../src/db/store.js';
+import { isOriginAllowed } from '../src/core/corsConfig.js';
 import http from 'http';
 
 describe('OmniDash API Gateway Integration Suite', () => {
@@ -119,5 +120,37 @@ describe('OmniDash API Gateway Integration Suite', () => {
     } finally {
       process.env.PUSHBULLET_WEBHOOK_SECRET = origSecret;
     }
+  });
+
+  it('validates CORS origins strictly and allows https://omni.kvbi.pl and kvbi.pl subdomains', () => {
+    expect(isOriginAllowed('https://omni.kvbi.pl')).toBe(true);
+    expect(isOriginAllowed('https://dash.kvbi.pl')).toBe(true);
+    expect(isOriginAllowed('https://kvbi.pl')).toBe(true);
+    expect(isOriginAllowed('http://localhost:3000')).toBe(true);
+    expect(isOriginAllowed('http://127.0.0.1:5173')).toBe(true);
+
+    // Rejection tests
+    expect(isOriginAllowed('https://attacker-kvbi.pl')).toBe(false);
+    expect(isOriginAllowed('https://fakekvbi.pl')).toBe(false);
+    expect(isOriginAllowed('https://evil.com')).toBe(false);
+    expect(isOriginAllowed('*')).toBe(false);
+  });
+
+  it('POST /api/pushbullet/test allows CORS from https://omni.kvbi.pl without 500 error', async () => {
+    const res = await fetch(`${baseUrl}/api/pushbullet/test`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'https://omni.kvbi.pl',
+        Authorization: 'Bearer dev-operator-token'
+      },
+      body: JSON.stringify({ token: 'mock_operator_token' })
+    });
+
+    expect(res.headers.get('access-control-allow-origin')).toBe('https://omni.kvbi.pl');
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.success).toBe(true);
+    expect(data.user?.name).toBeDefined();
   });
 });
