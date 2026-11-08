@@ -1,4 +1,4 @@
-# Multi-stage build for OmniDash Web SPA
+# Multi-stage build for OmniDash Web SPA (Caddy 2 Alpine)
 FROM node:22-alpine AS builder
 WORKDIR /app
 
@@ -16,8 +16,9 @@ COPY apps/web ./apps/web
 RUN pnpm --filter @omnidash/contracts build
 RUN pnpm --filter @omnidash/web build
 
-FROM nginx:alpine AS runner
-COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+FROM caddy:2-alpine AS runner
+COPY apps/web/Caddyfile /etc/caddy/Caddyfile
+COPY --from=builder /app/apps/web/dist /usr/share/caddy
+
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
