@@ -8,6 +8,10 @@
     file_server
     encode zstd gzip
 
+    # Prosty endpoint healthcheck
+    @health path /healthz
+    respond @health 200 "OK"
+
     # Bezpieczne nagłówki
     header {
         X-Frame-Options "SAMEORIGIN"
