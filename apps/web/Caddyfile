@@ -8,9 +8,10 @@
     file_server
     encode zstd gzip
 
-    # Prosty endpoint healthcheck
-    @health path /healthz
-    respond @health 200 "OK"
+    # Prosty endpoint healthcheck dla Dockera i monitoringu
+    handle /healthz {
+        respond "OK" 200
+    }
 
     # Bezpieczne nagłówki
     header {

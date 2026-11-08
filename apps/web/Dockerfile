@@ -17,13 +17,15 @@ RUN pnpm --filter @omnidash/contracts build
 RUN pnpm --filter @omnidash/web build
 
 FROM caddy:2-alpine AS runner
+RUN apk add --no-cache curl
+
 COPY apps/web/Caddyfile /etc/caddy/Caddyfile
 COPY --from=builder /app/apps/web/dist /usr/share/caddy
 
 EXPOSE 80
 STOPSIGNAL SIGTERM
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD wget -qO- http://127.0.0.1/healthz || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://127.0.0.1/healthz || exit 1
 
 CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
