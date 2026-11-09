@@ -230,7 +230,74 @@ export const pushbulletApi = {
       method: 'POST',
       body: JSON.stringify({ token })
     }),
-  getHistory: () => apiFetch<{ history: any[] }>('/pushbullet/history')
+  getHistory: () => apiFetch<{ history: any[] }>('/pushbullet/history'),
+  getConfig: () => apiFetch<{
+    configured: boolean;
+    source: 'env' | 'database' | 'none';
+    maskedKey: string;
+    hasEnvKey: boolean;
+    hasDbKey: boolean;
+    activeKeyPreview: string;
+  }>('/pushbullet/config'),
+  saveConfig: (token: string) => apiFetch<{ success: boolean; message: string; status: any }>('/pushbullet/config', {
+    method: 'POST',
+    body: JSON.stringify({ token })
+  })
+};
+
+// Auth & Integration Domain
+export const authApi = {
+  getStatus: () => apiFetch<{
+    authenticated: boolean;
+    user: { id: string; email: string; role: string };
+    providers: {
+      googleOAuth: {
+        configured: boolean;
+        clientIdMasked: string;
+        connectedEmail: string | null;
+        scopes: string[];
+      };
+      imap: {
+        configured: boolean;
+        host: string;
+        port: number;
+        userMasked: string;
+        tls: boolean;
+      };
+      pushbullet: {
+        configured: boolean;
+        source: 'env' | 'database' | 'none';
+        maskedKey: string;
+      };
+      librus: {
+        configured: boolean;
+        loginMasked: string;
+      };
+      groq: {
+        configured: boolean;
+      };
+    };
+  }>('/auth/status'),
+  getSession: () => apiFetch<{ user: any; sessionExpiresAt: string }>('/auth/session'),
+  devLogin: () => apiFetch<{ token: string; user: any }>('/auth/dev-login', { method: 'POST' }),
+  login: (idToken: string) => apiFetch<{ token: string; user: any }>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ idToken })
+  }),
+  authorizeGoogle: (data: { email?: string; clientId?: string }) =>
+    apiFetch<{ success: boolean; message: string; connectedEmail: string; scopes: string[] }>('/auth/google/authorize', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+  disconnectGoogle: () =>
+    apiFetch<{ success: boolean; message: string }>('/auth/google/disconnect', { method: 'POST' }),
+  testImap: (credentials?: { host?: string; port?: number; user?: string; password?: string; tls?: boolean }) =>
+    apiFetch<{ success: boolean; message: string; folders?: string[] }>('/auth/test-imap', {
+      method: 'POST',
+      body: JSON.stringify(credentials || {})
+    }),
+  regenerateToken: () =>
+    apiFetch<{ success: boolean; token: string; message: string }>('/auth/regenerate-token', { method: 'POST' })
 };
 
 // Calendar Domain
@@ -246,3 +313,4 @@ export const calendarApi = {
       method: 'DELETE'
     })
 };
+

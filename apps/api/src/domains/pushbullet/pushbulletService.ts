@@ -92,6 +92,48 @@ export class PushbulletService {
   }
 
   /**
+   * Zwraca szczegółowy status konfiguracji klucza API Pushbullet (źródło: env, db, brak oraz maskowany podgląd).
+   */
+  public getConfigStatus(): {
+    configured: boolean;
+    source: 'env' | 'database' | 'none';
+    maskedKey: string;
+    hasEnvKey: boolean;
+    hasDbKey: boolean;
+  } {
+    const envKey = process.env.PUSHBULLET_API_KEY || '';
+    const isEnvSet = Boolean(envKey && envKey !== 'twój_klucz_pushbullet_tutaj' && envKey !== 'your_pushbullet_api_key');
+    let dbKey = '';
+    try {
+      dbKey = sqliteStore.getConfig('pushbullet_api_key') || sqliteStore.getConfig('pushbulletKey') || '';
+    } catch {
+      // fallback
+    }
+    const isDbSet = Boolean(dbKey && dbKey.trim().length > 0 && dbKey !== 'twój_klucz_pushbullet_tutaj');
+    
+    const activeKey = this.getApiKey();
+    const configured = Boolean(activeKey);
+    const source: 'env' | 'database' | 'none' = isEnvSet ? 'env' : isDbSet ? 'database' : 'none';
+
+    let maskedKey = '';
+    if (activeKey) {
+      if (activeKey.length > 8) {
+        maskedKey = `${activeKey.slice(0, 4)}••••••••••••${activeKey.slice(-4)}`;
+      } else {
+        maskedKey = '••••••••';
+      }
+    }
+
+    return {
+      configured,
+      source,
+      maskedKey,
+      hasEnvKey: isEnvSet,
+      hasDbKey: isDbSet
+    };
+  }
+
+  /**
    * Weryfikuje poprawność tokena API przez oficjalny endpoint /v2/users/me.
    */
   public async verifyToken(token?: string): Promise<VerifyTokenResult> {

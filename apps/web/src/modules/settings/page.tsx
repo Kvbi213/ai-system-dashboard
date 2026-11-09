@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Cpu, Volume2, Bot, MapPin, Bell, Smartphone, ShieldCheck, Brain } from 'lucide-react';
+import { Cpu, Volume2, Bot, MapPin, Bell, Smartphone, ShieldCheck, Brain, KeyRound } from 'lucide-react';
 import { KernelSettings } from './components/KernelSettings';
 import { VoiceTtsSettings } from './components/VoiceTtsSettings';
 import { AiModelSettings } from './components/AiModelSettings';
@@ -8,11 +8,12 @@ import { NotificationSettings } from './components/NotificationSettings';
 import { ErgonomicsSettings } from './components/ErgonomicsSettings';
 import { SecurityDbSettings } from './components/SecurityDbSettings';
 import { FinOpsAndMemoryCard } from './components/FinOpsAndMemoryCard';
+import { AuthenticationSettings } from './components/AuthenticationSettings';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { SubTabBar } from '../../components/ui/SubTabBar';
 import { useToast } from '../../components/ui/Toast';
 
-type SettingsTab = 'kernel' | 'finops_memory' | 'voice_tts' | 'ai_models' | 'geo_weather' | 'notifications' | 'ergonomics_ui' | 'database_cloud';
+type SettingsTab = 'kernel' | 'authentication' | 'finops_memory' | 'voice_tts' | 'ai_models' | 'geo_weather' | 'notifications' | 'ergonomics_ui' | 'database_cloud';
 
 export const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('kernel');
@@ -29,6 +30,7 @@ export const SettingsPage: React.FC = () => {
 
   const tabs = [
     { id: 'kernel', label: 'Kernel & Motyw', icon: Cpu },
+    { id: 'authentication', label: 'Autoryzacja & Konta', icon: KeyRound },
     { id: 'finops_memory', label: 'FinOps & Pamięć', icon: Brain },
     { id: 'voice_tts', label: 'Asystent TTS', icon: Volume2 },
     { id: 'ai_models', label: 'Modele AI', icon: Bot },
@@ -44,7 +46,7 @@ export const SettingsPage: React.FC = () => {
       <PageHeader
         icon={ShieldCheck}
         title="Konfiguracja Jądra i Ustawienia Zero-Trust"
-        subtitle="Zarządzanie motywem, modelami AI, TTS, geolokalizacją i bezpieczeństwem"
+        subtitle="Zarządzanie motywem, modelami AI, TTS, autoryzacją Google/IMAP, geolokalizacją i bezpieczeństwem"
         badge="Kernel v4.0"
         badgeVariant="slate"
         onRefresh={handleRefresh}
@@ -62,6 +64,7 @@ export const SettingsPage: React.FC = () => {
       {/* Active Tab Content */}
       <div className="space-y-4">
         {activeTab === 'kernel' && <KernelSettings />}
+        {activeTab === 'authentication' && <AuthenticationSettings />}
         {activeTab === 'finops_memory' && <FinOpsAndMemoryCard />}
         {activeTab === 'voice_tts' && <VoiceTtsSettings />}
         {activeTab === 'ai_models' && <AiModelSettings />}

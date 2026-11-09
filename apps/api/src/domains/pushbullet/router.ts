@@ -1,8 +1,39 @@
 import { Router, Request, Response } from 'express';
 import { dbStore } from '../../db/store.js';
+import { sqliteStore } from '../../db/sqliteStore.js';
 import { pushbulletService, SendPushSchema } from './pushbulletService.js';
 
 export const pushbulletRouter = Router();
+
+/**
+ * GET /api/pushbullet/config
+ * Zwraca status konfiguracji klucza Pushbullet (czy pochodzi z .env, bazy SQLite, oraz maskowaną wartość).
+ */
+pushbulletRouter.get('/config', (_req: Request, res: Response) => {
+  const status = pushbulletService.getConfigStatus();
+  res.json({
+    ...status,
+    activeKeyPreview: status.maskedKey
+  });
+});
+
+/**
+ * POST /api/pushbullet/config
+ * Zapisuje lub aktualizuje token Pushbullet w lokalnej bazie danych SQLite.
+ */
+pushbulletRouter.post('/config', (req: Request, res: Response) => {
+  const { token } = req.body;
+  if (typeof token === 'string') {
+    sqliteStore.setConfig('pushbullet_api_key', token.trim());
+    res.json({
+      success: true,
+      message: 'Zaktualizowano token Pushbullet w bazie danych.',
+      status: pushbulletService.getConfigStatus()
+    });
+  } else {
+    res.status(400).json({ error: 'INVALID_TOKEN', message: 'Token musi być ciągiem znaków.' });
+  }
+});
 
 /**
  * POST /api/pushbullet/send

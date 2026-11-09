@@ -903,3 +903,27 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - Dodano konfigurację parametrów `IMAP_HOST`, `IMAP_PORT`, `IMAP_USER`, `IMAP_PASSWORD`, `IMAP_TLS`, `TRIAGE_INTERVAL_MINUTES`.
 - [+] **Zestaw Testów Jednostkowych (`apps/worker/tests/triage.test.ts`):**
   - Testy dekodowania nagłówków MIME, kategoryzacji wiadomości, agregacji okna czasowego oraz graceful degradation.
+
+---
+
+### ## v1.0.5 — 2026-11-09 [AUTHENTICATION SETTINGS & PUSHBULLET ENV TRANSPARENCY]
+**Status:** WYDANIE PRODUKCYJNE (BRANCH: `mikr.us`, `v4-reborn`)  
+**Typ:** MINOR / ENHANCEMENT
+
+- [+] **Nowa Karta Uwierzytelniania w Ustawieniach (`apps/web/src/modules/settings/components/AuthenticationSettings.tsx`):**
+  - Wprowadzono dedykowaną kartę "Autoryzacja & Konta" w głównym panelu ustawień jądra (`SettingsPage.tsx`).
+  - **Google Authentication & OAuth 2.0:** Integracja oficjalnego logowania Google Identity i Gmail REST API v1 obok dotychczasowych haseł aplikacji Google, wraz z zarządzaniem uprawnieniami (`gmail.readonly`, `gmail.modify`, `openid`, `userinfo.email`) i odłączaniem konta.
+  - **Klient Poczty IMAP (RFC 3501):** Podgląd parametrów hosta, portu (993), szyfrowania TLS oraz stanu konfiguracji w `.env` z możliwością natychmiastowego testowania połączenia ze skrzynką.
+  - **Rotacja Sesji Zero-Trust:** Generator nowych tokenów sesji Bearer (`/api/auth/regenerate-token`) oraz wgląd w tożsamość i uprawnienia operatora.
+  - **Mosty Usług Zewnętrznych:** Scentralizowany podgląd stanu połączeń dla Pushbullet, Librus Synergia i Groq Cloud LLM.
+- [+] **Eliminacja Pustego Pola Tokena Pushbullet (`NotificationSettings.tsx`, `pushbulletService.ts`):**
+  - Utworzono endpointy `GET /api/pushbullet/config` oraz `POST /api/pushbullet/config`, zwracające rzeczywisty stan konfiguracji klucza API, jego źródło (`.env` vs SQLite) oraz maskowaną wartość (np. `o.xxxx••••••••xxxx`).
+  - Zaktualizowano komponent `NotificationSettings.tsx`, który przy wejściu wczytuje aktywny klucz z backendu i prezentuje zielony baner `SKONFIGUROWANO W .ENV` wraz z maskowanym kluczem, eliminując wrażenie braku konfiguracji.
+- [+] **Rozszerzenie Bramy API (`apps/api/src/domains/auth/router.ts` & `core/authMiddleware.ts`):**
+  - Dodano endpointy `/api/auth/status`, `/api/auth/google/authorize`, `/api/auth/google/disconnect`, `/api/auth/test-imap`, `/api/auth/regenerate-token`.
+  - Włączono ścieżki `/auth/status` i `/auth/test-imap` do `PUBLIC_PATHS` w middleware autoryzacji.
+- [+] **Synchronizacja Gałęzi Git & Nowa Gałąź Domyślna:**
+  - Gałąź `v4-reborn` została w pełni zsynchronizowana z gałęzią `mikr.us`, otrzymując wszystkie najnowsze moduły i poprawki.
+  - Gałąź `v4-reborn` została ustanowiona jako domyślna (default branch) w repozytorium GitHub.
+  - Usunięto przestarzałe i zbędne gałęzie zdalne (`master`, `v4.0`).
+

@@ -13,6 +13,8 @@ export interface AuthenticatedRequest extends Request {
 const PUBLIC_PATHS = [
   '/auth/login',
   '/auth/dev-login',
+  '/auth/status',
+  '/auth/test-imap',
   '/system/health',
   '/system/status',
   '/news/public',
