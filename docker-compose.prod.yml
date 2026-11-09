@@ -101,7 +101,7 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     # 32MB pamięci max, polityka kasowania najstarszych (LRU), wyłączony zapis na dysk RDB (brak fork OOM)
-    command: ["redis-server", "--maxmemory", "32mb", "--maxmemory-policy", "allkeys-lru", "--save", ""]
+    command: ["redis-server", "--maxmemory", "32mb", "--maxmemory-policy", "allkeys-lru", "--save", "", "--stop-writes-on-bgsave-error", "no"]
     ports:
       - "127.0.0.1:6379:6379"
     networks:

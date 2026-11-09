@@ -42,7 +42,7 @@ export function decodeMimeHeader(input: string): string {
   }
 
   const mimeRegex = /=\?([^?]+)\?([bBqQ])\?([^?]+)\?=/g;
-  return input.replace(mimeRegex, (_, charset, encoding, text) => {
+  return input.replace(mimeRegex, (_: string, charset: string, encoding: string, text: string) => {
     try {
       const enc = encoding.toUpperCase();
       if (enc === 'B') {
@@ -50,7 +50,7 @@ export function decodeMimeHeader(input: string): string {
       } else if (enc === 'Q') {
         const decoded = text
           .replace(/_/g, ' ')
-          .replace(/=([A-Fa-f0-9]{2})/g, (__, hex) => String.fromCharCode(parseInt(hex, 16)));
+          .replace(/=([A-Fa-f0-9]{2})/g, (__: string, hex: string) => String.fromCharCode(parseInt(hex, 16)));
         return decoded;
       }
     } catch {
