@@ -2,6 +2,8 @@ import { PushbulletDispatcher } from '../pushbullet/dispatcher.js';
 import { LessonAlertMonitor } from '../automation/lessonAlertMonitor.js';
 import { LibrusAutoScraper } from '../automation/librusAutoScraper.js';
 import { getWarsawTime } from '../automation/timeUtils.js';
+import { MailScanner, MailTriageResult } from '../triage/mailScanner.js';
+import { PushNotificationAggregator, AggregatedPushSummary } from '../triage/pushNotificationAggregator.js';
 
 export class SystemScheduler {
   private timers: NodeJS.Timeout[] = [];
@@ -9,13 +11,21 @@ export class SystemScheduler {
   private dispatcher?: PushbulletDispatcher;
   private lessonAlertMonitor: LessonAlertMonitor;
   private librusScraper: LibrusAutoScraper;
+  private mailScanner: MailScanner;
+  private pushAggregator: PushNotificationAggregator;
+  private triageIntervalMinutes: number;
 
   // Master Clock & Continuous Drift-Compensated Chronometer
   private lastSyncedServerTimeMs: number = Date.now();
   private lastSyncTimestampMs: number = Date.now();
   private minuteTickCount: number = 0;
 
-  constructor(apiGatewayUrl = 'http://localhost:5000/api', dispatcher?: PushbulletDispatcher) {
+  constructor(
+    apiGatewayUrl = 'http://localhost:5000/api',
+    dispatcher?: PushbulletDispatcher,
+    mailScanner?: MailScanner,
+    pushAggregator?: PushNotificationAggregator
+  ) {
     this.apiGatewayUrl = apiGatewayUrl;
     this.dispatcher = dispatcher;
     this.lessonAlertMonitor = new LessonAlertMonitor({
@@ -26,6 +36,17 @@ export class SystemScheduler {
       apiGatewayUrl: this.apiGatewayUrl,
       dispatcher: this.dispatcher
     });
+    this.mailScanner = mailScanner || new MailScanner();
+    this.pushAggregator = pushAggregator || new PushNotificationAggregator();
+    this.triageIntervalMinutes = parseInt(process.env.TRIAGE_INTERVAL_MINUTES || '15', 10);
+  }
+
+  public setMailScanner(mailScanner: MailScanner): void {
+    this.mailScanner = mailScanner;
+  }
+
+  public setPushAggregator(pushAggregator: PushNotificationAggregator): void {
+    this.pushAggregator = pushAggregator;
   }
 
   public start(): void {
@@ -55,8 +76,106 @@ export class SystemScheduler {
     // 5. Start Anti-Bot Jitter Scraper dla Librusa
     this.librusScraper.start();
 
+    // 6. Cykliczny moduł Mail Triage & Pushbullet Aggregator (co 15-20 min)
+    const triageTimer = setInterval(() => {
+      this.runTriageCycle().catch((err) => {
+        console.error('[!] TRIAGE :: Błąd cyklu triage:', err);
+      });
+    }, this.triageIntervalMinutes * 60 * 1000);
+    this.timers.push(triageTimer);
+
     // Initial warm-up ping
     this.pingHealth();
+  }
+
+  /**
+   * Wykonuje deterministyczny cykl Triage (analiza poczty IMAP + agregacja powiadomień ze smartfona).
+   */
+  public async runTriageCycle(): Promise<void> {
+    console.log(`[*] TRIAGE :: Rozpoczynanie cyklicznej analizy poczty i powiadomień (okno ${this.triageIntervalMinutes} min)...`);
+
+    // 1. Skanowanie poczty IMAP
+    let mailTriage: MailTriageResult = {
+      totalUnread: 0,
+      importantCount: 0,
+      normalCount: 0,
+      spamNewsletterCount: 0,
+      importantMessages: [],
+      isConfigured: false,
+      scannedAt: Date.now(),
+      items: []
+    };
+
+    try {
+      mailTriage = await this.mailScanner.scanInbox();
+    } catch (err) {
+      console.error('[!] TRIAGE :: Błąd skanowania poczty IMAP:', err);
+    }
+
+    // 2. Agregacja zdarzeń Pushbullet ze smartfona
+    const pushSummary: AggregatedPushSummary = this.pushAggregator.flushWindow(this.triageIntervalMinutes);
+
+    const hasNewMail = mailTriage.totalUnread > 0;
+    const hasPushEvents = pushSummary.totalCount > 0;
+    const hasCriticalItems = mailTriage.importantCount > 0 || pushSummary.hasHighPriority;
+
+    if (!hasNewMail && !hasPushEvents) {
+      console.log(`[*] TRIAGE :: Cykl zakończony. Brak nowych maili oraz powiadomień w oknie ${this.triageIntervalMinutes}m.`);
+      return;
+    }
+
+    // 3. Generowanie zwięzłego raportu
+    const reportLines: string[] = [];
+
+    // Podsumowanie Poczty
+    if (mailTriage.isConfigured && mailTriage.totalUnread > 0) {
+      reportLines.push(`POCZTA: ${mailTriage.totalUnread} nieprzeczytanych (Ważne: ${mailTriage.importantCount}, Zwykłe: ${mailTriage.normalCount}, Spam: ${mailTriage.spamNewsletterCount})`);
+      if (mailTriage.importantMessages.length > 0) {
+        for (const msg of mailTriage.importantMessages.slice(0, 3)) {
+          reportLines.push(`- [WAŻNE] ${msg.subject} (od: ${msg.from})`);
+        }
+      }
+    }
+
+    // Podsumowanie Powiadomień ze smartfona
+    if (pushSummary.totalCount > 0) {
+      reportLines.push(`POWIADOMIENIA (${this.triageIntervalMinutes}m): ${pushSummary.totalCount} zdarzeń`);
+
+      if (pushSummary.transactions.count > 0) {
+        reportLines.push(`- Wydatki: ${pushSummary.transactions.totalAmount.toFixed(2)} PLN (${pushSummary.transactions.count} transakcji)`);
+        for (const tx of pushSummary.transactions.items.slice(0, 2)) {
+          reportLines.push(`  * ${tx.title}: ${tx.amount.toFixed(2)} PLN [${tx.envelope}]`);
+        }
+      }
+
+      if (pushSummary.schoolAlerts.count > 0) {
+        for (const sch of pushSummary.schoolAlerts.items.slice(0, 2)) {
+          reportLines.push(`- [SZKOŁA] ${sch.subject}`);
+        }
+      }
+
+      if (pushSummary.tasks.count > 0) {
+        for (const tsk of pushSummary.tasks.items.slice(0, 2)) {
+          reportLines.push(`- [ZADANIE] ${tsk.title}`);
+        }
+      }
+    }
+
+    const reportBody = reportLines.join('\n');
+    console.log(`[*] TRIAGE RAPORT:\n${reportBody}`);
+
+    // 4. Wypchnięcie przez PushbulletDispatcher
+    if (this.dispatcher && reportLines.length > 0) {
+      const title = hasCriticalItems
+        ? `[ALERT] OmniDash Triage (${this.triageIntervalMinutes}m)`
+        : `[INFO] OmniDash Triage (${this.triageIntervalMinutes}m)`;
+
+      this.dispatcher.enqueue({
+        title,
+        body: reportBody,
+        priority: hasCriticalItems ? 'HIGH' : 'NORMAL'
+      });
+    }
   }
 
   /**

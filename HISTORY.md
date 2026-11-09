@@ -875,3 +875,31 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
 - [+] **Testy Regresyjne i Zamknięcie Błędu:**
   - Dodano testy jednostkowe `apps/worker/tests/automation.test.ts` potwierdzające wyzwalanie o 07:15 czasu warszawskiego przy zegarze UTC (06:15 UTC w CET i 05:15 UTC w CEST).
   - Utworzono i zamknięto rejestr `/docs/errors/ERROR_DIFF_2026-11-09_pushbullet_briefing_timezone_offset.md`.
+
+
+---
+
+### ## v1.0.4 — 2026-11-09 [MAIL TRIAGE & PUSHBULLET NOTIFICATION AGGREGATOR MODULE]
+**Status:** WYDANIE PRODUKCYJNE (BRANCH: `mikr.us`)  
+**Typ:** MINOR / NEW SUBSYSTEM
+
+- [+] **Natywny Moduł Klasyfikacji Poczty IMAP (`apps/worker/src/triage/mailScanner.ts`):**
+  - Implementacja klienta IMAP RFC 3501 opartego na natywnym module `node:tls` (port 993, TLS) bez zewnętrznych zależności pnpm/npm.
+  - Dekodowanie nagłówków MIME RFC 2047 (Base64 oraz Quoted-Printable dla polskich znaków diakrytycznych).
+  - Klasyfikacja heurystyczna wiadomości:
+    - **Ważne:** Szkoła/uczelnia (`librus`, domeny `.edu.pl`), serwery/hosting (`mikrus`, `cloudflare`, `github`, `ovh`), finanse/banki (`mbank`, `revolut`, `santander`), słowa kluczowe (`faktura`, `invoice`, `pilne`, `alert`, `awaria`, `bezpieczeństwo`).
+    - **Spam / Newslettery:** Nagłówki `List-Unsubscribe`, `Precedence: bulk/list`, słowa kluczowe marketingu/promocji (`newsletter`, `promocja`, `wyprzedaż`, `rabat`).
+    - **Zwykłe:** Bezpośrednie wiadomości prywatne.
+  - Pełna obsługa Zero-Placeholder oraz graceful degradation w razie braku poświadczeń IMAP.
+- [+] **Akumulator Powiadomień Smartfona (`apps/worker/src/triage/pushNotificationAggregator.ts`):**
+  - Magazyn akumulujący zdarzenia z `PushbulletListener` w buforowanym oknie czasowym (co 15-20 min).
+  - Grupowanie i sumowanie wydatków (koperty NEEDS/WANTS), zadań, alertów szkolnych i notyfikacji ogólnych.
+  - Zabezpieczenie przed wyciekiem pamięci (automatyczne przycinanie zdarzeń >24h lub >1000 wpisów).
+- [+] **Integracja z Harmonogramem i Pętlą Zdarzeń (`apps/worker/src/cron/scheduler.ts`, `apps/worker/src/index.ts`):**
+  - Dodano cykliczne zadanie `runTriageCycle()` wyzwalane co 15 minut (`TRIAGE_INTERVAL_MINUTES`).
+  - Podsumowanie triage generowane i wysyłane przez `PushbulletDispatcher` w razie pojawienia się istotnych maili lub powiadomień.
+  - Podpięcie `PushNotificationAggregator` do nasłuchu `PushbulletListener`.
+- [+] **Aktualizacja Zmiennych Środowiskowych (`.env.example`):**
+  - Dodano konfigurację parametrów `IMAP_HOST`, `IMAP_PORT`, `IMAP_USER`, `IMAP_PASSWORD`, `IMAP_TLS`, `TRIAGE_INTERVAL_MINUTES`.
+- [+] **Zestaw Testów Jednostkowych (`apps/worker/tests/triage.test.ts`):**
+  - Testy dekodowania nagłówków MIME, kategoryzacji wiadomości, agregacji okna czasowego oraz graceful degradation.

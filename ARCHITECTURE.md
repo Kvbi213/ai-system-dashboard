@@ -79,7 +79,8 @@ $PROJECT_ROOT/OmniDash/
 │       └── src/
 │           ├── automation/         # LessonAlertMonitor (alert 5 min przed dzwonkiem, poranny briefing)
 │           ├── cron/               # SystemScheduler z synchronizacją czasu autorytatywnego co 1 min
-│           └── pushbullet/         # Deterministyczny PushbulletDispatcher (kolejka priorytetyzowana, rate-limiter)
+│           ├── pushbullet/         # Deterministyczny PushbulletDispatcher (kolejka priorytetyzowana, rate-limiter)
+│           └── triage/             # MailScanner (IMAP over TLS, klasyfikator) & PushNotificationAggregator (okno 15m)
 ```
 │   │   ├── Dockerfile              # Node 22 Alpine production container
 │   │   ├── src/

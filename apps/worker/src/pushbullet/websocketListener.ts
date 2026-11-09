@@ -1,5 +1,6 @@
 import WebSocket from 'ws';
 import { classifyNotification } from './classifier.js';
+import { PushNotificationAggregator } from '../triage/pushNotificationAggregator.js';
 
 interface PushbulletPush {
   type: string;
@@ -16,10 +17,16 @@ export class PushbulletListener {
   private seenIds = new Set<string>();
   private reconnectAttempts = 0;
   private isRunning = false;
+  private aggregator?: PushNotificationAggregator;
 
-  constructor(apiKey: string, apiGatewayUrl = 'http://localhost:5000/api') {
+  constructor(apiKey: string, apiGatewayUrl = 'http://localhost:5000/api', aggregator?: PushNotificationAggregator) {
     this.apiKey = apiKey;
     this.apiGatewayUrl = apiGatewayUrl;
+    this.aggregator = aggregator;
+  }
+
+  public setAggregator(aggregator: PushNotificationAggregator): void {
+    this.aggregator = aggregator;
   }
 
   public start(): void {
@@ -78,6 +85,11 @@ export class PushbulletListener {
     const classified = classifyNotification(title, body);
 
     console.log(`[*] PUSHBULLET :: Otrzymano zdarzenie: [${classified.type}] ${classified.title || classified.raw}`);
+
+    // Rejestracja w lokalnym agregatorze powiadomień
+    if (this.aggregator) {
+      this.aggregator.record(title, body, classified);
+    }
 
     // Forward to API Gateway
     try {
