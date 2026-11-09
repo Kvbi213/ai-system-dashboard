@@ -24,6 +24,7 @@ services:
       - DATABASE_URL=postgres://omnidash:secret@omnidash-db:5432/omnidash
       - REDIS_URL=redis://omnidash-redis:6379
       - NODE_ENV=production
+      - TZ=Europe/Warsaw
     depends_on:
       - omnidash-db
       - omnidash-redis
@@ -36,6 +37,7 @@ services:
     environment:
       - API_GATEWAY_URL=http://omnidash-api:5000/api
       - NODE_ENV=production
+      - TZ=Europe/Warsaw
     depends_on:
       - omnidash-api
       - omnidash-redis

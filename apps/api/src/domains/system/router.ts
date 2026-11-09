@@ -193,9 +193,9 @@ systemRouter.get('/time', (_req: Request, res: Response) => {
   res.json({
     timestamp: now.toISOString(),
     epochMs: now.getTime(),
-    localTime: now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-    localDate: now.toLocaleDateString('pl-PL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Warsaw',
+    localTime: now.toLocaleTimeString('pl-PL', { timeZone: 'Europe/Warsaw', hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+    localDate: now.toLocaleDateString('pl-PL', { timeZone: 'Europe/Warsaw', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+    timezone: 'Europe/Warsaw',
     offsetMinutes: -now.getTimezoneOffset()
   });
 });

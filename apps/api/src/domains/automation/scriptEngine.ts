@@ -5,6 +5,7 @@ import {
   ScriptExecutionResult,
   CurrentLessonInfo
 } from './types.js';
+import { getWarsawTime } from './timeUtils.js';
 
 const POLISH_DAYS = [
   'Niedziela',
@@ -69,10 +70,11 @@ function getNextSchoolDayInfo(currentDay: number): {
  * Oblicza stan bieżącej lekcji, dzwonka i kolejnej lekcji na podstawie przekazanej daty.
  */
 export function calculateLessonInfo(date = new Date()): CurrentLessonInfo {
-  const day = date.getDay();
+  const warsaw = getWarsawTime(date);
+  const day = warsaw.day;
   // Jeśli weekend, dzień domyślny 1 (poniedziałek)
   const currentDay = day >= 1 && day <= 5 ? day : 1;
-  const currentMinutes = date.getHours() * 60 + date.getMinutes();
+  const currentMinutes = warsaw.hours * 60 + warsaw.minutes;
   const timetable = dbStore.getTimetable(currentDay);
 
   if (timetable.length === 0 || day === 0 || day === 6) {
@@ -214,11 +216,12 @@ export function buildScriptContext(now = new Date()): {
   const logs: string[] = [];
   const notificationsSent: Array<{ title: string; body: string; priority: string }> = [];
 
-  const dayOfWeek = now.getDay();
+  const warsaw = getWarsawTime(now);
+  const dayOfWeek = warsaw.day;
   const dayName = POLISH_DAYS[dayOfWeek] || 'Dzień';
-  const formattedTime = now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
-  const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const minutesFromMidnight = now.getHours() * 60 + now.getMinutes();
+  const formattedTime = warsaw.formattedTime;
+  const dateStr = warsaw.dateKey;
+  const minutesFromMidnight = warsaw.hours * 60 + warsaw.minutes;
 
   const context: ScriptExecutionContext = {
     time: {

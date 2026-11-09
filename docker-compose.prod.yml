@@ -52,6 +52,7 @@ services:
       - NODE_OPTIONS=--max-old-space-size=128
       - REDIS_URL=redis://omnidash-redis:6379
       - STORAGE_PATH=/app/apps/api/data
+      - TZ=Europe/Warsaw
     volumes:
       - ./data/storage:/app/apps/api/data
     depends_on:
@@ -79,6 +80,7 @@ services:
       - API_GATEWAY_URL=http://omnidash-api:5000/api
       - NODE_ENV=production
       - NODE_OPTIONS=--max-old-space-size=80
+      - TZ=Europe/Warsaw
     depends_on:
       - omnidash-api
       - omnidash-redis

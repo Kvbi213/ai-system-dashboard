@@ -3,6 +3,7 @@ import { dbStore } from '../../db/store.js';
 import { sqliteStore } from '../../db/sqliteStore.js';
 import { AUTOMATION_TEMPLATES } from './automationTemplates.js';
 import { executeScript, calculateLessonInfo, buildScriptContext } from './scriptEngine.js';
+import { getWarsawTime } from './timeUtils.js';
 
 export const automationRouter = Router();
 
@@ -14,17 +15,16 @@ automationRouter.get('/templates', (_req: Request, res: Response) => {
 // Context status
 automationRouter.get('/context-status', (_req: Request, res: Response) => {
   const now = new Date();
+  const warsaw = getWarsawTime(now);
   const lessonInfo = calculateLessonInfo(now);
-  const day = now.getDay();
-  const currentDay = day >= 1 && day <= 5 ? day : 1;
+  const currentDay = warsaw.day >= 1 && warsaw.day <= 5 ? warsaw.day : 1;
   const lessons = dbStore.getTimetable(currentDay);
-  const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const exams = dbStore.getEvents().filter((e) => e.date === dateStr);
+  const exams = dbStore.getEvents().filter((e) => e.date === warsaw.dateKey);
 
   res.json({
     now: now.toISOString(),
-    formattedTime: now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
-    dayOfWeek: day,
+    formattedTime: warsaw.formattedTime,
+    dayOfWeek: warsaw.day,
     lessonInfo,
     todayLessonsCount: lessons.length,
     todayExamsCount: exams.length,

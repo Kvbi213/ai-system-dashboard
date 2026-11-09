@@ -17,6 +17,8 @@ RUN pnpm --filter @omnidash/worker build
 
 FROM node:22-alpine AS runner
 WORKDIR /app
+RUN apk add --no-cache tzdata
+ENV TZ=Europe/Warsaw
 ENV NODE_ENV=production
 
 COPY --from=builder /app/package.json ./

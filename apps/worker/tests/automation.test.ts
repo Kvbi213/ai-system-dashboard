@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { LessonAlertMonitor } from '../src/automation/lessonAlertMonitor.js';
 import { LibrusAutoScraper } from '../src/automation/librusAutoScraper.js';
 import { PushbulletDispatcher } from '../src/pushbullet/dispatcher.js';
+import { getWarsawTime } from '../src/automation/timeUtils.js';
 
 describe('Worker Automation & Librus Scraper Suite', () => {
   let mockDispatcher: PushbulletDispatcher;
@@ -117,5 +118,56 @@ describe('Worker Automation & Librus Scraper Suite', () => {
     expect(dispatchedPush.body).toContain('+');
 
     scraper.stop();
+  });
+
+  it('getWarsawTime correctly maps UTC times to Europe/Warsaw hours', () => {
+    // 06:15 UTC w czasie zimowym (CET, UTC+1) = 07:15 Europe/Warsaw
+    const utcMorning = new Date('2026-11-09T06:15:00.000Z');
+    const warsaw1 = getWarsawTime(utcMorning);
+    expect(warsaw1.hours).toBe(7);
+    expect(warsaw1.minutes).toBe(15);
+    expect(warsaw1.formattedTime).toBe('07:15');
+    expect(warsaw1.day).toBe(1); // Poniedziałek
+
+    // 07:15 UTC w czasie zimowym = 08:15 Europe/Warsaw (anomalia zgłoszona przez operatora)
+    const utcLater = new Date('2026-11-09T07:15:00.000Z');
+    const warsaw2 = getWarsawTime(utcLater);
+    expect(warsaw2.hours).toBe(8);
+    expect(warsaw2.minutes).toBe(15);
+    expect(warsaw2.formattedTime).toBe('08:15');
+  });
+
+  it('LessonAlertMonitor triggers morning briefing at 07:15 Warsaw time and NOT at 08:15 Warsaw time', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        lessonInfo: { bellType: 'BEFORE_SCHOOL', minutesToBell: 45 },
+        todayLessonsCount: 7,
+        todayExams: [{ title: 'Kartkówka z historii' }]
+      })
+    } as any);
+
+    const monitor = new LessonAlertMonitor({
+      apiGatewayUrl: 'http://mock-gateway/api',
+      dispatcher: mockDispatcher
+    });
+
+    // Test 1: 07:15 w Polsce (06:15 UTC) -> briefing POWINIEN zostać wysłany
+    const triggerDate = new Date('2026-11-09T06:15:00.000Z');
+    const result1 = await monitor.checkAndDispatch(triggerDate);
+    expect(result1.dispatched).toBe(true);
+    expect(result1.alertType).toBe('MORNING_BRIEFING');
+    expect(mockDispatcher.enqueue).toHaveBeenCalledTimes(1);
+
+    const call1 = (mockDispatcher.enqueue as any).mock.calls[0][0];
+    expect(call1.title).toContain('Poranny Briefing Ucznia');
+    expect(call1.body).toContain('Plan na dziś: 7 lekcji.');
+    expect(call1.body).toContain('Kartkówka z historii');
+
+    // Test 2: 08:15 w Polsce (07:15 UTC) -> briefing NIE POWINIEN zostać wysłany
+    const notTriggerDate = new Date('2026-11-10T07:15:00.000Z');
+    const result2 = await monitor.checkAndDispatch(notTriggerDate);
+    expect(result2.dispatched).toBe(false);
+    expect(result2.alertType).not.toBe('MORNING_BRIEFING');
   });
 });

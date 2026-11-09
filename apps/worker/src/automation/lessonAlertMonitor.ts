@@ -1,4 +1,5 @@
 import { PushbulletDispatcher } from '../pushbullet/dispatcher.js';
+import { getWarsawTime } from './timeUtils.js';
 
 export interface LessonAlertMonitorOptions {
   apiGatewayUrl: string;
@@ -41,7 +42,8 @@ export class LessonAlertMonitor {
    * Sprawdza status lekcji i wysyła deterministyczne alerty przed dzwonkiem.
    */
   public async checkAndDispatch(currentDate = new Date()): Promise<{ dispatched: boolean; alertType?: string; message?: string }> {
-    const todayKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+    const warsaw = getWarsawTime(currentDate);
+    const todayKey = warsaw.dateKey;
     if (this.lastCheckedDateKey !== todayKey) {
       this.sentAlertKeys.clear();
       this.lastCheckedDateKey = todayKey;
@@ -118,10 +120,10 @@ export class LessonAlertMonitor {
         }
       }
 
-      // 3. Poranny briefing o 07:15 (Dni robocze 1-5)
-      const hours = currentDate.getHours();
-      const mins = currentDate.getMinutes();
-      const day = currentDate.getDay();
+      // 3. Poranny briefing o 07:15 (Dni robocze 1-5, strefa Europe/Warsaw)
+      const hours = warsaw.hours;
+      const mins = warsaw.minutes;
+      const day = warsaw.day;
 
       if (day >= 1 && day <= 5 && hours === 7 && mins === 15) {
         const briefingKey = `morning_briefing_${todayKey}`;
@@ -138,7 +140,7 @@ export class LessonAlertMonitor {
           }
 
           this.dispatcher?.enqueue({
-            title: `Poranny Briefing Ucznia :: ${data.formattedTime || '07:15'}`,
+            title: `Poranny Briefing Ucznia :: ${data.formattedTime || warsaw.formattedTime}`,
             body,
             priority: 'HIGH'
           });

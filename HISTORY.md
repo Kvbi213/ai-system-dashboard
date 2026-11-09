@@ -852,3 +852,26 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - Dodano test integracyjny żądania POST z nagłówkiem `Origin: https://omni.kvbi.pl` do endpointu `/api/pushbullet/test` (status 200, nagłówek CORS obecny, brak błędu 500).
 - [+] **Zamknięcie Rejestru Błędu:**
   - Utworzono i zamknięto dokumentację `/docs/errors/ERROR_DIFF_2026-11-08_cors_blocked_pushbullet_500.md`.
+
+---
+
+### ## v1.0.3 — 2026-11-09 [TIMEZONE OFFSET REPAIR & DETERMINISTIC BRIEFING DISPATCH]
+**Status:** WYDANIE PRODUKCYJNE (BRANCH: `mikr.us`)  
+**Typ:** PATCH / ONE-SHOT BUGFIX
+
+- [+] **Deterministyczna Synchronizacja Strefy Czasowej Europe/Warsaw (`apps/worker`, `apps/api`):**
+  - Utworzono moduł `timeUtils.ts` (`getWarsawTime`) wykorzystujący natywny silnik `Intl.DateTimeFormat` z jawnym mapowaniem strefy `Europe/Warsaw`.
+  - Zagwarantowano prawidłowy odczyt godziny, minuty i dnia tygodnia niezależnie od lokalnego zegara kontenera czy maszyny wirtualnej (UTC/GMT).
+- [+] **Korekta Porannego Briefingu Pushbullet (`apps/worker/src/automation/lessonAlertMonitor.ts`):**
+  - Wyeliminowano błąd wyzwalania briefingu o 08:15 (spowodowany odczytem 07:15 z zegara UTC na serwerze Mikrus).
+  - Skonfigurowano wyzwalanie ściśle o 07:15 czasu polskiego (`Europe/Warsaw`).
+- [+] **Korekta Zegara Monotonicznego i Okna Higieny Snu (`apps/worker/src/cron/scheduler.ts`):**
+  - Zsynchronizowano cron scheduler z czasem warszawskim dla logów `[*] TICK` oraz alertu ostatniego posiłku o 20:00.
+- [+] **Korekta Obliczania Dzwonków i Kontekstu Automatyzacji (`apps/api/src/domains/automation/`):**
+  - Zsynchronizowano `calculateLessonInfo` oraz endpoint `/api/automation/context-status` z czasem warszawskim, eliminując przesunięcie lekcji na serwerze.
+- [+] **Wzmocnienie Środowiska Kontenerowego (`Dockerfile`, `docker-compose.prod.yml`, `docker-compose.yml`):**
+  - Zainstalowano pakiet `tzdata` w obrazach runnera `apps/api/Dockerfile` i `apps/worker/Dockerfile`.
+  - Ustawiono `ENV TZ=Europe/Warsaw` w Dockerfiles oraz zmienną `TZ=Europe/Warsaw` w definicjach serwisów compose.
+- [+] **Testy Regresyjne i Zamknięcie Błędu:**
+  - Dodano testy jednostkowe `apps/worker/tests/automation.test.ts` potwierdzające wyzwalanie o 07:15 czasu warszawskiego przy zegarze UTC (06:15 UTC w CET i 05:15 UTC w CEST).
+  - Utworzono i zamknięto rejestr `/docs/errors/ERROR_DIFF_2026-11-09_pushbullet_briefing_timezone_offset.md`.

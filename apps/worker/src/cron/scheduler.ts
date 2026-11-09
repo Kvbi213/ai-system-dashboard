@@ -1,6 +1,7 @@
 import { PushbulletDispatcher } from '../pushbullet/dispatcher.js';
 import { LessonAlertMonitor } from '../automation/lessonAlertMonitor.js';
 import { LibrusAutoScraper } from '../automation/librusAutoScraper.js';
+import { getWarsawTime } from '../automation/timeUtils.js';
 
 export class SystemScheduler {
   private timers: NodeJS.Timeout[] = [];
@@ -96,7 +97,8 @@ export class SystemScheduler {
     const elapsedSinceSync = Date.now() - this.lastSyncTimestampMs;
     const currentEpoch = this.lastSyncedServerTimeMs + elapsedSinceSync;
     const date = new Date(currentEpoch);
-    const formattedTime = date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const warsaw = getWarsawTime(date);
+    const formattedTime = date.toLocaleTimeString('pl-PL', { timeZone: 'Europe/Warsaw', hour: '2-digit', minute: '2-digit', second: '2-digit' });
     return { epochMs: currentEpoch, date, formattedTime };
   }
 
@@ -105,12 +107,13 @@ export class SystemScheduler {
    */
   private tickMinuteChronometer(): void {
     this.minuteTickCount++;
-    const { date, formattedTime } = this.getCurrentMonotonicTime();
-    const minutes = date.getMinutes();
-    const hours = date.getHours();
+    const { date } = this.getCurrentMonotonicTime();
+    const warsaw = getWarsawTime(date);
+    const minutes = warsaw.minutes;
+    const hours = warsaw.hours;
 
-    // Log telemetryczny weryfikacji minuty
-    console.log(`[*] TICK :: [${formattedTime}] Minuta operacyjna: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
+    // Log telemetryczny weryfikacji minuty (w strefie Europe/Warsaw)
+    console.log(`[*] TICK :: [${warsaw.formattedTime}] Minuta operacyjna: ${warsaw.formattedTime}`);
 
     // Sprawdzenie zakończenia lekcji lub bloków dnia o pełnych minutach
     this.evaluateMinuteScheduleEvents(hours, minutes);
