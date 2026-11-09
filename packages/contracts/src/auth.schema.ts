@@ -1,7 +1,10 @@
 import { z } from 'zod';
 
 export const GoogleAuthPayloadSchema = z.object({
-  idToken: z.string().min(1, 'ID Token Google jest wymagany')
+  idToken: z.string().min(1, 'ID Token Google jest wymagany').optional(),
+  accessToken: z.string().min(1, 'Token dostępowy Google jest wymagany').optional()
+}).refine((data) => Boolean((data.idToken && data.idToken.trim().length > 0) || (data.accessToken && data.accessToken.trim().length > 0)), {
+  message: 'Wymagany jest token Google (idToken lub accessToken)'
 });
 
 export const UserRoleSchema = z.enum(['ADMIN', 'OPERATOR', 'GUEST']);

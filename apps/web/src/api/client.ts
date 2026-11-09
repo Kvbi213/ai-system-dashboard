@@ -255,6 +255,8 @@ export const authApi = {
         configured: boolean;
         clientIdMasked: string;
         connectedEmail: string | null;
+        connectedName?: string | null;
+        connectedPicture?: string | null;
         scopes: string[];
       };
       imap: {
@@ -280,15 +282,27 @@ export const authApi = {
   }>('/auth/status'),
   getSession: () => apiFetch<{ user: any; sessionExpiresAt: string }>('/auth/session'),
   devLogin: () => apiFetch<{ token: string; user: any }>('/auth/dev-login', { method: 'POST' }),
-  login: (idToken: string) => apiFetch<{ token: string; user: any }>('/auth/login', {
+  login: (credentials: { idToken?: string; accessToken?: string }) => apiFetch<{ token: string; user: any }>('/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ idToken })
+    body: JSON.stringify(credentials)
   }),
-  authorizeGoogle: (data: { email?: string; clientId?: string }) =>
-    apiFetch<{ success: boolean; message: string; connectedEmail: string; scopes: string[] }>('/auth/google/authorize', {
+  authorizeGoogle: (data: { email?: string; clientId?: string; accessToken?: string; idToken?: string }) =>
+    apiFetch<{
+      success: boolean;
+      message: string;
+      connectedEmail: string;
+      user?: { sub: string; email: string; name?: string; picture?: string };
+      scopes: string[];
+    }>('/auth/google/authorize', {
       method: 'POST',
       body: JSON.stringify(data)
     }),
+  verifyGoogleToken: (data: { idToken?: string; accessToken?: string; clientId?: string }) =>
+    apiFetch<{ valid: boolean; type: string; payload: any }>('/auth/google/verify-token', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+  getGoogleCerts: () => apiFetch<{ keys: any[] }>('/auth/google/certs'),
   disconnectGoogle: () =>
     apiFetch<{ success: boolean; message: string }>('/auth/google/disconnect', { method: 'POST' }),
   testImap: (credentials?: { host?: string; port?: number; user?: string; password?: string; tls?: boolean }) =>

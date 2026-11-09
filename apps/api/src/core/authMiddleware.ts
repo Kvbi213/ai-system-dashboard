@@ -15,6 +15,7 @@ const PUBLIC_PATHS = [
   '/auth/dev-login',
   '/auth/status',
   '/auth/test-imap',
+  '/auth/google',
   '/system/health',
   '/system/status',
   '/news/public',
