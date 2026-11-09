@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { Badge } from '../../../components/ui/Badge';
 import {
-  ShieldCheck,
   KeyRound,
   Mail,
   Smartphone,
@@ -10,13 +9,12 @@ import {
   RefreshCw,
   CheckCircle2,
   AlertTriangle,
-  ExternalLink,
   Bot,
   GraduationCap,
   LogOut,
   Sparkles
 } from 'lucide-react';
-import { authApi, pushbulletApi } from '../../../api/client';
+import { authApi } from '../../../api/client';
 
 export const AuthenticationSettings: React.FC = () => {
   const [authStatus, setAuthStatus] = useState<any>(null);
@@ -130,7 +128,7 @@ export const AuthenticationSettings: React.FC = () => {
       </GlassCard>
 
       {/* 2. Google OAuth 2.0 & Gmail Integration */}
-      <GlassCard className="p-4 sm:p-5" glow="teal">
+      <GlassCard className="p-4 sm:p-5" glow="emerald">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-teal-500/10 text-teal-500 border border-teal-500/20 shadow-sm">

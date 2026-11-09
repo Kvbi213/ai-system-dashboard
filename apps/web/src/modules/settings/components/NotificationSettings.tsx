@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
-import { Bell, Send, Check, ShieldAlert, Moon, Key, RefreshCw, CheckCircle2, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Bell, Send, Check, ShieldAlert, Moon, Key, RefreshCw, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { pushbulletApi } from '../../../api/client';
 
 const DEFAULT_NOTIFS = {
