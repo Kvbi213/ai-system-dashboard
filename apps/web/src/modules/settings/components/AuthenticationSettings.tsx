@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
 import { Badge } from '../../../components/ui/Badge';
 import {
@@ -15,7 +15,9 @@ import {
   ShieldCheck,
   Settings2,
   Globe,
-  ExternalLink
+  ExternalLink,
+  Copy,
+  Check
 } from 'lucide-react';
 import { authApi } from '../../../api/client';
 import { googleAuthService, GoogleSessionState } from '../../../services/googleAuth';
@@ -50,6 +52,7 @@ export const AuthenticationSettings: React.FC = () => {
   const [isConnectingGoogle, setIsConnectingGoogle] = useState(false);
   const [googleAuthError, setGoogleAuthError] = useState<string | null>(null);
   const [tokenRegenerated, setTokenRegenerated] = useState<string | null>(null);
+  const [copiedOrigin, setCopiedOrigin] = useState(false);
 
   // Sesja klienta Google Identity
   const [localGoogleSession, setLocalGoogleSession] = useState<GoogleSessionState | null>(() =>
@@ -61,6 +64,11 @@ export const AuthenticationSettings: React.FC = () => {
   const [clientIdInput, setClientIdInput] = useState(() => googleAuthService.getClientId());
   const [isVerifyingToken, setIsVerifyingToken] = useState(false);
   const [verifyStatusMessage, setVerifyStatusMessage] = useState<string | null>(null);
+
+  // Referencja do kontenera renderowania oficjalnego przycisku Google Identity Services
+  const googleButtonContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://omni.kvbi.pl';
 
   const loadStatus = async () => {
     setIsLoading(true);
@@ -81,29 +89,17 @@ export const AuthenticationSettings: React.FC = () => {
     loadStatus();
   }, []);
 
-  const handleTestImap = async () => {
-    setIsTestingImap(true);
-    setImapResult(null);
-    try {
-      const res = await authApi.testImap();
-      setImapResult({
-        success: res.success,
-        message: res.message
-      });
-    } catch (err: any) {
-      setImapResult({
-        success: false,
-        message: err.message || 'Błąd testowania połączenia IMAP.'
-      });
-    } finally {
-      setIsTestingImap(false);
-    }
-  };
-
   const providers = authStatus?.providers;
   const serverClientId = providers?.googleOAuth?.clientId || '';
   const currentClientId = googleAuthService.getClientId() || serverClientId;
-  const hasValidClientId = Boolean(currentClientId && currentClientId.trim().length > 10 && currentClientId.includes('.apps.googleusercontent.com'));
+  const hasValidClientId = Boolean(
+    currentClientId && currentClientId.trim().length > 10 && currentClientId.includes('.apps.googleusercontent.com')
+  );
+
+  const isGoogleConnected = Boolean(
+    localGoogleSession?.connected ||
+    providers?.googleOAuth?.connectedEmail
+  );
 
   // Uaktualnij stan inputu gdy serwer zwróci skonfigurowany clientId
   useEffect(() => {
@@ -112,6 +108,81 @@ export const AuthenticationSettings: React.FC = () => {
       setClientIdInput(serverClientId);
     }
   }, [serverClientId]);
+
+  // Inicjalizacja i renderowanie oficjalnego przycisku Google Identity Services (google.accounts.id.renderButton)
+  useEffect(() => {
+    let isCancelled = false;
+
+    const setupGoogleIdentityButton = async () => {
+      if (!hasValidClientId || isGoogleConnected || !googleButtonContainerRef.current) {
+        return;
+      }
+
+      try {
+        const initialized = await googleAuthService.initializeGoogleIdentity(
+          currentClientId,
+          async (credentialResponse) => {
+            if (isCancelled) return;
+            setIsConnectingGoogle(true);
+            setGoogleAuthError(null);
+            try {
+              const { user, idToken } = googleAuthService.handleCredentialResponse(credentialResponse.credential);
+              await authApi.authorizeGoogle({
+                idToken,
+                email: user.email,
+                clientId: currentClientId
+              });
+              setLocalGoogleSession(googleAuthService.getStoredSession());
+              await loadStatus();
+              setVerifyStatusMessage(`Zalogowano pomyślnie jako ${user.name || user.email} przez oficjalny moduł Google Identity Services.`);
+            } catch (err: any) {
+              console.error('Błąd autoryzacji przez Google Identity Button:', err);
+              setGoogleAuthError(err.message || 'Błąd przetwarzania tokena Google Identity Services.');
+            } finally {
+              setIsConnectingGoogle(false);
+            }
+          }
+        );
+
+        if (initialized && googleButtonContainerRef.current && !isCancelled) {
+          googleAuthService.renderGoogleButton(googleButtonContainerRef.current, {
+            theme: 'outline',
+            size: 'large',
+            text: 'signin_with',
+            shape: 'rectangular',
+            width: 280
+          });
+        }
+      } catch (err: any) {
+        console.warn('Nie udało się wyrenderować przycisku GIS renderButton:', err);
+      }
+    };
+
+    setupGoogleIdentityButton();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [hasValidClientId, currentClientId, isGoogleConnected]);
+
+  const handleCopyOrigin = async () => {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(currentOrigin);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = currentOrigin;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopiedOrigin(true);
+      setTimeout(() => setCopiedOrigin(false), 3000);
+    } catch (err) {
+      console.warn('Nie udało się skopiować origin do schowka:', err);
+    }
+  };
 
   const handleSaveClientId = async () => {
     const trimmed = clientIdInput.trim();
@@ -130,7 +201,7 @@ export const AuthenticationSettings: React.FC = () => {
   };
 
   /**
-   * Logowanie przez publiczne Google Identity Services / Publiczny OAuth 2.0
+   * Logowanie przez publiczne Google Identity Services / Publiczny OAuth 2.0 (Token Client / Popup)
    */
   const handleConnectGoogle = async () => {
     setGoogleAuthError(null);
@@ -183,26 +254,52 @@ export const AuthenticationSettings: React.FC = () => {
   };
 
   /**
-   * Weryfikacja tokena bezpośrednio w publicznym endpointcie Google tokeninfo
+   * Weryfikacja tokena bezpośrednio w publicznym punkcie końcowym Google tokeninfo
    */
   const handleVerifyDirectWithGoogle = async () => {
     const session = localGoogleSession || googleAuthService.getStoredSession();
-    if (!session?.accessToken) {
-      setGoogleAuthError('Brak aktywnego tokena dostępowego Google do weryfikacji.');
+    if (!session?.accessToken && !session?.idToken) {
+      setGoogleAuthError('Brak aktywnego tokena Google (Access lub ID) do weryfikacji.');
       return;
     }
 
     setIsVerifyingToken(true);
     setVerifyStatusMessage(null);
     try {
-      const info = await googleAuthService.verifyTokeninfo(session.accessToken, 'access_token');
-      setVerifyStatusMessage(
-        `Zweryfikowano w https://oauth2.googleapis.com/tokeninfo: scope=${info.scope || 'ok'}, ważność=${info.expires_in}s.`
-      );
+      if (session.accessToken) {
+        const info = await googleAuthService.verifyTokeninfo(session.accessToken, 'access_token');
+        setVerifyStatusMessage(
+          `Zweryfikowano Access Token w Google tokeninfo: scope=${info.scope || 'ok'}, ważność=${info.expires_in}s.`
+        );
+      } else if (session.idToken) {
+        const info = await googleAuthService.verifyTokeninfo(session.idToken, 'id_token');
+        setVerifyStatusMessage(
+          `Zweryfikowano ID Token w Google tokeninfo: email=${info.email}, issuer=${info.iss}.`
+        );
+      }
     } catch (err: any) {
       setVerifyStatusMessage(`Błąd weryfikacji w Google API: ${err.message}`);
     } finally {
       setIsVerifyingToken(false);
+    }
+  };
+
+  const handleTestImap = async () => {
+    setIsTestingImap(true);
+    setImapResult(null);
+    try {
+      const res = await authApi.testImap();
+      setImapResult({
+        success: res.success,
+        message: res.message
+      });
+    } catch (err: any) {
+      setImapResult({
+        success: false,
+        message: err.message || 'Błąd testowania połączenia IMAP.'
+      });
+    } finally {
+      setIsTestingImap(false);
     }
   };
 
@@ -216,15 +313,16 @@ export const AuthenticationSettings: React.FC = () => {
     }
   };
 
-  const isGoogleConnected = Boolean(
-    localGoogleSession?.connected ||
-    providers?.googleOAuth?.connectedEmail
-  );
   const activeGoogleEmail = localGoogleSession?.user?.email || providers?.googleOAuth?.connectedEmail;
   const activeGoogleName = localGoogleSession?.user?.name || providers?.googleOAuth?.connectedName;
   const activeGooglePicture = localGoogleSession?.user?.picture || providers?.googleOAuth?.connectedPicture;
 
-  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://omnidash.kvbi.pl';
+  const isOriginMismatchError = Boolean(
+    googleAuthError &&
+    (googleAuthError.includes('origin_mismatch') ||
+      googleAuthError.includes('zamknięte przed ukończeniem autoryzacji') ||
+      googleAuthError.includes('Błąd 400'))
+  );
 
   return (
     <div className="space-y-4">
@@ -287,13 +385,58 @@ export const AuthenticationSettings: React.FC = () => {
             Bezpośrednia komunikacja z serwerami Google bez żadnych pośredników, proxy ani Firebase.
           </p>
 
+          {/* DEDYKOWANA RAMKA: Bieżący Origin & Zapobieganie Błędowi 400 origin_mismatch */}
+          <div className="p-3.5 rounded-xl bg-amber-500/5 dark:bg-amber-950/20 border border-amber-500/30 dark:border-amber-500/20 space-y-2.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-900 dark:text-amber-200">
+                <Globe className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>Wykryty JavaScript Origin dla Google OAuth:</span>
+                <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-300">
+                  {currentOrigin}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleCopyOrigin}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition active:scale-95 shadow-sm flex items-center gap-1.5"
+                  title="Skopiuj dokładny adres URL do wklejenia w Google Cloud Console"
+                >
+                  {copiedOrigin ? (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Skopiowano Origin!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Kopiuj dokładny Origin do Google Console</span>
+                    </>
+                  )}
+                </button>
+                <a
+                  href="https://console.cloud.google.com/apis/credentials"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 transition flex items-center gap-1 text-xs"
+                  title="Otwórz Google Cloud Console Credentials"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            </div>
+            <p className="text-[11px] text-amber-800/90 dark:text-amber-300/80 leading-relaxed font-medium">
+              [!] <strong>Zalecenie konfiguracyjne:</strong> Aby uniknąć błędu <strong>400: origin_mismatch</strong>, wklej ten dokładny adres (
+              <code className="font-mono bg-amber-500/10 px-1 py-0.5 rounded">{currentOrigin}</code>) w sekcji <strong>„Autoryzowane źródła JavaScript” (Authorized JavaScript origins)</strong> oraz <strong>„Autoryzowane identyfikatory URI przekierowania”</strong> dla Twojego identyfikatora klienta OAuth w Google Cloud Console.
+            </p>
+          </div>
+
           {/* Panel konfiguracji Client ID / Status klucza */}
           <div className="p-3 rounded-xl bg-slate-100/90 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-2.5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="text-xs flex items-center gap-2">
                 <span className="font-bold text-slate-700 dark:text-slate-300">Google Client ID:</span>
                 {hasValidClientId ? (
-                  <span className="font-mono text-emerald-400 text-[11px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  <span className="font-mono text-emerald-500 dark:text-emerald-400 text-[11px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                     {currentClientId.slice(0, 12)}••••••••{currentClientId.slice(-28)}
                   </span>
                 ) : (
@@ -309,14 +452,14 @@ export const AuthenticationSettings: React.FC = () => {
                   onClick={() => setShowClientIdConfig(!showClientIdConfig)}
                   className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition flex items-center gap-1.5"
                 >
-                  <Settings2 className="w-3.5 h-3.5 text-teal-400" />
+                  <Settings2 className="w-3.5 h-3.5 text-teal-500 dark:text-teal-400" />
                   <span>{showClientIdConfig ? 'Ukryj konfigurację' : hasValidClientId ? 'Zmień Client ID' : 'Wprowadź Client ID'}</span>
                 </button>
                 <a
                   href="https://console.cloud.google.com/apis/credentials"
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 border border-teal-500/30 transition flex items-center gap-1"
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-300 border border-teal-500/30 transition flex items-center gap-1"
                   title="Otwórz Google Cloud Console Credentials"
                 >
                   <span>Google Console</span>
@@ -351,27 +494,36 @@ export const AuthenticationSettings: React.FC = () => {
 
                 {/* Czytelna instrukcja konfiguracji w Google Cloud Console */}
                 <div className="p-2.5 rounded-xl bg-teal-500/5 border border-teal-500/20 text-[11px] text-slate-600 dark:text-slate-300 space-y-1.5">
-                  <div className="font-bold text-teal-300 flex items-center gap-1">
+                  <div className="font-bold text-teal-600 dark:text-teal-300 flex items-center gap-1">
                     <ShieldCheck className="w-3.5 h-3.5" />
                     <span>Instrukcja konfiguracji w Google Cloud Console:</span>
                   </div>
-                  <ol className="list-decimal list-inside space-y-1 text-[10.5px] leading-relaxed pl-1 text-slate-400">
+                  <ol className="list-decimal list-inside space-y-1 text-[10.5px] leading-relaxed pl-1 text-slate-600 dark:text-slate-400">
                     <li>
-                      Otwórz sekcję <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer noopener" className="text-teal-400 underline font-mono">APIs & Services &gt; Credentials</a>.
+                      Otwórz sekcję{' '}
+                      <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer noopener" className="text-teal-500 dark:text-teal-400 underline font-mono">
+                        APIs & Services &gt; Credentials
+                      </a>.
                     </li>
                     <li>
-                      Kliknij <strong>+ Create Credentials &gt; OAuth client ID</strong> i wybierz Application type: <strong>Web application</strong>.
+                      Wybierz istniejący <strong>OAuth 2.0 Client ID</strong> lub utwórz nowy: <strong>Web application</strong>.
                     </li>
                     <li>
-                      W polu <strong>Authorized JavaScript origins</strong> dodaj dokładne adresy URL:
-                      <div className="flex flex-wrap gap-1 mt-1 font-mono text-[10px]">
-                        <code className="bg-slate-900 px-1.5 py-0.5 rounded text-teal-300 border border-slate-700">{currentOrigin}</code>
-                        <code className="bg-slate-900 px-1.5 py-0.5 rounded text-teal-300 border border-slate-700">https://omnidash.kvbi.pl</code>
-                        <code className="bg-slate-900 px-1.5 py-0.5 rounded text-teal-300 border border-slate-700">https://dash.kvbi.pl</code>
+                      W polu <strong>Authorized JavaScript origins</strong> dodaj dokładny adres aplikacji:
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1 font-mono text-[10px]">
+                        <code className="bg-slate-200 dark:bg-slate-900 px-2 py-0.5 rounded text-teal-600 dark:text-teal-300 border border-slate-300 dark:border-slate-700 font-bold">
+                          {currentOrigin}
+                        </code>
+                        <button
+                          onClick={handleCopyOrigin}
+                          className="px-2 py-0.5 rounded bg-teal-500/15 hover:bg-teal-500/25 text-teal-700 dark:text-teal-300 border border-teal-500/30 text-[10px]"
+                        >
+                          {copiedOrigin ? 'Skopiowano!' : 'Kopiuj'}
+                        </button>
                       </div>
                     </li>
                     <li>
-                      W polu <strong>Authorized redirect URIs</strong> dodaj te same adresy oraz kliknij <strong>Save</strong>.
+                      W polu <strong>Authorized redirect URIs</strong> wklej ten sam adres URL (np. <code className="font-mono text-teal-500">{currentOrigin}</code>) oraz zatwierdź przyciskiem <strong>Save</strong>.
                     </li>
                     <li>Skopiuj wygenerowany <strong>Client ID</strong> i wklej powyżej.</li>
                   </ol>
@@ -383,19 +535,39 @@ export const AuthenticationSettings: React.FC = () => {
           {/* Transparentny wykaz publicznych endpointów Google */}
           <div className="p-2.5 rounded-xl bg-slate-100/60 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/60 text-[10.5px] font-mono text-slate-600 dark:text-slate-400">
             <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-1">
-              <Globe className="w-3.5 h-3.5 text-teal-400" />
+              <Globe className="w-3.5 h-3.5 text-teal-500 dark:text-teal-400" />
               <span>Publiczne punkty końcowe Google API (Standard Zero-Mock):</span>
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[10px]">
-              <div>OAuth 2.0 Auth: <span className="text-teal-400">accounts.google.com/o/oauth2/v2/auth</span></div>
-              <div>REST UserInfo: <span className="text-teal-400">googleapis.com/oauth2/v3/userinfo</span></div>
-              <div>Tokeninfo Check: <span className="text-teal-400">oauth2.googleapis.com/tokeninfo</span></div>
-              <div>Token Revoke: <span className="text-teal-400">oauth2.googleapis.com/revoke</span></div>
+              <div>OAuth 2.0 Auth: <span className="text-teal-500 dark:text-teal-400">accounts.google.com/o/oauth2/v2/auth</span></div>
+              <div>REST UserInfo: <span className="text-teal-500 dark:text-teal-400">googleapis.com/oauth2/v3/userinfo</span></div>
+              <div>GIS Client SDK: <span className="text-teal-500 dark:text-teal-400">accounts.google.com/gsi/client</span></div>
+              <div>Token Revoke: <span className="text-teal-500 dark:text-teal-400">oauth2.googleapis.com/revoke</span></div>
             </div>
           </div>
 
-          {/* Komunikat o błędzie */}
-          {googleAuthError && (
+          {/* Dedykowany baner naprawczy błędu origin_mismatch */}
+          {isOriginMismatchError && (
+            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 space-y-2 text-xs">
+              <div className="flex items-center gap-2 font-bold text-rose-400">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
+                <span>[!] Diagnostyka błędu autoryzacji Google (400: origin_mismatch)</span>
+              </div>
+              <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-[11.5px]">
+                Google zablokowało logowanie, ponieważ adres źródła JavaScript (<strong>{currentOrigin}</strong>) nie jest zarejestrowany na liście autoryzowanych adresów URI dla skonfigurowanego Google Client ID w Google Cloud Console.
+              </p>
+              <div className="p-2.5 rounded-lg bg-black/30 border border-rose-500/20 text-[11px] space-y-1 font-mono text-rose-200">
+                <div className="font-bold text-white mb-1">Procedura naprawcza krok po kroku:</div>
+                <div>1. Kliknij przycisk „Kopiuj dokładny Origin do Google Console” powyżej (wartość: <span className="text-teal-300">{currentOrigin}</span>).</div>
+                <div>2. Otwórz <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer noopener" className="underline text-teal-400">Google Cloud Console &gt; Credentials</a>.</div>
+                <div>3. Wejdź w edycję identyfikatora Web Client ID i wklej skopiowany adres w sekcji <strong>Autoryzowane źródła JavaScript</strong>.</div>
+                <div>4. Wklej ten sam adres w sekcji <strong>Autoryzowane identyfikatory URI przekierowania</strong> i kliknij <strong>Zapisz</strong>.</div>
+              </div>
+            </div>
+          )}
+
+          {/* Standardowy komunikat o błędzie (gdy inny niż origin_mismatch) */}
+          {googleAuthError && !isOriginMismatchError && (
             <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2 text-xs text-rose-300">
               <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
               <span>{googleAuthError}</span>
@@ -404,8 +576,8 @@ export const AuthenticationSettings: React.FC = () => {
 
           {/* Komunikat weryfikacji */}
           {verifyStatusMessage && (
-            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2 text-xs text-emerald-300 font-mono">
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-300 font-mono">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500 dark:text-emerald-400" />
               <span>{verifyStatusMessage}</span>
             </div>
           )}
@@ -427,13 +599,13 @@ export const AuthenticationSettings: React.FC = () => {
                 )}
                 <div className="text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-teal-200 text-sm">
+                    <span className="font-bold text-teal-800 dark:text-teal-200 text-sm">
                       {activeGoogleName || 'Zweryfikowany użytkownik Google'}
                     </span>
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                    <ShieldCheck className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
                   </div>
-                  <div className="font-mono text-teal-300 text-xs mt-0.5">{activeGoogleEmail}</div>
-                  <div className="flex flex-wrap gap-1 mt-1 text-[10px] text-teal-400/80">
+                  <div className="font-mono text-teal-700 dark:text-teal-300 text-xs mt-0.5">{activeGoogleEmail}</div>
+                  <div className="flex flex-wrap gap-1 mt-1 text-[10px] text-teal-700 dark:text-teal-400/80">
                     <span className="px-1.5 py-0.2 rounded bg-teal-500/20 font-mono">openid</span>
                     <span className="px-1.5 py-0.2 rounded bg-teal-500/20 font-mono">userinfo.email</span>
                     <span className="px-1.5 py-0.2 rounded bg-teal-500/20 font-mono">gmail.readonly</span>
@@ -445,7 +617,7 @@ export const AuthenticationSettings: React.FC = () => {
                 <button
                   onClick={handleVerifyDirectWithGoogle}
                   disabled={isVerifyingToken}
-                  className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-teal-500/20 text-teal-200 border border-teal-500/30 hover:bg-teal-500/30 transition flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-teal-500/20 text-teal-800 dark:text-teal-200 border border-teal-500/30 hover:bg-teal-500/30 transition flex items-center gap-1.5"
                   title="Weryfikuj token w publicznym Google API"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isVerifyingToken ? 'animate-spin' : ''}`} />
@@ -453,7 +625,7 @@ export const AuthenticationSettings: React.FC = () => {
                 </button>
                 <button
                   onClick={handleDisconnectGoogle}
-                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition flex items-center gap-1.5"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Odłącz</span>
@@ -461,39 +633,60 @@ export const AuthenticationSettings: React.FC = () => {
               </div>
             </div>
           ) : (
-            /* Stan 2: Brak połączenia — Przycisk oficjalnego logowania Google z walidacją */
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+            /* Stan 2: Brak połączenia — Oficjalny przycisk GIS renderButton oraz Token Client Popup */
+            <div className="space-y-3 pt-1">
               <div className="text-xs text-slate-500 dark:text-slate-400">
                 {hasValidClientId ? (
-                  <span>Identyfikator klienta jest skonfigurowany. Kliknij przycisk, aby autoryzować konto w oknie Google.</span>
+                  <span>Wybierz metodę autoryzacji Google. Oficjalny przycisk GIS osadzony bezpośrednio w stronie jest odporny na blokady wyskakujących okien (popup blocker):</span>
                 ) : (
-                  <span className="text-amber-400 font-medium flex items-center gap-1.5">
+                  <span className="text-amber-500 dark:text-amber-400 font-medium flex items-center gap-1.5">
                     <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                     <span>Wprowadź swój Google Client ID powyżej, aby aktywować logowanie OAuth 2.0 bez błędu 401.</span>
                   </span>
                 )}
               </div>
-              <button
-                onClick={handleConnectGoogle}
-                disabled={isConnectingGoogle}
-                className={`px-5 py-2.5 rounded-xl text-xs font-bold transition active:scale-95 flex items-center justify-center gap-2.5 shrink-0 ${
-                  hasValidClientId
-                    ? 'bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 shadow-md'
-                    : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                }`}
-              >
-                {isConnectingGoogle ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin text-teal-500" />
-                    <span>Łączenie z Google...</span>
-                  </>
-                ) : (
-                  <>
-                    <GoogleLogoSvg className="w-4 h-4" />
-                    <span>{hasValidClientId ? 'Zaloguj przez Google (OAuth 2.0)' : 'Skonfiguruj Google Client ID'}</span>
-                  </>
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                {/* 1. Oficjalny przycisk Google Identity Services (google.accounts.id.renderButton) */}
+                {hasValidClientId && (
+                  <div className="flex flex-col items-start gap-1">
+                    <div ref={googleButtonContainerRef} className="min-h-[40px] flex items-center" />
+                    <span className="text-[10px] text-slate-400 font-mono pl-1">
+                      Zalecany: oficjalny komponent GIS renderButton (osadzony)
+                    </span>
+                  </div>
                 )}
-              </button>
+
+                {/* 2. Alternatywny przycisk Token Client / OAuth 2.0 Popup */}
+                <div className="flex flex-col items-start gap-1">
+                  <button
+                    onClick={handleConnectGoogle}
+                    disabled={isConnectingGoogle}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition active:scale-95 flex items-center justify-center gap-2.5 min-h-[40px] ${
+                      hasValidClientId
+                        ? 'bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 shadow-sm'
+                        : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
+                    }`}
+                  >
+                    {isConnectingGoogle ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin text-teal-500" />
+                        <span>Łączenie z Google...</span>
+                      </>
+                    ) : (
+                      <>
+                        <GoogleLogoSvg className="w-4 h-4" />
+                        <span>{hasValidClientId ? 'Logowanie przez Popup / Token Client' : 'Skonfiguruj Google Client ID'}</span>
+                      </>
+                    )}
+                  </button>
+                  {hasValidClientId && (
+                    <span className="text-[10px] text-slate-400 font-mono pl-1">
+                      Alternatywny: standardowy przepływ w oknie popup
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -669,7 +862,7 @@ export const AuthenticationSettings: React.FC = () => {
 
           <button
             onClick={handleRegenerateToken}
-            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/30 transition flex items-center gap-1.5 self-start sm:self-auto"
+            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/30 transition flex items-center gap-1.5 self-start sm:self-auto"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Rotuj Token Sesji</span>
@@ -677,8 +870,8 @@ export const AuthenticationSettings: React.FC = () => {
         </div>
 
         {tokenRegenerated && (
-          <div className="mt-3 p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs font-mono text-indigo-300 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-indigo-400" />
+          <div className="mt-3 p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs font-mono text-indigo-600 dark:text-indigo-300 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-indigo-500 dark:text-indigo-400" />
             <span>Wygenerowano nowy token sesji: {tokenRegenerated}</span>
           </div>
         )}

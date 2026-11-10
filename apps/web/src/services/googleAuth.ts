@@ -52,6 +52,28 @@ const STORAGE_KEYS = {
   SESSION: 'omnidash_google_session'
 };
 
+/**
+ * Bezpieczne dekodowanie payloadu tokena JWT bez zewnętrznych bibliotek (Zero-Placeholder).
+ */
+export function parseJwtPayload(token: string): any {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (err) {
+    console.warn('Nie udało się zdekodować tokena JWT Google:', err);
+    return null;
+  }
+}
+
 class GoogleAuthClient {
   private gsiLoaded = false;
   private gsiLoadingPromise: Promise<boolean> | null = null;
@@ -102,9 +124,7 @@ class GoogleAuthClient {
       if (!raw) return null;
       const parsed: GoogleSessionState = JSON.parse(raw);
       if (parsed && parsed.connected && parsed.user) {
-        // Sprawdź czy token wygasł (jeśli zapisano czas wygaśnięcia)
         if (parsed.expiresAt && parsed.expiresAt < Date.now()) {
-          // Sesja wygasła
           this.clearSession();
           return null;
         }
@@ -134,7 +154,7 @@ class GoogleAuthClient {
    * Ładuje oficjalny skrypt Google Identity Services (GSI) SDK do dokumentu HTML.
    */
   public loadGsiScript(): Promise<boolean> {
-    if (this.gsiLoaded || (window as any).google?.accounts?.oauth2) {
+    if (this.gsiLoaded || (window as any).google?.accounts?.oauth2 || (window as any).google?.accounts?.id) {
       this.gsiLoaded = true;
       return Promise.resolve(true);
     }
@@ -144,7 +164,6 @@ class GoogleAuthClient {
     }
 
     this.gsiLoadingPromise = new Promise((resolve) => {
-      // Sprawdź czy skrypt już istnieje w DOM
       const existingScript = document.querySelector(`script[src="${GOOGLE_ENDPOINTS.GSI_SDK}"]`);
       if (existingScript) {
         existingScript.addEventListener('load', () => {
@@ -171,6 +190,114 @@ class GoogleAuthClient {
     });
 
     return this.gsiLoadingPromise;
+  }
+
+  /**
+   * Inicjalizuje oficjalny moduł Google Identity Services (google.accounts.id) dla renderButton i One Tap.
+   */
+  public async initializeGoogleIdentity(
+    clientId: string,
+    callback: (response: { credential: string; select_by?: string }) => void
+  ): Promise<boolean> {
+    const loaded = await this.loadGsiScript();
+    if (!loaded) return false;
+
+    const googleObj = (window as any).google;
+    if (!googleObj?.accounts?.id) {
+      console.warn('Brak google.accounts.id w załadowanym SDK Google Identity Services.');
+      return false;
+    }
+
+    try {
+      googleObj.accounts.id.initialize({
+        client_id: clientId,
+        callback: (response: any) => {
+          if (response?.credential) {
+            callback(response);
+          }
+        },
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        itp_support: true
+      });
+      return true;
+    } catch (err) {
+      console.error('Błąd inicjalizacji google.accounts.id:', err);
+      return false;
+    }
+  }
+
+  /**
+   * Renderuje oficjalny przycisk logowania Google Identity Services (google.accounts.id.renderButton).
+   * Działa bezpośrednio na stronie, osadzony w iframe, znacznie bardziej odporny na błędy popupów.
+   */
+  public renderGoogleButton(
+    container: HTMLElement,
+    options?: {
+      theme?: 'outline' | 'filled_blue' | 'filled_black';
+      size?: 'large' | 'medium' | 'small';
+      text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
+      shape?: 'rectangular' | 'pill' | 'circle' | 'square';
+      width?: string | number;
+      logo_alignment?: 'left' | 'center';
+    }
+  ): boolean {
+    const googleObj = (window as any).google;
+    if (!googleObj?.accounts?.id?.renderButton) {
+      return false;
+    }
+
+    try {
+      container.innerHTML = '';
+      googleObj.accounts.id.renderButton(container, {
+        type: 'standard',
+        theme: options?.theme || 'outline',
+        size: options?.size || 'large',
+        text: options?.text || 'signin_with',
+        shape: options?.shape || 'rectangular',
+        logo_alignment: options?.logo_alignment || 'left',
+        width: options?.width || 280
+      });
+      return true;
+    } catch (err) {
+      console.error('Błąd renderowania google.accounts.id.renderButton:', err);
+      return false;
+    }
+  }
+
+  /**
+   * Przetwarza zweryfikowany token ID (JWT) z Google Identity Services i tworzy sesję użytkownika.
+   */
+  public handleCredentialResponse(credential: string): { user: GoogleUserProfile; idToken: string } {
+    const payload = parseJwtPayload(credential);
+    if (!payload || !payload.email) {
+      throw new Error('Google Identity Services nie zwróciło prawidłowego profilu użytkownika w tokenie ID.');
+    }
+
+    const user: GoogleUserProfile = {
+      sub: payload.sub,
+      email: payload.email,
+      email_verified: Boolean(payload.email_verified),
+      name: payload.name || payload.email,
+      given_name: payload.given_name,
+      family_name: payload.family_name,
+      picture: payload.picture,
+      locale: payload.locale
+    };
+
+    const expiresAt = payload.exp ? payload.exp * 1000 : Date.now() + 3600 * 1000;
+
+    const session: GoogleSessionState = {
+      connected: true,
+      user,
+      accessToken: null,
+      idToken: credential,
+      expiresAt,
+      scopes: DEFAULT_GOOGLE_SCOPES
+    };
+
+    this.saveSession(session);
+    return { user, idToken: credential };
   }
 
   /**
@@ -245,6 +372,7 @@ class GoogleAuthClient {
       );
     }
     const scopesStr = DEFAULT_GOOGLE_SCOPES.join(' ');
+    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://omni.kvbi.pl';
 
     // 1. Spróbuj załadować i użyć oficjalnego GSI SDK
     await this.loadGsiScript();
@@ -259,7 +387,20 @@ class GoogleAuthClient {
             prompt: 'consent',
             callback: async (tokenResponse: any) => {
               if (tokenResponse.error) {
-                reject(new Error(tokenResponse.error_description || tokenResponse.error || 'Błąd autoryzacji Google'));
+                const isOriginMismatch =
+                  tokenResponse.error === 'origin_mismatch' ||
+                  tokenResponse.error_description?.toLowerCase().includes('origin_mismatch') ||
+                  tokenResponse.error?.toLowerCase().includes('origin_mismatch');
+
+                if (isOriginMismatch) {
+                  reject(
+                    new Error(
+                      `Błąd autoryzacji Google (400: origin_mismatch): Bieżący adres ${currentOrigin} nie jest zarejestrowany w Google Cloud Console w sekcji „Autoryzowane źródła JavaScript” dla Client ID: ${clientId}.`
+                    )
+                  );
+                } else {
+                  reject(new Error(tokenResponse.error_description || tokenResponse.error || 'Błąd autoryzacji Google'));
+                }
                 return;
               }
 
@@ -270,7 +411,6 @@ class GoogleAuthClient {
               }
 
               try {
-                // Bezpośrednie pobranie profilu z publicznego Google UserInfo
                 const user = await this.fetchUserInfo(accessToken);
                 const expiresAt = Date.now() + (parseInt(tokenResponse.expires_in, 10) || 3600) * 1000;
 
@@ -290,13 +430,22 @@ class GoogleAuthClient {
               }
             },
             error_callback: (err: any) => {
-              reject(new Error(err?.message || 'Niepowodzenie inicjalizacji Google Identity Services'));
+              const errMsg = err?.message || String(err);
+              if (errMsg.toLowerCase().includes('origin_mismatch') || errMsg.toLowerCase().includes('idpiframe_initialization_failed')) {
+                reject(
+                  new Error(
+                    `Błąd autoryzacji Google (400: origin_mismatch): Bieżący adres ${currentOrigin} nie jest zarejestrowany w Google Cloud Console w sekcji „Autoryzowane źródła JavaScript” dla Client ID: ${clientId}.`
+                  )
+                );
+              } else {
+                reject(new Error(errMsg || 'Niepowodzenie inicjalizacji Google Identity Services'));
+              }
             }
           });
 
           client.requestAccessToken();
-        } catch (err) {
-          // Fallback do standardowego OAuth 2.0 popup
+        } catch (err: any) {
+          console.warn('Przełączanie na standardowy OAuth 2.0 popup:', err);
           this.signInWithOAuthPopup(clientId, scopesStr).then(resolve).catch(reject);
         }
       });
@@ -312,7 +461,7 @@ class GoogleAuthClient {
    */
   private signInWithOAuthPopup(clientId: string, scope: string): Promise<{ user: GoogleUserProfile; accessToken: string; idToken?: string }> {
     return new Promise((resolve, reject) => {
-      const redirectUri = window.location.origin;
+      const redirectUri = typeof window !== 'undefined' ? window.location.origin : 'https://omni.kvbi.pl';
       const authUrl = new URL(GOOGLE_ENDPOINTS.AUTH);
       authUrl.searchParams.set('client_id', clientId);
       authUrl.searchParams.set('redirect_uri', redirectUri);
@@ -339,7 +488,6 @@ class GoogleAuthClient {
 
       let resolved = false;
 
-      // Obsługa komunikatu postMessage z okna potomnego
       const messageHandler = async (event: MessageEvent) => {
         if (event.origin !== window.location.origin) return;
         if (event.data?.type === 'GOOGLE_OAUTH_RESPONSE' && event.data?.hash) {
@@ -352,7 +500,11 @@ class GoogleAuthClient {
             const error = params.get('error');
 
             if (error) {
-              reject(new Error(`Odrzucono autoryzację Google: ${error}`));
+              const isOriginMismatch = error.toLowerCase().includes('origin_mismatch');
+              const errorMsg = isOriginMismatch
+                ? `Błąd autoryzacji Google (400: origin_mismatch): Bieżący adres ${redirectUri} nie jest zarejestrowany w Google Cloud Console dla Client ID: ${clientId}.`
+                : `Odrzucono autoryzację Google: ${error}`;
+              reject(new Error(errorMsg));
               return;
             }
 
@@ -381,12 +533,15 @@ class GoogleAuthClient {
 
       window.addEventListener('message', messageHandler);
 
-      // Polling okna popup na wypadek gdyby postMessage nie zadziałał
       const timer = setInterval(async () => {
         if (popup.closed) {
           cleanup();
           if (!resolved) {
-            reject(new Error('Okno logowania Google zostało zamknięte przed ukończeniem autoryzacji.'));
+            reject(
+              new Error(
+                `Okno logowania Google zostało zamknięte przed ukończeniem autoryzacji. Jeżeli w oknie Google pojawił się błąd „Błąd 400: origin_mismatch”, zarejestruj adres ${redirectUri} w Google Cloud Console w sekcji „Autoryzowane źródła JavaScript”.`
+              )
+            );
           }
           return;
         }
@@ -403,7 +558,11 @@ class GoogleAuthClient {
             const error = params.get('error');
 
             if (error) {
-              reject(new Error(`Odrzucono autoryzację Google: ${error}`));
+              const isOriginMismatch = error.toLowerCase().includes('origin_mismatch');
+              const errorMsg = isOriginMismatch
+                ? `Błąd autoryzacji Google (400: origin_mismatch): Bieżący adres ${redirectUri} nie jest zarejestrowany w Google Cloud Console dla Client ID: ${clientId}.`
+                : `Odrzucono autoryzację Google: ${error}`;
+              reject(new Error(errorMsg));
               return;
             }
 
@@ -426,7 +585,7 @@ class GoogleAuthClient {
             resolve({ user, accessToken, idToken: session.idToken || undefined });
           }
         } catch {
-          // Cross-origin dostęp zablokowany dopóki popup jest na domenach google.com — normalne zachowanie
+          // Cross-origin dostęp zablokowany dopóki popup jest na domenach google.com — zachowanie oczekiwane
         }
       }, 500);
 

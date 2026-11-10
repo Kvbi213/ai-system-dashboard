@@ -927,3 +927,19 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - Gałąź `v4-reborn` została ustanowiona jako domyślna (default branch) w repozytorium GitHub.
   - Usunięto przestarzałe i zbędne gałęzie zdalne (`master`, `v4.0`).
 
+---
+
+### ## v1.0.6 — 2026-11-10 [GOOGLE OAUTH 400 ORIGIN_MISMATCH REPAIR & GIS RENDERBUTTON]
+**Status:** WYDANIE PRODUKCYJNE (BRANCH: `mikr.us`)  
+**Typ:** MINOR / ENHANCEMENT & DEFECT REMOVAL
+
+- [+] **Obsługa Błędu 400 origin_mismatch i Ramka JavaScript Origin (`AuthenticationSettings.tsx`):**
+  - Dodano dedykowaną ramkę wyświetlającą wykryty `window.location.origin` (np. `https://omni.kvbi.pl`) z dedykowanym przyciskiem „Kopiuj dokładny Origin do Google Console” oraz potwierdzeniem skopiowania do schowka.
+  - Wprowadzono bezpośrednie inżynieryjne ostrzeżenie wyjaśniające konieczność dodania adresu w Google Cloud Console w sekcjach „Autoryzowane źródła JavaScript” oraz „Autoryzowane identyfikatory URI przekierowania”.
+  - Zaimplementowano dedykowany baner diagnostyczny `[!] Diagnostyka błędu autoryzacji Google (400: origin_mismatch)` z procedurą naprawczą krok po kroku.
+- [+] **Oficjalny Komponent Google Identity Services renderButton (`googleAuth.ts`, `AuthenticationSettings.tsx`):**
+  - Rozszerzono `GoogleAuthClient` o `initializeGoogleIdentity` oraz `renderGoogleButton` wykorzystujące oficjalne SDK `google.accounts.id`.
+  - Zaimplementowano natywny, bezpieczny dekoder payloadu JWT ID token (`parseJwtPayload`) bez zewnętrznych zależności.
+  - Wyrenderowano oficjalny komponent przycisku Google Identity Services w GUI obok alternatywnego przycisku Token Client / Popup.
+
+
