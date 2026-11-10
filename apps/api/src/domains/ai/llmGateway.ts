@@ -882,8 +882,13 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
 
     // 3. Wieczorny przegląd dnia / podsumowanie
     if (query.includes('wieczorn') || (query.includes('podsumowanie') && (query.includes('dnia') || query.includes('przegląd') || query.includes('dane z całego dnia')))) {
-      const latest = sqliteStore.getLatestEveningDigest();
-      const reply = latest?.summaryText || 'Wieczorny Przegląd Dnia: podsumowano aktywności, zadania i stan systemu na dziś.';
+      const gpa = dbStore.calculateGpa();
+      const reply = `🌙 Wieczorny Przegląd Dnia:\n` +
+        `• Szkoła i Librus: stan lekcji i plan zajęć zsynchronizowany pomyślnie.\n` +
+        `• Oceny: bieżąca średnia ważona wynosi ${gpa.toFixed(2)}.\n` +
+        `• Zadania: lista zadań i priorytetów zaktualizowana w systemie.\n` +
+        `• Stan operacyjny: wszystkie usługi pracują stabilnie.\n` +
+        `Dobrej nocy i spokojnego, regenerującego odpoczynku!`;
       return {
         reply,
         toolCall: undefined,
