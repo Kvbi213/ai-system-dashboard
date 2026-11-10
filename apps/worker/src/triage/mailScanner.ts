@@ -48,10 +48,21 @@ export function decodeMimeHeader(input: string): string {
       if (enc === 'B') {
         return Buffer.from(text, 'base64').toString(charset.toLowerCase() === 'utf-8' ? 'utf-8' : 'latin1');
       } else if (enc === 'Q') {
-        const decoded = text
-          .replace(/_/g, ' ')
-          .replace(/=([A-Fa-f0-9]{2})/g, (__: string, hex: string) => String.fromCharCode(parseInt(hex, 16)));
-        return decoded;
+        const clean = text.replace(/_/g, ' ');
+        const bytes: number[] = [];
+        for (let i = 0; i < clean.length; i++) {
+          if (clean[i] === '=' && i + 2 < clean.length) {
+            const hex = clean.substring(i + 1, i + 3);
+            const parsed = parseInt(hex, 16);
+            if (!isNaN(parsed)) {
+              bytes.push(parsed);
+              i += 2;
+              continue;
+            }
+          }
+          bytes.push(clean.charCodeAt(i));
+        }
+        return Buffer.from(bytes).toString(charset.toLowerCase() === 'utf-8' ? 'utf-8' : 'latin1');
       }
     } catch {
       return text;

@@ -4,6 +4,7 @@ import { LibrusAutoScraper } from '../automation/librusAutoScraper.js';
 import { getWarsawTime } from '../automation/timeUtils.js';
 import { MailScanner, MailTriageResult } from '../triage/mailScanner.js';
 import { PushNotificationAggregator, AggregatedPushSummary } from '../triage/pushNotificationAggregator.js';
+import { dailyTriageBuffer } from '../triage/dailyTriageBuffer.js';
 
 export class SystemScheduler {
   private timers: NodeJS.Timeout[] = [];
@@ -89,12 +90,14 @@ export class SystemScheduler {
   }
 
   /**
-   * Wykonuje deterministyczny cykl Triage (analiza poczty IMAP + agregacja powiadomień ze smartfona).
+   * Wykonuje pasywny cykl zbierania danych Triage (skanowanie poczty IMAP + buforowanie zdarzeń).
+   * Zdarzenia są agregowane w buforze dziennym na potrzeby wieczornego podsumowania AI (godz. 22:00),
+   * bez uciążliwego wysyłania powiadomień Pushbullet co 15 minut.
    */
   public async runTriageCycle(): Promise<void> {
-    console.log(`[*] TRIAGE :: Rozpoczynanie cyklicznej analizy poczty i powiadomień (okno ${this.triageIntervalMinutes} min)...`);
+    console.log(`[*] TRIAGE :: Rozpoczynanie pasywnego skanowania poczty i powiadomień (okno ${this.triageIntervalMinutes} min)...`);
 
-    // 1. Skanowanie poczty IMAP
+    // 1. Skanowanie poczty IMAP i rejestracja w dziennym buforze
     let mailTriage: MailTriageResult = {
       totalUnread: 0,
       importantCount: 0,
@@ -108,74 +111,19 @@ export class SystemScheduler {
 
     try {
       mailTriage = await this.mailScanner.scanInbox();
+      if (mailTriage.items && mailTriage.items.length > 0) {
+        dailyTriageBuffer.recordEmails(mailTriage.items);
+      }
     } catch (err) {
       console.error('[!] TRIAGE :: Błąd skanowania poczty IMAP:', err);
     }
 
-    // 2. Agregacja zdarzeń Pushbullet ze smartfona
+    // 2. Odczyt stanu agregatora powiadomień ze smartfona
     const pushSummary: AggregatedPushSummary = this.pushAggregator.flushWindow(this.triageIntervalMinutes);
+    const dayEmailsCount = dailyTriageBuffer.getDayEmails().length;
+    const totalBufferedPushes = this.pushAggregator.getTotalBufferedCount();
 
-    const hasNewMail = mailTriage.totalUnread > 0;
-    const hasPushEvents = pushSummary.totalCount > 0;
-    const hasCriticalItems = mailTriage.importantCount > 0 || pushSummary.hasHighPriority;
-
-    if (!hasNewMail && !hasPushEvents) {
-      console.log(`[*] TRIAGE :: Cykl zakończony. Brak nowych maili oraz powiadomień w oknie ${this.triageIntervalMinutes}m.`);
-      return;
-    }
-
-    // 3. Generowanie zwięzłego raportu
-    const reportLines: string[] = [];
-
-    // Podsumowanie Poczty
-    if (mailTriage.isConfigured && mailTriage.totalUnread > 0) {
-      reportLines.push(`POCZTA: ${mailTriage.totalUnread} nieprzeczytanych (Ważne: ${mailTriage.importantCount}, Zwykłe: ${mailTriage.normalCount}, Spam: ${mailTriage.spamNewsletterCount})`);
-      if (mailTriage.importantMessages.length > 0) {
-        for (const msg of mailTriage.importantMessages.slice(0, 3)) {
-          reportLines.push(`- [WAŻNE] ${msg.subject} (od: ${msg.from})`);
-        }
-      }
-    }
-
-    // Podsumowanie Powiadomień ze smartfona
-    if (pushSummary.totalCount > 0) {
-      reportLines.push(`POWIADOMIENIA (${this.triageIntervalMinutes}m): ${pushSummary.totalCount} zdarzeń`);
-
-      if (pushSummary.transactions.count > 0) {
-        reportLines.push(`- Wydatki: ${pushSummary.transactions.totalAmount.toFixed(2)} PLN (${pushSummary.transactions.count} transakcji)`);
-        for (const tx of pushSummary.transactions.items.slice(0, 2)) {
-          reportLines.push(`  * ${tx.title}: ${tx.amount.toFixed(2)} PLN [${tx.envelope}]`);
-        }
-      }
-
-      if (pushSummary.schoolAlerts.count > 0) {
-        for (const sch of pushSummary.schoolAlerts.items.slice(0, 2)) {
-          reportLines.push(`- [SZKOŁA] ${sch.subject}`);
-        }
-      }
-
-      if (pushSummary.tasks.count > 0) {
-        for (const tsk of pushSummary.tasks.items.slice(0, 2)) {
-          reportLines.push(`- [ZADANIE] ${tsk.title}`);
-        }
-      }
-    }
-
-    const reportBody = reportLines.join('\n');
-    console.log(`[*] TRIAGE RAPORT:\n${reportBody}`);
-
-    // 4. Wypchnięcie przez PushbulletDispatcher
-    if (this.dispatcher && reportLines.length > 0) {
-      const title = hasCriticalItems
-        ? `[ALERT] OmniDash Triage (${this.triageIntervalMinutes}m)`
-        : `[INFO] OmniDash Triage (${this.triageIntervalMinutes}m)`;
-
-      this.dispatcher.enqueue({
-        title,
-        body: reportBody,
-        priority: hasCriticalItems ? 'HIGH' : 'NORMAL'
-      });
-    }
+    console.log(`[*] TRIAGE :: Pasywny cykl zakończony. Bufor dzienny: ${dayEmailsCount} maili, ${totalBufferedPushes} powiadomień ze smartfona. Okresowy spam co 15m: WYŁĄCZONY (przygotowanie na wieczorny digest 22:00).`);
   }
 
   /**
@@ -259,6 +207,95 @@ export class SystemScheduler {
         body: '3 godziny do snu (23:00). Zakończ przyjmowanie posiłków, zadbaj o nawodnienie i wyciszenie.',
         priority: 'NORMAL'
       });
+    }
+
+    // Wieczorny Przegląd Dnia AI (godz. 22:00 w strefie Europe/Warsaw)
+    if (hours === 22 && minutes === 0) {
+      const { date } = this.getCurrentMonotonicTime();
+      const warsaw = getWarsawTime(date);
+      if (!dailyTriageBuffer.hasDigestRunToday(warsaw.dateKey)) {
+        dailyTriageBuffer.markDigestRunToday(warsaw.dateKey);
+        console.log(`[*] EVENING_DIGEST :: Osiągnięto godzinę 22:00 (${warsaw.dateKey}) — wyzwalanie wieczornego podsumowania AI.`);
+        this.triggerEveningDigest(date).catch((err) => {
+          console.error('[!] Błąd wyzwalania wieczornego digestu 22:00:', err);
+        });
+      }
+    }
+  }
+
+  /**
+   * Wyzwala generowanie wieczornego podsumowania AI z zebranego całodziennego bufora.
+   */
+  public async triggerEveningDigest(customDate?: Date): Promise<void> {
+    console.log('[*] EVENING_DIGEST :: Przygotowywanie całodziennych danych do syntezy przez model AI...');
+
+    const dayEmails = dailyTriageBuffer.getDayEmails();
+    const dayPush = this.pushAggregator.aggregateDay(24);
+    const allBufferedPushes = this.pushAggregator.getAllBufferedEvents();
+
+    const payload = {
+      customEvents: {
+        emails: dayEmails.map((e) => ({
+          subject: e.subject,
+          from: e.from,
+          date: e.date,
+          category: e.category
+        })),
+        transactions: dayPush.transactions.items,
+        tasks: dayPush.tasks.items,
+        schoolAlerts: dayPush.schoolAlerts.items,
+        pushNotifications: allBufferedPushes.map((p) => ({
+          title: p.title,
+          body: p.body,
+          type: p.classified.type,
+          amount: p.classified.amount
+        }))
+      },
+      sendPush: true,
+      simulatedDate: customDate ? customDate.toISOString() : undefined
+    };
+
+    try {
+      const res = await fetch(`${this.apiGatewayUrl}/automation/evening-digest/trigger`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer dev-operator-token'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        const data = await res.json() as any;
+        console.log(`[+] SUCCESS :: Wieczorny digest AI wygenerowany pomyślnie przez API Gateway (id: ${data.digest?.id}).`);
+        dailyTriageBuffer.clearDay();
+        return;
+      } else {
+        const errText = await res.text();
+        console.warn(`[!] Ostrzeżenie: API Gateway zwrócił błąd digestu (${res.status}): ${errText}`);
+      }
+    } catch (err) {
+      console.error('[!] Błąd połączenia z API Gateway podczas wieczornego digestu:', err);
+    }
+
+    // Fallback: jeśli API Gateway jest niedostępny, wyślij podsumowanie bezpośrednio przez lokalny dyspozytor
+    if (this.dispatcher) {
+      const totalSpent = dayPush.transactions.totalAmount;
+      const fallbackBody = [
+        `🌙 Wieczorny Przegląd Dnia (Tryb bezpośredni workera):`,
+        `- Poczta: ${dayEmails.length} wiadomości z dnia`,
+        `- Finanse: ${dayPush.transactions.count} transakcji (łącznie ${totalSpent.toFixed(2)} PLN)`,
+        `- Zadania: ${dayPush.tasks.count} zarejestrowanych zadań`,
+        `- Szkoła: ${dayPush.schoolAlerts.count} alertów`,
+        `Spokojnego wieczoru i dobrej nocy!`
+      ].join('\n');
+
+      this.dispatcher.enqueue({
+        title: '🌙 Wieczorny Przegląd Dnia (22:00)',
+        body: fallbackBody,
+        priority: 'NORMAL'
+      });
+      dailyTriageBuffer.clearDay();
     }
   }
 

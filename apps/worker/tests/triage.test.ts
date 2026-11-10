@@ -160,4 +160,63 @@ describe('Pushbullet Notification Aggregator', () => {
     const secondFlush = aggregator.flushWindow(15);
     expect(secondFlush.totalCount).toBe(0);
   });
+
+  it('aggregateDay preserves full 24h day history regardless of flush baseline', () => {
+    const aggregator = new PushNotificationAggregator();
+
+    const tx = classifyNotification('Płatność kartą w Apteka', 'Płatność kartą: 50,00 PLN w Apteka');
+    aggregator.record('Płatność kartą w Apteka', 'Płatność kartą: 50,00 PLN w Apteka', tx);
+
+    // Wywołanie flushWindow nie kasuje historii z całego dnia
+    aggregator.flushWindow(15);
+
+    const daySummary = aggregator.aggregateDay(24);
+    expect(daySummary.totalCount).toBe(1);
+    expect(daySummary.transactions.totalAmount).toBe(50.00);
+    expect(daySummary.transactions.items[0].title).toContain('Płatność');
+  });
 });
+
+describe('Daily Triage Buffer for 22:00 Evening Digest', () => {
+  it('deduplicates emails and holds them for evening synthesis', async () => {
+    const { DailyTriageBuffer } = await import('../src/triage/dailyTriageBuffer.js');
+    const buffer = new DailyTriageBuffer();
+
+    buffer.recordEmails([
+      {
+        id: '1',
+        subject: 'Faktura za serwer',
+        from: 'faktury@mikrus.pl',
+        category: 'IMPORTANT',
+        categoryReason: 'mikrus'
+      },
+      {
+        id: '2',
+        subject: 'Faktura za serwer', // duplikat tematu i nadawcy
+        from: 'faktury@mikrus.pl',
+        category: 'IMPORTANT',
+        categoryReason: 'mikrus'
+      },
+      {
+        id: '3',
+        subject: 'Wiadomość z Librusa',
+        from: 'powiadomienia@librus.pl',
+        category: 'IMPORTANT',
+        categoryReason: 'librus'
+      }
+    ]);
+
+    const dayEmails = buffer.getDayEmails();
+    expect(dayEmails).toHaveLength(2);
+    expect(dayEmails.map((e) => e.subject)).toContain('Faktura za serwer');
+    expect(dayEmails.map((e) => e.subject)).toContain('Wiadomość z Librusa');
+
+    expect(buffer.hasDigestRunToday('2026-11-10')).toBe(false);
+    buffer.markDigestRunToday('2026-11-10');
+    expect(buffer.hasDigestRunToday('2026-11-10')).toBe(true);
+
+    buffer.clearDay();
+    expect(buffer.getDayEmails()).toHaveLength(0);
+  });
+});
+

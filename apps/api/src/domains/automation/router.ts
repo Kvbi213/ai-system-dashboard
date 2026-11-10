@@ -4,6 +4,7 @@ import { sqliteStore } from '../../db/sqliteStore.js';
 import { AUTOMATION_TEMPLATES } from './automationTemplates.js';
 import { executeScript, calculateLessonInfo, buildScriptContext } from './scriptEngine.js';
 import { getWarsawTime } from './timeUtils.js';
+import { eveningDigestService } from './eveningDigestService.js';
 
 export const automationRouter = Router();
 
@@ -135,3 +136,65 @@ automationRouter.post('/preview', async (req: Request, res: Response) => {
   const execution = await executeScript(code, customDate);
   res.json({ execution });
 });
+
+// --- SEKCJA: WIECZORNY DIGEST AI (EVENING DIGEST) ---
+
+/**
+ * POST /api/automation/evening-digest/trigger
+ * Ręczne lub zaplanowane wyzwolenie wieczornego podsumowania dnia z AI.
+ */
+automationRouter.post('/evening-digest/trigger', async (req: Request, res: Response) => {
+  try {
+    const { customEvents, sendPush, simulatedDate } = req.body || {};
+    const parsedSimulatedDate = simulatedDate ? new Date(simulatedDate) : undefined;
+
+    const result = await eveningDigestService.generateDigest({
+      customEvents,
+      sendPush: sendPush !== undefined ? Boolean(sendPush) : true,
+      simulatedDate: parsedSimulatedDate
+    });
+
+    res.json(result);
+  } catch (err: unknown) {
+    console.error('[!] Błąd generowania wieczornego digestu:', err);
+    res.status(500).json({
+      success: false,
+      error: 'DIGEST_GENERATION_FAILED',
+      message: err instanceof Error ? err.message : 'Wewnętrzny błąd generowania podsumowania dnia.'
+    });
+  }
+});
+
+/**
+ * GET /api/automation/evening-digest/latest
+ * Zwraca ostatnio wygenerowane wieczorne podsumowanie dnia.
+ */
+automationRouter.get('/evening-digest/latest', (_req: Request, res: Response) => {
+  const latest = eveningDigestService.getLatestDigest();
+  if (!latest) {
+    res.status(404).json({
+      success: false,
+      error: 'NO_DIGEST_FOUND',
+      message: 'Nie wygenerowano jeszcze żadnego wieczornego podsumowania.'
+    });
+    return;
+  }
+  res.json({
+    success: true,
+    digest: latest
+  });
+});
+
+/**
+ * GET /api/automation/evening-digest/history
+ * Zwraca historię wieczornych podsumowań.
+ */
+automationRouter.get('/evening-digest/history', (req: Request, res: Response) => {
+  const limit = parseInt(String(req.query.limit || '10'), 10);
+  const history = eveningDigestService.getHistory(isNaN(limit) ? 10 : limit);
+  res.json({
+    success: true,
+    history
+  });
+});
+

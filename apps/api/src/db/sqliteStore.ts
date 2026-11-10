@@ -90,6 +90,28 @@ export interface SqliteSystemConfigRow {
   updated_at: string;
 }
 
+export interface EveningDigestRecord {
+  id: string;
+  date: string;
+  summaryText: string;
+  provider: string;
+  model: string;
+  sentToPushbullet: boolean;
+  rawPayloadJson?: string;
+  createdAt: string;
+}
+
+export interface SqliteEveningDigestRow {
+  id: string;
+  date: string;
+  summary_text: string;
+  provider: string;
+  model: string;
+  sent_to_pushbullet: number;
+  raw_payload_json: string | null;
+  created_at: string;
+}
+
 export class SqliteStore {
   private db: any;
   private readonly dbPath: string;
@@ -206,6 +228,20 @@ export class SqliteStore {
         last_status TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
+      );
+    `);
+
+    // 8. Tabela wieczornych podsumowań AI (Evening Digests)
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS evening_digests (
+        id TEXT PRIMARY KEY,
+        date TEXT NOT NULL,
+        summary_text TEXT NOT NULL,
+        provider TEXT NOT NULL,
+        model TEXT NOT NULL,
+        sent_to_pushbullet INTEGER NOT NULL DEFAULT 0,
+        raw_payload_json TEXT,
+        created_at TEXT NOT NULL
       );
     `);
 
@@ -1013,6 +1049,82 @@ export class SqliteStore {
     const stmt = this.db.prepare('DELETE FROM automation_scripts WHERE id = ?');
     stmt.run(id);
     return true;
+  }
+
+  // --- SEKCJA: WIECZORNY DIGEST AI (EVENING DIGEST) ---
+
+  public saveEveningDigest(digest: {
+    id?: string;
+    date: string;
+    summaryText: string;
+    provider: string;
+    model: string;
+    sentToPushbullet: boolean;
+    rawPayloadJson?: string;
+  }): EveningDigestRecord {
+    const id = digest.id || `digest_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    const nowIso = new Date().toISOString();
+
+    const insert = this.db.prepare(`
+      INSERT INTO evening_digests (
+        id, date, summary_text, provider, model, sent_to_pushbullet, raw_payload_json, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    insert.run(
+      id,
+      digest.date,
+      digest.summaryText,
+      digest.provider,
+      digest.model,
+      digest.sentToPushbullet ? 1 : 0,
+      digest.rawPayloadJson || null,
+      nowIso
+    );
+
+    return {
+      id,
+      date: digest.date,
+      summaryText: digest.summaryText,
+      provider: digest.provider,
+      model: digest.model,
+      sentToPushbullet: digest.sentToPushbullet,
+      rawPayloadJson: digest.rawPayloadJson,
+      createdAt: nowIso
+    };
+  }
+
+  public getLatestEveningDigest(): EveningDigestRecord | null {
+    const stmt = this.db.prepare('SELECT * FROM evening_digests ORDER BY created_at DESC LIMIT 1');
+    const row = stmt.get() as SqliteEveningDigestRow | undefined;
+    if (!row) return null;
+
+    return {
+      id: row.id,
+      date: row.date,
+      summaryText: row.summary_text,
+      provider: row.provider,
+      model: row.model,
+      sentToPushbullet: Boolean(row.sent_to_pushbullet),
+      rawPayloadJson: row.raw_payload_json || undefined,
+      createdAt: row.created_at
+    };
+  }
+
+  public getEveningDigests(limit = 10): EveningDigestRecord[] {
+    const stmt = this.db.prepare('SELECT * FROM evening_digests ORDER BY created_at DESC LIMIT ?');
+    const rows = stmt.all(limit) as SqliteEveningDigestRow[];
+
+    return rows.map((row) => ({
+      id: row.id,
+      date: row.date,
+      summaryText: row.summary_text,
+      provider: row.provider,
+      model: row.model,
+      sentToPushbullet: Boolean(row.sent_to_pushbullet),
+      rawPayloadJson: row.raw_payload_json || undefined,
+      createdAt: row.created_at
+    }));
   }
 
   public close(): void {

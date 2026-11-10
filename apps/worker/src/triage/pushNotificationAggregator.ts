@@ -64,10 +64,10 @@ export class PushNotificationAggregator {
   private events: RecordedNotification[] = [];
   private maxRetainedEvents = 1000;
   private maxRetentionMs = 24 * 60 * 60 * 1000; // 24 godziny
-  private lastFlushTimestamp: number = Date.now();
+  private lastFlushTimestamp: number = 0;
 
   constructor() {
-    this.lastFlushTimestamp = Date.now();
+    this.lastFlushTimestamp = 0;
   }
 
   /**
@@ -101,13 +101,32 @@ export class PushNotificationAggregator {
   }
 
   /**
+   * Zwraca pełną agregację zdarzeń z całego dnia (ostatnie 24 godziny) dla wieczornego podsumowania AI.
+   */
+  public aggregateDay(hours = 24): AggregatedPushSummary {
+    const now = Date.now();
+    const windowStartMs = now - hours * 60 * 60 * 1000;
+    const windowEvents = this.events.filter((ev) => ev.timestamp >= windowStartMs && ev.timestamp <= now);
+
+    return this.buildSummary(windowEvents, hours * 60, windowStartMs, now);
+  }
+
+  /**
+   * Pobiera wszystkie zarejestrowane zdarzenia w buforze.
+   */
+  public getAllBufferedEvents(): RecordedNotification[] {
+    return [...this.events];
+  }
+
+  /**
    * Pobiera raport od ostatniego wywołania flushWindow() lub z ostatnich N minut,
    * po czym aktualizuje znacznik czasu ostatniego cyklu.
    */
   public flushWindow(windowMinutes = 15): AggregatedPushSummary {
     const now = Date.now();
-    const windowStartMs = Math.max(this.lastFlushTimestamp, now - windowMinutes * 60 * 1000);
-    const windowEvents = this.events.filter((ev) => ev.timestamp >= windowStartMs && ev.timestamp <= now);
+    const minTimestamp = now - windowMinutes * 60 * 1000;
+    const windowStartMs = Math.max(this.lastFlushTimestamp, minTimestamp);
+    const windowEvents = this.events.filter((ev) => (this.lastFlushTimestamp === 0 || ev.timestamp > this.lastFlushTimestamp) && ev.timestamp >= minTimestamp && ev.timestamp <= now);
 
     const summary = this.buildSummary(windowEvents, windowMinutes, windowStartMs, now);
     this.lastFlushTimestamp = now;
@@ -222,6 +241,6 @@ export class PushNotificationAggregator {
 
   public clear(): void {
     this.events = [];
-    this.lastFlushTimestamp = Date.now();
+    this.lastFlushTimestamp = 0;
   }
 }
