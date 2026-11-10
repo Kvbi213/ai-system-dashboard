@@ -14,7 +14,8 @@ import {
   Sparkles,
   ShieldCheck,
   Settings2,
-  Globe
+  Globe,
+  ExternalLink
 } from 'lucide-react';
 import { authApi } from '../../../api/client';
 import { googleAuthService, GoogleSessionState } from '../../../services/googleAuth';
@@ -99,14 +100,50 @@ export const AuthenticationSettings: React.FC = () => {
     }
   };
 
+  const providers = authStatus?.providers;
+  const serverClientId = providers?.googleOAuth?.clientId || '';
+  const currentClientId = googleAuthService.getClientId() || serverClientId;
+  const hasValidClientId = Boolean(currentClientId && currentClientId.trim().length > 10 && currentClientId.includes('.apps.googleusercontent.com'));
+
+  // Uaktualnij stan inputu gdy serwer zwróci skonfigurowany clientId
+  useEffect(() => {
+    if (serverClientId && !googleAuthService.getClientId()) {
+      googleAuthService.setClientId(serverClientId);
+      setClientIdInput(serverClientId);
+    }
+  }, [serverClientId]);
+
+  const handleSaveClientId = async () => {
+    const trimmed = clientIdInput.trim();
+    googleAuthService.setClientId(trimmed);
+    setGoogleAuthError(null);
+    try {
+      if (trimmed.length > 0) {
+        await authApi.authorizeGoogle({ clientId: trimmed });
+      }
+      setVerifyStatusMessage('Pomyślnie zaktualizowano Google Client ID.');
+      setShowClientIdConfig(false);
+      await loadStatus();
+    } catch (err: any) {
+      setGoogleAuthError(`Błąd synchronizacji Client ID: ${err.message}`);
+    }
+  };
+
   /**
    * Logowanie przez publiczne Google Identity Services / Publiczny OAuth 2.0
    */
   const handleConnectGoogle = async () => {
-    setIsConnectingGoogle(true);
     setGoogleAuthError(null);
     setVerifyStatusMessage(null);
 
+    // Sprawdzenie czy Client ID został wprowadzony
+    if (!hasValidClientId) {
+      setShowClientIdConfig(true);
+      setGoogleAuthError('Brak skonfigurowanego Google Client ID. Wprowadź Client ID z Google Cloud Console, aby aktywować logowanie.');
+      return;
+    }
+
+    setIsConnectingGoogle(true);
     try {
       // 1. Wywołaj bezpośrednią autoryzację Google w przeglądarce
       const result = await googleAuthService.signInWithGoogle();
@@ -115,7 +152,8 @@ export const AuthenticationSettings: React.FC = () => {
       await authApi.authorizeGoogle({
         accessToken: result.accessToken,
         idToken: result.idToken,
-        email: result.user.email
+        email: result.user.email,
+        clientId: currentClientId
       });
 
       // 3. Załaduj zaktualizowany stan
@@ -168,12 +206,6 @@ export const AuthenticationSettings: React.FC = () => {
     }
   };
 
-  const handleSaveClientId = () => {
-    googleAuthService.setClientId(clientIdInput);
-    setShowClientIdConfig(false);
-    loadStatus();
-  };
-
   const handleRegenerateToken = async () => {
     try {
       const res = await authApi.regenerateToken();
@@ -184,7 +216,6 @@ export const AuthenticationSettings: React.FC = () => {
     }
   };
 
-  const providers = authStatus?.providers;
   const isGoogleConnected = Boolean(
     localGoogleSession?.connected ||
     providers?.googleOAuth?.connectedEmail
@@ -192,6 +223,8 @@ export const AuthenticationSettings: React.FC = () => {
   const activeGoogleEmail = localGoogleSession?.user?.email || providers?.googleOAuth?.connectedEmail;
   const activeGoogleName = localGoogleSession?.user?.name || providers?.googleOAuth?.connectedName;
   const activeGooglePicture = localGoogleSession?.user?.picture || providers?.googleOAuth?.connectedPicture;
+
+  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://omnidash.kvbi.pl';
 
   return (
     <div className="space-y-4">
@@ -242,68 +275,124 @@ export const AuthenticationSettings: React.FC = () => {
               </p>
             </div>
           </div>
-          <Badge variant={isGoogleConnected ? 'success' : 'slate'}>
-            {isGoogleConnected ? 'POŁĄCZONO' : 'OPCJONALNE'}
+          <Badge variant={isGoogleConnected ? 'success' : hasValidClientId ? 'cyan' : 'amber'}>
+            {isGoogleConnected ? 'POŁĄCZONO' : hasValidClientId ? 'GOTOWY DO LOGOWANIA' : 'WYMAGA CLIENT ID'}
           </Badge>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3">
           {/* Opis architektury */}
           <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            Standardowa integracja z publicznym <strong>Google Identity Services</strong> (OAuth 2.0 Implicit/PKCE).
-            Żadnych fałszywych formularzy, proxy ani Firebase — autoryzacja odbywa się bezpośrednio w oknie Google.
+            Standardowa integracja z oficjalnym <strong>Google Identity Services</strong> (OAuth 2.0 Implicit/PKCE).
+            Bezpośrednia komunikacja z serwerami Google bez żadnych pośredników, proxy ani Firebase.
           </p>
 
-          {/* Transparentny wykaz publicznych endpointów Google */}
-          <div className="p-2.5 rounded-xl bg-slate-100/80 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 text-[11px] font-mono text-slate-600 dark:text-slate-400 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Globe className="w-3.5 h-3.5 text-teal-400" />
-                <span>Wykorzystywane publiczne endpointy Google:</span>
-              </span>
-              <button
-                onClick={() => setShowClientIdConfig(!showClientIdConfig)}
-                className="text-[10px] text-teal-400 hover:text-teal-300 underline flex items-center gap-1"
-              >
-                <Settings2 className="w-3 h-3" />
-                <span>{showClientIdConfig ? 'Ukryj Client ID' : 'Konfiguracja Client ID'}</span>
-              </button>
+          {/* Panel konfiguracji Client ID / Status klucza */}
+          <div className="p-3 rounded-xl bg-slate-100/90 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-2.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="text-xs flex items-center gap-2">
+                <span className="font-bold text-slate-700 dark:text-slate-300">Google Client ID:</span>
+                {hasValidClientId ? (
+                  <span className="font-mono text-emerald-400 text-[11px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                    {currentClientId.slice(0, 12)}••••••••{currentClientId.slice(-28)}
+                  </span>
+                ) : (
+                  <span className="font-mono text-amber-400 text-[11px] bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    <span>Nie skonfigurowano</span>
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowClientIdConfig(!showClientIdConfig)}
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition flex items-center gap-1.5"
+                >
+                  <Settings2 className="w-3.5 h-3.5 text-teal-400" />
+                  <span>{showClientIdConfig ? 'Ukryj konfigurację' : hasValidClientId ? 'Zmień Client ID' : 'Wprowadź Client ID'}</span>
+                </button>
+                <a
+                  href="https://console.cloud.google.com/apis/credentials"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 border border-teal-500/30 transition flex items-center gap-1"
+                  title="Otwórz Google Cloud Console Credentials"
+                >
+                  <span>Google Console</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[10px] pt-1">
-              <div>Auth: <span className="text-teal-400">accounts.google.com/o/oauth2/v2/auth</span></div>
-              <div>UserInfo: <span className="text-teal-400">googleapis.com/oauth2/v3/userinfo</span></div>
-              <div>Tokeninfo: <span className="text-teal-400">oauth2.googleapis.com/tokeninfo</span></div>
-              <div>Revoke: <span className="text-teal-400">oauth2.googleapis.com/revoke</span></div>
-            </div>
+
+            {/* Formularz edycji Client ID */}
+            {showClientIdConfig && (
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2 animate-in fade-in duration-150">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-800 dark:text-slate-200 block">
+                    Identyfikator klienta aplikacji internetowej (OAuth 2.0 Web Client ID):
+                  </label>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="np. 1234567890-abcdef.apps.googleusercontent.com"
+                      value={clientIdInput}
+                      onChange={(e) => setClientIdInput(e.target.value)}
+                      className="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-teal-500"
+                    />
+                    <button
+                      onClick={handleSaveClientId}
+                      className="px-4 py-1.5 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-500 text-white transition active:scale-95 shadow-sm"
+                    >
+                      Zapisz Client ID
+                    </button>
+                  </div>
+                </div>
+
+                {/* Czytelna instrukcja konfiguracji w Google Cloud Console */}
+                <div className="p-2.5 rounded-xl bg-teal-500/5 border border-teal-500/20 text-[11px] text-slate-600 dark:text-slate-300 space-y-1.5">
+                  <div className="font-bold text-teal-300 flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Instrukcja konfiguracji w Google Cloud Console:</span>
+                  </div>
+                  <ol className="list-decimal list-inside space-y-1 text-[10.5px] leading-relaxed pl-1 text-slate-400">
+                    <li>
+                      Otwórz sekcję <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer noopener" className="text-teal-400 underline font-mono">APIs & Services &gt; Credentials</a>.
+                    </li>
+                    <li>
+                      Kliknij <strong>+ Create Credentials &gt; OAuth client ID</strong> i wybierz Application type: <strong>Web application</strong>.
+                    </li>
+                    <li>
+                      W polu <strong>Authorized JavaScript origins</strong> dodaj dokładne adresy URL:
+                      <div className="flex flex-wrap gap-1 mt-1 font-mono text-[10px]">
+                        <code className="bg-slate-900 px-1.5 py-0.5 rounded text-teal-300 border border-slate-700">{currentOrigin}</code>
+                        <code className="bg-slate-900 px-1.5 py-0.5 rounded text-teal-300 border border-slate-700">https://omnidash.kvbi.pl</code>
+                        <code className="bg-slate-900 px-1.5 py-0.5 rounded text-teal-300 border border-slate-700">https://dash.kvbi.pl</code>
+                      </div>
+                    </li>
+                    <li>
+                      W polu <strong>Authorized redirect URIs</strong> dodaj te same adresy oraz kliknij <strong>Save</strong>.
+                    </li>
+                    <li>Skopiuj wygenerowany <strong>Client ID</strong> i wklej powyżej.</li>
+                  </ol>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Konfigurator Google Client ID (Opcjonalny) */}
-          {showClientIdConfig && (
-            <div className="p-3 rounded-xl bg-teal-500/5 border border-teal-500/20 space-y-2">
-              <label className="text-[11px] font-bold text-teal-300 block">
-                Google OAuth 2.0 Client ID (z Google Cloud Console):
-              </label>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <input
-                  type="text"
-                  placeholder="np. 123456789-abcdef.apps.googleusercontent.com"
-                  value={clientIdInput}
-                  onChange={(e) => setClientIdInput(e.target.value)}
-                  className="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-teal-500"
-                />
-                <button
-                  onClick={handleSaveClientId}
-                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-500 text-white transition active:scale-95"
-                >
-                  Zapisz Client ID
-                </button>
-              </div>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                W Google Cloud Console dodaj ten adres do <strong>Autoryzowanych źródeł JavaScript</strong>:{' '}
-                <code className="text-teal-300 bg-slate-950 px-1 py-0.5 rounded">{typeof window !== 'undefined' ? window.location.origin : 'https://omnidash.kvbi.pl'}</code>
-              </p>
+          {/* Transparentny wykaz publicznych endpointów Google */}
+          <div className="p-2.5 rounded-xl bg-slate-100/60 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/60 text-[10.5px] font-mono text-slate-600 dark:text-slate-400">
+            <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-1">
+              <Globe className="w-3.5 h-3.5 text-teal-400" />
+              <span>Publiczne punkty końcowe Google API (Standard Zero-Mock):</span>
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[10px]">
+              <div>OAuth 2.0 Auth: <span className="text-teal-400">accounts.google.com/o/oauth2/v2/auth</span></div>
+              <div>REST UserInfo: <span className="text-teal-400">googleapis.com/oauth2/v3/userinfo</span></div>
+              <div>Tokeninfo Check: <span className="text-teal-400">oauth2.googleapis.com/tokeninfo</span></div>
+              <div>Token Revoke: <span className="text-teal-400">oauth2.googleapis.com/revoke</span></div>
             </div>
-          )}
+          </div>
 
           {/* Komunikat o błędzie */}
           {googleAuthError && (
@@ -372,15 +461,26 @@ export const AuthenticationSettings: React.FC = () => {
               </div>
             </div>
           ) : (
-            /* Stan 2: Brak połączenia — Przycisk oficjalnego logowania Google */
+            /* Stan 2: Brak połączenia — Przycisk oficjalnego logowania Google z walidacją */
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
               <div className="text-xs text-slate-500 dark:text-slate-400">
-                Kliknij przycisk, aby zalogować się oficjalnym oknem autoryzacji Google.
+                {hasValidClientId ? (
+                  <span>Identyfikator klienta jest skonfigurowany. Kliknij przycisk, aby autoryzować konto w oknie Google.</span>
+                ) : (
+                  <span className="text-amber-400 font-medium flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                    <span>Wprowadź swój Google Client ID powyżej, aby aktywować logowanie OAuth 2.0 bez błędu 401.</span>
+                  </span>
+                )}
               </div>
               <button
                 onClick={handleConnectGoogle}
                 disabled={isConnectingGoogle}
-                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 shadow-md transition active:scale-95 flex items-center justify-center gap-2.5 shrink-0"
+                className={`px-5 py-2.5 rounded-xl text-xs font-bold transition active:scale-95 flex items-center justify-center gap-2.5 shrink-0 ${
+                  hasValidClientId
+                    ? 'bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 shadow-md'
+                    : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                }`}
               >
                 {isConnectingGoogle ? (
                   <>
@@ -390,7 +490,7 @@ export const AuthenticationSettings: React.FC = () => {
                 ) : (
                   <>
                     <GoogleLogoSvg className="w-4 h-4" />
-                    <span>Zaloguj przez Google (OAuth 2.0)</span>
+                    <span>{hasValidClientId ? 'Zaloguj przez Google (OAuth 2.0)' : 'Skonfiguruj Google Client ID'}</span>
                   </>
                 )}
               </button>

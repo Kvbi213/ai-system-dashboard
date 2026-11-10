@@ -253,6 +253,7 @@ export const authApi = {
     providers: {
       googleOAuth: {
         configured: boolean;
+        clientId?: string;
         clientIdMasked: string;
         connectedEmail: string | null;
         connectedName?: string | null;

@@ -53,6 +53,7 @@ authRouter.get('/status', (req: Request, res: Response) => {
     providers: {
       googleOAuth: {
         configured: Boolean(googleConfigured || (googleConnectedEmail && googleConnectedEmail.length > 0)),
+        clientId: googleClientId || '',
         clientIdMasked: googleMasked,
         connectedEmail: googleConnectedEmail,
         connectedName: googleConnectedName,

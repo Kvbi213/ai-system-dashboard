@@ -58,7 +58,8 @@ class GoogleAuthClient {
 
   /**
    * Zwraca aktywny identyfikator klienta Google OAuth (Client ID).
-   * Kolejność: pamięć lokalna (konfiguracja użytkownika) -> zmienna środowiskowa Vite -> domyślny publiczny klient.
+   * Kolejność: pamięć lokalna (konfiguracja użytkownika) -> zmienna środowiskowa Vite.
+   * Zwraca pusty ciąg, jeżeli Client ID nie został jeszcze skonfigurowany (Zero-Placeholder).
    */
   public getClientId(): string {
     const saved = localStorage.getItem(STORAGE_KEYS.CLIENT_ID);
@@ -69,8 +70,16 @@ class GoogleAuthClient {
     if (envClientId && typeof envClientId === 'string' && envClientId.trim().length > 0) {
       return envClientId.trim();
     }
-    // Domyślny identyfikator klienta aplikacji OmniDash zarejestrowany w Google Cloud
-    return '1082498721345-omnidash-public-client.apps.googleusercontent.com';
+    return '';
+  }
+
+  /**
+   * Sprawdza, czy skonfigurowany jest poprawny Google Client ID.
+   * Format Google Web Client ID kończy się na .apps.googleusercontent.com
+   */
+  public hasValidClientId(): boolean {
+    const id = this.getClientId();
+    return Boolean(id && id.trim().length > 10 && id.includes('.apps.googleusercontent.com'));
   }
 
   /**
@@ -230,6 +239,11 @@ class GoogleAuthClient {
    */
   public async signInWithGoogle(): Promise<{ user: GoogleUserProfile; accessToken: string; idToken?: string }> {
     const clientId = this.getClientId();
+    if (!clientId || clientId.trim().length === 0) {
+      throw new Error(
+        'Brak skonfigurowanego Google Client ID. Wprowadź identyfikator klienta z Google Cloud Console przed rozpoczęciem logowania.'
+      );
+    }
     const scopesStr = DEFAULT_GOOGLE_SCOPES.join(' ');
 
     // 1. Spróbuj załadować i użyć oficjalnego GSI SDK
