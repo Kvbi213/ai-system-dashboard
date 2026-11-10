@@ -168,9 +168,24 @@ export const newsApi = {
   getTicker: () => apiFetch<{ news: any[] }>('/news/ticker')
 };
 
+export interface AiEngineStatus {
+  connected: boolean;
+  provider: 'groq' | 'gemini' | 'openai' | 'none';
+  model: string;
+  source: 'database' | 'env' | 'none';
+  maskedKey: string;
+  error?: string | null;
+}
+
 // AI Domain
 export const aiApi = {
   getModels: () => apiFetch<{ models: any[]; activeModel: string }>('/ai/models'),
+  getStatus: () => apiFetch<AiEngineStatus>('/ai/status'),
+  saveConfig: (data: { apiKey: string }) =>
+    apiFetch<{ success: boolean; message: string; status: AiEngineStatus }>('/ai/config', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
   sendMessage: (message: string) =>
     apiFetch<{ reply: string; toolCall?: any; widgets?: string[]; timestamp: string }>('/ai/chat', {
       method: 'POST',

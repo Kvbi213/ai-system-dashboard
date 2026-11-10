@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { IterationBudget, IterationBudgetExhaustedError, LLMGateway, LLMTimeoutError } from '../src/domains/ai/index.js';
 import { LLM_TOOLS, determineWidgets } from '../src/domains/ai/llmGateway.js';
+import { sqliteStore } from '../src/db/sqliteStore.js';
+import { dbStore } from '../src/db/store.js';
 
 describe('IterationBudget & LLMGateway Resilience Suite', () => {
   it('throws IterationBudgetExhaustedError when maxLoops is exceeded', () => {
@@ -98,5 +100,46 @@ describe('IterationBudget & LLMGateway Resilience Suite', () => {
 
     const widgets = determineWidgets('get_current_lesson_status', 'jaka jest następna lekcja');
     expect(widgets).toContain('timetable');
+  });
+
+  it('reads API keys dynamically from sqliteStore with process.env fallback', () => {
+    const gateway = new LLMGateway();
+    sqliteStore.setConfig('groq_api_key', 'gsk_dynamic_test_key_123');
+    sqliteStore.setConfig('gemini_api_key', 'AIza_dynamic_gemini_key_456');
+
+    expect(gateway.getGroqKey()).toBe('gsk_dynamic_test_key_123');
+    expect(gateway.getGeminiKey()).toBe('AIza_dynamic_gemini_key_456');
+
+    // Clear dynamic keys
+    sqliteStore.setConfig('groq_api_key', '');
+    sqliteStore.setConfig('gemini_api_key', '');
+  });
+
+  it('answers subject-specific queries deterministically with ground-truth grades (e.g. "a konkretnie z biologii?")', async () => {
+    dbStore.refreshFromGroundTruth();
+    const gateway = new LLMGateway();
+
+    const res = await gateway.complete({ message: 'a konkretnie z biologii?' });
+    expect(res.reply).toContain('Biologia');
+    expect(res.reply).toContain('4.13');
+    expect(res.reply).toContain('Wykaz ocen');
+    expect(res.reply).not.toContain('Zrozumiałem polecenie. System asystenta OmniDash v4.0 przetworzył operację.');
+    expect(res.widgets).toContain('grades');
+    expect(res.toolCall?.toolName).toBe('get_librus_grades');
+  });
+
+  it('surfaces explicit 401 authorization diagnostic when external provider returns 401 and query is non-local', async () => {
+    const gateway = new LLMGateway();
+    // Simulate invalid groq key
+    sqliteStore.setConfig('groq_api_key', 'gsk_invalid_revoked_key');
+    delete process.env.GROQ_API_KEY;
+
+    const res = await gateway.complete({ message: 'Napisz zaawansowany esej filozoficzny o sztucznej inteligencji' });
+    expect(res.reply).toContain('Błąd autoryzacji dostawcy AI');
+    expect(res.reply).toContain('401');
+    expect(res.reply).not.toContain('Zrozumiałem polecenie. System asystenta OmniDash v4.0 przetworzył operację.');
+
+    // Cleanup
+    sqliteStore.setConfig('groq_api_key', '');
   });
 });

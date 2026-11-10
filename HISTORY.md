@@ -942,4 +942,25 @@ Wraz z budową projektu od zera w środowisku monorepo `OmniDash`, zamykamy chao
   - Zaimplementowano natywny, bezpieczny dekoder payloadu JWT ID token (`parseJwtPayload`) bez zewnętrznych zależności.
   - Wyrenderowano oficjalny komponent przycisku Google Identity Services w GUI obok alternatywnego przycisku Token Client / Popup.
 
+---
+
+### ## v1.0.7 — 2026-11-10 [AI ENGINE STATUS TRANSPARENCY & GROQ API KEY CONFIGURATION]
+**Status:** WYDANIE PRODUKCYJNE (BRANCH: `mikr.us`)  
+**Typ:** MINOR / DEFECT REMOVAL & ENHANCEMENT
+
+- [+] **Eliminacja Atrapy Statusu w Nagłówku Czatu (`ChatPage.tsx`):**
+  - Usunięto sztywny, fałszywy zielony status "Silnik AI: Groq gpt-oss-120b" i zastąpiono go dynamicznym odczytem z endpointu `GET /api/ai/status`.
+  - Przy braku klucza lub błędzie 401 Unauthorized nagłówek wyświetla ostrzeżenie `[!] Silnik AI niepołączony (Wymagany klucz API)` lub `[!] Silnik AI: Błąd autoryzacji (401 Unauthorized)` oraz przycisk "Skonfiguruj klucz API".
+  - Zaimplementowano bezpośredni modal w oknie czatu umożliwiający natychmiastowe wklejenie, weryfikację i zapisanie klucza Groq bez opuszczania rozmowy.
+  - Usunięto atrapę offline fallback ("Zrozumiałem polecenie...") maskującą błąd 401 w asystencie.
+- [+] **Karta Konfiguracji i Weryfikacji Groq API (`AuthenticationSettings.tsx`, `AiModelSettings.tsx`):**
+  - Wprowadzono interaktywny formularz konfiguracji klucza Groq (`gsk_...`) z ukrywaniem/odkrywaniem hasła, maskowaniem aktywnego klucza (`gsk_••••••••xxxx`) i wskazaniem źródła (SQLite vs `.env`).
+  - Przycisk "Zapisz i przetestuj połączenie" weryfikuje klucz bezpośrednio w chmurze Groq (`GET https://api.groq.com/openai/v1/models`).
+  - Dodano odnośnik do konsoli Groq (`console.groq.com/keys`) z informacją o darmowym dostępie LPU.
+- [+] **Rozszerzenie Bramy Backendowej AI (`apps/api/src/domains/ai/router.ts`, `llmGateway.ts`, `authMiddleware.ts`):**
+  - Utworzono endpointy `GET /api/ai/status` oraz `POST /api/ai/config`.
+  - Zintegrowano odczyt i zapis klucza w tabeli `system_config` w bazie SQLite (`groq_api_key`), priorytetyzując klucz użytkownika nad zmienną `.env`.
+  - Włączono ścieżki `/ai/status` i `/ai/config` do `PUBLIC_PATHS` w middleware autoryzacyjnym.
+
+
 

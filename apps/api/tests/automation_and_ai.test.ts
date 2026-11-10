@@ -11,7 +11,7 @@ describe('Automation Engine & AI Function Calling Suite', () => {
 
   it('calculates current lesson status and minutes to bell deterministically', () => {
     // Symulacja czwartku o 10:20 (trwa lekcja 09:40 - 10:25, czyli Język angielski, 5 min do dzwonka!)
-    const simulatedThursday = new Date(2026, 10, 5, 10, 20, 0); // 5 listopada 2026, 10:20
+    const simulatedThursday = new Date('2026-11-05T10:20:00+01:00'); // 5 listopada 2026, 10:20 CET
     const info = calculateLessonInfo(simulatedThursday);
 
     expect(info.bellType).toBe('LESSON_END');
@@ -24,7 +24,7 @@ describe('Automation Engine & AI Function Calling Suite', () => {
 
   it('calculates break countdown when between lessons', () => {
     // 10:35 to przerwa między 10:25 a 10:40 (5 minut do kolejnej lekcji)
-    const simulatedBreak = new Date(2026, 10, 5, 10, 35, 0);
+    const simulatedBreak = new Date('2026-11-05T10:35:00+01:00');
     const info = calculateLessonInfo(simulatedBreak);
 
     expect(info.bellType).toBe('BREAK_END');
@@ -42,7 +42,7 @@ describe('Automation Engine & AI Function Calling Suite', () => {
       return { status: "OK", minutes: info.minutesToBell };
     `;
 
-    const simulatedThursday = new Date(2026, 10, 5, 10, 20, 0);
+    const simulatedThursday = new Date('2026-11-05T10:20:00+01:00');
     const result = await executeScript(code, simulatedThursday);
 
     expect(result.success).toBe(true);

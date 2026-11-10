@@ -4,6 +4,7 @@ dotenv.config();
 import { finOpsCollector } from '../system/finopsCollector.js';
 import { IterationBudget } from './iterationBudget.js';
 import { dbStore, LessonItem } from '../../db/store.js';
+import { sqliteStore } from '../../db/sqliteStore.js';
 import { pushbulletService } from '../pushbullet/pushbulletService.js';
 import { AUTOMATION_TEMPLATES } from '../automation/automationTemplates.js';
 import { calculateLessonInfo, executeScript } from '../automation/scriptEngine.js';
@@ -235,9 +236,155 @@ export class LLMGateway {
     this.openaiApiKey = process.env.OPENAI_API_KEY || '';
   }
 
-  private getGroqKey(): string {
-    return process.env.GROQ_API_KEY || this.groqApiKey || '';
+  public getGroqKey(): string {
+    try {
+      const dbKey = sqliteStore.getConfig('groq_api_key');
+      if (dbKey && dbKey.trim().length > 0) {
+        return dbKey.trim();
+      }
+    } catch {
+      // sqlite config lookup fallback
+    }
+    return (process.env.GROQ_API_KEY || this.groqApiKey || '').trim();
   }
+
+  public getGeminiKey(): string {
+    try {
+      const dbKey = sqliteStore.getConfig('gemini_api_key');
+      if (dbKey && dbKey.trim().length > 0) {
+        return dbKey.trim();
+      }
+    } catch {
+      // sqlite config lookup fallback
+    }
+    return (process.env.GEMINI_API_KEY || this.geminiApiKey || '').trim();
+  }
+
+  public async testGroqKey(key: string): Promise<{ ok: boolean; error?: string; latencyMs: number }> {
+    const start = Date.now();
+    try {
+      const res = await withTimeout(
+        (signal) =>
+          fetch('https://api.groq.com/openai/v1/models', {
+            headers: { Authorization: `Bearer ${key}` },
+            signal
+          }),
+        4000,
+        'groq'
+      );
+      const latencyMs = Date.now() - start;
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        return { ok: false, error: `Groq HTTP error ${res.status}: ${res.statusText}${errText ? ` (${errText})` : ''}`, latencyMs };
+      }
+      return { ok: true, latencyMs };
+    } catch (err: any) {
+      return { ok: false, error: err.message, latencyMs: Date.now() - start };
+    }
+  }
+
+  public async testGeminiKey(key: string): Promise<{ ok: boolean; error?: string; latencyMs: number }> {
+    const start = Date.now();
+    try {
+      const res = await withTimeout(
+        (signal) =>
+          fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`, {
+            signal
+          }),
+        4000,
+        'gemini'
+      );
+      const latencyMs = Date.now() - start;
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        return { ok: false, error: `Gemini HTTP error ${res.status}: ${res.statusText}${errText ? ` (${errText})` : ''}`, latencyMs };
+      }
+      return { ok: true, latencyMs };
+    } catch (err: any) {
+      return { ok: false, error: err.message, latencyMs: Date.now() - start };
+    }
+  }
+
+  public async getGatewayStatus(): Promise<{
+    connected: boolean;
+    provider: 'groq' | 'gemini' | 'local';
+    model: string;
+    configured: boolean;
+    groqConfigured: boolean;
+    geminiConfigured: boolean;
+    latencyMs: number;
+    error?: string;
+  }> {
+    const groqKey = this.getGroqKey();
+    const geminiKey = this.getGeminiKey();
+    const groqConfigured = Boolean(groqKey && groqKey.trim().length > 0);
+    const geminiConfigured = Boolean(geminiKey && geminiKey.trim().length > 0);
+
+    if (groqConfigured) {
+      const test = await this.testGroqKey(groqKey);
+      if (test.ok) {
+        return {
+          connected: true,
+          provider: 'groq',
+          model: 'openai/gpt-oss-120b',
+          configured: true,
+          groqConfigured: true,
+          geminiConfigured,
+          latencyMs: test.latencyMs
+        };
+      }
+      if (geminiConfigured) {
+        const gTest = await this.testGeminiKey(geminiKey);
+        if (gTest.ok) {
+          return {
+            connected: true,
+            provider: 'gemini',
+            model: 'gemini-2.0-flash',
+            configured: true,
+            groqConfigured: true,
+            geminiConfigured: true,
+            latencyMs: gTest.latencyMs
+          };
+        }
+      }
+      return {
+        connected: false,
+        provider: 'groq',
+        model: 'openai/gpt-oss-120b',
+        configured: true,
+        groqConfigured: true,
+        geminiConfigured,
+        latencyMs: test.latencyMs,
+        error: test.error
+      };
+    }
+
+    if (geminiConfigured) {
+      const test = await this.testGeminiKey(geminiKey);
+      return {
+        connected: test.ok,
+        provider: 'gemini',
+        model: 'gemini-2.0-flash',
+        configured: true,
+        groqConfigured: false,
+        geminiConfigured: true,
+        latencyMs: test.latencyMs,
+        error: test.error
+      };
+    }
+
+    return {
+      connected: false,
+      provider: 'local',
+      model: 'omnidash-deterministic-core-v4',
+      configured: false,
+      groqConfigured: false,
+      geminiConfigured: false,
+      latencyMs: 0,
+      error: 'Brak skonfigurowanych kluczy zewnętrznych dostawców AI (Groq / Gemini)'
+    };
+  }
+
 
   public buildSystemPrompt(): string {
     const now = new Date();
@@ -287,6 +434,8 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
     const startTime = Date.now();
     let fallbackCount = 0;
 
+    let authError: { provider: string; status: number; message: string } | null = null;
+
     // 1. Primary: Groq API with openai/gpt-oss-120b & Function Calling
     const groqKey = this.getGroqKey();
     if (groqKey?.trim()) {
@@ -304,17 +453,21 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
           durationMs
         });
         return { ...res, latencyMs: durationMs, fallbackCount };
-      } catch (err) {
+      } catch (err: any) {
         console.warn('[!] LLMGateway: Groq provider failed, initiating failover:', err);
         fallbackCount++;
+        if (err?.status === 401 || err?.message?.includes('401') || err?.message?.includes('invalid_api_key') || err?.message?.includes('Unauthorized')) {
+          authError = { provider: 'Groq', status: 401, message: err.message };
+        }
       }
     }
 
     // 2. Secondary: Gemini 2.0 Flash API
-    if (this.geminiApiKey?.trim()) {
+    const geminiKey = this.getGeminiKey();
+    if (geminiKey?.trim()) {
       try {
         budget.recordStep();
-        const res = await this.callGemini(options);
+        const res = await this.callGemini(options, geminiKey);
         budget.recordTokens(res.tokensUsed.total);
         const durationMs = Date.now() - startTime;
         finOpsCollector.recordMetric({
@@ -326,15 +479,18 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
           durationMs
         });
         return { ...res, latencyMs: durationMs, fallbackCount };
-      } catch (err) {
+      } catch (err: any) {
         console.warn('[!] LLMGateway: Gemini provider failed, initiating failover:', err);
         fallbackCount++;
+        if (err?.status === 401 || err?.message?.includes('401') || err?.message?.includes('invalid_api_key') || err?.message?.includes('API_KEY_INVALID')) {
+          authError = { provider: 'Gemini', status: 401, message: err.message };
+        }
       }
     }
 
     // 3. Deterministic Local Executive Assistant Fallback
     budget.recordStep();
-    const localRes = await this.executeLocalAssistant(options.message, options.userId);
+    const localRes = await this.executeLocalAssistant(options.message, options.userId, authError);
     const durationMs = Date.now() - startTime;
     const localTokens = options.message.length + localRes.reply.length;
     budget.recordTokens(localTokens);
@@ -390,7 +546,10 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
         });
 
         if (!response.ok) {
-          throw new Error(`Groq HTTP error ${response.status}: ${response.statusText}`);
+          const errBody = await response.text().catch(() => '');
+          const err: any = new Error(`Groq HTTP error ${response.status}: ${response.statusText}${errBody ? ` - ${errBody}` : ''}`);
+          err.status = response.status;
+          throw err;
         }
 
         const data = (await response.json()) as any;
@@ -628,10 +787,11 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
     }
   }
 
-  private async callGemini(options: LLMRequestOptions): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
+  private async callGemini(options: LLMRequestOptions, apiKey?: string): Promise<Omit<LLMResponse, 'latencyMs' | 'fallbackCount'>> {
+    const key = apiKey || this.getGeminiKey();
     return await withTimeout(
       async (signal) => {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${this.geminiApiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
         const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -646,7 +806,10 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
         });
 
         if (!response.ok) {
-          throw new Error(`Gemini HTTP error ${response.status}: ${response.statusText}`);
+          const errBody = await response.text().catch(() => '');
+          const err: any = new Error(`Gemini HTTP error ${response.status}: ${response.statusText}${errBody ? ` - ${errBody}` : ''}`);
+          err.status = response.status;
+          throw err;
         }
         const data = (await response.json()) as any;
         const candidate = data.candidates?.[0];
@@ -666,13 +829,18 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
     );
   }
 
-  private async executeLocalAssistant(message: string, userId?: string): Promise<{ reply: string; toolCall?: { toolName: string; args: Record<string, unknown>; output: string }; widgets?: string[] }> {
+  private async executeLocalAssistant(
+    message: string,
+    userId?: string,
+    authError?: { provider: string; status: number; message: string } | null
+  ): Promise<{ reply: string; toolCall?: { toolName: string; args: Record<string, unknown>; output: string }; widgets?: string[] }> {
     const query = message.toLowerCase();
     const now = new Date();
     const day = now.getDay();
     const currentDay = day >= 1 && day <= 5 ? day : 1;
     const lessonInfo = calculateLessonInfo(now);
 
+    // 1. Dzwonki, lekcje, harmonogram
     if (query.includes('przerw') || query.includes('dzwonek') || query.includes('następn') || query.includes('gdzie mam') || query.includes('jaka lekcja')) {
       const output = await this.executeLiveTool('get_current_lesson_status', {}, userId);
       const reply = `Aktualny status: ${lessonInfo.timeUntilNextEventFormatted}. ${
@@ -696,6 +864,7 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
       };
     }
 
+    // 2. Skrypty automatyzacji
     if (query.includes('skrypt') || query.includes('automatyz') || query.includes('przypom')) {
       const output = await this.executeLiveTool('list_automation_scripts', {}, userId);
       const reply = `W systemie zarejestrowane są aktywne skrypty automatyzacji, w tym monitor dzwonków szkolnych (wysyłający alert Pushbullet na 5 min przed końcem lekcji z kolejną salą) oraz poranny briefing. Możesz edytować ich kod lub stworzyć nowy z szablonu.`;
@@ -711,6 +880,18 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
       };
     }
 
+    // 3. Wieczorny przegląd dnia / podsumowanie
+    if (query.includes('wieczorn') || (query.includes('podsumowanie') && (query.includes('dnia') || query.includes('przegląd') || query.includes('dane z całego dnia')))) {
+      const latest = sqliteStore.getLatestEveningDigest();
+      const reply = latest?.summaryText || 'Wieczorny Przegląd Dnia: podsumowano aktywności, zadania i stan systemu na dziś.';
+      return {
+        reply,
+        toolCall: undefined,
+        widgets: ['tasks', 'finances']
+      };
+    }
+
+    // 4. Zastępstwa
     if (query.includes('zastępstw') || query.includes('odwołan')) {
       const output = await this.executeLiveTool('get_substitutions', { day: currentDay }, userId);
       const reply = `Pobrano aktualne zastępstwa szkolne oraz absencje nauczycieli dla dnia dzisiejszego.`;
@@ -726,6 +907,74 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
       };
     }
 
+    // 5. Zapytania o oceny z konkretnego przedmiotu (np. "a konkretnie z biologii?", "oceny z chemii", "z matematyki")
+    const subjects = dbStore.getSubjectsWithGrades();
+    const SUBJECT_ALIASES: Array<{ name: string; patterns: RegExp[] }> = [
+      { name: 'Biologia', patterns: [/biolog/i] },
+      { name: 'Chemia', patterns: [/chem/i] },
+      { name: 'Matematyka', patterns: [/matematyk/i, /\bmatm/i] },
+      { name: 'Informatyka', patterns: [/informatyk/i, /\binfy\b/i, /\binfa\b/i] },
+      { name: 'Historia', patterns: [/histori/i] },
+      { name: 'Język polski', patterns: [/polsk/i] },
+      { name: 'Język angielski zawodowy', patterns: [/angielski[a-z]*\s+zawodow/i] },
+      { name: 'Język angielski', patterns: [/angielsk/i, /\bangol/i] },
+      { name: 'Język niemiecki', patterns: [/niemieck/i] },
+      { name: 'Pracownia urządzeń techniki komputerowej', patterns: [/pracowni[a-z]*\s+urządzeń/i, /\bputk\b/i] },
+      { name: 'Urządzenia techniki komputerowej', patterns: [/urządzeń\s+techniki/i, /urządzenia\s+techniki/i, /\butk\b/i] },
+      { name: 'Pracownia systemów operacyjnych', patterns: [/pracowni[a-z]*\s+systemów/i, /\bpso\b/i] },
+      { name: 'Systemy operacyjne', patterns: [/system[a-z]*\s+operacyjn/i, /\bso\b/i] },
+      { name: 'Pracownia lokalnych sieci komputerowych', patterns: [/pracowni[a-z]*\s+lokalnych\s+sieci/i, /pracowni[a-z]*\s+sieci/i] },
+      { name: 'Lokalne sieci komputerowe', patterns: [/lokaln[a-z]*\s+sieci/i, /\bsieci\s+komputerow/i, /\bsieci\b/i] },
+      { name: 'Wychowanie fizyczne', patterns: [/wychowan[a-z]*\s+fizyczn/i, /\bwf\b/i, /\bw-f\b/i] },
+      { name: 'Biznes i zarządzanie', patterns: [/biznes/i, /zarządzan/i, /\bbiz\b/i] },
+      { name: 'Edukacja obywatelska', patterns: [/edukacj[a-z]*\s+obywatelsk/i, /\beo\b/i] },
+      { name: 'Edukacja zdrowotna', patterns: [/edukacj[a-z]*\s+zdrowotn/i, /\bez\b/i] },
+      { name: 'Religia', patterns: [/religi/i] },
+      { name: 'Zajęcia z wychowawcą', patterns: [/wychowawc/i, /godzin[a-z]*\s+wychowawcz/i] }
+    ];
+
+    let matchedSubject: (typeof subjects)[0] | undefined;
+    for (const item of SUBJECT_ALIASES) {
+      if (item.patterns.some((p) => p.test(query))) {
+        matchedSubject = subjects.find((s) => s.name.toLowerCase() === item.name.toLowerCase());
+        if (matchedSubject) break;
+      }
+    }
+
+    if (matchedSubject) {
+      const gradesList = matchedSubject.grades || [];
+      const avg = matchedSubject.average || matchedSubject.semester1Average || 0;
+      let reply = `Oceny z przedmiotu ${matchedSubject.name}:\n`;
+      reply += `Bieżąca średnia: ${avg > 0 ? avg.toFixed(2) : 'brak średniej'}.\n`;
+      if (gradesList.length === 0) {
+        reply += 'Brak wpisanych ocen w dzienniku Librus dla tego przedmiotu.';
+      } else {
+        reply += `Wykaz ocen (${gradesList.length}):\n`;
+        reply += gradesList
+          .map((g) => {
+            let line = `- ${g.displayValue || g.value} (waga ${g.weight}, ${g.category || 'brak kategorii'}, ${g.date || 'brak daty'})`;
+            if (g.isImprovement && g.improvedValue) {
+              line += ` [poprawa oceny ${g.improvedValue}]`;
+            } else if (g.inAverage === false && g.improvedGradeId) {
+              line += ` [ocena poprawiona]`;
+            }
+            return line;
+          })
+          .join('\n');
+      }
+      const widgets = determineWidgets('get_librus_grades', message, reply);
+      return {
+        reply,
+        toolCall: {
+          toolName: 'get_librus_grades',
+          args: { subject: matchedSubject.name },
+          output: JSON.stringify(matchedSubject)
+        },
+        widgets
+      };
+    }
+
+    // 6. Ogólne oceny / średnia
     if (query.includes('ocen') || query.includes('średni')) {
       const output = await this.executeLiveTool('get_librus_grades', {}, userId);
       const gpa = dbStore.calculateGpa();
@@ -742,6 +991,7 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
       };
     }
 
+    // 7. Plan lekcji
     if (query.includes('plan') || query.includes('lekcj')) {
       const timetable = dbStore.getTimetable(currentDay);
       const output = await this.executeLiveTool('query_timetable', { day: currentDay }, userId);
@@ -759,6 +1009,7 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
       };
     }
 
+    // 8. Powiadomienie push
     if (query.includes('push') || query.includes('telefon') || query.includes('powiadom')) {
       const output = await this.executeLiveTool('send_phone_notification', { title: 'OmniDash Asystent', body: message, priority: 'HIGH' }, userId);
       const reply = 'Wysłano powiadomienie na Twój smartfon przez Pushbullet Dispatcher.';
@@ -774,6 +1025,7 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
       };
     }
 
+    // 9. Zadania
     if (query.includes('dodaj zadanie') || query.includes('nowe zadanie')) {
       const taskTitle = message.replace(/(dodaj zadanie|nowe zadanie|zadanie:?)/gi, '').trim() || 'Nowe zadanie z czatu';
       const output = await this.executeLiveTool('add_to_do', { title: taskTitle, priority: 'HIGH' }, userId);
@@ -790,7 +1042,18 @@ ${lessonInfo.isConsecutiveSameSubject ? `- UWAGA ARCHITEKTONICZNA: Bieżąca lek
       };
     }
 
-    const reply = 'Zrozumiałem polecenie. System asystenta OmniDash v4.0 przetworzył operację.';
+    // 10. Fallback: Jeśli wystąpił błąd autoryzacji (401), natychmiast zwróć jasny komunikat diagnostyczny
+    if (authError) {
+      const reply = `Błąd autoryzacji dostawcy AI (${authError.provider} HTTP 401: Nieprawidłowy lub unieważniony klucz API). Zaktualizuj klucz API w konfiguracji systemu (POST /api/ai/config lub zmienna ${authError.provider.toUpperCase()}_API_KEY).`;
+      return {
+        reply,
+        toolCall: undefined,
+        widgets: []
+      };
+    }
+
+    // 11. Domyślny komunikat braku dopasowania lokalnego bez pustych atrap
+    const reply = 'Zapytanie wykracza poza wbudowane moduły lokalne (plan lekcji, dzwonki, oceny Librus, zadania, finanse, automatyzacja). Skonfiguruj aktywny klucz API dostawcy Groq lub Gemini (POST /api/ai/config), aby umożliwić pełną konwersację z asystentem AI.';
     const widgets = determineWidgets(undefined, message, reply);
     return {
       reply,

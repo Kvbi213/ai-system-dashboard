@@ -17,9 +17,12 @@ import {
   Globe,
   ExternalLink,
   Copy,
-  Check
+  Check,
+  Eye,
+  EyeOff,
+  Save
 } from 'lucide-react';
-import { authApi } from '../../../api/client';
+import { authApi, aiApi, AiEngineStatus } from '../../../api/client';
 import { googleAuthService, GoogleSessionState } from '../../../services/googleAuth';
 
 // Oficjalna ikona Google SVG
@@ -70,11 +73,27 @@ export const AuthenticationSettings: React.FC = () => {
 
   const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://omni.kvbi.pl';
 
+  // Stan konfiguracji Groq AI
+  const [aiStatus, setAiStatus] = useState<AiEngineStatus | null>(null);
+  const [groqKeyInput, setGroqKeyInput] = useState('');
+  const [showGroqConfig, setShowGroqConfig] = useState(false);
+  const [isSavingGroqKey, setIsSavingGroqKey] = useState(false);
+  const [groqKeyMasked, setGroqKeyMasked] = useState(true);
+  const [groqSaveMessage, setGroqSaveMessage] = useState<{ success: boolean; text: string } | null>(null);
+
   const loadStatus = async () => {
     setIsLoading(true);
     try {
-      const res = await authApi.getStatus();
-      setAuthStatus(res);
+      const [res, aiRes] = await Promise.allSettled([
+        authApi.getStatus(),
+        aiApi.getStatus()
+      ]);
+      if (res.status === 'fulfilled') {
+        setAuthStatus(res.value);
+      }
+      if (aiRes.status === 'fulfilled') {
+        setAiStatus(aiRes.value);
+      }
       // Odśwież stan lokalnej sesji Google
       const currentStored = googleAuthService.getStoredSession();
       setLocalGoogleSession(currentStored);
@@ -82,6 +101,30 @@ export const AuthenticationSettings: React.FC = () => {
       console.warn('Nie udało się pobrać statusu autoryzacji:', err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSaveGroqKey = async () => {
+    if (!groqKeyInput.trim()) return;
+    setIsSavingGroqKey(true);
+    setGroqSaveMessage(null);
+    try {
+      const res = await aiApi.saveConfig({ apiKey: groqKeyInput.trim() });
+      setAiStatus(res.status);
+      setGroqSaveMessage({ success: true, text: res.message || 'Klucz Groq API zweryfikowany i zapisany.' });
+      setGroqKeyInput('');
+      setShowGroqConfig(false);
+    } catch (err: any) {
+      setGroqSaveMessage({
+        success: false,
+        text: err.message || 'Niepowodzenie weryfikacji klucza Groq (Błąd 401 Unauthorized).'
+      });
+      try {
+        const fresh = await aiApi.getStatus();
+        setAiStatus(fresh);
+      } catch {}
+    } finally {
+      setIsSavingGroqKey(false);
     }
   };
 
@@ -813,20 +856,136 @@ export const AuthenticationSettings: React.FC = () => {
             <Badge variant="success">SKONFIGUROWANO</Badge>
           </div>
 
-          {/* Groq Cloud */}
-          <div className="p-3 rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500 border border-purple-500/20">
-                <Bot className="w-4 h-4" />
+          {/* Groq Cloud AI */}
+          <div className="p-3.5 rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-xl ${aiStatus?.connected ? 'bg-purple-500/10 text-purple-500 border border-purple-500/20' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'}`}>
+                  <Bot className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      Groq Cloud AI (openai/gpt-oss-120b)
+                    </p>
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                      LPU ENGINE
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                    {aiStatus?.maskedKey
+                      ? `Klucz: ${aiStatus.maskedKey} (${aiStatus.source === 'database' ? 'baza SQLite' : 'plik .env'})`
+                      : 'Brak aktywnego klucza Groq w konfiguracji'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Groq Cloud AI (gpt-oss-120b)</p>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-                  Model LLM dla agentów i analizy tekstu
-                </p>
+
+              <div className="flex items-center gap-2">
+                <Badge variant={aiStatus?.connected ? 'success' : aiStatus?.error?.includes('401') ? 'danger' : 'amber'}>
+                  {aiStatus?.connected
+                    ? 'POŁĄCZONO'
+                    : aiStatus?.error?.includes('401')
+                    ? 'BŁĄD 401 (NIEPRAWIDŁOWY KLUCZ)'
+                    : 'WYMAGA KLUCZA API'}
+                </Badge>
+                <button
+                  onClick={() => setShowGroqConfig(!showGroqConfig)}
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition flex items-center gap-1.5"
+                >
+                  <Settings2 className="w-3.5 h-3.5 text-purple-400" />
+                  <span>{showGroqConfig ? 'Ukryj' : aiStatus?.connected ? 'Zmień klucz' : 'Skonfiguruj'}</span>
+                </button>
+                <a
+                  href="https://console.groq.com/keys"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 transition flex items-center gap-1"
+                  title="Otwórz konsolę kluczy Groq (Darmowy klucz API)"
+                >
+                  <span>Groq Console</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
               </div>
             </div>
-            <Badge variant="success">AKTYWNY</Badge>
+
+            {aiStatus?.error && !aiStatus.connected && (
+              <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 flex items-center gap-2">
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                <span>{aiStatus.error}</span>
+              </div>
+            )}
+
+            {groqSaveMessage && (
+              <div
+                className={`p-2.5 rounded-xl border text-xs flex items-center gap-2 font-mono ${
+                  groqSaveMessage.success
+                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
+                    : 'bg-rose-500/10 border-rose-500/20 text-rose-300'
+                }`}
+              >
+                {groqSaveMessage.success ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                ) : (
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                )}
+                <span>{groqSaveMessage.text}</span>
+              </div>
+            )}
+
+            {showGroqConfig && (
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2 animate-in fade-in duration-150">
+                <label className="text-[11px] font-bold text-slate-800 dark:text-slate-200 block">
+                  Klucz API Groq Cloud (format: <code className="font-mono text-purple-400">gsk_...</code>):
+                </label>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      type={groqKeyMasked ? 'password' : 'text'}
+                      placeholder="Wklej klucz Groq gsk_..."
+                      value={groqKeyInput}
+                      onChange={(e) => setGroqKeyInput(e.target.value)}
+                      className="w-full px-3 py-1.5 pr-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setGroqKeyMasked(!groqKeyMasked)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                    >
+                      {groqKeyMasked ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                  <button
+                    onClick={handleSaveGroqKey}
+                    disabled={isSavingGroqKey || !groqKeyInput.trim()}
+                    className="px-4 py-1.5 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white transition active:scale-95 shadow-sm disabled:opacity-50 flex items-center justify-center gap-1.5"
+                  >
+                    {isSavingGroqKey ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        <span>Testowanie...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-3.5 h-3.5" />
+                        <span>Zapisz i przetestuj połączenie</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className="text-[10.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Klucz jest bezpłatny i natychmiastowy. Możesz go wygenerować na{' '}
+                  <a
+                    href="https://console.groq.com/keys"
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="text-purple-400 underline font-mono"
+                  >
+                    console.groq.com/keys
+                  </a>
+                  . Po zapisaniu klucz zostanie zweryfikowany z endpointem Groq LPU i utrwalony w lokalnej bazie danych SQLite.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </GlassCard>
