@@ -10,16 +10,6 @@ export interface GlassCardProps extends HTMLMotionProps<'div'> {
   glow?: GlassGlow;
 }
 
-const glowStyles: Record<GlassGlow, string> = {
-  sky: 'hover:border-slate-300 dark:hover:border-slate-700',
-  emerald: 'hover:border-slate-300 dark:hover:border-slate-700',
-  amber: 'hover:border-slate-300 dark:hover:border-slate-700',
-  indigo: 'hover:border-slate-300 dark:hover:border-slate-700',
-  rose: 'hover:border-slate-300 dark:hover:border-slate-700',
-  purple: 'hover:border-slate-300 dark:hover:border-slate-700',
-  none: ''
-};
-
 export const GlassCard: React.FC<GlassCardProps> = ({
   children,
   className = '',
@@ -29,12 +19,14 @@ export const GlassCard: React.FC<GlassCardProps> = ({
 }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6 }}
+      initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
-      className={`rounded-2xl transition-all duration-150 ${
-        elevated ? 'glass-panel-elevated' : 'glass-panel'
-      } ${glowStyles[glow]} ${className}`}
+      transition={{ duration: 0.18, ease: 'easeOut' }}
+      className={`rounded-xl transition-all duration-150 ${
+        elevated
+          ? 'bg-white dark:bg-[#141a2a] border border-slate-300/80 dark:border-white/[0.12] shadow-sm dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]'
+          : 'bg-white dark:bg-[#101524] border border-slate-200/90 dark:border-white/[0.08] shadow-2xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]'
+      } ${className}`}
       {...motionProps}
     >
       {children}

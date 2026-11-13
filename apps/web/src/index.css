@@ -5,12 +5,12 @@
 @layer base {
   :root {
     --bg-canvas: #f8fafc;
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
   }
 
   :root.dark {
-    --bg-canvas: #080d1a;
+    --bg-canvas: #090d16;
     color-scheme: dark;
   }
 
@@ -20,58 +20,57 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.15s ease, color 0.15s ease;
   }
 
   .dark body {
-    background-color: #080d1a;
+    background-color: #090d16;
     color: #f1f5f9;
   }
 }
 
-/* Ergonomic Card & Surface Utilities - Light Mode */
+/* Linear / Raycast Card & Surface Tokens */
 .glass-panel {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05);
+  background-color: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+}
+
+.dark .glass-panel {
+  background-color: #101524;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
 }
 
 .glass-panel-elevated {
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
-}
-
-.glass-dock {
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid #e2e8f0;
-  box-shadow: 0 -4px 6px -1px rgba(15, 23, 42, 0.04);
-}
-
-/* Ergonomic Card & Surface Utilities - Dark Mode */
-.dark .glass-panel {
-  background: #111726;
-  border: 1px solid #1e293b;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  background-color: #ffffff;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
 }
 
 .dark .glass-panel-elevated {
-  background: #151d30;
-  border: 1px solid #334155;
-  box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.45);
+  background-color: #141a2a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+}
+
+.glass-dock {
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 -4px 6px -1px rgba(15, 23, 42, 0.03);
 }
 
 .dark .glass-dock {
-  background: rgba(17, 23, 38, 0.96);
+  background-color: rgba(12, 16, 27, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid #1e293b;
-  box-shadow: 0 -4px 8px -2px rgba(0, 0, 0, 0.45);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 -4px 8px -2px rgba(0, 0, 0, 0.4);
 }
 
-/* Custom Safe-Area Utilities for iOS & Dynamic Island */
+/* Custom Safe-Area Utilities */
 .pt-safe {
   padding-top: max(1rem, env(safe-area-inset-top));
 }
@@ -84,10 +83,10 @@
   padding-bottom: calc(5rem + max(0.75rem, env(safe-area-inset-bottom)));
 }
 
-/* Clean Custom Scrollbar */
+/* Precision Scrollbar (Linear style) */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -95,138 +94,23 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.35);
+  background: rgba(148, 163, 184, 0.3);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.55);
+  background: rgba(100, 116, 139, 0.5);
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.25);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(255, 255, 255, 0.25);
 }
 
-/* Dark Mode High-Contrast Typography & Surface Inversions */
-.dark .text-slate-900 {
-  color: #f8fafc;
-}
-
-.dark .text-slate-800 {
-  color: #f1f5f9;
-}
-
-.dark .text-slate-700 {
-  color: #e2e8f0;
-}
-
-.dark .text-slate-600 {
-  color: #cbd5e1;
-}
-
-.dark .text-slate-500 {
-  color: #94a3b8;
-}
-
-.dark .text-slate-400 {
-  color: #94a3b8;
-}
-
-/* Background Inversions: all white & light slate classes become sleek translucent dark slate */
-.dark .bg-white,
-.dark [class*="bg-white"] {
-  background-color: rgba(15, 23, 42, 0.8);
-}
-
-.dark .bg-slate-50,
-.dark [class*="bg-slate-50"],
-.dark .bg-slate-100,
-.dark [class*="bg-slate-100"],
-.dark .bg-slate-200,
-.dark [class*="bg-slate-200"] {
-  background-color: rgba(30, 41, 59, 0.7);
-}
-
-.dark .border-slate-200,
-.dark [class*="border-slate-200"],
-.dark .border-slate-300,
-.dark [class*="border-slate-300"],
-.dark .border-white,
-.dark [class*="border-white"] {
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Active pills and badges in dark mode */
-.dark [class*="bg-sky-100"],
-.dark [class*="bg-sky-50"] {
-  background-color: rgba(12, 74, 110, 0.5);
-  color: #7dd3fc;
-  border-color: rgba(56, 189, 248, 0.35);
-}
-
-.dark [class*="bg-emerald-100"],
-.dark [class*="bg-emerald-50"] {
-  background-color: rgba(6, 78, 59, 0.5);
-  color: #6ee7b7;
-  border-color: rgba(52, 211, 153, 0.35);
-}
-
-.dark [class*="bg-amber-100"],
-.dark [class*="bg-amber-50"] {
-  background-color: rgba(120, 53, 15, 0.5);
-  color: #fde68a;
-  border-color: rgba(251, 191, 36, 0.35);
-}
-
-.dark [class*="bg-purple-100"],
-.dark [class*="bg-purple-50"] {
-  background-color: rgba(88, 28, 135, 0.5);
-  color: #e9d5ff;
-  border-color: rgba(192, 132, 252, 0.35);
-}
-
-.dark [class*="bg-indigo-100"],
-.dark [class*="bg-indigo-50"] {
-  background-color: rgba(49, 46, 129, 0.5);
-  color: #c7d2fe;
-  border-color: rgba(129, 140, 248, 0.35);
-}
-
-.dark [class*="bg-pink-100"],
-.dark [class*="bg-pink-50"] {
-  background-color: rgba(131, 24, 67, 0.5);
-  color: #fbcfe8;
-  border-color: rgba(244, 114, 182, 0.35);
-}
-
-.dark [class*="bg-cyan-100"],
-.dark [class*="bg-cyan-50"] {
-  background-color: rgba(22, 78, 99, 0.5);
-  color: #a5f3fc;
-  border-color: rgba(34, 211, 238, 0.35);
-}
-
-.dark [class*="bg-rose-100"],
-.dark [class*="bg-rose-50"] {
-  background-color: rgba(136, 19, 55, 0.5);
-  color: #fecdd3;
-  border-color: rgba(251, 113, 133, 0.35);
-}
-
-/* Contrast fix for inputs and textareas in dark mode */
-.dark input:not([type="checkbox"]):not([type="radio"]),
-.dark textarea,
-.dark select {
-  background-color: rgba(15, 23, 42, 0.9) !important;
-  color: #f1f5f9 !important;
-  border-color: rgba(255, 255, 255, 0.18) !important;
-}
-
-.dark input::placeholder,
-.dark textarea::placeholder {
-  color: #64748b !important;
+/* Form inputs focus styles */
+input, textarea, select {
+  font-family: var(--font-sans);
 }
