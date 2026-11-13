@@ -14,19 +14,19 @@ export const OperationalNodesWidget: React.FC = () => {
   return (
     <GlassCard className="p-4 sm:p-5" glow="none">
       <div className="flex items-center justify-between mb-3.5">
-        <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm">
-            <Activity className="w-4 h-4 text-emerald-600" />
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            <Activity className="w-4 h-4 text-slate-600 dark:text-slate-400" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 tracking-tight">Usługi i Węzły Operacyjne</h3>
-            <p className="text-xs text-slate-500 font-medium">Monitoring stanu klastra mikroserwisów</p>
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Usługi systemowe</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">Stan lokalnych procesów</p>
           </div>
         </div>
 
-        <span className="flex items-center gap-1.5 text-xs font-mono font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200 shadow-sm">
-          <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          5/5 Węzłów OK (0 anomalii)
+        <span className="flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+          <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          5/5 aktywnych
         </span>
       </div>
 
@@ -34,17 +34,14 @@ export const OperationalNodesWidget: React.FC = () => {
         {NODES.map((node) => (
           <div
             key={node.id}
-            className="p-2.5 rounded-xl bg-white/80 border border-slate-200 hover:border-emerald-300 hover:bg-white transition-all shadow-sm"
+            className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-850/60 border border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition"
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] font-mono text-slate-400 font-bold">:{node.port}</span>
-              <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
+              <span className="text-[10px] font-mono text-slate-400 font-medium">:{node.port}</span>
+              <span className="inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </div>
-            <div className="text-xs font-bold text-slate-900 truncate">{node.name}</div>
-            <div className="text-[10px] font-mono text-emerald-700 font-semibold mt-0.5">{node.latency} • Sprawny</div>
+            <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">{node.name}</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">{node.latency} • Działa</div>
           </div>
         ))}
       </div>

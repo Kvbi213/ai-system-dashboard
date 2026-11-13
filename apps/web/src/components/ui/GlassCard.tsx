@@ -11,12 +11,12 @@ export interface GlassCardProps extends HTMLMotionProps<'div'> {
 }
 
 const glowStyles: Record<GlassGlow, string> = {
-  sky: 'shadow-xl shadow-sky-500/10 border-sky-300/60 ring-1 ring-sky-400/20',
-  emerald: 'shadow-xl shadow-emerald-500/10 border-emerald-300/60 ring-1 ring-emerald-400/20',
-  amber: 'shadow-xl shadow-amber-500/10 border-amber-300/60 ring-1 ring-amber-400/20',
-  indigo: 'shadow-xl shadow-indigo-500/10 border-indigo-300/60 ring-1 ring-indigo-400/20',
-  rose: 'shadow-xl shadow-rose-500/10 border-rose-300/60 ring-1 ring-rose-400/20',
-  purple: 'shadow-xl shadow-purple-500/10 border-purple-300/60 ring-1 ring-purple-400/20',
+  sky: 'hover:border-slate-300 dark:hover:border-slate-700',
+  emerald: 'hover:border-slate-300 dark:hover:border-slate-700',
+  amber: 'hover:border-slate-300 dark:hover:border-slate-700',
+  indigo: 'hover:border-slate-300 dark:hover:border-slate-700',
+  rose: 'hover:border-slate-300 dark:hover:border-slate-700',
+  purple: 'hover:border-slate-300 dark:hover:border-slate-700',
   none: ''
 };
 
@@ -29,10 +29,10 @@ export const GlassCard: React.FC<GlassCardProps> = ({
 }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-      className={`rounded-2xl transition-all duration-200 ${
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      className={`rounded-2xl transition-all duration-150 ${
         elevated ? 'glass-panel-elevated' : 'glass-panel'
       } ${glowStyles[glow]} ${className}`}
       {...motionProps}

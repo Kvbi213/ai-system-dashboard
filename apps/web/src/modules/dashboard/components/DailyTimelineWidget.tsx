@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { GlassCard } from '../../../components/ui/GlassCard';
-import { Calendar, CheckCircle2, CircleDot } from 'lucide-react';
+import { Calendar, CheckCircle2 } from 'lucide-react';
 import { schoolApi, calendarApi } from '../../../api/client';
 
 export interface TimelineBlock {
@@ -387,40 +387,39 @@ export const DailyTimelineWidget: React.FC = () => {
   }, [events, filterMode]);
 
   return (
-    <GlassCard className="p-3 sm:p-4" glow="sky" data-testid="timeline-widget">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-xl bg-sky-100 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 shadow-sm">
+    <GlassCard className="p-4 sm:p-5" glow="none" data-testid="timeline-widget">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
             <Calendar className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Oś Czasu Dnia</h3>
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-100 dark:bg-sky-900/60 text-sky-800 dark:text-sky-200 border border-sky-200 dark:border-sky-700 font-sans">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Plan dnia</h3>
+              <span className="px-2 py-0.5 rounded-md text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                 {dateFormatted}
               </span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Zsynchronizowany harmonogram dobowy</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">Harmonogram lekcji i stałych zajęć</p>
           </div>
         </div>
 
         {/* Filtr Szkolne / Prywatne / Od teraz / Wszystkie + Skocz do teraz */}
-        <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           <button
             onClick={scrollToNow}
             title="Przewiń do bieżącego lub nadchodzącego bloku"
-            className="px-2 py-1 rounded-lg text-[10px] font-bold bg-sky-50 dark:bg-sky-950/70 hover:bg-sky-100 dark:hover:bg-sky-900 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 transition flex items-center gap-1 shadow-xs"
+            className="px-2.5 py-1 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-slate-400"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
-            <span>Skocz do teraz</span>
+            Skocz do teraz
           </button>
 
-          <div className="flex items-center gap-1 p-0.5 rounded-xl bg-slate-100/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
             <button
               onClick={() => setFilterMode('all')}
-              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
                 filterMode === 'all'
-                  ? 'bg-white dark:bg-slate-800 text-sky-700 dark:text-sky-300 shadow-xs border border-slate-200 dark:border-slate-700'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -428,9 +427,9 @@ export const DailyTimelineWidget: React.FC = () => {
             </button>
             <button
               onClick={() => setFilterMode('now')}
-              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
                 filterMode === 'now'
-                  ? 'bg-sky-600 text-white shadow-xs'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -438,9 +437,9 @@ export const DailyTimelineWidget: React.FC = () => {
             </button>
             <button
               onClick={() => setFilterMode('school')}
-              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
                 filterMode === 'school'
-                  ? 'bg-emerald-600 text-white shadow-xs'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -448,9 +447,9 @@ export const DailyTimelineWidget: React.FC = () => {
             </button>
             <button
               onClick={() => setFilterMode('private')}
-              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
                 filterMode === 'private'
-                  ? 'bg-indigo-600 text-white shadow-xs'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -462,7 +461,7 @@ export const DailyTimelineWidget: React.FC = () => {
 
       <div
         ref={timelineContainerRef}
-        className="space-y-2.5 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-300 dark:before:bg-slate-700 max-h-[380px] overflow-y-auto pr-1"
+        className="space-y-2.5 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800 max-h-[380px] overflow-y-auto pr-1"
       >
         {filteredEvents.length === 0 ? (
           <div className="py-8 text-center text-xs text-slate-400 italic">
@@ -482,73 +481,73 @@ export const DailyTimelineWidget: React.FC = () => {
                 {/* Node Indicator */}
                 <div className="relative z-10 shrink-0 mt-0.5">
                   {isDone ? (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-500 bg-white dark:bg-slate-900 rounded-full" />
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 bg-white dark:bg-slate-900 rounded-full" />
                   ) : isCurrent ? (
                     <div className="relative flex items-center justify-center">
-                      <span className="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-sky-400 opacity-75"></span>
-                      <CircleDot className="w-5 h-5 text-sky-500 bg-white dark:bg-slate-900 rounded-full relative" />
+                      <div className="w-5 h-5 rounded-full bg-sky-50 dark:bg-sky-950 border-2 border-sky-600 dark:border-sky-400 flex items-center justify-center">
+                        <div className="w-2 h-2 rounded-full bg-sky-600 dark:bg-sky-400" />
+                      </div>
                     </div>
                   ) : (
-                    <div className="w-5 h-5 rounded-full bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center" />
+                    <div className="w-5 h-5 rounded-full bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center" />
                   )}
                 </div>
 
                 {/* Event Content Box with high contrast */}
                 <div
-                  className={`flex-1 p-2.5 rounded-xl border transition-all ${
+                  className={`flex-1 p-2.5 rounded-lg border transition-all ${
                     isCurrent
-                      ? 'bg-sky-50 dark:bg-sky-950/80 border-sky-300 dark:border-sky-500 shadow-sm ring-1 ring-sky-300/60'
+                      ? 'bg-sky-50/70 dark:bg-sky-950/40 border-sky-300 dark:border-sky-800'
                       : isDone
-                      ? 'bg-slate-50 dark:bg-slate-900/90 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-850'
-                      : 'bg-white dark:bg-slate-900/90 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850'
+                      ? 'bg-slate-50/70 dark:bg-slate-900/40 border-slate-200/80 dark:border-slate-800/80 hover:bg-slate-100/70 dark:hover:bg-slate-850'
+                      : 'bg-white dark:bg-slate-900/70 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-mono font-bold text-slate-700 dark:text-slate-200">
+                    <span className="text-xs font-mono font-medium text-slate-700 dark:text-slate-300">
                       {event.time}
                     </span>
                     <div className="flex items-center gap-1.5">
                       {event.room && (
-                        <span className="text-[10px] font-mono bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold">
+                        <span className="text-[11px] font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-700 dark:text-slate-300">
                           {event.room}
                         </span>
                       )}
                       {event.isCancelled && (
-                        <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-700">
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
                           Odwołana
                         </span>
                       )}
                       {event.isSubstitution && (
-                        <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                           Zastępstwo
                         </span>
                       )}
                       <span
-                        className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                        className={`text-[10px] font-medium px-2 py-0.5 rounded ${
                           isCurrent
-                            ? 'bg-sky-600 text-white'
-                            : event.category === 'SPRAWDZIAN'
-                            ? 'bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 border border-rose-300 dark:border-rose-700'
-                            : event.category === 'KARTKÓWKA'
-                            ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700'
-                            : event.sourceType === 'school'
                             ? 'bg-sky-100 dark:bg-sky-900/60 text-sky-800 dark:text-sky-200 border border-sky-300 dark:border-sky-700'
-                            : 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-200 border border-indigo-300 dark:border-indigo-700'
+                            : event.category === 'SPRAWDZIAN'
+                            ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
+                            : event.category === 'KARTKÓWKA'
+                            ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                            : event.sourceType === 'school'
+                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
                         }`}
                       >
-                        {isCurrent ? 'Trwa teraz' : event.category}
+                        {isCurrent ? 'Trwa teraz' : event.category.toLowerCase()}
                       </span>
                     </div>
                   </div>
 
-                  <div className={`text-xs font-bold mt-1 ${event.isCancelled ? 'line-through text-slate-400 dark:text-slate-500' : isCurrent ? 'text-sky-950 dark:text-sky-100 font-extrabold' : 'text-slate-900 dark:text-white'}`}>
+                  <div className={`text-xs mt-1 font-semibold ${event.isCancelled ? 'line-through text-slate-400 dark:text-slate-500' : isCurrent ? 'text-sky-950 dark:text-sky-100' : 'text-slate-900 dark:text-slate-100'}`}>
                     {event.title}
                   </div>
 
                   {event.substitutionNote && (
-                    <div className="text-[10px] text-amber-700 dark:text-amber-300 font-semibold mt-0.5 flex items-center gap-1">
-                      <span>[~]</span>
-                      <span>{event.substitutionNote}</span>
+                    <div className="text-[11px] text-amber-700 dark:text-amber-400 font-normal mt-0.5">
+                      {event.substitutionNote}
                     </div>
                   )}
                 </div>

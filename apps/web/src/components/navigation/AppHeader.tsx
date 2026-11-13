@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, Sparkles, Bell, Sun, Moon } from 'lucide-react';
+import { Bell, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
 interface AppHeaderProps {
@@ -46,35 +46,24 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   }, []);
 
   return (
-    <header className="sticky top-0 z-20 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#080d1a]/95 backdrop-blur-xl px-4 py-3 sm:px-6 shadow-sm transition-colors duration-200">
+    <header className="sticky top-0 z-20 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#0e1424]/95 backdrop-blur-md px-4 py-3 sm:px-6 transition-colors duration-200">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         {/* Left: View Title & Subtitle */}
         <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-              {title}
-            </h1>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-700 border border-sky-200 shadow-sm">
-              LIVE
-            </span>
-          </div>
-          {subtitle && <p className="text-xs text-slate-500 hidden sm:block font-medium">{subtitle}</p>}
+          <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+            {title}
+          </h1>
+          {subtitle && <p className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">{subtitle}</p>}
         </div>
 
-        {/* Right: Warsaw Live Clock, Telemetry Status, Action Triggers */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        {/* Right: Warsaw Live Clock, Theme Toggle, Action Triggers */}
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Warsaw Clock & Current Day */}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/80 border border-slate-200/80 font-mono text-xs text-slate-700 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-            <span className="text-slate-500 font-bold uppercase">{dateStr || 'DZIŚ'}</span>
-            <span className="text-slate-300">|</span>
-            <span className="font-bold text-sky-700">{timeStr || '--:--:--'}</span>
-          </div>
-
-          {/* Network Health Indicator */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-50/80 border border-emerald-200/80 text-xs text-emerald-700 font-medium shadow-sm">
-            <Wifi className="w-3.5 h-3.5 text-emerald-600" />
-            <span className="hidden md:inline font-mono text-[11px] font-bold">EDGE ON</span>
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 font-mono text-xs text-slate-700 dark:text-slate-300">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span className="text-slate-500 dark:text-slate-400 font-medium uppercase text-[11px]">{dateStr || 'DZIŚ'}</span>
+            <span className="text-slate-300 dark:text-slate-600">|</span>
+            <span className="font-semibold text-slate-800 dark:text-slate-200">{timeStr || '--:--:--'}</span>
           </div>
 
           {/* Theme Toggle Button */}
@@ -82,7 +71,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             type="button"
             onClick={toggleTheme}
             title={theme === 'dark' ? 'Przełącz na motyw jasny' : 'Przełącz na motyw ciemny'}
-            className="p-2 rounded-xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-sky-300 dark:hover:border-sky-500 transition active:scale-95 shadow-sm"
+            className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:outline-none"
             aria-label="Przełącz motyw"
           >
             {theme === 'dark' ? (
@@ -96,24 +85,17 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           {onOpenTasksDrawer && (
             <button
               onClick={onOpenTasksDrawer}
-              className="relative p-2 rounded-xl bg-white/80 border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:border-sky-300 transition active:scale-95 shadow-sm"
+              className="relative p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:outline-none"
               aria-label="Otwórz zadania wykonawcze"
             >
               <Bell className="w-4 h-4" />
               {pendingTasksCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-sm">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-900 dark:bg-slate-100 text-[9px] font-bold text-white dark:text-slate-900 shadow-sm">
                   {pendingTasksCount}
                 </span>
               )}
             </button>
           )}
-
-          {/* AI Status Badge */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-50 to-indigo-50 border border-sky-200/90 text-xs text-sky-800 shadow-sm">
-            <Sparkles className="w-3.5 h-3.5 text-sky-600 animate-pulse" />
-            <span className="font-semibold hidden sm:inline">AI Agent</span>
-            <span className="font-mono text-[10px] text-slate-500 font-bold">v1.0</span>
-          </div>
         </div>
       </div>
     </header>

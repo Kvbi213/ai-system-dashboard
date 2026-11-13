@@ -164,35 +164,32 @@ export const CurrentLessonHero: React.FC<CurrentLessonHeroProps> = (props) => {
   }, []);
 
   return (
-    <GlassCard data-testid="current-lesson-hero" className="p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden w-full h-full" glow="sky">
-      {/* Decorative backdrop light */}
-      <div className="absolute -top-16 -right-16 w-44 h-44 bg-sky-200/40 rounded-full blur-2xl pointer-events-none" />
-
+    <GlassCard data-testid="current-lesson-hero" className="p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden w-full h-full">
       <div>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <span
-              className={`w-2.5 h-2.5 rounded-full ${
+              className={`w-2 h-2 rounded-full ${
                 lessonData.status === 'in_progress'
-                  ? 'bg-emerald-500 animate-pulse'
+                  ? 'bg-emerald-500'
                   : lessonData.status === 'finished'
-                  ? 'bg-indigo-500'
+                  ? 'bg-slate-400'
                   : 'bg-sky-500'
               }`}
             />
-            <span className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-400">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               {lessonData.status === 'in_progress'
-                ? 'Trwa lekcja (Librus)'
+                ? 'Trwa lekcja'
                 : lessonData.status === 'upcoming'
-                ? 'Następna lekcja z planu'
-                : 'Zajęcia na dziś zakończone'}
+                ? 'Następna lekcja'
+                : 'Zajęcia zakończone'}
             </span>
           </div>
           <NavLink
             to="/school"
-            className="flex items-center gap-1 text-xs text-slate-500 hover:text-sky-700 dark:hover:text-sky-400 font-semibold transition"
+            className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium transition focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:outline-none rounded"
           >
-            <span>Plan</span>
+            <span>Plan zajęć</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
           </NavLink>
         </div>
@@ -208,8 +205,8 @@ export const CurrentLessonHero: React.FC<CurrentLessonHeroProps> = (props) => {
         )}
 
         <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-3 text-xs text-slate-600 dark:text-slate-300">
-          <div className="flex items-center gap-1.5 font-mono font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/70 px-2 py-0.5 rounded-lg border border-sky-200/60 dark:border-sky-800 shadow-sm">
-            <Clock className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+          <div className="flex items-center gap-1.5 font-mono font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+            <Clock className="w-3.5 h-3.5 text-slate-500" />
             <span>{lessonData.timeRange}</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -224,37 +221,37 @@ export const CurrentLessonHero: React.FC<CurrentLessonHeroProps> = (props) => {
       </div>
 
       {/* Progress & Remaining Time Capsule */}
-      <div className="mt-4 pt-3 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
         {lessonData.status === 'finished' ? (
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-800 flex items-center justify-center font-bold text-sm text-emerald-600 dark:text-emerald-400 shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-sm text-slate-600 dark:text-slate-300">
               ✓
             </div>
             <div>
-              <p className="text-[11px] text-slate-400 font-medium">Harmonogram szkolny</p>
-              <p className="text-xs font-bold text-slate-800 dark:text-slate-100">Koniec lekcji na dziś</p>
+              <p className="text-[11px] text-slate-400 font-medium">Harmonogram</p>
+              <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">Koniec lekcji na dziś</p>
             </div>
           </div>
         ) : (
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-sky-50 dark:bg-sky-950/70 border border-sky-200 dark:border-sky-800 flex items-center justify-center font-bold text-xs text-sky-700 dark:text-sky-300 font-mono shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-xs text-slate-800 dark:text-slate-200 font-mono">
               {lessonData.remainingMinutes}m
             </div>
             <div>
               <p className="text-[11px] text-slate-400 font-medium">
                 {lessonData.status === 'in_progress' ? 'Do dzwonka pozostało' : 'Czas do rozpoczęcia'}
               </p>
-              <p className="text-xs font-bold text-slate-800 dark:text-slate-100">{lessonData.remainingMinutes} minut</p>
+              <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">{lessonData.remainingMinutes} minut</p>
             </div>
           </div>
         )}
 
-        <div className="w-28 sm:w-36 bg-slate-200/80 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-white/60 dark:border-slate-700">
+        <div className="w-28 sm:w-36 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200 dark:border-slate-700">
           <div
-            className={`h-full rounded-full transition-all duration-500 shadow-sm ${
+            className={`h-full rounded-full transition-all duration-300 ${
               lessonData.status === 'finished'
                 ? 'bg-emerald-500 w-full'
-                : 'bg-gradient-to-r from-sky-500 to-indigo-600'
+                : 'bg-slate-800 dark:bg-slate-200'
             }`}
             style={{
               width:

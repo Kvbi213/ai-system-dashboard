@@ -34,23 +34,23 @@ export const SystemTelemetryWidget: React.FC = () => {
   return (
     <GlassCard className="p-4 flex flex-col justify-between" glow="none">
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-sm">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
             <Server className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Węzeł Operacyjny Host
+            <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              Serwer lokalny
             </h3>
-            <p className="text-sm font-bold text-slate-900 dark:text-white">
+            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               {telemetry?.os?.platform === 'win32' ? 'Windows NT Core' : (telemetry?.os?.platform || 'Node.js 26')}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-mono text-xs font-bold shadow-sm">
-          <Activity className="w-3.5 h-3.5 animate-pulse" />
-          <span>{telemetry?.process?.uptimeSeconds ? `${Math.floor(telemetry.process.uptimeSeconds / 60)}m` : 'LIVE'}</span>
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-mono text-xs font-medium">
+          <Activity className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+          <span>{telemetry?.process?.uptimeSeconds ? `${Math.floor(telemetry.process.uptimeSeconds / 60)}m` : 'Aktywny'}</span>
         </div>
       </div>
 
