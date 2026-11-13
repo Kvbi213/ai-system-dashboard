@@ -14,6 +14,35 @@
     color-scheme: dark;
   }
 
+  /* Mode 3: Precision OP-1 tokens */
+  :root[data-design-mode="precision"] {
+    --bg-canvas: #020202;
+    --font-sans: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+    font-family: 'JetBrains Mono', monospace;
+    color-scheme: dark;
+  }
+
+  :root[data-design-mode="precision"] body {
+    background-color: #020202 !important;
+    color: #e5e5e5;
+    font-family: 'JetBrains Mono', monospace !important;
+  }
+
+  :root[data-design-mode="precision"] ::selection {
+    background-color: #f59e0b;
+    color: #000000;
+  }
+
+  /* Mode 2: Liquid Studio tokens */
+  :root[data-design-mode="liquid"].dark {
+    --bg-canvas: #050811;
+  }
+
+  /* Mode 1: Horizon Glass tokens */
+  :root[data-design-mode="horizon"].dark {
+    --bg-canvas: #090e1c;
+  }
+
   body {
     background-color: var(--bg-canvas);
     color: #0f172a;
@@ -24,9 +53,10 @@
   }
 
   .dark body {
-    background-color: #090d16;
+    background-color: var(--bg-canvas);
     color: #f1f5f9;
   }
+
 }
 
 /* Linear / Raycast Card & Surface Tokens */

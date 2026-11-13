@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Sun, Moon, Search, Command, Cpu } from 'lucide-react';
+import { Bell, Sun, Moon, Search, Command } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { AiAssistantMascot } from '../mascot/AiAssistantMascot';
 
 interface AppHeaderProps {
   title?: string;
@@ -84,12 +85,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             </span>
           </button>
 
-          {/* AI Engine Status Capsule */}
-          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/[0.06] text-[11px] text-slate-600 dark:text-slate-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <Cpu className="w-3 h-3 text-slate-400" />
-            <span>Groq 120B</span>
-          </div>
+          {/* AI Mascot & Engine Status */}
+          <AiAssistantMascot className="hidden md:inline-flex" />
+
 
           {/* Warsaw Clock */}
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/[0.06] font-mono text-xs text-slate-700 dark:text-slate-300">

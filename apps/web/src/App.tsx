@@ -8,6 +8,9 @@ import { CommandPaletteModal } from './components/navigation/CommandPaletteModal
 import { ToastProvider } from './components/ui/Toast';
 import { LockScreenOverlay } from './components/security/LockScreenOverlay';
 import { SetupWizardModal } from './components/setup/SetupWizardModal';
+import { DesignModeSwitcher } from './components/navigation/DesignModeSwitcher';
+import { SpatialDock } from './components/navigation/SpatialDock';
+import { useDesignSystem } from './context/DesignSystemContext';
 import { systemApi } from './api/client';
 
 import { DashboardPage } from './modules/dashboard/page';
@@ -84,6 +87,8 @@ export const App: React.FC = () => {
   const location = useLocation();
   const isChatRoute = location.pathname === '/chat';
 
+  const { mode } = useDesignSystem();
+
   const currentRouteMeta = ROUTE_TITLES[location.pathname] || {
     title: 'OmniDash',
     subtitle: 'Sovereign Station'
@@ -91,7 +96,26 @@ export const App: React.FC = () => {
 
   return (
     <ToastProvider>
-      <div className="relative flex h-[100dvh] w-full overflow-hidden bg-[#f8fafc] dark:bg-[#090d16] text-slate-800 dark:text-slate-100 font-sans antialiased selection:bg-slate-300 dark:selection:bg-white/20 transition-colors duration-200">
+      <div
+        className={`relative flex h-[100dvh] w-full overflow-hidden text-slate-800 dark:text-slate-100 antialiased selection:bg-slate-300 dark:selection:bg-white/20 transition-colors duration-200 ${
+          mode === 'precision'
+            ? 'bg-[#020202] text-neutral-200 font-mono'
+            : 'bg-[#f8fafc] dark:bg-[#090d16] font-sans'
+        }`}
+      >
+        {/* Atmospheric Ambient Layers based on Design Mode */}
+        {mode === 'horizon' && (
+          <div className="pointer-events-none absolute top-0 inset-x-0 h-48 bg-gradient-to-b from-amber-500/15 via-rose-500/5 to-transparent z-0" />
+        )}
+        {mode === 'liquid' && (
+          <>
+            <div className="pointer-events-none absolute -top-24 -right-24 w-96 h-96 rounded-full bg-cyan-500/12 blur-[100px] z-0" />
+            <div className="pointer-events-none absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-indigo-500/12 blur-[100px] z-0" />
+          </>
+        )}
+        {mode === 'precision' && (
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(#262626_1px,transparent_1px)] [background-size:24px_24px] opacity-50 z-0" />
+        )}
 
         {/* Lock Screen Overlay (Active when pin lock is enabled) */}
         {isLocked && <LockScreenOverlay onUnlock={() => setIsLocked(false)} />}
@@ -106,8 +130,9 @@ export const App: React.FC = () => {
           onLockScreen={() => setIsLocked(true)}
         />
 
-        {/* Desktop Persistent Sidebar */}
+        {/* Desktop Persistent Sidebar (Adjusts subtly in Precision mode) */}
         <Sidebar onOpenCommandPalette={() => setIsCommandPaletteOpen(true)} />
+
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden z-10">
@@ -152,9 +177,16 @@ export const App: React.FC = () => {
         {/* Mobile Ergonomic Bottom Tab Bar (Thumb Zone) */}
         <BottomTabBar onOpenMore={() => setIsMoreOpen(true)} />
 
+        {/* VisionOS / macOS Tahoe Spatial Dock (Active in Liquid mode) */}
+        <SpatialDock />
+
+        {/* Global Live Design System Direction Switcher */}
+        <DesignModeSwitcher />
+
         {/* Mobile Slide-up "Więcej" Sheet */}
         <MoreDrawerSheet isOpen={isMoreOpen} onClose={() => setIsMoreOpen(false)} />
       </div>
     </ToastProvider>
   );
 };
+
